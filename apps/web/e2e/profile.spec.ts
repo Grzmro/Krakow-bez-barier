@@ -117,7 +117,7 @@ test("thresholds change verdicts, persist in the browser and reset to defaults",
   const drawer = page.getByRole("dialog", { name: "Progi profilu" });
   await expect(drawer).toBeVisible();
   await drawer.getByRole("button", { name: "Zwiększ: Min. szerokość wejścia" }).click();
-  await expect(drawer.getByRole("group", { name: "Min. szerokość wejścia" })).toContainText("95 cm");
+  await expect(drawer.getByRole("spinbutton", { name: "Min. szerokość wejścia" })).toHaveValue("95");
   await expect(drawer).not.toContainText(/niepełnospraw|diagnoz|choroba/i);
   await expectAccessible();
   await evidence("home-profile-thresholds");

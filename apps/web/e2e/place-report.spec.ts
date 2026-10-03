@@ -55,7 +55,7 @@ test("a number out of the contract's range is explained in text and not sent", a
   await drawer.getByText("Szerokość drzwi", { exact: true }).click();
 
   // WHEN the visitor types a width below the range and sends
-  const width = drawer.getByRole("textbox", { name: /Jak jest naprawdę/ });
+  const width = drawer.getByRole("spinbutton", { name: /Jak jest naprawdę/ });
   await width.fill("5");
   await drawer.getByRole("button", { name: "Wyślij" }).click();
 

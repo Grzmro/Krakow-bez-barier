@@ -7,18 +7,22 @@
     - text: Wózek
     - radio "Wózek dziecięcy"
     - text: Dziecięcy
+    - radio "Senior"
+    - text: Senior
   - text: Maks. próg
   - group "Maks. próg":
     - 'button "Zmniejsz: Maks. próg"':
       - img
-    - status: 2 cm
+    - spinbutton "Maks. próg": "2"
+    - text: cm
     - 'button "Zwiększ: Maks. próg"':
       - img
   - text: Min. szerokość wejścia
   - group "Min. szerokość wejścia":
     - 'button "Zmniejsz: Min. szerokość wejścia"':
       - img
-    - status: /\d+ cm/
+    - spinbutton "Min. szerokość wejścia": /\d+/
+    - text: cm
     - 'button "Zwiększ: Min. szerokość wejścia"':
       - img
   - text: Bez stopni Gdy wyłączone, 1 stopień jest dopuszczalny

@@ -174,7 +174,11 @@ function ReportForm({
             <input
               id="report-number"
               data-autofocus
+              type="number"
               inputMode="decimal"
+              min={input.range.min}
+              max={input.range.max}
+              step="any"
               autoComplete="off"
               value={number}
               onChange={(e) => setNumber(e.target.value)}
