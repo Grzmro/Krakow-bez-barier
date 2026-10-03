@@ -12,6 +12,9 @@ Spec-first API contract (OpenAPI 3.1). `openapi.yaml` is the single source of tr
   and none matches), else `default`, else the first. In the web
   app use `api` from `apps/web/src/lib/api.ts`, which switches on `NEXT_PUBLIC_API_MOCK`.
 
+- `reportRules` / `checkReportNumber()` – report validation generated from `ReportCreate` (`x-value-ranges` per numeric
+  attribute, comment `maxLength`), so the form and the API reject the same values.
+
 Rules: see `.claude/rules/contracts.md`. Change the spec first, then regenerate, then implement.
 Every operation has an `operationId`, a summary, documented errors (`Problem`, RFC 9457) and examples; the place examples cover
 conflicting sources, no data, outdated data and an unavailable source.

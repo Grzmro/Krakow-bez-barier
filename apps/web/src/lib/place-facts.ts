@@ -47,6 +47,8 @@ export interface FactView {
   sources: FactSource[];
   unknown: boolean;
   conflict: boolean;
+  /** The fact a visitor confirms with "Potwierdzam, byłem tu"; only for a single known value. */
+  confirmFactId?: string;
 }
 
 const dateFormat = new Intl.DateTimeFormat("pl-PL", {
@@ -129,6 +131,7 @@ export function factViews(place: Place): FactView[] {
     }
     const shown = resolved.value ?? resolved.facts[0].value;
     const formatted = formatValue(attribute, shown);
+    const shownFact = resolved.facts.find((f) => JSON.stringify(f.value) === JSON.stringify(shown)) ?? resolved.facts[0];
     return {
       attribute,
       label,
@@ -138,6 +141,7 @@ export function factViews(place: Place): FactView[] {
       sources,
       unknown: false,
       conflict: false,
+      confirmFactId: shownFact.id,
     };
   });
 }
@@ -151,4 +155,19 @@ export function failedSources(place: Place): Source[] {
 export function latestSourceDate(place: Place): string | undefined {
   const dates = place.sources.map((s) => s.lastSuccessAt).filter((d): d is string => !!d);
   return dates.length ? dates.reduce((a, b) => (a > b ? a : b)) : undefined;
+}
+
+const OSM_RECORD = /^(node|way|relation)\/(\d+)$/;
+
+/** "Edytuj w OpenStreetMap" link for the place's OSM object, built from the OSM source's own URL. */
+export function osmEditUrl(place: Place): string | undefined {
+  for (const fact of place.attributes.flatMap((a) => a.facts)) {
+    const match = fact.source.kind === "community" && fact.source.recordRef ? OSM_RECORD.exec(fact.source.recordRef) : null;
+    const base = match ? place.sources.find((s) => s.id === fact.source.id)?.url : undefined;
+    if (!match || !base) continue;
+    const url = new URL("/edit", base);
+    url.searchParams.set(match[1], match[2]);
+    return url.toString();
+  }
+  return undefined;
 }

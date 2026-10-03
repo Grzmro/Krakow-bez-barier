@@ -1,0 +1,34 @@
+- dialog "To się nie zgadza":
+  - paragraph: Pałac Krzysztofory
+  - heading "To się nie zgadza" [level=2]
+  - group "Która cecha?":
+    - text: ""
+    - radio "Wejście — stopnie"
+    - text: Wejście — stopnie
+    - radio "Próg"
+    - text: Próg
+    - radio "Szerokość drzwi"
+    - text: Szerokość drzwi
+    - radio "Winda"
+    - text: Winda
+    - radio "Nawierzchnia dojścia"
+    - text: Nawierzchnia dojścia
+    - radio "Toaleta dostosowana" [checked]
+    - text: Toaleta dostosowana
+    - radio "Miejsca odpoczynku"
+    - text: Miejsca odpoczynku
+    - radio "Parking dla osób z niepełnosprawnościami"
+    - text: Parking dla osób z niepełnosprawnościami
+    - radio "Przewijak"
+    - text: Przewijak
+  - group "Jak jest naprawdę?":
+    - text: ""
+    - radio "Jest dostosowana"
+    - text: Jest dostosowana
+    - radio "Nie ma dostosowanej"
+    - text: Nie ma dostosowanej
+  - text: Komentarz (opcjonalnie)
+  - textbox "Komentarz (opcjonalnie)":
+    - /placeholder: Np. drzwi otwierane na zewnątrz
+  - button "Wyślij"
+  - paragraph: Bez konta. Bez e-maila. Zgłoszenie trafia do moderacji, zanim zmieni dane.

@@ -19,9 +19,11 @@ import {
   ForkKnife,
   Globe,
   GridFour,
+  HandPalm,
   Info,
   MapPin,
   MaskHappy,
+  PencilSimple,
   Phone,
   Plus,
   ShareNetwork,
@@ -34,11 +36,14 @@ import {
 } from "@phosphor-icons/react";
 import type { AccessibilityAttribute, Category, Place } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
-import { FactRow, SampleTag } from "@/components/kbb";
+import { FactRow, ReliabilityBadge, SampleTag } from "@/components/kbb";
 import { pl } from "@/i18n/pl";
 import { api } from "@/lib/api";
-import { factViews, failedSources, formatDate, latestSourceDate } from "@/lib/place-facts";
+import { CARD_ATTRIBUTES, factViews, failedSources, formatDate, latestSourceDate, osmEditUrl } from "@/lib/place-facts";
+import { withPending, type PendingEntry } from "@/lib/reports";
+import { usePlaceReports } from "@/lib/use-place-reports";
 import { routes } from "@/lib/routes";
+import { ReportDrawer, type ReportMode, type ReportSubmission } from "./report-drawer";
 
 const t = pl.place;
 
@@ -66,11 +71,6 @@ const FACT_ICON: Partial<Record<AccessibilityAttribute, Icon>> = {
   disabled_parking: Car,
   changing_table: Baby,
 };
-
-// TODO(KBB-24): open the "Uzupełnij" form instead of announcing that it is coming.
-function fillSoon() {
-  toast(t.fillSoon);
-}
 
 export function PlaceScreen({ id }: { id: string }) {
   const query = useQuery({
@@ -119,10 +119,19 @@ function PlaceCard({ place }: { place: Place }) {
   const focusContact = useRef(false);
   const contactRef = useRef<HTMLDivElement>(null);
   const announce = useAnnounce();
-  const facts = factViews(place);
+  const reports = usePlaceReports(place.id);
+  const [openFacts, setOpenFacts] = useState<Partial<Record<AccessibilityAttribute, boolean>>>({});
+  const [drawer, setDrawer] = useState<{ open: boolean; mode: ReportMode; attribute: AccessibilityAttribute; key: number }>({
+    open: false,
+    mode: "correct",
+    attribute: CARD_ATTRIBUTES[0],
+    key: 0,
+  });
+  const facts = withPending(factViews(place), reports.entries);
+  const osmEdit = osmEditUrl(place);
   const failed = failedSources(place);
   const conflicts = facts.filter((f) => f.conflict);
-  const anyUnknown = facts.some((f) => f.unknown);
+  const firstUnknown = facts.find((f) => f.unknown);
   const latest = latestSourceDate(place);
   const contact = place.contact;
   const hasContact = !!(contact?.phone || contact?.website || contact?.email);
@@ -144,6 +153,15 @@ function PlaceCard({ place }: { place: Place }) {
   const openContactFromHint = () => {
     focusContact.current = true;
     setContactOpen(true);
+  };
+
+  const openReport = (mode: ReportMode, attribute: AccessibilityAttribute) =>
+    setDrawer((d) => ({ open: true, mode, attribute, key: d.key + 1 }));
+
+  const submitReport = ({ attribute, value, valueText, comment }: ReportSubmission) => {
+    setDrawer((d) => ({ ...d, open: false }));
+    setOpenFacts((o) => ({ ...o, [attribute]: true }));
+    reports.submitReport({ attribute, value, comment }, valueText);
   };
 
   const share = async () => {
@@ -279,9 +297,13 @@ function PlaceCard({ place }: { place: Place }) {
         <ul className="divide-y divide-border overflow-hidden rounded-[20px] bg-surface-raised shadow-soft ring-1 ring-border">
           {facts.map((fact) => {
             const I = FACT_ICON[fact.attribute];
+            const confirmId = fact.pending.some((p) => p.kind === "confirmation") ? undefined : fact.confirmFactId;
             return (
               <FactRow
                 key={fact.attribute}
+                open={!!openFacts[fact.attribute]}
+                onOpenChange={(open) => setOpenFacts((o) => ({ ...o, [fact.attribute]: open }))}
+                notice={fact.pending.length ? <PendingList entries={fact.pending} /> : undefined}
                 icon={I ? <I /> : undefined}
                 label={fact.label}
                 value={fact.value}
@@ -290,11 +312,28 @@ function PlaceCard({ place }: { place: Place }) {
                 sources={fact.sources}
                 actions={
                   fact.unknown ? (
-                    <Button variant="outline" size="sm" onClick={fillSoon}>
+                    <Button variant="outline" size="sm" onClick={() => openReport("fill", fact.attribute)}>
                       <Plus weight="bold" />
                       {t.fill}
                     </Button>
-                  ) : undefined
+                  ) : (
+                    <>
+                      <Button variant="outline" size="sm" onClick={() => openReport("correct", fact.attribute)}>
+                        <PencilSimple weight="bold" />
+                        {t.notRight}
+                      </Button>
+                      {confirmId ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => reports.confirm(fact.attribute, confirmId, fact.unit ? `${fact.value} ${fact.unit}` : fact.value)}
+                        >
+                          <HandPalm weight="bold" />
+                          {t.confirm}
+                        </Button>
+                      ) : null}
+                    </>
+                  )
                 }
               />
             );
@@ -302,11 +341,11 @@ function PlaceCard({ place }: { place: Place }) {
         </ul>
       </section>
 
-      {anyUnknown ? (
+      {firstUnknown ? (
         <div className="mt-5 rounded-[20px] border border-dashed border-status-unknown bg-status-unknown-bg p-4">
           <p className="text-body-sm font-semibold">{t.contactHint}</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Button size="sm" onClick={fillSoon}>
+            <Button size="sm" onClick={() => openReport("fill", firstUnknown.attribute)}>
               <Plus weight="bold" />
               {t.fill}
             </Button>
@@ -374,7 +413,61 @@ function PlaceCard({ place }: { place: Place }) {
             {pl.common.menu.aboutData}
           </Link>
         </div>
+        {osmEdit ? (
+          <div className="mt-2">
+            <a
+              href={osmEdit}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-describedby="osm-edit-hint"
+              className={cn(buttonVariants({ variant: "link", size: "sm" }), "h-10 px-0")}
+            >
+              {t.editOsm}
+              <ArrowSquareOut aria-hidden />
+            </a>
+            <p id="osm-edit-hint" className="text-caption text-muted-foreground">
+              {t.editOsmHint}
+            </p>
+          </div>
+        ) : null}
       </section>
+
+      <ReportDrawer
+        open={drawer.open}
+        onOpenChange={(open) => setDrawer((d) => ({ ...d, open }))}
+        placeName={place.name}
+        mode={drawer.mode}
+        attribute={drawer.attribute}
+        attributes={facts.map((f) => f.attribute)}
+        formKey={drawer.key}
+        onSubmit={submitReport}
+      />
     </article>
+  );
+}
+
+function PendingList({ entries }: { entries: PendingEntry[] }) {
+  return (
+    <div>
+      <ul className="space-y-1.5">
+        {entries.map((entry) => (
+          <li
+            key={entry.key}
+            className="flex flex-wrap items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-caption ring-1 ring-primary/30"
+          >
+            <span className="font-semibold">{entry.kind === "report" ? t.mine.report : t.mine.confirmation}:</span>
+            {entry.valueText ? <span>{entry.valueText}</span> : null}
+            <ReliabilityBadge value="unverified" />
+            <span className="text-muted-foreground tabular-nums">
+              {formatDate(entry.createdAt)}
+              {entry.sending ? ` · ${t.mine.sending}` : null}
+            </span>
+          </li>
+        ))}
+      </ul>
+      {entries.some((e) => e.kind === "report") ? (
+        <p className="mt-1 text-caption text-muted-foreground">{t.mine.pendingNote}</p>
+      ) : null}
+    </div>
   );
 }
