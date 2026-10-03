@@ -7,7 +7,6 @@ import { fetchPagesInTurn, mapPagePlace } from "./page-places";
 
 /** The fields of `GET <api>/contexts/<unit>/accessibility-declaration` that we read. */
 export type Declaration = {
-  unitName: string;
   /** Last change of the declaration, `YYYY-MM-DD HH:mm:ss`. */
   modifyDate: string | null;
   /** The declaration as HTML from the official template (`#a11y-architektura` etc.). */
@@ -60,7 +59,7 @@ async function fetchDeclaration(api: string, unit: string, userAgent: string): P
   }
   const body = (await response.json()) as Partial<Declaration>;
   if (typeof body.content !== "string") throw new Error(`BIP Małopolska: no declaration content for ${unit}`);
-  return { unitName: body.unitName ?? unit, modifyDate: body.modifyDate ?? null, content: body.content };
+  return { modifyDate: body.modifyDate ?? null, content: body.content };
 }
 
 /** Configured pages whose publisher's reuse terms are confirmed; the others are logged and not fetched. */

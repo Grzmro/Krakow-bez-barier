@@ -75,6 +75,8 @@ Share-alike: our derived database of OSM facts is a derivative database under OD
 | Verification | Source kind `venue_owner` (the body's own statement, „Zarządca obiektu”), reliability `extracted`, below an on-site check. Each fact quotes its sentence (`evidence.comment`) and links the declaration (`evidence.url`). Record ref `bip-malopolska:page/<unit>/<place>@<modify date>`. Facts attach to the OSM place in `osmRef` (museums); offices and libraries are not OSM venues in our categories, so they become places of their own at the OSM building's coordinates |
 | Coverage | 7 publishers, 11 buildings, 32 facts (run of 2026-10-04) |
 | When unavailable | A declaration that fails is logged and left out, its places keep their facts; the run fails only when none could be read. Requests go one after another, 1 s apart |
+| Withdrawing a publisher | Setting a page's `license.confirmed` to `false` stops fetching it but does not remove facts already written (the API withholds per source, not per page): delete that publisher's facts by their record ref prefix `bip-malopolska:page/<unit>/` when terms are withdrawn |
+| Tests | `apps/ingest/test/bip-malopolska.test.ts` on recorded API responses (`test/fixtures/bip-malopolska/<unit>.json`) trimmed to `modifyDate` and the architecture part, with e-mail addresses replaced: no contact data of officials is kept in the repo |
 
 ### `krakow-pl-toilets` — krakow.pl "Toalety ogólnodostępne"
 

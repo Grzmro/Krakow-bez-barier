@@ -152,6 +152,34 @@ describe("extractFacts on declaration wording", () => {
     expect(skipped).toEqual([]);
   });
 
+  it.each([
+    ["Budynek nie posiada schodołazu ani windy.", "lift", no],
+    ["W budynku nie ma schodów ruchomych ani windy.", "lift", no],
+    ["W budynku brak schodołazu oraz windy.", "lift", no],
+    ["Brak tabliczek z oznaczeniami w alfabecie Braille'a na drzwiach do toalety dla osób niepełnosprawnych.", "toilet_accessible", undefined],
+    ["Brak pochwytów przy schodach prowadzących od drzwi wejściowych do windy.", "lift", undefined],
+    ["Brak oznaczeń kontrastowych na schodach prowadzących do windy.", "lift", undefined],
+    ["Nie ma oznaczeń kontrastowych na stopniach schodów przed wejściem do budynku z podjazdem.", "ramp", undefined],
+    ["W budynku nie ma tłumacza PJM na miejscu oraz windy.", "lift", undefined],
+    ["Toaleta dla osób niepełnosprawnych: brak.", "toilet_accessible", undefined],
+  ])("reads only what a negation clearly states: %s", (sentence, attribute, expected) => {
+    // GIVEN a sentence where a negation is near the thing but may not deny it
+    // WHEN extracting
+    const fact = extractFacts([sentence]).facts.find((f) => f.attribute === attribute);
+
+    // THEN the thing is missing only when the negation reaches it, otherwise there is no fact at all
+    expect(fact?.value).toEqual(expected);
+  });
+
+  it("ignores a lead-in ending with a colon and an answer that names nothing", () => {
+    // GIVEN template lead-ins followed by a bare answer
+    const lines = ["Dostępność toalet dla osób z niepełnosprawnościami: Nie ma takiej toalety.", "Toaleta dla osób niepełnosprawnych: Brak."];
+
+    // WHEN extracting
+    // THEN no fact: the lead-in alone does not say there is a toilet
+    expect(extractFacts(lines).facts).toEqual([]);
+  });
+
   it("reads the statement after a lead-in ending with a colon", () => {
     // GIVEN a template lead-in, which alone is ignored as a heading
     const lines = ["Informacje o dostępności toalet dla osób niepełnosprawnych: W budynku jest toaleta dostosowana do potrzeb osób niepełnosprawnych."];

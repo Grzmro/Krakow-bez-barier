@@ -49,17 +49,20 @@ function decodeEntities(text: string): string {
 
 /**
  * The "Dostępność architektoniczna" part of an accessibility declaration made from the official
- * template: from the element with `id="a11y-architektura"` up to the next part
- * (`a11y-komunikacja`, "Dostępność komunikacyjno-informacyjna"), or the end. Empty when the
+ * template: from the element with `id="a11y-architektura"` up to the next part of the template
+ * (usually `a11y-komunikacja`, "Dostępność komunikacyjno-informacyjna"), or the end. Empty when the
  * declaration has no such part.
  */
 export function declarationArchitecture(html: string): string[] {
   const id = html.indexOf('id="a11y-architektura"');
   if (id < 0) return [];
   const start = html.lastIndexOf("<", id);
-  const next = html.indexOf('id="a11y-komunikacja"', id);
-  return htmlLines(html.slice(start, next > id ? html.lastIndexOf("<", next) : undefined));
+  const next = NEXT_PART.exec(html.slice(id + 1));
+  return htmlLines(html.slice(start, next ? html.lastIndexOf("<", id + 1 + next.index) : undefined));
 }
+
+/** Parts of the template that may follow the architecture part. */
+const NEXT_PART = /id="a11y-(?:komunikacja|aplikacje|kontakt|procedura|informacje-zwrotne)"/;
 
 /** Readable text of an HTML fragment: one line per block element, entities decoded, whitespace collapsed. */
 export function htmlLines(html: string): string[] {
@@ -136,23 +139,32 @@ type Rule = {
   number?: (sentence: string) => number | null;
 };
 
-/** A negation; "nie ma przeszkód", "brak barier", "bez progów" deny an obstacle, so they don't count. */
-const NO = String.raw`(?:nie ma\w*|brak\w*|nie posiada\w*|nie dysponuj\w*|nie zapewnia\w*|nie wyznaczono|bez)\>(?!\s+(?:\w+\s+)?(?:przeszk|barier|prog|stopni|schod|różnic))`;
+const NO_WORD = String.raw`nie ma\w*|brak\w*|nie posiada\w*|nie dysponuj\w*|nie zapewnia\w*|nie wyznaczono`;
+const NO = String.raw`(?:${NO_WORD}|bez)\>`;
+/** At most three words between a negation and the thing it denies. */
+const GAP = String.raw`(?:\s+\S+){0,3}?\s+`;
+/** Things a declaration lists as missing together: "brak windy oraz platformy …, a także podjazdu". */
+const FEATURE = String.raw`(?:wind|platform|podjazd|pochylni|ramp|toalet|łazien|wc|parking|miejsc|podnośnik|dźwig|schodołaz|przewijak|kopert)\w*`;
+const AND = String.raw`,?\s+(?:oraz|a\s+także|ani|lub|i)\s+`;
+/** A negation, then a list whose every item starts with one of those things; `thing` is a later item. */
+const LIST = String.raw`\s+${FEATURE}(?:\s+[^\s,;.]+)*?(?:${AND}${FEATURE}(?:\s+[^\s,;.]+)*?)*${AND}(?:\S+\s+)?`;
+/** The negation reaches `thing`: right after it, or as an item of a list of missing things. */
+const denied = (thing: string) => String.raw`${NO}(?:${GAP}?|${LIST})${thing}`;
+const missing = (thing: string) => pl(denied(thing));
 /**
- * Words between a negation and the thing it denies: a few, or a list ("brak windy oraz platformy …, a także
- * podjazdu") as long as no word in between starts a new statement ("ale", "jest", "znajduje się" …) and a comma
- * only continues the list ("…, a także", "…, oraz"), not a new clause ("brak znaczników …, windy posiadają …").
+ * A sentence that negates something the attribute's rule doesn't connect to the thing ("nie ma tłumacza PJM na
+ * miejscu oraz windy", "Toaleta: brak") is unclear: it gives no value rather than "there is one". Denying an
+ * obstacle ("brak progów", "nie ma przeszkód", "brak barier") is not such a negation.
  */
-const GAP = String.raw`(?:\s+(?!(?:ale|lecz|jednak|natomiast|jest|są|znajduj\w*|posiada\w*|można|ma)\>)(?:[^\s,;]+|[^\s;]+,(?=\s+(?:a\s+także|oraz|ani|lub|i)\>))){0,12}?\s+`;
-const missing = (thing: string) => pl(String.raw`${NO}${GAP}?${thing}`);
+const SOME_NEGATION = pl(String.raw`\<(?:${NO_WORD})\>(?!\s+(?:\w+\s+)?(?:przeszk|barier|prog|różnic))`);
 
 /** Plans, wishes, requests and what the building "does not allow" describe something that is not there. */
 const NOT_YET = pl(String.raw`planuj|planowan|w planach|\<budow[ayię]\>|zostanie|zostaną|\<będzie\>|\<będą\>|prośb|wniosk|modernizac|nie pozwala`);
 /**
- * Contact lines, section headings ("Informacje o …", "Opis dostępności …"), evacuation and public
- * transport (lifts at a tram stop) say nothing about the building itself.
+ * Contact lines, section headings ("Informacje o …", "Opis dostępności …", any lead-in ending with a colon),
+ * evacuation and public transport (lifts at a tram stop) say nothing about the building itself.
  */
-const NOT_A_FACT = pl(String.raw`@|\<tel\.|telefon|^informacj[ae] o\>|^opis dost|^dostępność (architektoniczna|komunikac)|ewakuac|przystan`);
+const NOT_A_FACT = pl(String.raw`@|\<tel\.|telefon|^(\d+\.\s*)?informacj[ae] o\>|^opis dost|^dostępność (architektoniczna|komunikac)|ewakuac|przystan|:$`);
 
 const DISABLED = String.raw`(niepełnospr|specjalnymi potrzebami|na wózk|inwalid|dostosowan|przystosowan)`;
 const ENTRANCE_LEVEL = String.raw`z poziomu (chodnika|terenu|gruntu|ulicy|0\>|zero)|na poziomie (chodnika|terenu|gruntu|ulicy)|bez schodów|bez stopni|bezprogow|wolne od barier|bez barier`;
@@ -165,7 +177,7 @@ const RULES: Rule[] = [
   {
     attribute: "lift",
     about: pl(String.raw`\<wind(a|y|ę|zie|ą|ach|ami|om)\>|\<dźwig|\<podnośnik|\<platform\w*(?=.*(niepełnospr|pionow|przyschodow|schod|wózk|poziom|piętr))`),
-    absent: pl(String.raw`${NO}${GAP}?(wind[yę]|dźwig|podnośnik|platform)|nie jest wyposażon\w* w wind`),
+    absent: pl(String.raw`${denied("(wind[yę]|dźwig|podnośnik|platform)")}|nie jest wyposażon\w* w wind`),
   },
   {
     attribute: "ramp",
@@ -176,7 +188,7 @@ const RULES: Rule[] = [
   {
     attribute: "toilet_accessible",
     about: pl(String.raw`(toalet|\<wc\>|łazien)\w*(?=.*${DISABLED})|${DISABLED}.*(toalet|\<wc\>|łazien)|dostępn\w* toalet|toalet\w* dostępn`),
-    absent: pl(String.raw`${NO}${GAP}?(toalet|\<wc\>|łazien)|toalet\w*.*\<nie (jest|są) (\S+ )?(przystosowan|dostosowan)`),
+    absent: pl(String.raw`${denied(String.raw`(toalet|\<wc\>|łazien)`)}|toalet\w*.*\<nie (jest|są) (\S+ )?(przystosowan|dostosowan)`),
   },
   {
     attribute: "changing_table",
@@ -216,6 +228,7 @@ function valuesOf(rule: Rule, sentence: string): FactValue[] {
     return n === null ? [] : [{ kind: "number", number: n, unit: "cm" }];
   }
   const absent = rule.absent?.test(sentence) ?? false;
+  if (!rule.present && !absent && SOME_NEGATION.test(sentence)) return [];
   const present = rule.present ? rule.present.test(sentence) : !absent;
   if (present && absent) return [{ kind: "boolean", boolean: true }, { kind: "boolean", boolean: false }];
   return [{ kind: "boolean", boolean: present }];
