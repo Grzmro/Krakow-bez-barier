@@ -18,6 +18,11 @@ export type Category = Schemas["Category"];
 export type Profile = Schemas["Profile"];
 export type Reliability = Schemas["Reliability"];
 export type ReliabilityStatus = Schemas["ReliabilityStatus"];
+export type FactValue = Schemas["FactValue"];
+export type FactStatus = Schemas["FactStatus"];
+export type SourceKind = Schemas["SourceKind"];
+export type SourceRefreshStatus = Schemas["SourceRefreshStatus"];
+export type ReportStatus = Schemas["ReportStatus"];
 
 /** Typed client for the v1 API. Defaults to same-origin `/api/v1`. */
 export function createApiClient(options: ClientOptions = {}) {

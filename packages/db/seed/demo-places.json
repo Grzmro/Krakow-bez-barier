@@ -1,0 +1,643 @@
+[
+ {
+  "externalRef": "osm:node/1516840253",
+  "name": "Pałac Biskupa Erazma Ciołka",
+  "category": "museum",
+  "lon": 19.9372228,
+  "lat": 50.0563019,
+  "street": null,
+  "houseNumber": null,
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/1516840253",
+    "observedAt": null,
+    "evidence": {
+     "comment": "niemal nieograniczony, część jednej sali w galerii sztuki cerkiewnej ma stopień bez podjazdu"
+    }
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/979972831",
+  "name": "Apteka Pod Orłem",
+  "category": "museum",
+  "lon": 19.9541481,
+  "lat": 50.0462364,
+  "street": "Plac Bohaterów Getta",
+  "houseNumber": "18",
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "limited"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/979972831",
+    "observedAt": null,
+    "evidence": {
+     "comment": "jest wyciągana dostawka na schody"
+    }
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:relation/1863002",
+  "name": "Muzeum Archeologiczne",
+  "category": "museum",
+  "lon": 19.9362547,
+  "lat": 50.0575557,
+  "street": null,
+  "houseNumber": null,
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "no"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:relation/1863002",
+    "observedAt": null,
+    "evidence": null
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/12320094259",
+  "name": "Wawel Odzyskany",
+  "category": "museum",
+  "lon": 19.9339504,
+  "lat": 50.0542102,
+  "street": null,
+  "houseNumber": null,
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/12320094259",
+    "observedAt": null,
+    "evidence": null
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/12161657501",
+  "name": "Muzeum Banksy",
+  "category": "museum",
+  "lon": 19.9479252,
+  "lat": 50.055049,
+  "street": null,
+  "houseNumber": null,
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "limited"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/12161657501",
+    "observedAt": "2024-09-09T00:00:00Z",
+    "evidence": null
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/2135606464",
+  "name": "Kuchnia u Doroty",
+  "category": "restaurant",
+  "lon": 19.9411711,
+  "lat": 50.0505618,
+  "street": "Augustiańska",
+  "houseNumber": "4",
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/2135606464",
+    "observedAt": "2025-09-11T00:00:00Z",
+    "evidence": null
+   },
+   {
+    "attribute": "toilet_accessible",
+    "value": {
+     "kind": "boolean",
+     "boolean": true
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/2135606464",
+    "observedAt": "2025-09-11T00:00:00Z",
+    "evidence": null
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/4730384560",
+  "name": "Kazimir",
+  "category": "restaurant",
+  "lon": 19.943306,
+  "lat": 50.0520411,
+  "street": "Miodowa",
+  "houseNumber": "11",
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "no"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/4730384560",
+    "observedAt": "2025-07-31T00:00:00Z",
+    "evidence": null
+   },
+   {
+    "attribute": "toilet_accessible",
+    "value": {
+     "kind": "boolean",
+     "boolean": false
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/4730384560",
+    "observedAt": "2025-07-31T00:00:00Z",
+    "evidence": null
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/4986442006",
+  "name": "Czarna kaczka",
+  "category": "restaurant",
+  "lon": 19.9391354,
+  "lat": 50.05827,
+  "street": "Poselska",
+  "houseNumber": "22",
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "limited"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/4986442006",
+    "observedAt": "2024-07-12T00:00:00Z",
+    "evidence": null
+   },
+   {
+    "attribute": "toilet_accessible",
+    "value": {
+     "kind": "boolean",
+     "boolean": false
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/4986442006",
+    "observedAt": "2024-07-12T00:00:00Z",
+    "evidence": null
+   },
+   {
+    "attribute": "changing_table",
+    "value": {
+     "kind": "boolean",
+     "boolean": false
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/4986442006",
+    "observedAt": "2024-07-12T00:00:00Z",
+    "evidence": null
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/2000514300",
+  "name": "Taste of India",
+  "category": "restaurant",
+  "lon": 19.9420272,
+  "lat": 50.0527333,
+  "street": "Józefa Dietla",
+  "houseNumber": "46",
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/2000514300",
+    "observedAt": "2025-09-13T00:00:00Z",
+    "evidence": null
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/10222457076",
+  "name": "Nat Bistro",
+  "category": "restaurant",
+  "lon": 19.943229,
+  "lat": 50.0492839,
+  "street": "Krakowska",
+  "houseNumber": "34",
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "limited"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/10222457076",
+    "observedAt": "2026-07-17T00:00:00Z",
+    "evidence": null
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/5274182623",
+  "name": "Hotel Miodowa",
+  "category": "hotel",
+  "lon": 19.9490464,
+  "lat": 50.0537196,
+  "street": "Miodowa",
+  "houseNumber": "51",
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/5274182623",
+    "observedAt": null,
+    "evidence": null
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:way/85676236",
+  "name": "Qubus",
+  "category": "hotel",
+  "lon": 19.9529689,
+  "lat": 50.0478857,
+  "street": "Nadwiślańska",
+  "houseNumber": "6",
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:way/85676236",
+    "observedAt": "2026-02-11T00:00:00Z",
+    "evidence": null
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:way/152104759",
+  "name": "Aparthotel Spatz",
+  "category": "hotel",
+  "lon": 19.9433874,
+  "lat": 50.0520224,
+  "street": "Miodowa",
+  "houseNumber": "11",
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "no"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:way/152104759",
+    "observedAt": "2025-09-30T00:00:00Z",
+    "evidence": null
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/2217193962",
+  "name": "Novotel Krakow Centrum",
+  "category": "hotel",
+  "lon": 19.9259705,
+  "lat": 50.0548864,
+  "street": null,
+  "houseNumber": null,
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/2217193962",
+    "observedAt": null,
+    "evidence": null
+   }
+  ],
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/5270846528",
+  "name": "Toaleta publiczna: ul. Konopnickiej (przejście podziemne)",
+  "category": "toilet",
+  "lon": 19.9341941,
+  "lat": 50.0467387,
+  "street": null,
+  "houseNumber": null,
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/5270846528",
+    "observedAt": null,
+    "evidence": null
+   },
+   {
+    "attribute": "changing_table",
+    "value": {
+     "kind": "boolean",
+     "boolean": true
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/5270846528",
+    "observedAt": null,
+    "evidence": null
+   },
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "WT_WC_2023/26",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: dostępność dla niepełnosprawnych: tak, oddzielnie; modyfikacja: pochylnia"
+    }
+   },
+   {
+    "attribute": "changing_table",
+    "value": {
+     "kind": "boolean",
+     "boolean": false
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "WT_WC_2023/26",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: obecność przewijaka: brak"
+    }
+   }
+  ],
+  "entranceHint": null,
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/274115139",
+  "name": "Toaleta publiczna: ul. Sienna (Planty)",
+  "category": "toilet",
+  "lon": 19.9417976,
+  "lat": 50.0596777,
+  "street": null,
+  "houseNumber": null,
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "WT_WC_2023/2",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: dostępność dla niepełnosprawnych: tak, po stronie damskiej; modyfikacja: platforma"
+    }
+   },
+   {
+    "attribute": "changing_table",
+    "value": {
+     "kind": "boolean",
+     "boolean": true
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "WT_WC_2023/2",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: obecność przewijaka: Tak"
+    }
+   }
+  ],
+  "entranceHint": null,
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:way/1039863501",
+  "name": "Toaleta publiczna: ul. Powiśle (bulwar)",
+  "category": "toilet",
+  "lon": 19.9290352,
+  "lat": 50.0555099,
+  "street": null,
+  "houseNumber": null,
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "WT_WC_2023/5",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: dostępność dla niepełnosprawnych: tak, po stronie damskiej; modyfikacja: platforma"
+    }
+   },
+   {
+    "attribute": "changing_table",
+    "value": {
+     "kind": "boolean",
+     "boolean": false
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "WT_WC_2023/5",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: obecność przewijaka: brak"
+    }
+   }
+  ],
+  "entranceHint": null,
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/2984350171",
+  "name": "Toaleta publiczna: ul. Dietla / ul. Starowiślna",
+  "category": "toilet",
+  "lon": 19.9456654,
+  "lat": 50.0576535,
+  "street": null,
+  "houseNumber": null,
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/2984350171",
+    "observedAt": null,
+    "evidence": null
+   },
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "WT_WC_2023/1",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: dostępność dla niepełnosprawnych: Tak; modyfikacja: wjazd z poziomu 0"
+    }
+   },
+   {
+    "attribute": "changing_table",
+    "value": {
+     "kind": "boolean",
+     "boolean": true
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "WT_WC_2023/1",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: obecność przewijaka: Tak"
+    }
+   }
+  ],
+  "entranceHint": null,
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ },
+ {
+  "externalRef": "osm:node/283018590",
+  "name": "Toaleta publiczna: Pl. Bohaterów Getta (przejście podziemne)",
+  "category": "toilet",
+  "lon": 19.9546603,
+  "lat": 50.0468538,
+  "street": null,
+  "houseNumber": null,
+  "facts": [
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/283018590",
+    "observedAt": null,
+    "evidence": null
+   },
+   {
+    "attribute": "wheelchair_overall",
+    "value": {
+     "kind": "text",
+     "text": "yes"
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "WT_WC_2023/36",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: dostępność dla niepełnosprawnych: tak, pomiędzy toaletą damską a męską; modyfikacja: winda"
+    }
+   },
+   {
+    "attribute": "changing_table",
+    "value": {
+     "kind": "boolean",
+     "boolean": false
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "WT_WC_2023/36",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: obecność przewijaka: brak"
+    }
+   }
+  ],
+  "entranceHint": null,
+  "fetchedAt": "2026-10-03T00:00:00Z"
+ }
+]
