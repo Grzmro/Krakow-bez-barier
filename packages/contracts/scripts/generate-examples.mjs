@@ -3,6 +3,7 @@
 // are also emitted as `responseExamples`, each checked against its response schema by `satisfies`.
 // Also extracts the report validation rules (ReportCreate `x-value-ranges`, comment maxLength) into
 // report-rules.ts.
+// The whole parsed document goes to src/generated/openapi.ts for server-side request/response validation.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -96,3 +97,12 @@ export const reportRules: ReportRules = ${JSON.stringify(reportRules, null, 2)};
 `,
 );
 console.log(`report rules: ${Object.keys(reportRules.valueRanges).length} ranges → ${rulesOut}`);
+
+const documentOut = join(root, "src", "generated", "openapi.ts");
+writeFileSync(
+  documentOut,
+  `// Generated from openapi.yaml by scripts/generate-examples.mjs. Do not edit.
+export const openapiDocument: Record<string, unknown> = ${JSON.stringify(spec, null, 2)};
+`,
+);
+console.log(`document → ${documentOut}`);

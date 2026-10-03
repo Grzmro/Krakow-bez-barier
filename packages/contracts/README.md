@@ -6,6 +6,8 @@ Spec-first API contract (OpenAPI 3.1). `openapi.yaml` is the single source of tr
 - `responseExamples` – every JSON response example from the spec, type-checked against its schema with `satisfies`; the web app's profile mocks are built from it.
 - `npm run lint` – lints the spec with Redocly.
 - Import types and the typed `openapi-fetch` client from `@krakow-bez-barier/contracts` (`createApiClient()`).
+- Server only: `@krakow-bez-barier/contracts/openapi` exports the parsed spec (`openapiDocument`, generated to
+  `src/generated/openapi.ts`) for request/response validation in `apps/web/src/server/http/`.
 - `createMockFetch()` answers requests with the spec's response `examples` (generated to `src/generated/examples.ts`):
   `createApiClient({ fetch: createMockFetch({ choose: { getPlace: { example: "conflicting" } } }) })`. By default it returns
   the first 2xx response and the example whose `id` matches the path parameter (the documented 404 if the examples have ids
