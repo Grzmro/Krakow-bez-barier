@@ -1,14 +1,67 @@
 #!/usr/bin/env bash
 # Soft merge queue for agents (GitHub's merge queue isn't available on this repo).
-# Runs the full gate LOCALLY (lint, typecheck, unit, build, e2e) on the rebased commit, then merges
-# only when the fast CI is green on that same commit and main hasn't moved.
-# Exit codes: 0 merged, 1 local gate / CI red / conflict / gave up (PR stays open).
+# Runs the local gate (lint, typecheck, unit, build, e2e of the touched screens) on the rebased commit,
+# then merges only when the fast CI is green on that same commit and main hasn't moved.
+#
+# Usage: [E2E_SPECS="e2e/a.spec.ts e2e/b.prod.spec.ts"] scripts/merge-pr.sh [PR-number] [spec ...]
+#        scripts/merge-pr.sh --print-specs [spec ...]   # show the e2e selection for HEAD vs origin/main, run nothing
+# E2E specs (paths relative to apps/web): the ones given (args or E2E_SPECS), else the spec files changed vs
+# origin/main (a changed `<name>.spec.ts-snapshots/` counts as its spec). A UI change (apps/web/src, packages/ui)
+# with no spec selected is an error: name the specs of the screens you changed. The full suite never runs by default.
+# *.prod.spec.ts run (with E2E_PROD=1, on the fresh build) only when selected.
+# Exit codes: 0 merged, 1 local gate / CI red / conflict / no specs for a UI change / gave up (PR stays open).
 set -euo pipefail
 
+cd "$(git rev-parse --show-toplevel)"
 MAX_ROUNDS="${MAX_ROUNDS:-3}"
+WEB_DIR="apps/web"
+
+print_only=0
+PR=""
+given="${E2E_SPECS:-}"
+for arg in "$@"; do
+  case "$arg" in
+    --print-specs) print_only=1 ;;
+    *[!0-9]*) given="$given $arg" ;;
+    *) PR="$arg" ;;
+  esac
+done
+
+# Prints the selected specs (one per line, relative to apps/web); fails when a UI change has none.
+select_specs() {
+  local changed spec specs=""
+  if [ -n "${given// /}" ]; then
+    for spec in $given; do
+      spec="${spec#./}"
+      spec="${spec#"$WEB_DIR"/}"
+      if [ ! -f "$WEB_DIR/$spec" ]; then
+        echo "E2E spec not found: $WEB_DIR/$spec" >&2
+        return 1
+      fi
+      specs="$specs$spec"$'\n'
+    done
+  else
+    changed="$(git diff --name-only --diff-filter=d origin/main...HEAD)"
+    specs="$(printf '%s\n' "$changed" \
+      | sed -n -e "s#^$WEB_DIR/\(e2e/.*\.spec\.ts\)\$#\1#p" -e "s#^$WEB_DIR/\(e2e/[^/]*\.spec\.ts\)-snapshots/.*#\1#p" \
+      | while read -r spec; do [ -f "$WEB_DIR/$spec" ] && echo "$spec"; done)"
+    if [ -z "$specs" ] && printf '%s\n' "$changed" | grep -qE "^($WEB_DIR/src|packages/ui)/"; then
+      echo "This change touches the UI ($WEB_DIR/src or packages/ui) but no e2e spec changed." >&2
+      echo "Name the specs of the screens you changed, e.g.: E2E_SPECS=\"e2e/route.spec.ts\" scripts/merge-pr.sh" >&2
+      return 1
+    fi
+  fi
+  printf '%s' "$specs" | sed '/^$/d' | sort -u
+}
+
+if [ "$print_only" = 1 ]; then
+  select_specs
+  exit $?
+fi
+
 # Optional PR number: lets you merge from a local branch with another name (e.g. when the PR's
 # branch is checked out in a sibling worktree). Default: the PR of the current branch.
-PR="${1:-$(gh pr view --json number -q .number)}"
+PR="${PR:-$(gh pr view --json number -q .number)}"
 HEAD_REF="$(gh pr view "$PR" --json headRefName -q .headRefName)"
 log="$(mktemp)"
 trap 'rm -f "$log"' EXIT
@@ -22,6 +75,20 @@ for round in $(seq 1 "$MAX_ROUNDS"); do
     exit 1
   fi
   head="$(git rev-parse HEAD)"
+
+  if ! specs="$(select_specs)"; then
+    exit 1
+  fi
+  dev_specs="$(printf '%s\n' "$specs" | grep -v '\.prod\.spec\.ts$' || true)"
+  prod_specs="$(printf '%s\n' "$specs" | grep '\.prod\.spec\.ts$' || true)"
+  e2e_prod=""
+  [ -n "$prod_specs" ] && e2e_prod=1
+  if [ -n "$specs" ]; then
+    echo "e2e specs:" $specs
+  else
+    echo "e2e: no UI change and no spec selected — skipping e2e"
+  fi
+
   # Reinstall only when the lockfile changed; `npm ci` never rewrites package-lock.json.
   lock_hash="$(git hash-object package-lock.json)"
   if [ "$(cat node_modules/.lock-hash 2>/dev/null)" != "$lock_hash" ]; then
@@ -32,7 +99,12 @@ for round in $(seq 1 "$MAX_ROUNDS"); do
   npm run contracts:generate --silent
 
   echo "local gate on $head"
-  if ! { npm run lint && npm run typecheck && npm run test && npm run build && E2E_PROD=1 npm run test:e2e; } >"$log" 2>&1; then
+  # $specs is intentionally unquoted: one argument per spec path (paths have no spaces).
+  # shellcheck disable=SC2086
+  if ! {
+    npm run lint && npm run typecheck && npm run test && npm run build \
+      && { [ -z "$specs" ] || E2E_PROD="$e2e_prod" npm run test:e2e -- $dev_specs $prod_specs; }
+  } >"$log" 2>&1; then
     tail -40 "$log"
     echo "local gate red on $head — fix it, then run this script again"
     exit 1
