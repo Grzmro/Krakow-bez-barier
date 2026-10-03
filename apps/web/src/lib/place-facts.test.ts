@@ -54,7 +54,7 @@ describe("factViews", () => {
     const rows = factViews(place);
 
     // THEN every row is an explicit "no data"
-    expect(rows.length).toBe(11);
+    expect(rows.length).toBe(12);
     expect(rows.every((r) => r.unknown && r.sources.length === 0)).toBe(true);
   });
 

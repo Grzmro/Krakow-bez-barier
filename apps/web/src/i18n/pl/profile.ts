@@ -68,6 +68,7 @@ export const profile = {
     overallNo: "OSM: niedostępne dla wózków",
     missing: (need: Need) => `${needName[need].toLowerCase()}: brak`,
     liftWithoutFloors: "winda: brak, piętra: brak danych",
+    liftFloorsConflict: "winda: brak, piętra: sprzeczne dane",
     unresolved: (need: Need) => needName[need].toLowerCase(),
     conflictElsewhere: "sprzeczne dane o miejscu",
   },

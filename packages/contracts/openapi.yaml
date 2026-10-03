@@ -1023,7 +1023,8 @@ components:
     RequireLift:
       name: requireLift
       in: query
-      description: 'Profile need: a lift between floors.'
+      description: 'Profile need: a lift between floors. A missing lift blocks only where `levels` is above 1; with
+        one storey the need is met (attribute `levels`), and with unknown storeys it stays unknown.'
       schema:
         type: boolean
     RequireAccessibleToilet:
@@ -1297,7 +1298,8 @@ components:
             $ref: '#/components/schemas/CategoryDefinition'
     AccessibilityAttribute:
       type: string
-      description: Shared vocabulary of measurable accessibility attributes.
+      description: 'Shared vocabulary of measurable accessibility attributes. `levels` is the number of storeys
+        the place spans, counting the entrance storey (1 = everything on one floor).'
       enum:
       - step_count
       - step_height_cm
@@ -1315,6 +1317,7 @@ components:
       - bench
       - disabled_parking
       - wheelchair_overall
+      - levels
     FeatureFilter:
       type: string
       description: Quick filter shown on the home screen; each maps to one or more attributes.
@@ -1896,6 +1899,10 @@ components:
           min: 0
           max: 50
           unit: pct
+        levels:
+          min: 1
+          max: 50
+          unit: count
       required:
       - placeId
       - attribute

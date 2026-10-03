@@ -56,7 +56,7 @@ sourced facts exist (city dataset + OSM).
 |---|---|---|---|
 | Pałac Biskupa Erazma Ciołka | n1516840253 | W=yes; description: "niemal nieograniczony, część jednej sali w galerii sztuki cerkiewnej ma stopień bez podjazdu"; date — | Best museum: a yes with a concrete caveat — shows facts beyond a label |
 | Apteka Pod Orłem | n979972831 | W=limited; description: "jest wyciągana dostawka na schody"; date — | Limited with a concrete workaround (portable ramp) |
-| Muzeum Archeologiczne | r1863002 | W=no; date — | Clear barrier case |
+| Muzeum Archeologiczne | r1863002 | W=no, building:levels=4 (4 storeys); date — | Clear barrier case |
 | Wawel Odzyskany | n12320094259 | W=yes only; date — | Incomplete: yes, but no detail |
 | Muzeum Banksy | n12161657501 | W=limited; checked 2024-09-09 | Older check, no description → stale-ish |
 
@@ -66,7 +66,7 @@ sourced facts exist (city dataset + OSM).
 |---|---|---|---|
 | Kuchnia u Doroty (Augustiańska) | n2135606464 | W=yes, toilets:wheelchair=yes; checked 2025-09-11 | Best restaurant: yes + toilet, recent check |
 | Kazimir (Miodowa) | n4730384560 | W=no, toilets:wheelchair=no; checked 2025-07-31 | Barrier with recent check |
-| Czarna kaczka (Poselska) | n4986442006 | W=limited, toilets:wheelchair=no; checked 2024-07-12 | Limited + toilet barrier |
+| Czarna kaczka (Poselska) | n4986442006 | W=limited, toilets:wheelchair=no, level=0 (1 storey); checked 2024-07-12 | Limited + toilet barrier |
 | Taste of India (Dietla) | n2000514300 | W=yes; checked 2025-09-13 | Plain yes |
 | Nat Bistro (Krakowska) | n10222457076 | W=limited; checked 2026-07-17 | Freshest check |
 
@@ -75,7 +75,7 @@ sourced facts exist (city dataset + OSM).
 | Place | OSM | KOH (city) | Facts we have | Use in demo |
 |---|---|---|---|---|
 | Hotel Miodowa | n5274182623 | "MIODOWA", 3 stars | W=yes only | Two sources, none with barrier detail → incomplete |
-| Qubus Hotel | w85676236 | "QUBUS HOTEL KRAKÓW", 4 stars | W=yes; checked 2026-02-11 | Recently confirmed yes |
+| Qubus Hotel | w85676236 | "QUBUS HOTEL KRAKÓW", 4 stars | W=yes, building:levels=9 (9 storeys); checked 2026-02-11 | Recently confirmed yes |
 | Aparthotel Spatz (Miodowa) | w152104759 | not matched | W=no; checked 2025-09-30 | Barrier |
 | Novotel Kraków Centrum | n2217193962 | "NOVOTEL KRAKÓW CENTRUM", 4 stars | W=yes only | Yes with no detail |
 

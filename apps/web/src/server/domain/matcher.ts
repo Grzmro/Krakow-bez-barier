@@ -85,16 +85,20 @@ function door(place: PlaceFacts, th: Thresholds): NeedResult {
 }
 
 /**
- * A lift is needed only where there are floors to reach, and we have no data on floors yet, so a known
- * missing lift is "can't say" rather than a barrier — a single-storey café is never blocked by it.
+ * A lift is needed only where there are floors to reach: one storey meets the need whatever the lift data,
+ * a known missing lift blocks only above one storey, and with the storeys unknown it is "can't say" —
+ * a single-storey café is never blocked by a missing lift.
  */
-// TODO(KBB-47): block on lift=false once the place's number of floors is known.
 function lift(place: PlaceFacts, need: Need, attribute: AccessibilityAttribute): NeedResult {
+  const levels = resolve(place, "levels");
+  const storeys = levels.kind === "known" ? numberOf(levels.attribute) : null;
+  if (levels.kind === "known" && storeys === 1) return result(need, "levels", "met", null, isUnconfirmed(levels.attribute));
+
   const resolved = resolve(place, attribute);
-  if (resolved.kind === "known" && booleanOf(resolved.attribute) === false) {
-    return result(need, attribute, "unknown", t.liftWithoutFloors);
-  }
-  return facility(place, need, attribute);
+  if (resolved.kind !== "known" || booleanOf(resolved.attribute) !== false) return facility(place, need, attribute);
+  if (storeys !== null && storeys > 1) return result(need, attribute, "barrier", t.missing(need));
+  if (levels.kind === "unresolved" && levels.state === "conflict") return result(need, "levels", "conflict", t.liftFloorsConflict);
+  return result(need, attribute, "unknown", t.liftWithoutFloors);
 }
 
 function facility(place: PlaceFacts, need: Need, attribute: AccessibilityAttribute): NeedResult {

@@ -71,6 +71,21 @@
     "recordRef": "osm:relation/1863002",
     "observedAt": null,
     "evidence": null
+   },
+   {
+    "attribute": "levels",
+    "value": {
+     "kind": "number",
+     "number": 4,
+     "unit": "count"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:relation/1863002",
+    "observedAt": null,
+    "evidence": {
+     "comment": "building:levels=4"
+    }
    }
   ],
   "fetchedAt": "2026-10-03T00:00:00Z"
@@ -239,6 +254,21 @@
     "recordRef": "osm:node/4986442006",
     "observedAt": "2024-07-12T00:00:00Z",
     "evidence": null
+   },
+   {
+    "attribute": "levels",
+    "value": {
+     "kind": "number",
+     "number": 1,
+     "unit": "count"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:node/4986442006",
+    "observedAt": "2024-07-12T00:00:00Z",
+    "evidence": {
+     "comment": "level=0"
+    }
    }
   ],
   "fetchedAt": "2026-10-03T00:00:00Z"
@@ -335,6 +365,21 @@
     "recordRef": "osm:way/85676236",
     "observedAt": "2026-02-11T00:00:00Z",
     "evidence": null
+   },
+   {
+    "attribute": "levels",
+    "value": {
+     "kind": "number",
+     "number": 9,
+     "unit": "count"
+    },
+    "unit": null,
+    "source": "osm",
+    "recordRef": "osm:way/85676236",
+    "observedAt": "2026-02-11T00:00:00Z",
+    "evidence": {
+     "comment": "building:levels=9"
+    }
    }
   ],
   "fetchedAt": "2026-10-03T00:00:00Z"

@@ -30,7 +30,7 @@ see the status column.
 |---|---|
 | Origin | OpenStreetMap community, read through the Overpass API |
 | Endpoint | Overpass API instance configured in the city config (not hard-coded) |
-| What we read | `tourism` (museum, hotel, hostel, guest_house, gallery, attraction), `amenity` (restaurant, cafe, toilets, pharmacy, theatre, cinema, library); tags `wheelchair`, `toilets:wheelchair`, `wheelchair:description`, `changing_table`, `check_date`, ... |
+| What we read | `tourism` (museum, hotel, hostel, guest_house, gallery, attraction), `amenity` (restaurant, cafe, toilets, pharmacy, theatre, cinema, library); tags `wheelchair`, `toilets:wheelchair`, `wheelchair:description`, `changing_table`, `elevator`, `level` / `building:levels` (→ `levels`; `building:levels` only for venues that fill their building), `check_date`, ... |
 | Licence | Open Database Licence (ODbL) 1.0 |
 | Attribution | "© OpenStreetMap contributors" (shown wherever OSM-derived facts or the map are shown) |
 | Freshness | Per object. `check_date` is stored as `observedAt` when present, otherwise the fact has no observation date and is shown as such |

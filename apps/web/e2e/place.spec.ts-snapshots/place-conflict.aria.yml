@@ -47,6 +47,11 @@
             - img
             - text: ""
         - listitem:
+          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
           - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
           - button "Uzupełnij":
             - img
