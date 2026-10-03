@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Popover } from "@base-ui/react/popover";
 import {
   CaretRight,
+  ChartBar,
   Crosshair,
   Database,
   Gavel,
@@ -43,6 +44,7 @@ const menu = (t: Messages["common"]): { href: string; icon: Icon; title: string;
     sub: t.menu.businessSub,
   },
   { href: routes.moderator, icon: Gavel, title: t.menu.moderator, sub: t.menu.moderatorSub },
+  { href: routes.city, icon: ChartBar, title: t.menu.city, sub: t.menu.citySub },
   { href: routes.privacy, icon: ShieldCheck, title: t.menu.privacy, sub: t.menu.privacySub },
   { href: routes.accessibility, icon: PersonArmsSpread, title: t.menu.a11y, sub: t.menu.a11ySub },
 ];

@@ -31,12 +31,12 @@ const json = (body: unknown, status = 200) =>
 const problem = (status: number, title: string, detail: string) =>
   json({ type: "about:blank", title, status, detail } satisfies Problem, status);
 
-const seed = (): ModerationReport[] => structuredClone(responseExamples.listModerationReports[200].queue.items);
+export const seedModerationQueue = (): ModerationReport[] => structuredClone(responseExamples.listModerationReports[200].queue.items);
 
 type Fetch = (input: Request) => Promise<Response>;
 
 /** Answers `GET`/`POST /moderation/reports` from an in-memory queue; any bearer token signs in. */
-export function withModerationMocks(fallback: Fetch, reports: ModerationReport[] = seed()): Fetch {
+export function withModerationMocks(fallback: Fetch, reports: ModerationReport[] = seedModerationQueue()): Fetch {
   return async (input) => {
     const url = new URL(input.url, "http://mock.local");
     if (url.pathname.replace(/^.*\/api\/v1/, "") !== "/moderation/reports") return fallback(input);

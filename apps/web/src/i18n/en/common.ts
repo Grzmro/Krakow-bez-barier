@@ -27,6 +27,8 @@ export const common: Messages["common"] = {
     businessSub: "Accessibility card on your website",
     moderator: "Moderator panel",
     moderatorSub: "Report queue",
+    city: "City dashboard",
+    citySub: "Barriers, reports, repair priorities",
     privacy: "Privacy",
     privacySub: "What we collect and for how long",
     a11y: "Accessibility statement",

@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, Flask, LockKey, Question, SignOut, XCircle } from "@phosphor-icons/react";
+import { CheckCircle, Flask, Question, SignOut, XCircle } from "@phosphor-icons/react";
 import type { ModerationDecisionKind, ModerationReport, ModeratorSession } from "@krakow-bez-barier/contracts";
 import { Button, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge } from "@/components/kbb";
+import { bearer, ModeratorSignIn, StatusError, useModeratorSession } from "@/components/moderator/moderator-session";
 import { InfoSection } from "@/components/layout/info-page";
 import { useLocale, useMessages } from "@/i18n/client";
 import { api, isMockApi } from "@/lib/api";
@@ -14,47 +15,9 @@ import { changePreview, formatDateTime, isOpen, moderationHistory, retryMinutes 
 import { formatDate } from "@/lib/place-facts";
 import { routes } from "@/lib/routes";
 
-const TOKEN_KEY = "kbb.moderatorToken";
 const PAGE_SIZE = 100;
 
-const bearer = (token: string) => ({ authorization: `Bearer ${token}` });
-
-class StatusError extends Error {
-  constructor(
-    readonly status: number,
-    readonly retryAfter: string | null = null,
-  ) {
-    super(`HTTP ${status}`);
-  }
-}
-
-// The token lives in sessionStorage (this tab only); the in-memory copy covers blocked storage.
-let memoryToken: string | null = null;
-const tokenListeners = new Set<() => void>();
-
-function subscribeToken(listener: () => void) {
-  tokenListeners.add(listener);
-  return () => void tokenListeners.delete(listener);
-}
-
-function readToken(): string | null {
-  try {
-    return sessionStorage.getItem(TOKEN_KEY);
-  } catch {
-    return memoryToken;
-  }
-}
-
-function storeToken(token: string | null) {
-  memoryToken = token;
-  try {
-    if (token) sessionStorage.setItem(TOKEN_KEY, token);
-    else sessionStorage.removeItem(TOKEN_KEY);
-  } catch {
-    // Storage blocked: the in-memory copy lasts until the page reloads.
-  }
-  for (const listener of tokenListeners) listener();
-}
+const QUERY_KEY = ["moderation"] as const;
 
 type Queue = { items: ModerationReport[]; moderator: ModeratorSession };
 
@@ -77,115 +40,13 @@ async function fetchReports(token: string): Promise<Queue> {
 }
 
 export function ModeratorScreen() {
-  const token = useSyncExternalStore(subscribeToken, readToken, () => null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const queryClient = useQueryClient();
-  const announce = useAnnounce();
-
-  const signIn = useCallback((value: string) => {
-    setNotice(null);
-    storeToken(value);
-  }, []);
-  const signOut = useCallback(
-    (message: string) => {
-      setNotice(message);
-      announce(message);
-      storeToken(null);
-      queryClient.removeQueries({ queryKey: ["moderation"] });
-    },
-    [announce, queryClient],
-  );
+  const t = useMessages().moderator;
+  const { token, notice, signIn, signOut } = useModeratorSession(QUERY_KEY);
 
   return token ? (
     <ModerationPanel token={token} onSignOut={signOut} />
   ) : (
-    <SignInForm notice={notice} onSignedIn={signIn} />
-  );
-}
-
-function SignInForm({ notice, onSignedIn }: { notice: string | null; onSignedIn: (token: string) => void }) {
-  const t = useMessages().moderator;
-  const [token, setToken] = useState("");
-  const [show, setShow] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [checking, setChecking] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const announce = useAnnounce();
-  const ids = { input: useId(), hint: useId(), error: useId() };
-
-  const fail = (message: string) => {
-    setError(message);
-    announce(message);
-    inputRef.current?.focus();
-  };
-
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    const value = token.trim();
-    if (!value) return fail(t.signIn.required);
-    setChecking(true);
-    try {
-      const { response } = await api.GET("/moderation/reports", {
-        params: { query: { status: "new", limit: 1 } },
-        headers: bearer(value),
-      });
-      if (response.ok) {
-        announce(t.signIn.signedIn);
-        onSignedIn(value);
-        return;
-      }
-      if (response.status === 429) return fail(t.signIn.lockedOut(retryMinutes(response.headers.get("retry-after"))));
-      if (response.status === 401) return fail(t.signIn.invalid);
-      fail(t.signIn.failed);
-    } catch {
-      fail(t.signIn.failed);
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  return (
-    <form onSubmit={submit} noValidate className="mt-4 rounded-[20px] bg-surface-raised p-4 shadow-soft ring-1 ring-border/70">
-      {notice ? <p className="mb-3 text-body-sm font-semibold">{notice}</p> : null}
-      <h2 className="flex items-center gap-2 font-display text-body font-bold">
-        <LockKey weight="bold" className="size-5 shrink-0" aria-hidden />
-        {t.signIn.heading}
-      </h2>
-      <p id={ids.hint} className="mt-2 text-body-sm text-foreground/85">
-        {t.signIn.lead}
-      </p>
-      <label htmlFor={ids.input} className="mt-4 mb-2 block text-body-sm font-semibold">
-        {t.signIn.token}
-      </label>
-      <input
-        id={ids.input}
-        ref={inputRef}
-        name="password"
-        type={show ? "text" : "password"}
-        autoComplete="current-password"
-        autoCapitalize="none"
-        spellCheck={false}
-        value={token}
-        onChange={(e) => setToken(e.target.value)}
-        aria-invalid={!!error}
-        aria-describedby={error ? `${ids.error} ${ids.hint}` : ids.hint}
-        className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-body outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring aria-invalid:border-status-barrier"
-      />
-      {error ? (
-        <p id={ids.error} className="mt-1.5 text-caption font-semibold text-status-barrier">
-          {error}
-        </p>
-      ) : null}
-      <label className="mt-3 flex min-h-6 items-center gap-2 text-body-sm">
-        <input type="checkbox" checked={show} onChange={(e) => setShow(e.target.checked)} className="size-5 accent-primary" />
-        {t.signIn.show}
-      </label>
-      <Button type="submit" className="mt-4 w-full" disabled={checking}>
-        {checking ? t.signIn.checking : t.signIn.submit}
-      </Button>
-      <p className="mt-3 text-caption text-muted-foreground">{t.signIn.sessionNote}</p>
-      {isMockApi ? <p className="mt-1 text-caption text-muted-foreground">{t.signIn.mockNote}</p> : null}
-    </form>
+    <ModeratorSignIn notice={notice} signedInMessage={t.signIn.signedIn} onSignedIn={signIn} />
   );
 }
 

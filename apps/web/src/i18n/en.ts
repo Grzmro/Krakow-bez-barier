@@ -2,6 +2,7 @@
 // catalog, so a missing key or a changed signature is a compile error.
 import type { Messages } from "./messages";
 import { business } from "./en/business";
+import { city } from "./en/city";
 import { common } from "./en/common";
 import { dev } from "./en/dev";
 import { event } from "./en/event";
@@ -15,4 +16,4 @@ import { pwa } from "./en/pwa";
 import { route } from "./en/route";
 import { summary } from "./en/summary";
 
-export const en: Messages = { common, home, place, profile, pages, moderator, nearby, business, event, dev, pwa, summary, route };
+export const en: Messages = { common, home, place, profile, pages, moderator, nearby, business, event, dev, pwa, summary, route, city };

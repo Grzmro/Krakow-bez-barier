@@ -38,6 +38,8 @@ tags:
   description: Anonymous user corrections and confirmations.
 - name: moderation
   description: Moderator queue (authenticated).
+- name: city
+  description: Aggregated statistics and repair priorities for the city's staff (authenticated).
 - name: routes
   description: Accessible routing.
 - name: widget
@@ -788,6 +790,177 @@ paths:
           $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /city/stats:
+    get:
+      operationId: getCityStats
+      summary: Accessibility statistics and repair priorities for the city
+      description: 'Aggregates for the city''s staff (panel `/miasto`). It covers places with and without accessibility data,
+        per need how many places meet it, have a barrier, lack data or have conflicting sources, reports by status,
+        outdated data (over 12 months) and conflicts. It also ranks places to fix or to fill in. Needs are checked like
+        the wheelchair profile does (entrance, door, lift, accessible toilet) plus a smooth surface. Each ranked place
+        has a score that is the sum of the points in `criteria`, with the reasons behind it. Aggregates only: no report
+        text, no personal data. Sample (PRZYKŁAD) places, facts and their reports are left out; `isSample` is true only
+        when the whole answer is built from sample data (the example-data mode). Requires a moderator bearer token, the
+        demo account included (lockout as for the moderation queue).
+
+        '
+      tags:
+      - city
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: limit
+        in: query
+        description: How many places of the ranking to return, highest score first.
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      responses:
+        '200':
+          description: City statistics.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CityStats'
+              examples:
+                default:
+                  value:
+                    generatedAt: '2026-10-03T12:00:00Z'
+                    isSample: true
+                    places:
+                      total: 3
+                      withData: 3
+                      withoutData: 0
+                    needs:
+                    - need: entrance
+                      met: 1
+                      barrier: 1
+                      unknown: 1
+                      conflict: 0
+                    - need: door
+                      met: 1
+                      barrier: 0
+                      unknown: 2
+                      conflict: 0
+                    - need: lift
+                      met: 1
+                      barrier: 0
+                      unknown: 2
+                      conflict: 0
+                    - need: toilet
+                      met: 1
+                      barrier: 1
+                      unknown: 1
+                      conflict: 0
+                    - need: surface
+                      met: 0
+                      barrier: 0
+                      unknown: 3
+                      conflict: 0
+                    reports:
+                    - status: new
+                      count: 1
+                    - status: needs_info
+                      count: 1
+                    - status: accepted
+                      count: 0
+                    - status: rejected
+                      count: 0
+                    staleData:
+                      places: 1
+                      facts: 2
+                    conflicts:
+                      places: 1
+                      attributes: 1
+                    criteria:
+                    - factor: barrier
+                      points: 4
+                      max: null
+                      categories: []
+                    - factor: open_report
+                      points: 3
+                      max: 3
+                      categories: []
+                    - factor: conflict
+                      points: 2
+                      max: null
+                      categories: []
+                    - factor: busy_category
+                      points: 2
+                      max: 1
+                      categories:
+                      - toilet
+                      - pharmacy
+                      - museum
+                      - theatre
+                      - transit_stop
+                    - factor: missing_entrance_data
+                      points: 1
+                      max: 1
+                      categories: []
+                    - factor: stale_data
+                      points: 1
+                      max: 1
+                      categories: []
+                    priorities:
+                      total: 2
+                      items:
+                      - rank: 1
+                        placeId: podziemia-rynku
+                        placeName: Podziemia Rynku
+                        category: museum
+                        location:
+                          type: Point
+                          coordinates:
+                          - 19.9373
+                          - 50.0617
+                        score: 9
+                        action: fix
+                        barriers:
+                        - entrance
+                        openReports: 1
+                        reasons:
+                        - factor: barrier
+                          count: 1
+                          points: 4
+                        - factor: open_report
+                          count: 1
+                          points: 3
+                        - factor: busy_category
+                          count: 1
+                          points: 2
+                      - rank: 2
+                        placeId: hotel-przyklad
+                        placeName: Hotel Przykład
+                        category: hotel
+                        location:
+                          type: Point
+                          coordinates:
+                          - 19.94
+                          - 50.06
+                        score: 4
+                        action: verify
+                        barriers: []
+                        openReports: 1
+                        reasons:
+                        - factor: open_report
+                          count: 1
+                          points: 3
+                        - factor: missing_entrance_data
+                          count: 1
+                          points: 1
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '500':
@@ -2186,6 +2359,231 @@ components:
         decidedAt:
           type: string
           format: date-time
+    CityStats:
+      type: object
+      description: Aggregated accessibility picture of the city (`GET /city/stats`). Counts only, no personal data.
+      required:
+      - generatedAt
+      - isSample
+      - places
+      - needs
+      - reports
+      - staleData
+      - conflicts
+      - criteria
+      - priorities
+      properties:
+        generatedAt:
+          type: string
+          format: date-time
+        isSample:
+          type: boolean
+          description: Built from sample (PRZYKŁAD) data only — the example-data mode. Label it "PRZYKŁAD".
+        places:
+          type: object
+          required:
+          - total
+          - withData
+          - withoutData
+          properties:
+            total:
+              type: integer
+              minimum: 0
+            withData:
+              type: integer
+              minimum: 0
+              description: Places with at least one active accessibility fact.
+            withoutData:
+              type: integer
+              minimum: 0
+              description: Places with no accessibility fact at all — "Brak danych", never counted as accessible.
+        needs:
+          type: array
+          description: Per need, how many places meet it, have a barrier, lack data or have conflicting sources.
+          items:
+            $ref: '#/components/schemas/CityNeedStats'
+        reports:
+          type: array
+          description: Number of reports in each status, every status listed.
+          items:
+            type: object
+            required:
+            - status
+            - count
+            properties:
+              status:
+                $ref: '#/components/schemas/ReportStatus'
+              count:
+                type: integer
+                minimum: 0
+        staleData:
+          type: object
+          description: Facts older than 12 months or from a source that failed to refresh, and the places they describe.
+          required:
+          - places
+          - facts
+          properties:
+            places:
+              type: integer
+              minimum: 0
+            facts:
+              type: integer
+              minimum: 0
+        conflicts:
+          type: object
+          description: Attributes on which fresh sources disagree, and the places they belong to.
+          required:
+          - places
+          - attributes
+          properties:
+            places:
+              type: integer
+              minimum: 0
+            attributes:
+              type: integer
+              minimum: 0
+        criteria:
+          type: array
+          description: How a place's priority score is computed — the sum of `points` for each reason it has.
+          items:
+            $ref: '#/components/schemas/PriorityCriterion'
+        priorities:
+          type: object
+          required:
+          - total
+          - items
+          properties:
+            total:
+              type: integer
+              minimum: 0
+              description: Places with at least one reason other than `busy_category`; `items` is the top of them.
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/PriorityItem'
+    CityNeedStats:
+      type: object
+      required:
+      - need
+      - met
+      - barrier
+      - unknown
+      - conflict
+      properties:
+        need:
+          $ref: '#/components/schemas/Need'
+        met:
+          type: integer
+          minimum: 0
+        barrier:
+          type: integer
+          minimum: 0
+        unknown:
+          type: integer
+          minimum: 0
+        conflict:
+          type: integer
+          minimum: 0
+    PriorityFactor:
+      type: string
+      description: 'A reason a place is ranked: `barrier` — a need with a known barrier (per need); `open_report` — a report
+        awaiting moderation; `conflict` — an attribute on which sources disagree; `busy_category` — a category many people
+        visit (counts only with another reason); `missing_entrance_data` — nothing known about the entrance;
+        `stale_data` — the data is outdated.'
+      enum:
+      - barrier
+      - open_report
+      - conflict
+      - busy_category
+      - missing_entrance_data
+      - stale_data
+    PriorityCriterion:
+      type: object
+      required:
+      - factor
+      - points
+      - max
+      - categories
+      properties:
+        factor:
+          $ref: '#/components/schemas/PriorityFactor'
+        points:
+          type: integer
+          minimum: 1
+          description: Points for each occurrence.
+        max:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          description: Most occurrences counted per place; `null` for no limit.
+        categories:
+          type: array
+          description: The categories `busy_category` counts; empty for other factors.
+          items:
+            $ref: '#/components/schemas/Category'
+    PriorityItem:
+      type: object
+      required:
+      - rank
+      - placeId
+      - placeName
+      - category
+      - location
+      - score
+      - action
+      - barriers
+      - openReports
+      - reasons
+      properties:
+        rank:
+          type: integer
+          minimum: 1
+        placeId:
+          type: string
+        placeName:
+          type: string
+        category:
+          $ref: '#/components/schemas/Category'
+        location:
+          $ref: '#/components/schemas/Point'
+        score:
+          type: integer
+          minimum: 1
+        action:
+          $ref: '#/components/schemas/PriorityAction'
+        barriers:
+          type: array
+          description: Needs with a known barrier.
+          items:
+            $ref: '#/components/schemas/Need'
+        openReports:
+          type: integer
+          minimum: 0
+        reasons:
+          type: array
+          description: Each reason with how many times it counted and the points it gave; points add up to `score`.
+          items:
+            type: object
+            required:
+            - factor
+            - count
+            - points
+            properties:
+              factor:
+                $ref: '#/components/schemas/PriorityFactor'
+              count:
+                type: integer
+                minimum: 1
+              points:
+                type: integer
+                minimum: 1
+    PriorityAction:
+      type: string
+      description: '`fix` — a known barrier to remove; `verify` — data to fill in or check on site.'
+      enum:
+      - fix
+      - verify
     ConfirmationCreate:
       type: object
       required:
