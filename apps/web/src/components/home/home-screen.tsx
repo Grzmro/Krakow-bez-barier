@@ -14,7 +14,8 @@ import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
 import { routes } from "@/lib/routes";
 import { routeTarget } from "@/lib/route-intent";
-import { byDistance, listCentre, searchArea, toLonLat, type NearbyOrigin } from "@/lib/nearby";
+import { byDistance, type NearbyOrigin } from "@/lib/nearby";
+import { isSearching, searchOrigin } from "@/lib/home-start";
 import { listedCount } from "@/lib/list-count";
 import { parseNearestCommand } from "@/lib/nearest-command";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
@@ -80,7 +81,6 @@ export function HomeScreen() {
   const revealRef = useRef<string | null>(null);
   // Stays in this component: only the coarse `searchArea` goes to the API (see docs/architecture.md).
   const [nearby, setNearby] = useState<NearbyOrigin | null>(null);
-  const position = nearby?.position ?? null;
   const chosenPlace = nearby?.place;
   const nearbyRef = useRef<NearbyToggleHandle>(null);
   const [quickId, setQuickId] = useState<QuickActionId | null>(null);
@@ -95,20 +95,35 @@ export function HomeScreen() {
   const collapsedRef = useRef<HTMLDivElement>(null);
   const { inset: panelInset, follow: followPanel } = usePanelInset(mainRef, collapsedRef);
 
-  const area = position ? searchArea(position) : undefined;
+  // Start state: a clean map and a stowed panel. Places load, list and pin only once something was asked.
+  const searching = isSearching({ q, category: category === ALL ? null : category, features, nearby });
+  // The panel is stowed at the start and opens when results appear; clearing stows it again.
+  useEffect(() => setStowed(!searching), [searching, setStowed]);
+  const searchFrom = useMemo(() => searchOrigin(nearby, config.cityCenter), [nearby]);
+  const area = searchFrom.area;
   const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown, area };
-  const places = usePlaces({
-    bbox: area,
-    // TODO(KBB-88): load places for the map viewport; until then the map shows the 100 nearest the Rynek.
-    near: listCentre(position),
-    q: query.q || undefined,
-    category: category === ALL ? undefined : [category],
-    feature: features.length ? features : undefined,
-    includeUnknown: features.length ? showUnknown : undefined,
-    limit: 100,
-    ...profileQuery(settings),
-  });
-  const origin = useMemo(() => (position ? toLonLat(position) : null), [position]);
+  const placesQuery = usePlaces(
+    {
+      bbox: area,
+      // TODO(KBB-88): load places for the map viewport; until then the map shows the 100 nearest the Rynek.
+      near: searchFrom.centre,
+      q: query.q || undefined,
+      category: category === ALL ? undefined : [category],
+      feature: features.length ? features : undefined,
+      includeUnknown: features.length ? showUnknown : undefined,
+      limit: 100,
+      ...profileQuery(settings),
+    },
+    { enabled: searching },
+  );
+  // Keep-previous-data would otherwise leave the last results standing after the search is cleared.
+  const places = {
+    data: searching ? placesQuery.data : undefined,
+    isError: searching && placesQuery.isError,
+    isPlaceholderData: searching && placesQuery.isPlaceholderData,
+    refetch: placesQuery.refetch,
+  };
+  const origin = searchFrom.from;
   const items = useMemo(() => byDistance(places.data?.items ?? [], origin ?? config.cityCenter), [places.data, origin]);
   const counts = useMemo(() => countByStatus(items), [items]);
   const shown = useMemo(() => filterByVerdict(items, { status: statusFilter, hideFailing }), [items, statusFilter, hideFailing]);
@@ -140,7 +155,7 @@ export function HomeScreen() {
     [items, settled, query.q],
   );
 
-  const resultsLabel = total === undefined ? t.list.loading : t.list.results(listedCount(places.data!, shown.length));
+  const resultsLabel = !searching ? t.list.start.summary : total === undefined ? t.list.loading : t.list.results(listedCount(places.data!, shown.length));
   const queryKey = JSON.stringify(query);
   // The list renders a window of rows that grows by a page; a new search or verdict filter starts it over.
   const windowKey = `${queryKey}|${statusFilter}|${hideFailing}`;
@@ -422,7 +437,7 @@ export function HomeScreen() {
               <p>{t.command.unknownHint}</p>
             </div>
           ) : null}
-          {profile ? (
+          {profile && searching ? (
             <>
               <div className="flex items-center gap-2">
                 <div role="group" aria-label={tp.countersLabel} className="flex min-w-0 items-center gap-2">
@@ -478,6 +493,7 @@ export function HomeScreen() {
           <h2 className="mb-2 text-caption font-semibold text-muted-foreground">
             {resultsLabel}
           </h2>
+          {!searching ? <p className="text-body-sm text-muted-foreground">{t.list.start.hint}</p> : null}
           {cutNote ? <p className="mb-2 text-body-sm text-muted-foreground">{cutNote}</p> : null}
           {routeTo ? (
             <div role="group" aria-label={t.search.route.button} className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl bg-primary-container px-4 py-3">
@@ -494,7 +510,7 @@ export function HomeScreen() {
                 {t.list.retry}
               </Button>
             </div>
-          ) : total !== undefined && shown.length === 0 ? (
+          ) : !searching ? null : total !== undefined && shown.length === 0 ? (
             <div className="grid place-items-center gap-3 py-8 text-center">
               <span className="grid size-16 place-items-center rounded-full bg-primary-container text-primary">
                 <MagnifyingGlass weight="bold" className="size-8" aria-hidden />

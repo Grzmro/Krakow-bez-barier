@@ -88,6 +88,7 @@ export const home: Messages["home"] = {
   },
   list: {
     label: "List of places",
+    start: { summary: "Search for a place or pick a category", hint: "The map is clear. Type a name, pick a category or a quick action and we show places around: near you, near a point you chose, or, without a location, in the visible part of the map." },
     stow: { hide: "Hide the list", show: "Show the list" },
     results: (n: number) => `${n} ${placesWord(n)}`,
     announce: (n: number) => (n === 0 ? "No places found" : `Found ${n} ${placesWord(n)}`),
