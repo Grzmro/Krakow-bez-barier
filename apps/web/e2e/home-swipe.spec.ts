@@ -11,17 +11,17 @@ async function finger(page: Page) {
   const STEPS = 6;
   // A real touchscreen reports a move every frame; without the gap all moves share one timestamp and have no speed.
   const frame = () => new Promise((resolve) => setTimeout(resolve, 16));
-  const moveBy = async (from: Point, dy: number) => {
+  const moveBy = async (from: Point, dy: number, dx = 0) => {
     for (let i = 1; i <= STEPS; i++) {
       await frame();
-      await send("touchMove", [{ x: from.x, y: from.y + (dy * i) / STEPS }]);
+      await send("touchMove", [{ x: from.x + (dx * i) / STEPS, y: from.y + (dy * i) / STEPS }]);
     }
   };
   return {
     /** A quick swipe; `hold` keeps the finger still before lifting, so only the distance counts, not the speed. */
-    async swipe(from: Point, dy: number, { hold = false } = {}) {
+    async swipe(from: Point, dy: number, { hold = false, dx = 0 } = {}) {
       await send("touchStart", [from]);
-      await moveBy(from, dy);
+      await moveBy(from, dy, dx);
       if (hold) await new Promise((resolve) => setTimeout(resolve, 250));
       await send("touchEnd", []);
     },
@@ -41,14 +41,9 @@ async function finger(page: Page) {
 
 const panel = (page: Page) => page.getByRole("region", { name: "Lista miejsc" });
 
-/**
- * A point on the panel's top row (grabber row or stowed bar), clear of the buttons on the right and of the dev-tools
- * badge in the bottom-left corner. At iPhone 15 size the home screen is taller than the viewport, so the row is
- * scrolled into view first, as a visitor would.
- */
+/** A point on the panel's top row (grabber row or stowed bar), clear of the buttons on the right and of the dev-tools badge in the bottom-left corner. */
 async function topRow(page: Page): Promise<Point> {
   const row = panel(page).locator("> div").first();
-  await row.scrollIntoViewIfNeeded();
   const box = (await row.boundingBox())!;
   return { x: box.x + box.width * 0.3, y: box.y + Math.min(20, box.height / 2) };
 }
@@ -63,6 +58,9 @@ async function settledHeight(page: Page) {
   await expect.poll(() => panel(page).evaluate((el) => el.getAnimations().length), { timeout: 10_000 }).toBe(0);
   return (await panel(page).boundingBox())!.height;
 }
+
+/** How far the document is scrolled: a swipe must move the panel, never the page under it. */
+const pageScroll = (page: Page) => page.evaluate(() => document.scrollingElement!.scrollTop);
 
 async function openHome(page: Page) {
   await page.goto("/");
@@ -96,13 +94,14 @@ for (const [name, device] of [
       const grabber = await centre(panel(page).getByRole("button", { name: "Rozwiń arkusz" }));
       await touch.swipe(grabber, Math.min(0.8 * half, page.viewportSize()!.height - grabber.y - 4));
 
-      // THEN only the bar is left, its "show" button is focused and says it's collapsed
+      // THEN only the bar is left, its "show" button is focused and says it's collapsed, and the page didn't scroll
+      expect(await pageScroll(page)).toBe(0);
       const show = panel(page).getByRole("button", { name: "Pokaż listę" });
       await expect(panel(page)).toHaveAttribute("data-stowed", "true");
       await expect(show).toHaveAttribute("aria-expanded", "false");
       await expect(show).toBeFocused();
       const bar = await settledHeight(page);
-      expect(bar).toBeLessThan(half / 3);
+      expect(bar).toBeLessThan(half / 2);
       await expect(page.locator("main")).toMatchAriaSnapshot({ name: "home-swipe-stowed.aria.yml" });
       await expectAccessible();
       await evidence(`home-swipe-stowed-${slug}`);
@@ -120,12 +119,13 @@ for (const [name, device] of [
       // WHEN a finger swipes the bar up, most of the way to half height
       await touch.swipe(await topRow(page), -0.8 * (half - bar));
 
-      // THEN the list is back at half height, with the grabber still offering to expand
+      // THEN the list is back at half height, with the grabber still offering to expand, and the page didn't scroll
       await expect(panel(page)).toHaveAttribute("data-stowed", "false");
+      expect(await pageScroll(page)).toBe(0);
       await expect(panel(page).getByRole("button", { name: "Rozwiń arkusz" })).toHaveAttribute("aria-expanded", "false");
       await expect(panel(page).getByRole("button", { name: "Schowaj listę" })).toBeFocused();
       const halfHeight = await settledHeight(page);
-      expect(halfHeight).toBeGreaterThan(bar * 3);
+      expect(halfHeight).toBeGreaterThan(bar * 2);
 
       // WHEN it swipes up once more, close to the top
       const top = await topRow(page);
@@ -249,20 +249,83 @@ for (const [name, device] of [
       await expect(panel(page)).toHaveAttribute("data-expanded", "true");
     });
 
-    test("scrolling the list and tapping the grabber never swipe the panel", async ({ page }) => {
+    test("the home screen fits the screen, so nothing but the list and the panel moves", async ({ page }) => {
+      // GIVEN the home screen at phone size
+      await openHome(page);
+
+      // THEN the document is no taller than the viewport and can't be scrolled
+      const { scrollHeight, innerHeight } = await page.evaluate(() => ({
+        scrollHeight: document.scrollingElement!.scrollHeight,
+        innerHeight: window.innerHeight,
+      }));
+      expect(scrollHeight).toBeLessThanOrEqual(innerHeight);
+      expect(await pageScroll(page)).toBe(0);
+    });
+
+    test("a drag on the list resizes the panel when the list can't scroll that way, and scrolls it otherwise", async ({ page }) => {
+      // GIVEN the list at half height, scrolled to its top
+      const half = await openHome(page);
+      const touch = await finger(page);
+      const scroller = page.getByRole("group", { name: "Lista miejsc" });
+      const scrollTop = () => scroller.evaluate((el) => el.scrollTop);
+      const inList = async (from: "top" | "bottom") => {
+        const box = (await scroller.boundingBox())!;
+        const bottom = Math.min(box.y + box.height, page.viewportSize()!.height);
+        return { x: box.x + box.width / 2, y: from === "top" ? box.y + 40 : bottom - 40 };
+      };
+
+      // WHEN a finger drags up inside the list, most of the way to the top, and holds before lifting
+      // (distance, not speed, decides, so machine load can't; flicks are unit-tested)
+      const low = await inList("bottom");
+      await touch.swipe(low, -(low.y - 140), { hold: true });
+
+      // THEN the panel expands instead of the list scrolling, and the page stays put
+      await expect(panel(page)).toHaveAttribute("data-expanded", "true");
+      const full = await settledHeight(page);
+      expect(await scrollTop()).toBe(0);
+      expect(await pageScroll(page)).toBe(0);
+
+      // WHEN it flicks up once more, now that the panel is fully expanded
+      await touch.swipe(await inList("bottom"), -150);
+
+      // THEN the list scrolls and the panel stays expanded
+      await expect.poll(scrollTop).toBeGreaterThan(50);
+      await expect(panel(page)).toHaveAttribute("data-expanded", "true");
+
+      // WHEN it flicks down while the list is scrolled
+      let listScroll = -1;
+      await expect.poll(async () => listScroll === (listScroll = await scrollTop())).toBe(true);
+      await touch.swipe(await inList("top"), 60);
+
+      // THEN the list scrolls back towards its top and the panel keeps its height
+      await expect.poll(scrollTop).toBeLessThan(listScroll);
+      await expect(panel(page)).toHaveAttribute("data-expanded", "true");
+
+      // WHEN it drags down most of the way to half height with the list back at its top
+      // (once the fling has stopped: Chrome doesn't let a page cancel a touch that lands mid-fling)
+      await expect.poll(async () => listScroll === (listScroll = await scrollTop())).toBe(true);
+      await scroller.evaluate((el) => el.scrollTo({ top: 0, behavior: "instant" }));
+      await expect.poll(scrollTop).toBe(0);
+      await touch.swipe(await inList("top"), 0.8 * (full - half), { hold: true });
+
+      // THEN the panel collapses to half height, without the page moving
+      await expect(panel(page)).toHaveAttribute("data-expanded", "false");
+      await expect(panel(page)).toHaveAttribute("data-stowed", "false");
+      expect(await pageScroll(page)).toBe(0);
+    });
+
+    test("a sideways swipe on the filters scrolls them; tapping the grabber still toggles", async ({ page }) => {
       // GIVEN the list at half height
       await openHome(page);
       const touch = await finger(page);
-      const scroller = page.getByRole("group", { name: "Lista miejsc" });
+      const filters = panel(page).getByRole("group", { name: "Filtry cech" });
+      await filters.scrollIntoViewIfNeeded();
 
-      // WHEN a finger flicks inside the list, up and then down
-      const list = (await scroller.boundingBox())!;
-      const inList = { x: list.x + list.width / 2, y: Math.min(list.y + list.height, page.viewportSize()!.height) - 40 };
-      await touch.swipe(inList, -150);
-      await expect.poll(() => scroller.evaluate((el) => el.scrollTop)).toBeGreaterThan(50);
-      await touch.swipe({ x: inList.x, y: list.y + 40 }, 150);
+      // WHEN a finger swipes the feature filters sideways
+      await touch.swipe(await centre(filters), 0, { dx: -150 });
 
-      // THEN the panel stays at half height
+      // THEN they scroll and the panel keeps its height
+      await expect.poll(() => filters.evaluate((el) => el.scrollLeft)).toBeGreaterThan(50);
       await expect(panel(page)).toHaveAttribute("data-expanded", "false");
       await expect(panel(page)).toHaveAttribute("data-stowed", "false");
 

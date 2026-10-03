@@ -38,8 +38,9 @@ export interface BottomPanelProps {
  * Non-modal bottom sheet for map screens: two heights (three with `stowed`), switched by buttons;
  * the arrow keys on the grabber (and ArrowUp on the stowed bar's button) step between them.
  * A vertical swipe on the grabber row or the stowed bar is a shortcut on top of them, never the only
- * way (WCAG 2.5.7); the scrolling content never swipes the panel. Absolutely positioned — put it
- * inside a `relative` container. The content scrolls and the map behind stays interactive.
+ * way (WCAG 2.5.7). Like iOS Maps, a drag on the list resizes the panel when the list can't take it:
+ * down while scrolled to the top, up while the panel isn't fully expanded; otherwise the list scrolls.
+ * Absolutely positioned — put it inside a `relative` container. The map behind stays interactive.
  */
 export function BottomPanel({
   label,
@@ -88,7 +89,9 @@ export function BottomPanel({
 
   const panelRef = useRef<HTMLElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
-  const swipeHandlers = usePanelSwipe({ panelRef, probeRef, heights, order, current, settle });
+  const rowRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const { rowHandlers, onClickCapture } = usePanelSwipe({ panelRef, probeRef, rowRef, scrollerRef, heights, order, current, settle });
   const style = { height: heights[current] } satisfies CSSProperties;
   return (
     <>
@@ -98,6 +101,7 @@ export function BottomPanel({
         data-expanded={expanded}
         data-stowed={isStowed}
         style={style}
+        onClickCapture={onClickCapture}
         className={cn(
           "group/panel absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-(--radius-sheet) bg-card text-card-foreground shadow-sheet transition-[height] duration-[420ms] ease-(--ease-out-soft)",
           className,
@@ -105,7 +109,8 @@ export function BottomPanel({
       >
         {isStowed && stowLabels ? (
           <div
-            {...swipeHandlers}
+            ref={rowRef}
+            {...rowHandlers}
             className={cn("relative flex h-full max-h-18 shrink-0 touch-none items-center gap-3 px-4 pt-2 select-none", headerClassName)}
           >
             <span aria-hidden className="absolute top-2 left-1/2 h-1 w-9 -translate-x-1/2 rounded-full bg-border-strong" />
@@ -122,7 +127,8 @@ export function BottomPanel({
           </div>
         ) : (
           <div
-            {...swipeHandlers}
+            ref={rowRef}
+            {...rowHandlers}
             className={cn("relative flex h-12 shrink-0 touch-none items-center justify-center select-none", headerClassName)}
           >
             <button
@@ -158,6 +164,7 @@ export function BottomPanel({
         )}
         {/* Focusable so keyboard users can scroll it even when it holds no focusable content (WCAG 2.1.1). */}
         <div
+          ref={scrollerRef}
           tabIndex={0}
           role="group"
           aria-label={label}
@@ -165,6 +172,9 @@ export function BottomPanel({
           aria-hidden={isStowed || undefined}
           className={cn(
             "relative min-h-0 flex-1 overflow-y-auto overscroll-contain",
+            // Scrolled to the top of a panel that isn't fully expanded, every vertical drag on the list resizes the panel:
+            // say so in CSS too, so the browser can't start a page or list pan before the touch listener runs.
+            "group-data-[expanded=false]/panel:data-swipe-top:[touch-action:pan-x_pinch-zoom]",
             isStowed &&
               "invisible h-0 flex-none group-data-dragging/panel:visible group-data-dragging/panel:h-auto group-data-dragging/panel:flex-1",
           )}
@@ -181,13 +191,33 @@ export function BottomPanel({
 
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
+type Drag = {
+  startY: number;
+  startHeight: number;
+  stops: number[];
+  samples: { t: number; y: number }[];
+  active: boolean;
+  follow: boolean;
+};
+
+/** A touch on the list, until it is known whether it scrolls the list or resizes the panel. */
+type ListTouch = { id: number; x: number; y: number; mode: "undecided" | "panel" | "native" };
+
 /**
- * Pointer-driven swipe of the panel height. While dragging, the height is written straight to the
- * DOM (no React render per move); on release the panel snaps to a state through `settle`.
+ * Swipe of the panel height, from pointer events on the top row and from touch events on the list.
+ * While dragging, the height is written straight to the DOM (no React render per move); on release
+ * the panel snaps to a state through `settle`.
+ *
+ * WebKit pans the page for any touchmove nobody cancels, whatever pointer events and `touch-action`
+ * say, so native non-passive `touchmove` listeners cancel the moves that belong to the panel: every
+ * move of a touch that began on the top row, and the moves of a list drag taken over by the panel.
+ * `touchstart` is never cancelled, so taps on the buttons still click.
  */
 function usePanelSwipe({
   panelRef,
   probeRef,
+  rowRef,
+  scrollerRef,
   heights,
   order,
   current,
@@ -195,21 +225,16 @@ function usePanelSwipe({
 }: {
   panelRef: RefObject<HTMLElement | null>;
   probeRef: RefObject<HTMLDivElement | null>;
+  rowRef: RefObject<HTMLDivElement | null>;
+  scrollerRef: RefObject<HTMLDivElement | null>;
   heights: Record<PanelState, string>;
   order: PanelState[];
   current: PanelState;
   settle: (state: PanelState) => void;
 }) {
-  const drag = useRef<{
-    id: number;
-    startY: number;
-    startHeight: number;
-    stops: number[];
-    samples: { t: number; y: number }[];
-    active: boolean;
-    follow: boolean;
-  } | null>(null);
-  // Until when (performance.now) a click on the row is the tail of a swipe, not a press.
+  const drag = useRef<Drag | null>(null);
+  const pointerId = useRef<number | null>(null);
+  // Until when (performance.now) a click in the panel is the tail of a swipe, not a press.
   const swallowUntil = useRef(0);
 
   function measure(): number[] {
@@ -222,20 +247,56 @@ function usePanelSwipe({
     return px;
   }
 
-  function heightAt(d: NonNullable<typeof drag.current>, y: number) {
+  function heightAt(d: Drag, y: number) {
     const min = Math.min(...d.stops);
     const max = Math.max(...d.stops);
     return Math.min(max, Math.max(min, d.startHeight + d.startY - y));
   }
 
-  function release(cancelled: boolean) {
+  /** Swipes are off while the top row is hidden (the desktop side panel has a fixed height). */
+  function enabled() {
+    return Boolean(panelRef.current && probeRef.current && rowRef.current?.getClientRects().length);
+  }
+
+  function start(y: number, t: number) {
+    drag.current = {
+      startY: y,
+      startHeight: panelRef.current!.getBoundingClientRect().height,
+      stops: [],
+      samples: [{ t, y }],
+      active: false,
+      follow: !reducedMotion(),
+    };
+  }
+
+  /** Follows the finger; returns true once the move is a swipe (past the slop). */
+  function move(y: number, t: number): boolean {
+    const d = drag.current;
+    const panel = panelRef.current;
+    if (!d || !panel) return false;
+    if (!d.active) {
+      if (Math.abs(y - d.startY) < DRAG_SLOP) return false;
+      d.active = true;
+      d.stops = measure();
+      if (d.follow) panel.style.transition = "none";
+      // Lets the list show while the stowed bar is pulled up; it stays inert until the panel settles.
+      if (d.follow && current === "stowed") panel.dataset.dragging = "";
+    }
+    d.samples.push({ t, y });
+    if (d.samples.length > 20) d.samples.shift();
+    if (d.follow) panel.style.height = `${heightAt(d, y)}px`;
+    return true;
+  }
+
+  function release(end: { t: number; y: number } | null) {
     const d = drag.current;
     drag.current = null;
     const panel = panelRef.current;
     if (!d?.active || !panel) return;
     swallowUntil.current = performance.now() + 400;
+    if (end) d.samples.push(end);
     const last = d.samples.at(-1)!;
-    const next = cancelled ? current : order[snapPanel(d.stops, heightAt(d, last.y), releaseVelocity(d.samples))]!;
+    const next = end ? order[snapPanel(d.stops, heightAt(d, last.y), releaseVelocity(d.samples))]! : current;
     // React skips the style write when the state does not change, so the dragged px height is reset here.
     panel.style.transition = "";
     panel.style.height = heights[next];
@@ -243,54 +304,118 @@ function usePanelSwipe({
     settle(next);
   }
 
-  const handlers = {
+  // The native listeners are added once; they reach this render's state through the ref.
+  const latest = useRef({ enabled, start, move, release, current, order });
+  latest.current = { enabled, start, move, release, current, order };
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    const scroller = scrollerRef.current;
+    if (!panel || !scroller) return;
+    const syncTop = () => scroller.toggleAttribute("data-swipe-top", scroller.scrollTop <= 0 && latest.current.enabled());
+    syncTop();
+    scroller.addEventListener("scroll", syncTop, { passive: true });
+    // The top row hides and shows with the layout (desktop side panel), which resizes the panel.
+    const resize = new ResizeObserver(syncTop);
+    resize.observe(panel);
+    let rowTouch = false;
+    let list: ListTouch | null = null;
+
+    function onTouchStart(event: TouchEvent) {
+      const api = latest.current;
+      const touch = event.touches[0];
+      if (event.touches.length !== 1 || !touch || !api.enabled()) {
+        if (list?.mode === "panel") api.release(null);
+        rowTouch = false;
+        list = null;
+        return;
+      }
+      const target = event.target as Node;
+      rowTouch = Boolean(rowRef.current?.contains(target));
+      list = scrollerRef.current?.contains(target) ? { id: touch.identifier, x: touch.clientX, y: touch.clientY, mode: "undecided" } : null;
+    }
+
+    function onTouchMove(event: TouchEvent) {
+      if (rowTouch) {
+        if (event.cancelable) event.preventDefault();
+        return;
+      }
+      if (!list || list.mode === "native") return;
+      const api = latest.current;
+      const touch = Array.from(event.changedTouches).find((t) => t.identifier === list!.id);
+      if (!touch) return;
+      if (list.mode === "undecided") {
+        const dx = touch.clientX - list.x;
+        const dy = touch.clientY - list.y;
+        if (dx === 0 && dy === 0) return;
+        const at = api.order.indexOf(api.current);
+        const takeOver =
+          Math.abs(dy) > Math.abs(dx) && (dy > 0 ? scroller!.scrollTop <= 0 && at > 0 : at < api.order.length - 1);
+        if (!takeOver || !event.cancelable) {
+          list.mode = "native";
+          return;
+        }
+        list.mode = "panel";
+        api.start(list.y, event.timeStamp);
+      }
+      event.preventDefault();
+      api.move(touch.clientY, event.timeStamp);
+    }
+
+    function onTouchEnd(event: TouchEvent) {
+      rowTouch = false;
+      const current = list;
+      list = null;
+      if (current?.mode !== "panel") return;
+      const touch = Array.from(event.changedTouches).find((t) => t.identifier === current.id);
+      latest.current.release(event.type === "touchend" && touch ? { t: event.timeStamp, y: touch.clientY } : null);
+    }
+
+    panel.addEventListener("touchstart", onTouchStart, { passive: true });
+    panel.addEventListener("touchmove", onTouchMove, { passive: false });
+    panel.addEventListener("touchend", onTouchEnd);
+    panel.addEventListener("touchcancel", onTouchEnd);
+    return () => {
+      scroller.removeEventListener("scroll", syncTop);
+      resize.disconnect();
+      panel.removeEventListener("touchstart", onTouchStart);
+      panel.removeEventListener("touchmove", onTouchMove);
+      panel.removeEventListener("touchend", onTouchEnd);
+      panel.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, [panelRef, rowRef, scrollerRef]);
+
+  const rowHandlers = {
     onPointerDown(event: PointerEvent<HTMLElement>) {
       swallowUntil.current = 0;
-      if (!event.isPrimary || event.button !== 0 || !panelRef.current || !probeRef.current) return;
-      drag.current = {
-        id: event.pointerId,
-        startY: event.clientY,
-        startHeight: panelRef.current.getBoundingClientRect().height,
-        stops: [],
-        samples: [{ t: event.timeStamp, y: event.clientY }],
-        active: false,
-        follow: !reducedMotion(),
-      };
+      if (!event.isPrimary || event.button !== 0 || !enabled()) return;
+      pointerId.current = event.pointerId;
+      start(event.clientY, event.timeStamp);
     },
     onPointerMove(event: PointerEvent<HTMLElement>) {
-      const d = drag.current;
-      const panel = panelRef.current;
-      if (!d || d.id !== event.pointerId || !panel) return;
-      if (!d.active) {
-        if (Math.abs(event.clientY - d.startY) < DRAG_SLOP) return;
-        d.active = true;
-        d.stops = measure();
-        event.currentTarget.setPointerCapture?.(event.pointerId);
-        if (d.follow) panel.style.transition = "none";
-        // Lets the list show while the stowed bar is pulled up; it stays inert until the panel settles.
-        if (d.follow && current === "stowed") panel.dataset.dragging = "";
-      }
-      d.samples.push({ t: event.timeStamp, y: event.clientY });
-      if (d.samples.length > 20) d.samples.shift();
-      if (d.follow) panel.style.height = `${heightAt(d, event.clientY)}px`;
+      if (pointerId.current !== event.pointerId) return;
+      const wasActive = drag.current?.active;
+      if (move(event.clientY, event.timeStamp) && !wasActive) event.currentTarget.setPointerCapture?.(event.pointerId);
     },
     onPointerUp(event: PointerEvent<HTMLElement>) {
-      const d = drag.current;
-      if (!d || d.id !== event.pointerId) return;
-      d.samples.push({ t: event.timeStamp, y: event.clientY });
-      release(false);
+      if (pointerId.current !== event.pointerId) return;
+      pointerId.current = null;
+      release({ t: event.timeStamp, y: event.clientY });
     },
     onPointerCancel(event: PointerEvent<HTMLElement>) {
-      if (drag.current?.id === event.pointerId) release(true);
-    },
-    // A swipe that starts on a button must not also press it; a keyboard press (detail 0) always goes through.
-    onClickCapture(event: MouseEvent<HTMLElement>) {
-      if (event.detail === 0 || performance.now() > swallowUntil.current) return;
-      swallowUntil.current = 0;
-      event.preventDefault();
-      event.stopPropagation();
+      if (pointerId.current !== event.pointerId) return;
+      pointerId.current = null;
+      release(null);
     },
   };
 
-  return handlers;
+  // A swipe that starts on a button must not also press it; a keyboard press (detail 0) always goes through.
+  function onClickCapture(event: MouseEvent<HTMLElement>) {
+    if (event.detail === 0 || performance.now() > swallowUntil.current) return;
+    swallowUntil.current = 0;
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  return { rowHandlers, onClickCapture };
 }

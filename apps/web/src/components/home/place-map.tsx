@@ -18,6 +18,7 @@ import {
   type MapItem,
 } from "@/lib/map-clusters";
 import { MapControls } from "../map/map-controls";
+import { fitPadding } from "./map-padding";
 import { clusterSize, PlaceCluster } from "./place-cluster";
 import { PlacePin } from "./place-pin";
 
@@ -205,7 +206,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
               map.easeTo({
                 center: item.coordinates,
                 zoom: Math.min(expansionZoom(index, item.clusterId), map.getMaxZoom()),
-                padding: { ...paddingRef.current, left: 0, right: 0 },
+                padding: { ...fitPadding(paddingRef.current, map.getContainer().clientHeight), left: 0, right: 0 },
                 duration: 400,
               });
               announce(t.zoomedToCluster(item.count, parts));
@@ -240,7 +241,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
       const bounds = new LngLatBounds();
       for (const place of places) bounds.extend(place.location.coordinates as [number, number]);
       map.fitBounds(bounds, {
-        padding: { top: paddingRef.current.top, bottom: paddingRef.current.bottom, left: 48, right: 72 },
+        padding: { ...fitPadding(paddingRef.current, map.getContainer().clientHeight), left: 48, right: 72 },
         maxZoom: 16,
         duration: 400,
       });
@@ -260,7 +261,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
       map.easeTo({
         center: [youLon, youLat],
         zoom: Math.max(map.getZoom(), config.initialZoom),
-        padding: { top: paddingRef.current.top, bottom: paddingRef.current.bottom, left: 0, right: 0 },
+        padding: { ...fitPadding(paddingRef.current, map.getContainer().clientHeight), left: 0, right: 0 },
         duration: 400,
       });
     });
@@ -272,7 +273,8 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
 
   // A padding change (the list panel being stowed) only moves the map's visible area; it never refits or recentres.
   useEffect(() => {
-    if (map && centered) map.easeTo({ padding: { top: padding.top, bottom: padding.bottom, left: 0, right: 0 }, duration: 300 });
+    if (map && centered)
+      map.easeTo({ padding: { ...fitPadding({ top: padding.top, bottom: padding.bottom }, map.getContainer().clientHeight), left: 0, right: 0 }, duration: 300 });
   }, [map, centered, padding.top, padding.bottom]);
 
   useEffect(() => {
