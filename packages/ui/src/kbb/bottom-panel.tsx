@@ -17,6 +17,8 @@ export interface BottomPanelProps {
   footer?: ReactNode;
   children: ReactNode;
   className?: string;
+  /** Extra classes of the grabber row, e.g. `lg:hidden` when the panel turns into a static side panel. */
+  headerClassName?: string;
 }
 
 /**
@@ -35,6 +37,7 @@ export function BottomPanel({
   footer,
   children,
   className,
+  headerClassName,
 }: BottomPanelProps) {
   const style = { height: expanded ? expandedHeight : collapsedHeight } satisfies CSSProperties;
   return (
@@ -47,7 +50,7 @@ export function BottomPanel({
         className,
       )}
     >
-      <div className="relative flex h-12 shrink-0 items-center justify-center">
+      <div className={cn("relative flex h-12 shrink-0 items-center justify-center", headerClassName)}>
         <button
           type="button"
           aria-expanded={expanded}

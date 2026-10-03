@@ -16,18 +16,6 @@
     - button "Pharmacies"
     - button "Shops"
     - button "Other"
-  - region "Map of places. Arrow keys move the view, plus and minus change the zoom. The list has the same places."
-  - paragraph:
-    - link "OpenFreeMap":
-      - /url: https://openfreemap.org
-    - text: ·
-    - link "© OpenMapTiles":
-      - /url: https://www.openmaptiles.org/
-    - text: ·
-    - link "© OpenStreetMap contributors":
-      - /url: https://www.openstreetmap.org/copyright
-  - button "Zoom in"
-  - button "Zoom out"
   - region "List of places":
     - button "Expand sheet"
     - group "List of places":
@@ -96,3 +84,15 @@
           - link /Doesn't meet · 2 steps Restauracja Przykład ul\. Szewska 8, Kraków Sample data \d+ m from the Main Square/:
             - /url: /miejsca/restauracja-przyklad
           - button "Why? Restauracja Przykład"
+  - region "Map of places. Arrow keys move the view, plus and minus change the zoom. The list has the same places."
+  - paragraph:
+    - link "OpenFreeMap":
+      - /url: https://openfreemap.org
+    - text: ·
+    - link "© OpenMapTiles":
+      - /url: https://www.openmaptiles.org/
+    - text: ·
+    - link "© OpenStreetMap contributors":
+      - /url: https://www.openstreetmap.org/copyright
+  - button "Zoom in"
+  - button "Zoom out"

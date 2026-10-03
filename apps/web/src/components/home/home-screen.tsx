@@ -13,6 +13,7 @@ import { config } from "@/lib/config";
 import type { DevicePosition } from "@/lib/native/geolocation";
 import { byDistance, searchArea, toLonLat } from "@/lib/nearby";
 import { usePlaces } from "@/lib/places";
+import { useMediaQuery } from "@/lib/use-media-query";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { countByStatus, filterByVerdict, STATUS_ORDER } from "@/lib/profile/verdict-list";
@@ -24,7 +25,10 @@ import { SearchBox } from "./search-box";
 const ALL = "all";
 const FEATURES: FeatureFilter[] = ["step_free", "lift", "toilet_accessible", "bench", "disabled_parking", "changing_table"];
 const LIST_ID = "lista";
+// Mobile: search and chips float over the map and the sheet covers its lower half. Desktop: the map has the right column to itself.
 const MAP_PADDING = { top: 150, bottom: 100 };
+const MAP_PADDING_DESKTOP = { top: 48, bottom: 48 };
+const DESKTOP = "(min-width: 64rem)";
 
 const COUNTER_PRESSED: Record<Status, string> = {
   met: "aria-pressed:bg-status-met-bg aria-pressed:ring-status-met",
@@ -64,6 +68,7 @@ export function HomeScreen() {
   const [position, setPosition] = useState<DevicePosition | null>(null);
   const rowRefs = useRef(new Map<string, HTMLAnchorElement>());
   const listRef = useRef<HTMLDivElement>(null);
+  const desktop = useMediaQuery(DESKTOP);
 
   const area = position ? searchArea(position) : undefined;
   const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown, area };
@@ -149,7 +154,8 @@ export function HomeScreen() {
     <main
       id="main"
       tabIndex={-1}
-      className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[600px] flex-1 overflow-hidden outline-none"
+      data-desktop-fill
+      className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[600px] flex-1 overflow-hidden outline-none lg:mb-0 lg:grid lg:min-h-0 lg:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)]"
     >
       <h1 className="sr-only">{t.title}</h1>
       <a
@@ -163,7 +169,7 @@ export function HomeScreen() {
         {t.skipToList}
       </a>
 
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 pt-3">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 pt-3 lg:pointer-events-auto lg:static lg:col-start-1 lg:row-start-1 lg:max-h-[45dvh] lg:overflow-y-auto lg:border-r lg:border-border lg:bg-card lg:pt-4">
         <div className="pointer-events-auto mx-auto flex max-w-xl px-4">
           <SearchBox value={q} onValueChange={setQ} suggestions={suggestions} />
         </div>
@@ -171,21 +177,17 @@ export function HomeScreen() {
           aria-label={t.categoriesLabel}
           value={[category]}
           onValueChange={(value) => value[0] && setCategory(value[0])}
-          className="no-scrollbar pointer-events-auto mx-auto mt-1.5 max-w-xl overflow-x-auto px-4 py-1.5"
+          className="no-scrollbar pointer-events-auto mx-auto mt-1.5 max-w-xl overflow-x-auto px-4 py-1.5 lg:flex-wrap lg:overflow-visible"
         >
-          <Toggle value={ALL} className="shadow-soft">
+          <Toggle value={ALL} className="shadow-soft lg:h-8 lg:px-3 lg:text-[13px]">
             {t.categoryAll}
           </Toggle>
           {categories.data?.map((c) => (
-            <Toggle key={c.id} value={c.id} className="shadow-soft">
+            <Toggle key={c.id} value={c.id} className="shadow-soft lg:h-8 lg:px-3 lg:text-[13px]">
               {c.label}
             </Toggle>
           ))}
         </ToggleGroup>
-      </div>
-
-      <div className="absolute inset-x-0 top-0 bottom-[calc(50%-24px)]">
-        <PlaceMap places={mapPlaces} selectedId={selectedId} onSelect={selectFromMap} padding={MAP_PADDING} you={origin} />
       </div>
 
       <BottomPanel
@@ -193,7 +195,8 @@ export function HomeScreen() {
         expanded={expanded}
         onExpandedChange={setExpanded}
         collapsedHeight="50%"
-        className="mx-auto max-w-xl pb-[env(safe-area-inset-bottom)]"
+        headerClassName="lg:hidden"
+        className="mx-auto max-w-xl pb-[env(safe-area-inset-bottom)] lg:static lg:col-start-1 lg:row-start-2 lg:mx-0 lg:h-auto! lg:max-w-none lg:rounded-none lg:border-r lg:border-border lg:pb-0 lg:shadow-none"
       >
         <div className="space-y-2 px-4 pt-1 pb-2">
           <ProfileSwitch value={profile} onChange={changeProfile} />
@@ -228,7 +231,7 @@ export function HomeScreen() {
               <LabeledSwitch label={tp.hideFailing} checked={hideFailing} onCheckedChange={changeHideFailing} className="-my-1" />
             </>
           ) : null}
-          <div role="group" aria-label={t.filtersLabel} className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-1.5">
+          <div role="group" aria-label={t.filtersLabel} className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-1.5 lg:flex-wrap lg:overflow-visible">
             {FEATURES.map((feature) => (
               <Toggle key={feature} pressed={features.includes(feature)} onPressedChange={() => toggleFeature(feature)}>
                 {t.filters[feature]}
@@ -313,6 +316,15 @@ export function HomeScreen() {
           )}
         </div>
       </BottomPanel>
+      <div className="absolute inset-x-0 top-0 bottom-[calc(50%-24px)] lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0">
+        <PlaceMap
+          places={mapPlaces}
+          selectedId={selectedId}
+          onSelect={selectFromMap}
+          padding={desktop ? MAP_PADDING_DESKTOP : MAP_PADDING}
+          you={origin}
+        />
+      </div>
       <ThresholdsDrawer open={thresholdsOpen} onOpenChange={setThresholdsOpen} />
     </main>
   );

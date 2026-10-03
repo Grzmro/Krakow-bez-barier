@@ -12,18 +12,6 @@
     - button "Muzea"
     - button "Toalety"
     - button "Hotele"
-  - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
-  - paragraph:
-    - link "OpenFreeMap":
-      - /url: https://openfreemap.org
-    - text: ·
-    - link "© OpenMapTiles":
-      - /url: https://www.openmaptiles.org/
-    - text: ·
-    - link "© OpenStreetMap contributors":
-      - /url: https://www.openstreetmap.org/copyright
-  - button "Przybliż"
-  - button "Oddal"
   - region "Lista miejsc":
     - button "Rozwiń arkusz"
     - group "Lista miejsc":
@@ -81,3 +69,15 @@
           - link /Nie spełnia · 2 stopnie Brak danych · Toaleta dostosowana Restauracja Przykład ul\. Szewska 8, Kraków Dane przykładowe \d+ m od Rynku/:
             - /url: /miejsca/restauracja-przyklad
           - button "Dlaczego? Restauracja Przykład"
+  - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
+  - paragraph:
+    - link "OpenFreeMap":
+      - /url: https://openfreemap.org
+    - text: ·
+    - link "© OpenMapTiles":
+      - /url: https://www.openmaptiles.org/
+    - text: ·
+    - link "© OpenStreetMap contributors":
+      - /url: https://www.openstreetmap.org/copyright
+  - button "Przybliż"
+  - button "Oddal"
