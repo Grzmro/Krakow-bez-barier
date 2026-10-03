@@ -167,6 +167,8 @@ run locally: `scripts/merge-pr.sh` runs the full gate on the rebased commit befo
 - **One source of truth for contracts** between apps (API types, enums) — in `packages/`, never duplicated.
 - **Reuse before you add.** Search for an existing helper/component before writing a new one;
   extend it instead of making a near-copy.
+- **Parallel agents share this machine.** Stop only processes you started (keep the PID, `kill <pid>`);
+  never `pkill`/`killall` by name (`next-server`, `node`, …) — it kills other agents' servers and tests.
 - **Comments are the exception.** Default to none; `//` only for a non-obvious gotcha. No decision
   history or bug stories in comments — that goes in the commit body.
 
