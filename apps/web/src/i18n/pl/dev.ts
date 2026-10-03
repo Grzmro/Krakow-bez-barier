@@ -36,6 +36,8 @@ export const dev = {
     yes: "jest",
     no: "brak",
     notRight: "To się nie zgadza",
+    pendingReport: "Twoje zgłoszenie: 75 cm",
+    pendingNote: "Czeka na weryfikację — nie zmienia danych powyżej.",
   },
   panel: {
     label: "Przykładowy arkusz",

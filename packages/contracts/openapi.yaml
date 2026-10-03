@@ -1551,6 +1551,35 @@ components:
           minimum: 0
     ReportCreate:
       type: object
+      description: 'A numeric `value` must lie within `x-value-ranges` for its attribute (inclusive), otherwise the
+        API answers `422`. Clients validate against the same ranges before sending.
+
+        '
+      x-value-ranges:
+        step_count:
+          min: 0
+          max: 30
+          unit: count
+        step_height_cm:
+          min: 1
+          max: 50
+          unit: cm
+        threshold_cm:
+          min: 0
+          max: 20
+          unit: cm
+        door_width_cm:
+          min: 10
+          max: 300
+          unit: cm
+        kerb_height_cm:
+          min: 0
+          max: 50
+          unit: cm
+        incline_pct:
+          min: 0
+          max: 50
+          unit: pct
       required:
       - placeId
       - attribute

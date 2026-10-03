@@ -47,8 +47,10 @@ export interface FactRowProps {
   labels: FactRowLabels;
   /** Accessible name for the toggle, read instead of the visible text (avoids "Brak danych Brak danych"). */
   ariaLabel?: string;
-  /** Buttons shown under the sources (e.g. "To się nie zgadza"). */
+  /** Buttons always visible under the value, outside the toggle, so they are one tap from the card (e.g. "To się nie zgadza"). */
   actions?: ReactNode;
+  /** Always visible under the value, outside the toggle (e.g. the visitor's own pending report). */
+  notice?: ReactNode;
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -68,6 +70,7 @@ export function FactRow({
   labels,
   ariaLabel,
   actions,
+  notice,
   open: openProp,
   defaultOpen = false,
   onOpenChange,
@@ -118,6 +121,12 @@ export function FactRow({
           className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}
         />
       </button>
+      {notice || actions ? (
+        <div className="space-y-2 px-4 pb-3">
+          {notice}
+          {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+        </div>
+      ) : null}
       <div id={panelId} hidden={!open} className="space-y-3 bg-muted px-4 pt-2 pb-4">
         {sources.length ? (
           <ul className="space-y-2.5">
@@ -143,7 +152,6 @@ export function FactRow({
         ) : (
           <p className="text-caption text-muted-foreground">{labels.noSources}</p>
         )}
-        {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
       </div>
     </li>
   );

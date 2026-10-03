@@ -1,6 +1,8 @@
 // Extracts every response example from openapi.yaml into src/generated/examples.ts, keyed by
 // operationId, so clients can mock the API from the same examples the spec documents. JSON examples
 // are also emitted as `responseExamples`, each checked against its response schema by `satisfies`.
+// Also extracts the report validation rules (ReportCreate `x-value-ranges`, comment maxLength) into
+// report-rules.ts.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -78,3 +80,19 @@ ${typed}
 `,
 );
 console.log(`examples: ${Object.keys(operations).length} operations → ${out}`);
+
+const reportCreate = spec.components?.schemas?.ReportCreate ?? {};
+const reportRules = {
+  commentMaxLength: reportCreate.properties?.comment?.maxLength ?? null,
+  valueRanges: reportCreate["x-value-ranges"] ?? {},
+};
+const rulesOut = join(root, "src", "generated", "report-rules.ts");
+writeFileSync(
+  rulesOut,
+  `// Generated from openapi.yaml (ReportCreate) by scripts/generate-examples.mjs. Do not edit.
+import type { ReportRules } from "../report-rules";
+
+export const reportRules: ReportRules = ${JSON.stringify(reportRules, null, 2)};
+`,
+);
+console.log(`report rules: ${Object.keys(reportRules.valueRanges).length} ranges → ${rulesOut}`);

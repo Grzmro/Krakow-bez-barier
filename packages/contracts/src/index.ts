@@ -33,12 +33,15 @@ export type NeedVerdict = Schemas["NeedVerdict"];
 
 export type ListPlacesQuery = NonNullable<operations["listPlaces"]["parameters"]["query"]>;
 export type GetPlaceQuery = NonNullable<operations["getPlace"]["parameters"]["query"]>;
+export type ReportCreate = Schemas["ReportCreate"];
+export type Confirmation = Schemas["Confirmation"];
 
 /** Typed client for the v1 API. Defaults to same-origin `/api/v1`. */
 export function createApiClient(options: ClientOptions = {}) {
   return createClient<paths>({ baseUrl: "/api/v1", ...options });
 }
 
+export { checkReportNumber, reportRules, type RangeCheck, type ReportRules, type ValueRange } from "./report-rules";
 export { createMockFetch, type MockChoice, type MockFetchOptions, type OperationId } from "./mock";
 
 /** Response examples from `openapi.yaml`, typed against the spec — the source for front-end mocks. */
