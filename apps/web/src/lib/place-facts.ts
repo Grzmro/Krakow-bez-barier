@@ -29,7 +29,7 @@ export const CARD_ATTRIBUTES = [
   "changing_table",
 ] as const satisfies readonly AccessibilityAttribute[];
 
-const RELIABILITY: Record<ReliabilityStatus, Reliability> = {
+export const RELIABILITY: Record<ReliabilityStatus, Reliability> = {
   confirmed: "confirmed",
   unverified: "unverified",
   outdated: "outdated",

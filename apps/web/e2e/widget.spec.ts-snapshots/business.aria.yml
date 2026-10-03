@@ -1,0 +1,29 @@
+- main:
+  - link "Wróć na stronę główną":
+    - /url: /
+  - heading "Dla firm" [level=1]
+  - paragraph: Hotel albo organizator wydarzenia osadza na swojej stronie aktualną kartę dostępności — z faktami, źródłami i datami. Odwiedzający nie potrzebują konta.
+  - heading "Podgląd na stronie obiektu" [level=2]
+  - paragraph: Przykładowa strona hotelu. Poniżej działający widget w ramce iframe.
+  - paragraph: hotel.przyklad.pl
+  - text: Dane przykładowe
+  - paragraph: Hotel Przykład
+  - paragraph: /Pokój dwuosobowy · \d+ zł \/ noc/
+  - iframe
+  - heading "Kod do wklejenia" [level=2]
+  - paragraph: Wklej na stronie obiektu. Widget pokazuje cechy, źródła, daty, statusy i atrybucję.
+  - region "Kod widgetu"
+  - button "Kopiuj kod widgetu":
+    - img
+  - heading "API" [level=2]
+  - paragraph: API tylko do odczytu. Każda cecha ma źródło, datę i status wiarygodności.
+  - paragraph: GET /api/v1/widget/hotel-przyklad
+  - region "Przykładowa odpowiedź API"
+  - button "Kopiuj odpowiedź API":
+    - img
+  - heading "Dla obiektów" [level=2]
+  - term: Karta na stronie obiektu
+  - definition: /\d+ zł \/ mies\./
+  - term: Weryfikacja na miejscu
+  - definition: /od \d+ zł/
+  - paragraph: Ceny orientacyjne. Dane o dostępności pozostają otwarte i bezpłatne dla mieszkańców.

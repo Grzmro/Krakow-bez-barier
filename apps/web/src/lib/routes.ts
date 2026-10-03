@@ -6,6 +6,8 @@ export const routes = {
   privacy: "/prywatnosc",
   accessibility: "/deklaracja-dostepnosci",
   moderator: "/moderator",
+  business: "/dla-firm",
+  widget: (placeId: string) => `/widget/${encodeURIComponent(placeId)}`,
   devComponents: "/dev/components",
   devNative: "/dev/native",
 } as const;
