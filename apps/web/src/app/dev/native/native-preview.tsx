@@ -3,7 +3,7 @@
 import { useSyncExternalStore } from "react";
 import { NearMe } from "@/components/layout/near-me";
 import { pl } from "@/i18n/pl";
-import { appPlatform } from "@/lib/native/geolocation";
+import { appPlatform } from "@/lib/native/platform";
 
 const t = pl.nearby.devPage;
 const noSubscription = () => () => {};

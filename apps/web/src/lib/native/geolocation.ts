@@ -10,13 +10,6 @@ export type LocateResult = { ok: true; position: DevicePosition } | { ok: false;
 
 const OPTIONS = { enableHighAccuracy: false, timeout: 10_000, maximumAge: 60_000 };
 
-export type AppPlatform = "ios" | "android" | "web";
-
-export function appPlatform(): AppPlatform {
-  const platform = Capacitor.getPlatform();
-  return platform === "ios" || platform === "android" ? platform : "web";
-}
-
 export function locateDevice(): Promise<LocateResult> {
   return Capacitor.isNativePlatform() ? locateNative() : locateInBrowser();
 }
