@@ -1,3 +1,4 @@
+import { krakowBipPages } from "./data/krakow-bip-pages";
 import type { CityConfig } from "./types";
 
 export const krakow: CityConfig = {
@@ -11,7 +12,7 @@ export const krakow: CityConfig = {
     demo: { south: 50.045, west: 19.925, north: 50.06, east: 19.96 },
   },
   defaults: { center: [19.9373, 50.0614], zoom: 15 },
-  sources: ["osm", "msip-toilets", "zdmk-parking-ozn", "ztp-stops"],
+  sources: ["osm", "msip-toilets", "zdmk-parking-ozn", "ztp-stops", "bip-mk"],
   sourceConfig: {
     osm: {
       endpoint: "https://overpass-api.de/api/interpreter",
@@ -28,5 +29,6 @@ export const krakow: CityConfig = {
       endpoint:
         "https://services-eu1.arcgis.com/svTzSt3AvH7sK6q9/arcgis/rest/services/Przystanki_Komunikacji_Miejskiej_w_Krakowie/FeatureServer/0",
     },
+    "bip-mk": { pages: krakowBipPages },
   },
 };
