@@ -40,7 +40,13 @@ database tasks on GitHub Actions. Steps marked **owner** need repository admin r
    changing-table conflict while MSIP cannot be ingested live. Ingest later upserts the same places
    by their `osm:` reference.
 4. **Vercel (owner installs the GitHub app, KBB-45).** Import the repo with Root Directory
-   `apps/web` (`apps/web/vercel.json` sets the framework and the Frankfurt region). Vercel's free
+   `apps/web` (`apps/web/vercel.json` sets the framework and the Frankfurt region). **Name the
+   project `kbb-<random token>`** (`echo "kbb-$(openssl rand -hex 12)"`), so the address
+   `https://kbb-<token>.vercel.app` can't be guessed or found by browsing; the app also sends
+   `noindex` and serves `Disallow: /` in `robots.txt`. This hides the demo, it does not protect
+   it: anyone with the link (the submission and the video contain it) can open it. Real access
+   control is Vercel's Password Protection (Pro plan); don't add a custom domain if you want to keep
+   the address private. Vercel's free
    Hobby plan only deploys repositories of a personal GitHub account: if `Grzmro` is an
    organisation, use Pro or import a fork. Set the environment variables **before the first
    deploy** (or redeploy after changing them) for Production:
