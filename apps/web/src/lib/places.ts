@@ -23,14 +23,18 @@ export function usePlaces(query: ListPlacesQuery, { allPages = false }: { allPag
   });
 }
 
-/** `GET /places/{id}`; pass `enabled: false` to defer loading until it's needed. */
+/**
+ * `GET /places/{id}`; `null` when the place doesn't exist (404), so a shared link can say so.
+ * Pass `enabled: false` to defer loading until it's needed.
+ */
 export function usePlace(id: string, query: GetPlaceQuery, { enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({
     queryKey: ["place", id, query],
     queryFn: async () => {
-      const { data, error } = await api.GET("/places/{id}", {
+      const { data, error, response } = await api.GET("/places/{id}", {
         params: { path: { id }, query },
       });
+      if (response.status === 404) return null;
       if (error) throw error;
       return data;
     },

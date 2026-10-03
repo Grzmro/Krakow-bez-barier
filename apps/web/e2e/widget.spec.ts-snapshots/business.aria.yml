@@ -15,6 +15,22 @@
   - region "Kod widgetu"
   - button "Kopiuj kod widgetu":
     - img
+  - heading "Strona wydarzenia" [level=2]
+  - paragraph: /Organizator wydarzenia tworzy link „Dojazd i wejście bez barier”/
+  - text: Szukaj miejsca
+  - searchbox "Szukaj miejsca"
+  - paragraph: Nazwa albo ulica, np. „Sukiennice”.
+  - text: Miejsce wydarzenia
+  - combobox "Miejsce wydarzenia"
+  - text: Nazwa wydarzenia
+  - textbox "Nazwa wydarzenia":
+    - /placeholder: np. Koncert jesienny
+  - text: Data wydarzenia
+  - textbox "Data wydarzenia"
+  - region "Link do strony wydarzenia"
+  - button "Kopiuj link do strony wydarzenia":
+    - img
+  - link /Podgląd strony wydarzenia/
   - heading "API" [level=2]
   - paragraph: API tylko do odczytu. Każda cecha ma źródło, datę i status wiarygodności.
   - paragraph: GET /api/v1/widget/hotel-przyklad

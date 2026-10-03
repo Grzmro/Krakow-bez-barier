@@ -1,3 +1,5 @@
+import { eventPath } from "./event-link";
+
 export const routes = {
   home: "/",
   place: (id: string) => `/miejsca/${encodeURIComponent(id)}`,
@@ -6,6 +8,7 @@ export const routes = {
   accessibility: "/deklaracja-dostepnosci",
   moderator: "/moderator",
   business: "/dla-firm",
+  event: eventPath,
   widget: (placeId: string) => `/widget/${encodeURIComponent(placeId)}`,
   devComponents: "/dev/components",
   devNative: "/dev/native",

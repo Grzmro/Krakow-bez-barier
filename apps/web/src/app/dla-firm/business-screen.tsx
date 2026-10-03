@@ -1,29 +1,19 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-import { Bed, Copy, LockSimple } from "@phosphor-icons/react";
+import { Bed, LockSimple } from "@phosphor-icons/react";
 import { API_BASE_PATH } from "@krakow-bez-barier/contracts";
-import { Button, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { InfoSection } from "@/components/layout/info-page";
 import { pl } from "@/i18n/pl";
 import { routes } from "@/lib/routes";
+import { useOrigin } from "@/lib/use-origin";
 import { useWidgetCard } from "@/lib/use-widget-card";
+import { CodeBlock } from "./code-block";
+import { EventLinkGenerator } from "./event-link-generator";
 
 const t = pl.business.page;
 
 const DEMO_PLACE_ID = "hotel-przyklad";
 const IFRAME_HEIGHT = 640;
-
-const noSubscribe = () => () => {};
-
-/** The page's own origin, so the snippet works wherever the app is deployed; empty during SSR. */
-function useOrigin() {
-  return useSyncExternalStore(
-    noSubscribe,
-    () => window.location.origin,
-    () => "",
-  );
-}
 
 function embedSnippet(origin: string, placeId: string, title: string) {
   return `<iframe src="${origin}${routes.widget(placeId)}"
@@ -31,41 +21,6 @@ function embedSnippet(origin: string, placeId: string, title: string) {
         width="100%" height="${IFRAME_HEIGHT}"
         style="border:0;max-width:28rem"
         loading="lazy"></iframe>`;
-}
-
-function CodeBlock({ code, label, copyLabel }: { code: string; label: string; copyLabel: string }) {
-  const announce = useAnnounce();
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      toast(t.copied);
-      announce(t.copied);
-    } catch {
-      toast(t.copyFailed);
-      announce(t.copyFailed);
-    }
-  };
-  return (
-    <div className="relative mt-3 overflow-hidden rounded-[20px] bg-ink text-ink-foreground">
-      <pre
-        tabIndex={0}
-        role="region"
-        aria-label={label}
-        className="max-h-80 overflow-auto p-4 pr-14 font-mono text-[12px] leading-5 outline-none focus-visible:outline-3 focus-visible:outline-offset-[-3px] focus-visible:outline-ring"
-      >
-        {code}
-      </pre>
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label={copyLabel}
-        onClick={copy}
-        className="absolute top-2 right-2 bg-ink-foreground/10 text-ink-foreground hover:bg-ink-foreground/20 hover:text-ink-foreground"
-      >
-        <Copy weight="bold" />
-      </Button>
-    </div>
-  );
 }
 
 export function BusinessScreen() {
@@ -105,6 +60,10 @@ export function BusinessScreen() {
       <InfoSection title={t.codeTitle}>
         <p className="text-body-sm text-foreground/85">{t.codeLead}</p>
         <CodeBlock code={embedSnippet(origin, DEMO_PLACE_ID, iframeTitle)} label={t.codeLabel} copyLabel={t.copyCode} />
+      </InfoSection>
+
+      <InfoSection title={pl.business.event.title}>
+        <EventLinkGenerator />
       </InfoSection>
 
       <InfoSection title={t.apiTitle}>

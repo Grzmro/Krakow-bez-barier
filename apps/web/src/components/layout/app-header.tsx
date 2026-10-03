@@ -41,7 +41,7 @@ export function AppHeader() {
   const pathname = usePathname();
   if (isWidgetRoute(pathname)) return null;
   return (
-    <header className="sticky top-[env(safe-area-inset-top)] z-30 border-b border-border bg-background">
+    <header className="sticky top-[env(safe-area-inset-top)] z-30 border-b border-border bg-background print:hidden">
       <VaulDrawer open={menuOpen} onOpenChange={setMenuOpen}>
         <nav aria-label={t.layout.mainNav} className="mx-auto flex h-16 w-full max-w-5xl items-center gap-3 px-4">
           <Link

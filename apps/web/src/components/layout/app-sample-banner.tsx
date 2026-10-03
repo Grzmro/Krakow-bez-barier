@@ -8,5 +8,5 @@ import { isWidgetRoute } from "@/lib/routes";
 export function AppSampleBanner() {
   const pathname = usePathname();
   if (isWidgetRoute(pathname)) return null;
-  return <SampleBanner />;
+  return <SampleBanner className="print:hidden" />;
 }
