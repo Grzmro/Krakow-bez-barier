@@ -1,13 +1,16 @@
 ---
 name: task
-description: End-to-end delivery of one Linear task (KBB-<n>) — read the task, set In Progress, branch, plan, implement, verify, self-review, commit, push, open a PR, comment in Linear. Use for "/task KBB-12", "do KBB-12", "zrób taska KBB-12", "weź KBB-12", "ogarnij KBB-12 od początku do końca".
+description: End-to-end, autonomous delivery of one Linear task (KBB-<n>) — read the task, set In Progress, branch, plan, implement, verify (incl. Playwright smoke), independent review + fixes, PR, merge when green, comment in Linear. Use for "/task KBB-12", "do KBB-12", "zrób taska KBB-12", "weź KBB-12", "ogarnij KBB-12 od początku do końca".
 ---
 
 # Task — one Linear task → one PR
 
 Invoking this skill authorizes: creating the branch, commits, pushing that branch, opening a PR,
-changing the task status to `In Progress`, and one short Linear comment.
-Never: merge a PR, push to `main`, move a task to `Done`, create new Linear tasks without asking.
+**merging that PR when every gate in step 8 is green**, changing the task status to `In Progress`,
+and one short Linear comment. The team works autonomously: don't wait for a human to merge —
+mistakes get fixed in follow-up tasks. `main` must still always build and run.
+Never: push to `main` directly, merge someone else's PR, force-push `main`, skip a failing gate,
+create new Linear tasks without asking.
 
 ## 0. Identify the task
 
@@ -55,20 +58,47 @@ Follow `AGENTS.md` hard rules. Small, coherent commits as you go (see `ship` for
 
 - Build, lint, typecheck and tests of every affected app pass (commands in root `AGENTS.md` → Commands).
 - New business logic and endpoints have tests (`// GIVEN` / `// WHEN` / `// THEN`).
-- Actually run it: hit the endpoint / open the screen. If you can't verify something, say so.
+- **UI changed → Playwright smoke** (`npm run test:e2e`): add or extend a spec in `apps/web/e2e/`
+  that clicks the main path of your screen (open, key interaction, keyboard-only pass) and saves a
+  screenshot. Look at the screenshot and compare it with the matching screen in
+  `design/prototype-b/` — fix obvious visual gaps.
+- **API changed** → hit the endpoint (curl or a test) and check the response against `openapi.yaml`.
 - Tick every acceptance criterion — or state explicitly which one isn't met and why.
 
-## 6. Review
+## 6. Independent review
 
-Run the `review` skill on the branch and fix every must-fix finding.
+Fresh eyes catch what the author misses. Spawn a **separate subagent** (Agent tool) with:
+"Run the `review` skill on branch `<branch>` for Linear task KBB-<n>; report findings only, don't
+edit files." Then fix every must-fix and should-fix finding yourself, rerun step 5, and repeat the
+review once if the fixes were substantial. Findings you consciously don't fix go to the PR's Notes.
 
 ## 7. Ship
 
 Run the `ship` skill (commit, push, PR).
 
-## 8. Report
+## 8. Merge (autonomous)
 
-- Don't change the status: opening the PR moves the task to `In Review` (GitHub integration). Check
-  the PR got the Linear bot comment; if not, the branch/title lacks `KBB-<n>`.
+Merge only when **all** gates are green; otherwise leave the PR open and say why in the report:
+- acceptance criteria met (or the unmet ones are explicitly out of scope and noted in the PR);
+- no unresolved must-fix review findings;
+- CI checks green (`gh pr checks --watch`); while the repo has no CI yet, the step-5 checks run
+  locally after the final rebase.
+
+```bash
+git fetch origin && git rebase origin/main   # conflicts: resolve, keep both sides' intent; rerun step 5
+git push --force-with-lease
+gh pr checks --watch                          # skip only if the repo has no CI yet
+gh pr merge --merge --delete-branch
+```
+
+If the rebase conflicts with someone else's recent work in a way you can't resolve confidently,
+stop and report instead of merging.
+
+## 9. Report
+
+- Don't change the status: opening the PR moves the task to `In Review` and merging moves it to
+  `Done` (GitHub integration). Check the PR got the Linear bot comment; if not, the branch/title
+  lacks `KBB-<n>`.
 - Linear comment (2–4 lines, like a teammate): what's done, PR link, anything left or blocking.
-- To the user: PR link, acceptance-criteria checklist, what wasn't verified, proposed follow-up tasks.
+- To the user: PR link, merged or not (and why), acceptance-criteria checklist, review findings left
+  open, what wasn't verified, proposed follow-up tasks.
