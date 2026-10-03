@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
 import { ArrowCounterClockwise, Minus, Plus } from "@phosphor-icons/react";
 import {
   Button,
@@ -20,6 +20,12 @@ type NumberKey = keyof typeof THRESHOLD_LIMITS;
 function Stepper({ label, value, limits, onChange }: { label: string; value: number; limits: (typeof THRESHOLD_LIMITS)[NumberKey]; onChange: (v: number) => void }) {
   const t = useMessages().profile.thresholds;
   const id = useId();
+  const [draft, setDraft] = useState<string | null>(null);
+  const commit = (raw: string) => {
+    const n = Number(raw.replace(",", "."));
+    if (raw.trim() !== "" && Number.isFinite(n)) onChange(Math.min(limits.max, Math.max(limits.min, n)));
+    setDraft(null);
+  };
   return (
     <div className="flex min-h-14 items-center justify-between gap-3">
       <span id={id} className="text-body-sm font-semibold">
@@ -37,9 +43,22 @@ function Stepper({ label, value, limits, onChange }: { label: string; value: num
         >
           <Minus weight="bold" />
         </Button>
-        <output aria-live="polite" className="w-16 text-center font-heading text-[17px] font-extrabold tabular-nums">
-          {value} {t.cm}
-        </output>
+        <div className="flex w-20 items-baseline justify-center gap-1">
+          <input
+            type="number"
+            inputMode="decimal"
+            aria-labelledby={id}
+            min={limits.min}
+            max={limits.max}
+            step={limits.step}
+            value={draft ?? String(value)}
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={(e) => commit(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && commit(e.currentTarget.value)}
+            className="w-10 bg-transparent text-center font-heading text-[17px] font-extrabold tabular-nums outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+          />
+          <span className="text-caption font-semibold text-muted-foreground">{t.cm}</span>
+        </div>
         <Button
           type="button"
           variant="ghost"
