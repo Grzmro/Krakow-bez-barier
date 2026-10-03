@@ -7,6 +7,7 @@ import type { GeoJSONSource, Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useMessages } from "@/i18n/client";
 import { config } from "@/lib/config";
+import { blankMissingImages } from "@/lib/map-images";
 import { MapControls } from "../map/map-controls";
 
 const SOURCE = "route";
@@ -132,6 +133,7 @@ export function RouteMap({ route, selected, onSelect, padding, you = null, follo
           pitchWithRotate: false,
         });
         instance.touchZoomRotate.disableRotation();
+        blankMissingImages(instance);
         instance.once("load", () => !disposed && setLoaded(true));
         setMap(instance);
       })
