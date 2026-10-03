@@ -54,7 +54,19 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
   await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
   await expectAccessible();
 
-  // AND opens the place card from the list
+  // AND opens the profile thresholds and closes them with Escape
+  const thresholds = page.getByRole("button", { name: "Progi profilu" });
+  await tabTo(page, thresholds);
+  await page.keyboard.press("Enter");
+  const thresholdsDrawer = page.getByRole("dialog", { name: "Progi profilu" });
+  await expect(thresholdsDrawer).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  // THEN focus returns to the button that opened them
+  await expect(thresholdsDrawer).toBeHidden();
+  await expect(thresholds).toBeFocused();
+
+  // WHEN they open the place card from the list
   await tabTo(page, row);
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { level: 1, name: "Hotel Przykład" })).toBeVisible();
@@ -78,7 +90,21 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
 
   // THEN focus returns to the button that opened it — no trap, nothing lost
   await expect(drawer).toBeHidden();
-  await expect(doorRow.getByRole("button", { name: "To się nie zgadza" })).toBeFocused();
+  const reportButton = doorRow.getByRole("button", { name: "To się nie zgadza" });
+  await expect(reportButton).toBeFocused();
+
+  // WHEN they reopen it, type the real width and send it with the keyboard
+  await page.keyboard.press("Enter");
+  const width = drawer.getByRole("textbox", { name: /Jak jest naprawdę/ });
+  await expect(width).toBeFocused();
+  await page.keyboard.type("90");
+  await tabTo(page, drawer.getByRole("button", { name: "Wyślij" }));
+  await page.keyboard.press("Enter");
+
+  // THEN the report is listed under the fact and focus is back on the opener
+  await expect(drawer).toBeHidden();
+  await expect(doorRow).toContainText("Twoje zgłoszenie:90 cm");
+  await expect(reportButton).toBeFocused();
   await evidence("a11y-keyboard-pass");
 });
 
@@ -88,7 +114,9 @@ test("everything pinned on the map is also on the text list", async ({ page }) =
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
   await page.getByRole("radio", { name: "Wózek dziecięcy" }).check();
 
-  // WHEN the map pins and the list rows are compared
+  // WHEN every pin and every row has its verdict for the new profile
+  await expect(page.locator("[data-place-id][data-status]")).toHaveCount(9);
+  await expect(list(page).getByRole("listitem").filter({ has: page.locator("[data-verdict]") })).toHaveCount(9);
   const pins = await page.locator("[data-place-id]").evaluateAll((els) =>
     els.map((el) => `${el.getAttribute("data-place-id")}:${el.getAttribute("data-status")}`).sort(),
   );
@@ -97,12 +125,11 @@ test("everything pinned on the map is also on the text list", async ({ page }) =
     .evaluateAll((items) =>
       items.map((li) => {
         const id = li.querySelector("a")?.getAttribute("href")?.split("/").pop();
-        return `${id}:${li.querySelector("[data-status]")?.getAttribute("data-status")}`;
+        return `${id}:${li.querySelector("[data-verdict]")?.getAttribute("data-verdict")}`;
       }),
     );
 
   // THEN every pin, with its verdict, has a row on the list
-  expect(pins).toHaveLength(9);
   expect(rows.sort()).toEqual(pins);
 });
 

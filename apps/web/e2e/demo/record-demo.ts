@@ -17,7 +17,7 @@ const PLACES = {
 
 const MAX_SECONDS = 180;
 // DEMO_PACE=0.2 shortens every pause, for checking the walkthrough without waiting 3 minutes.
-const PACE = Number(process.env.DEMO_PACE ?? 1);
+const PACE = Number(process.env.DEMO_PACE) > 0 ? Number(process.env.DEMO_PACE) : 1;
 const OUT_DIR = path.join(__dirname, "..", "..", "demo-output");
 const VIDEO = { width: 1920, height: 1080 };
 const PHONE = { width: 412, height: 915 };
@@ -216,7 +216,17 @@ test("record the demo walkthrough", async ({ browser, baseURL }) => {
 
   // 9. Prototype → service
   await open("/");
-  await caption(page, "9 · Od prototypu do usługi", "Otwarte dane zamiast bazy miasta. Kolejne miasto, kategoria czy źródło to konfiguracja.");
+  await caption(
+    page,
+    "9 · Od prototypu do usługi",
+    "Prowadzi niezależny operator, nie Urząd. Hosting i moderację opłacają obiekty — karty na stronach i weryfikacje.",
+  );
+  await pause(page, 7);
+  await caption(
+    page,
+    "9 · Od prototypu do usługi",
+    "Plan: pilotaż w Krakowie, panel właściciela obiektu. Kolejne miasto: konfiguracja otwartych źródeł i lokalny moderator.",
+  );
   await pause(page, 7);
   await caption(page, "Kraków bez barier", "Konkretne fakty, źródło przy każdej informacji, otwarte dane. Dziękujemy!");
   await pause(page, 4);

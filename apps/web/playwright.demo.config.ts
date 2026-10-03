@@ -22,6 +22,8 @@ export default defineConfig({
         command: `npm run build && npm run start -- --port ${port}`,
         url: baseURL,
         reuseExistingServer: false,
+        // The walkthrough opens the mock API's sample places by id; a real-data build has none of them.
+        env: { NEXT_PUBLIC_API_MOCK: "true" },
         timeout: 300_000,
       },
 });

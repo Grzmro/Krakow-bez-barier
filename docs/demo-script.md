@@ -16,6 +16,9 @@ DEMO_PACE=0.2 E2E_BASE_URL=http://localhost:3000 npm run demo:record   # szybki 
   kółko w miejscu „dotknięcia”.
 - Test kończy się błędem, gdy przejście trwa dłużej niż 3:00. W konsoli wypisuje czas każdej
   sceny — według niego układamy lektora.
+- Nagranie używa identyfikatorów przykładowych miejsc z mock API, więc lokalny build zawsze
+  działa w trybie mock (`NEXT_PUBLIC_API_MOCK=true`, niezależnie od `.env`). Przebieg
+  z `E2E_BASE_URL` wymaga wdrożenia w trybie mock — do czasu TODO(KBB-28).
 - Skrypt: `apps/web/e2e/demo/record-demo.ts` (osobna konfiguracja `playwright.demo.config.ts`, poza
   `npm run test:e2e`).
 - Dane: przykładowe miejsca z mock API, oznaczone „PRZYKŁAD” (TODO(KBB-28): podmienić na miejsca
@@ -25,7 +28,7 @@ DEMO_PACE=0.2 E2E_BASE_URL=http://localhost:3000 npm run demo:record   # szybki 
 ## Scenariusz
 
 Grupa docelowa: **osoba na wózku** (profil „Wózek”); ten sam przebieg działa dla profilu
-„Wózek dziecięcy”. Czasy z przebiegu `npm run demo:record` (plik wideo 2:43); po każdym nagraniu sprawdź je w konsoli.
+„Wózek dziecięcy”. Czasy z przebiegu `npm run demo:record` (plik wideo ok. 2:50); po każdym nagraniu sprawdź je w konsoli.
 
 | Czas | Scena | Co widać | Lektor |
 |---|---|---|---|
@@ -46,8 +49,9 @@ Grupa docelowa: **osoba na wózku** (profil „Wózek”); ten sam przebieg dzia
 | 2:01 | 7 · Model biznesowy | Cennik: karta na stronie, weryfikacja na miejscu | Płacą obiekty — za kartę na stronie i weryfikację na miejscu. Mieszkańcy i turyści korzystają za darmo. |
 | 2:08 | 8 · Dostępność | Przejścia klawiszem Tab: „Przejdź do treści”, widoczny fokus, menu | Aplikacja sama jest dostępna: cały scenariusz przejdziemy klawiaturą, statusy są tekstem, nie tylko kolorem, a mapa ma tekstowy odpowiednik. |
 | 2:15 | 8 · Dostępność | „Deklaracja dostępności”: co działa, ograniczenia, plan | Celem jest WCAG 2.2 AA. Każdy ekran sprawdzamy automatycznie, a w deklaracji uczciwie piszemy, czego jeszcze nie ma — na przykład testów z czytnikami ekranu — i kiedy to zrobimy. |
-| 2:27 | 9 · Od prototypu do usługi | Strona główna | *Do uzupełnienia z prezentacji (model biznesowy):* kto prowadzi usługę, kto płaci za hosting i weryfikację, plan prac. Nowe miasto, kategoria albo źródło to konfiguracja, nie nowy kod. |
-| 2:34 | Zakończenie | Strona główna | Kraków bez barier: konkretne fakty, źródło przy każdej informacji, otwarte dane. Dziękujemy. |
+| 2:27 | 9 · Od prototypu do usługi | Strona główna | Usługę prowadzi niezależny operator — nie Urząd Miasta, który nie utrzymuje żadnej bazy. Hosting, moderację zgłoszeń i utrzymanie opłacają obiekty: za kartę na swojej stronie i weryfikację na miejscu; mieszkańcy i turyści korzystają za darmo. |
+| 2:34 | 9 · Od prototypu do usługi | Strona główna | Plan: pilotaż w Krakowie z testami z użytkownikami, potem panel właściciela obiektu. Kolejne miasto to konfiguracja — obszar OpenStreetMap i lista otwartych źródeł — oraz lokalny moderator; bez nowego kodu. |
+| 2:41 | Zakończenie | Strona główna | Kraków bez barier: konkretne fakty, źródło przy każdej informacji, otwarte dane. Dziękujemy. |
 
 ## Pokrycie oceny jury
 
@@ -62,14 +66,15 @@ Punkty z [challenge.md](challenge.md) → „How the jury will evaluate it”.
 | Przypadek awarii: sprzeczne, niepełne, niedostępne źródło; brak informacji ≠ dostępność | 4 (wszystkie trzy) |
 | Poprawianie błędnych danych | 5 |
 | Kontrola dostępności: klawiatura, czytnik ekranu, kontrast, mapa jako tekst; ograniczenia i plan | 2 (lista = mapa), 8 |
-| Prototyp → usługa: właściciel, dane, hosting, plan, kolejne miasto | 6, 7, 9 |
+| Prototyp → usługa: właściciel, dane, hosting, plan, kolejne miasto | 6 (dane), 7 (kto płaci), 9 (operator, finansowanie hostingu, plan, warunki dla kolejnego miasta) |
 
 ## Kontrola dostępności głównego scenariusza
 
 Automatycznie, w `npm run test:e2e` — `apps/web/e2e/main-scenario-a11y.spec.ts`:
 
-- cały scenariusz samą klawiaturą (wyszukanie → profil → karta → fakt → formularz zgłoszenia →
-  Escape), axe WCAG 2.2 A/AA na każdym kroku; fokus wraca do przycisku po zamknięciu formularza;
+- cały scenariusz samą klawiaturą (wyszukanie → profil → „Progi profilu” i Escape → karta → fakt →
+  formularz zgłoszenia, Escape → zgłoszenie wysłane przyciskiem „Wyślij”), axe WCAG 2.2 A/AA na
+  każdym kroku; fokus wraca do przycisku, który otworzył okno, po każdym jego zamknięciu;
 - każda pinezka mapy ma wiersz na liście z tym samym statusem (mapa jako tekst);
 - ekrany ze scenariusza przy powiększeniu 200% (640×400) i szerokości 320 px: bez przewijania
   w poziomie, axe bez błędów (w tym kontrast).

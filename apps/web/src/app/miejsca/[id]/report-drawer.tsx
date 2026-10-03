@@ -41,25 +41,17 @@ export interface ReportDrawerProps {
 /** "To się nie zgadza" / "Uzupełnij" sheet: which attribute, its real value, an optional comment. */
 export function ReportDrawer({ open, onOpenChange, placeName, mode, formKey, ...form }: ReportDrawerProps) {
   const contentRef = useRef<HTMLDivElement>(null);
-  const opener = useRef<HTMLElement | null>(null);
   return (
     <VaulDrawer open={open} onOpenChange={onOpenChange}>
       <VaulDrawerContent
         ref={contentRef}
         aria-describedby="report-place"
         onOpenAutoFocus={(e) => {
-          // The drawer is opened from state, not a Trigger, so the dialog can't return focus by itself.
-          opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
           // Land on the value, not the attribute chips: the attribute is already the one the visitor tapped.
           const target = contentRef.current?.querySelector<HTMLElement>("[data-autofocus]");
           if (!target) return;
           e.preventDefault();
           target.focus();
-        }}
-        onCloseAutoFocus={(e) => {
-          if (!opener.current?.isConnected) return;
-          e.preventDefault();
-          opener.current.focus();
         }}
       >
         <ReportForm key={formKey} placeName={placeName} mode={mode} {...form} />
