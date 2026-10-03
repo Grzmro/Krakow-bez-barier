@@ -206,7 +206,7 @@ test("the senior profile is one tap away on a 360 px phone and judges places by 
   await evidence("home-profile-senior");
 });
 
-test("the profile switch is a 2x2 grid on a 360 px phone and one row in the desktop sidebar", async ({ page, evidence }) => {
+test("the profile switch is one row on a 360 px phone and in the desktop sidebar", async ({ page, evidence }) => {
   const rows = async () => {
     const tops = await page
       .getByRole("group", { name: "Profil potrzeb" })
@@ -220,8 +220,8 @@ test("the profile switch is a 2x2 grid on a 360 px phone and one row in the desk
   await page.goto("/");
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
 
-  // THEN the four segments wrap into two rows
-  await expect.poll(rows).toBe(2);
+  // THEN the four segments share one row (icons hidden to make room)
+  await expect.poll(rows).toBe(1);
 
   // WHEN the same screen is shown on a desktop
   await page.setViewportSize({ width: 1280, height: 800 });

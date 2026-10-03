@@ -37,8 +37,7 @@ export function ProfileSwitch({
       <div
         className={cn(
           "w-full bg-muted p-1 ring-1 ring-border",
-          // Four segments don't fit one row on a 360 px phone: two rows until the switch is wide enough.
-          options.length > 3 ? "grid grid-cols-2 gap-1 rounded-3xl @sm:flex @sm:gap-0 @sm:rounded-full" : "flex rounded-full",
+          "flex rounded-full",
         )}
       >
         {options.map((option) => {
@@ -48,7 +47,9 @@ export function ProfileSwitch({
             <label
               key={option}
               className={cn(
-                "relative flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1 rounded-full px-2 font-semibold text-muted-foreground transition-[background-color,color,box-shadow] duration-200 hover:text-foreground has-checked:bg-primary has-checked:text-primary-foreground has-checked:shadow-soft has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
+                "relative flex min-w-0 cursor-pointer items-center justify-center gap-1 rounded-full px-1 @sm:px-2 font-semibold text-muted-foreground transition-[background-color,color,box-shadow] duration-200 hover:text-foreground has-checked:bg-primary has-checked:text-primary-foreground has-checked:shadow-soft has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
+                // Segments size to their text so "Dla każdego" is never cut on a 360 px phone.
+                options.length > 3 ? "flex-auto" : "flex-1",
                 size === "sm" ? "h-10 text-[13px]" : "h-12 text-[14px]",
               )}
             >
@@ -61,8 +62,14 @@ export function ProfileSwitch({
                 onChange={() => onChange(option === "off" ? null : option)}
                 className="absolute inset-0 z-10 m-0 size-full cursor-pointer appearance-none rounded-full opacity-0"
               />
-              {option === "off" ? null : <I aria-hidden weight={checked ? "fill" : "regular"} className="size-[18px] shrink-0" />}
-              <span className="truncate">{option === "off" ? t.switch.off : t.switch.short[option]}</span>
+              {option === "off" ? null : (
+                <I
+                  aria-hidden
+                  weight={checked ? "fill" : "regular"}
+                  className={cn("size-[18px] shrink-0", options.length > 3 && "hidden @sm:block")}
+                />
+              )}
+              <span className={cn(options.length > 3 ? "@max-sm:text-[13px]" : undefined, "truncate")}>{option === "off" ? t.switch.off : t.switch.short[option]}</span>
             </label>
           );
         })}
