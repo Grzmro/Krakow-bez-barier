@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { horizontalOverflow, SCREENS, tabTo } from "./a11y";
-import { expandClusters, placesOnMap, verdictsOnMap } from "./map";
+import { expandClusters, placesOnMap, verdictsOnMap, gotoAllPlaces } from "./map";
 
 // Accessibility check of the demo's main scenario (docs/demo-script.md, scene 8): every screen the
 // jury sees, with axe, the keyboard alone, 200% zoom / 320 px reflow, and the map available as text.
@@ -16,7 +16,7 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
 }) => {
   test.setTimeout(60_000);
   // GIVEN the home screen
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN a keyboard user searches for the hotel and picks the suggestion
@@ -98,7 +98,7 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
 
 test("everything pinned on the map is also on the text list", async ({ page }) => {
   // GIVEN the home screen with the stroller profile, so pins and clusters carry verdicts
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await page.getByRole("radio", { name: "Wózek dziecięcy" }).check();
 

@@ -19,6 +19,27 @@ export function isSearching({ q, category, features, nearby }: HomeAsk): boolean
   return Boolean(q.trim() || category || features.length || nearby);
 }
 
+/** How many of the nearest places the start peek lists. */
+export const PEEK_LIMIT = 5;
+
+export type PeekHeading = "nearYou" | "nearChosen" | "nearCentre";
+const HEADINGS: Record<SearchSource, PeekHeading> = { user: "nearYou", chosen: "nearChosen", map: "nearCentre" };
+
+/**
+ * What the home screen shows: at the start a clean map (no pins) and a partly slid out panel peeking the
+ * nearest places; once something was asked, the results panel and pins for those results only. The peek
+ * says "near you" only for a real device position.
+ */
+export function homeView(ask: HomeAsk, origin: Pick<SearchOrigin, "source">) {
+  const searching = isSearching(ask);
+  return {
+    searching,
+    pins: searching,
+    panel: searching ? ("results" as const) : ("peek" as const),
+    heading: HEADINGS[origin.source],
+  };
+}
+
 /** Where a search is centred: the device, a point the user chose, or the map's centre (never called "near you"). */
 export type SearchSource = "user" | "chosen" | "map";
 

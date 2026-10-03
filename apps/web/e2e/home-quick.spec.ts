@@ -16,7 +16,7 @@ test.describe("next to the Planty toilet", () => {
     const list = page.getByRole("region", { name: "Lista miejsc" });
     const actions = list.getByRole("group", { name: "Szybkie akcje" });
     const toilet = actions.getByRole("button", { name: "Najbliższa toaleta" });
-    await expect(list.getByRole("heading", { level: 2, name: "10 miejsc" })).toBeVisible();
+    await expect(list.getByRole("heading", { level: 2, name: "Najbliżej Ciebie" })).toBeVisible();
 
     // WHEN a keyboard user presses "Najbliższa toaleta" once
     await toilet.focus();
@@ -91,7 +91,7 @@ test("without location a quick action asks for it or a district, and stops are m
       fail?.({ code: 1, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 } as GeolocationPositionError);
   });
   const list = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(page.getByRole("status")).toHaveText("Znaleziono 10 miejsc");
+  await expect(list.getByRole("heading", { level: 2, name: "Najbliżej Rynku (bez lokalizacji)" })).toBeVisible();
 
   // WHEN the user presses "Najbliższa toaleta"
   await list.getByRole("button", { name: "Najbliższa toaleta" }).click();

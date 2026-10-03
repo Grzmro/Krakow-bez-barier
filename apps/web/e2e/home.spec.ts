@@ -1,5 +1,51 @@
 import { expect, test } from "./fixtures";
-import { placesOnMap } from "./map";
+import { placesOnMap, gotoAllPlaces } from "./map";
+
+test("the start is a clean map with a peek of the nearest places that a search replaces with results and pins", async ({
+  page,
+  expectAccessible,
+  evidence,
+}) => {
+  // GIVEN the home screen just opened, without a location
+  await page.goto("/");
+  const list = page.getByRole("region", { name: "Lista miejsc" });
+
+  // THEN the map has no pins, and a partly slid out panel peeks the five nearest places, not the full list
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("Najbliżej Rynku (bez lokalizacji)");
+  const rows = list.locator("#lista > ul > li");
+  await expect(rows).toHaveCount(5);
+  await expect(rows.first()).toContainText("od Rynku");
+  await expect(page.locator("[data-place-id], [data-cluster-count]")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Informacje o źródłach mapy" })).toBeVisible();
+  const viewport = page.viewportSize()!;
+  await expect.poll(async () => (await list.boundingBox())!.height).toBeLessThan(viewport.height * 0.4);
+  await expect(page.getByRole("status").filter({ hasText: "Znaleziono" })).toHaveCount(0);
+  await expectAccessible();
+  await evidence("home-start-peek");
+
+  // WHEN the visitor expands the panel with its button
+  await list.getByRole("button", { name: "Rozwiń arkusz" }).click();
+
+  // THEN it grows (still no pins)
+  await expect(list.getByRole("button", { name: "Zwiń arkusz" })).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator("[data-place-id], [data-cluster-count]")).toHaveCount(0);
+
+  // WHEN they search
+  const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
+  await search.fill("Sukiennice");
+
+  // THEN the results are listed and pinned, and a row opens the place
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
+  await expect(page.locator("[data-place-id]")).toHaveCount(1);
+
+  // WHEN they clear the search
+  await page.getByRole("button", { name: "Wyczyść wyszukiwanie" }).click();
+
+  // THEN the clean map and the peek are back
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("Najbliżej Rynku (bez lokalizacji)");
+  await expect(rows).toHaveCount(5);
+  await expect(page.locator("[data-place-id], [data-cluster-count]")).toHaveCount(0);
+});
 
 test("search for Sukiennice shows it on the list and the map and opens its card", async ({
   page,
@@ -7,7 +53,7 @@ test("search for Sukiennice shows it on the list and the map and opens its card"
   evidence,
 }) => {
   // GIVEN the home screen with every sample place
-  await page.goto("/");
+  await gotoAllPlaces(page);
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "home-screen.aria.yml" });
@@ -41,7 +87,7 @@ test("feature filter hides places without data until the switch shows them as Br
   evidence,
 }) => {
   // GIVEN the home screen
-  await page.goto("/");
+  await gotoAllPlaces(page);
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
@@ -88,7 +134,7 @@ test("on a 390x844 phone the skip link jumps past the map to the list, below the
 }) => {
   // GIVEN the home screen on a small phone, under the sticky app header
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
+  await gotoAllPlaces(page);
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   const header = (await page.locator("header").boundingBox())!;
@@ -116,7 +162,7 @@ test("on a 390x844 phone the skip link jumps past the map to the list, below the
 
 test("the whole flow works with the keyboard alone", async ({ page }) => {
   // GIVEN the home screen
-  await page.goto("/");
+  await gotoAllPlaces(page);
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 

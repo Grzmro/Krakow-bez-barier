@@ -1,7 +1,7 @@
 import type { Page } from "@playwright/test";
 import { horizontalOverflow, SCREENS, tabTo } from "./a11y";
 import { expect, test } from "./fixtures";
-import { placesOnMap } from "./map";
+import { placesOnMap, gotoAllPlaces } from "./map";
 
 // The accessibility check of the demo's main scenario (main-scenario-a11y.spec.ts) on the laptop the demo video is
 // recorded on: 1440×900 (the desktop project), the keyboard alone, and browser zoom. Results feed the
@@ -16,7 +16,7 @@ for (const screen of DESKTOP_SCREENS) {
     // GIVEN a screen of the demo scenario on a laptop
     await page.goto(screen.url);
     await expect(page.getByRole("heading", { level: 1, name: screen.heading })).toBeAttached();
-    if (screen.name === "home") await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
+    if (screen.name === "home") await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("Najbliżej Rynku (bez lokalizacji)");
 
     // THEN nothing needs sideways scrolling
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
@@ -34,7 +34,7 @@ test("on a laptop the scenario works from the keyboard alone and focus returns f
 }) => {
   test.setTimeout(30_000);
   // GIVEN the home screen on a laptop
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN a keyboard user searches for the hotel, picks the suggestion and turns on the wheelchair profile
@@ -82,7 +82,7 @@ test("on a laptop the scenario works from the keyboard alone and focus returns f
 
 test("on a laptop every place on the map is also on the list beside it", async ({ page }) => {
   // GIVEN the home screen on a laptop, list panel and map side by side
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // THEN the map holds the same nine places the list names

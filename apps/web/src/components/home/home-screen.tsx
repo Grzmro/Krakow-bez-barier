@@ -15,7 +15,7 @@ import { config } from "@/lib/config";
 import { routes } from "@/lib/routes";
 import { routeTarget } from "@/lib/route-intent";
 import { byDistance, type NearbyOrigin } from "@/lib/nearby";
-import { isSearching, searchOrigin } from "@/lib/home-start";
+import { homeView, PEEK_LIMIT, searchOrigin } from "@/lib/home-start";
 import { listedCount } from "@/lib/list-count";
 import { parseNearestCommand } from "@/lib/nearest-command";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
@@ -27,6 +27,7 @@ import { useProfile } from "@/lib/profile/use-profile";
 import { countByStatus, filterByVerdict, missingNeeds, STATUS_ORDER } from "@/lib/profile/verdict-list";
 import { scrollIntoViewWithin, scrollParent } from "@/lib/scroll-within";
 import { useDebounced } from "@/lib/use-debounced";
+import { useGrantedPosition } from "@/lib/use-granted-position";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useSessionFlag } from "@/lib/use-session-flag";
 import { PlaceMap } from "./place-map";
@@ -50,6 +51,9 @@ const STOWED_KEY = "kbb-list-stowed";
 // Set on <main> as --list-collapsed: half the screen, but on a short phone (browser toolbars) down to 40%,
 // so ~20rem stays for the map and its overlays. The map's padding and controls stop at the same value.
 const COLLAPSED_HEIGHT = "var(--list-collapsed)";
+// The start peek: the grabber, the quick actions and the first nearest place; the rest is a drag or a button away.
+const PEEK_HEIGHT = "calc(14.5rem + env(safe-area-inset-bottom))";
+const NO_HIGHLIGHT = () => {};
 const DESKTOP = "(min-width: 64rem)";
 
 const COUNTER_PRESSED: Record<Status, string> = {
@@ -95,10 +99,31 @@ export function HomeScreen() {
   const collapsedRef = useRef<HTMLDivElement>(null);
   const { inset: panelInset, follow: followPanel } = usePanelInset(mainRef, collapsedRef);
 
-  // Start state: a clean map and a stowed panel. Places load, list and pin only once something was asked.
-  const searching = isSearching({ q, category: category === ALL ? null : category, features, nearby });
-  // The panel is stowed at the start and opens when results appear; clearing stows it again.
-  useEffect(() => setStowed(!searching), [searching, setStowed]);
+  // Start state: a clean map and a partly slid out panel peeking the nearest places. Results (list and pins)
+  // load only once something was asked; clearing the search returns to the start.
+  const peekNearby = useGrantedPosition();
+  const peekFrom = useMemo(() => searchOrigin(peekNearby, config.cityCenter), [peekNearby]);
+  const view = homeView({ q, category: category === ALL ? null : category, features, nearby }, peekFrom);
+  const searching = view.searching;
+  // A user's own "hide" is kept only within one state: the peek and the results each come back slid out.
+  const wasSearching = useRef(searching);
+  useEffect(() => {
+    if (wasSearching.current !== searching) setStowed(false);
+    wasSearching.current = searching;
+  }, [searching, setStowed]);
+  const peekQuery = usePlaces(
+    {
+      bbox: peekFrom.area,
+      near: peekFrom.centre,
+      limit: PEEK_LIMIT,
+      ...profileQuery(settings),
+    },
+    { enabled: !searching },
+  );
+  const peekItems = useMemo(
+    () => byDistance(peekQuery.data?.items ?? [], peekFrom.from ?? config.cityCenter).slice(0, PEEK_LIMIT),
+    [peekQuery.data, peekFrom],
+  );
   const searchFrom = useMemo(() => searchOrigin(nearby, config.cityCenter), [nearby]);
   const area = searchFrom.area;
   const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown, area };
@@ -155,7 +180,7 @@ export function HomeScreen() {
     [items, settled, query.q],
   );
 
-  const resultsLabel = !searching ? t.list.start.summary : total === undefined ? t.list.loading : t.list.results(listedCount(places.data!, shown.length));
+  const resultsLabel = !searching ? t.list.start[view.heading] : total === undefined ? t.list.loading : t.list.results(listedCount(places.data!, shown.length));
   const queryKey = JSON.stringify(query);
   // The list renders a window of rows that grows by a page; a new search or verdict filter starts it over.
   const windowKey = `${queryKey}|${statusFilter}|${hideFailing}`;
@@ -352,6 +377,204 @@ export function HomeScreen() {
     return () => observer.disconnect();
   }, [hasMore, windowKey, shownCount, rendered]);
 
+  const controls = (
+    <div key="controls" className="space-y-2 px-4 pb-2">
+      <ProfileSwitch value={profile} onChange={changeProfile} />
+      <NearbyToggle ref={nearbyRef} origin={nearby} onChange={setNearby} />
+      {unknownCommand ? (
+        <div role="note" className="space-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-body-sm">
+          <p className="font-semibold">{t.command.unknownTitle}</p>
+          <p>{t.command.unknownHint}</p>
+        </div>
+      ) : null}
+      {profile && searching ? (
+        <>
+          <div className="flex items-center gap-2">
+            <div role="group" aria-label={tp.countersLabel} className="flex min-w-0 items-center gap-2">
+              {STATUS_ORDER.map((status) => (
+                <Toggle
+                  key={status}
+                  pressed={statusFilter === status}
+                  onPressedChange={() => toggleStatus(status)}
+                  aria-label={tp.counter(counts[status], m.common.status[status])}
+                  className={cn("h-11 min-w-0 gap-1.5 px-3 aria-pressed:ring-2", COUNTER_PRESSED[status])}
+                >
+                  <StatusIcon status={status} className="size-5!" />
+                  <span className="font-num text-[17px] text-foreground">{counts[status]}</span>
+                </Toggle>
+              ))}
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label={tp.settings}
+              onClick={() => setThresholdsOpen(true)}
+              className="ml-auto size-11 shrink-0"
+            >
+              <SlidersHorizontal weight="bold" />
+            </Button>
+          </div>
+          <LabeledSwitch label={tp.hideFailing} checked={hideFailing} onCheckedChange={changeHideFailing} className="-my-1" />
+          {missing.length && !pending ? (
+            <div role="note" className="space-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-body-sm">
+              <p className="font-semibold">{tp.list.noneMet.title}</p>
+              <p>{tp.list.noneMet.missing(missing, verdictCount)}</p>
+              <p className="text-muted-foreground">{tp.list.noneMet.hint}</p>
+            </div>
+          ) : null}
+        </>
+      ) : null}
+      <div role="group" aria-label={t.filtersLabel} className={cn(CHIP_ROW, "-mx-4 flex gap-2 pl-4")}>
+        {FEATURES.map((feature) => (
+          <Toggle key={feature} pressed={features.includes(feature)} onPressedChange={() => toggleFeature(feature)} className={CHIP}>
+            {t.filters[feature]}
+          </Toggle>
+        ))}
+      </div>
+      {features.length ? (
+        <label className="flex min-h-12 cursor-pointer items-center justify-between gap-3 text-body-sm font-semibold">
+          <span>{t.showUnknown}</span>
+          <Switch checked={showUnknown} onCheckedChange={setShowUnknown} />
+        </label>
+      ) : null}
+    </div>
+  );
+  const listBlock = (
+    <div key="list" ref={listRef} id={LIST_ID} tabIndex={-1} className="scroll-mt-2 px-4 pt-1 pb-8 outline-none">
+      <h2 className="mb-2 text-caption font-semibold text-muted-foreground">
+        {resultsLabel}
+      </h2>
+      {cutNote ? <p className="mb-2 text-body-sm text-muted-foreground">{cutNote}</p> : null}
+      {routeTo ? (
+        <div role="group" aria-label={t.search.route.button} className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl bg-primary-container px-4 py-3">
+          <p className="min-w-0 flex-1 text-body-sm font-semibold">{t.search.route.prompt(routeTo.name)}</p>
+          <Link href={routes.route(routeTo.id)} aria-label={t.search.route.aria(routeTo.name)} className={buttonVariants()}>
+            {t.search.route.button}
+          </Link>
+        </div>
+      ) : null}
+      {!searching ? (
+        <>
+          {peekQuery.isError ? (
+            <div className="grid justify-items-start gap-3">
+              <p className="text-body">{t.list.error}</p>
+              <Button variant="outline" onClick={() => peekQuery.refetch()}>
+                {t.list.retry}
+              </Button>
+            </div>
+          ) : !peekQuery.data ? (
+            <p role="status" className="text-body-sm text-muted-foreground">
+              {t.list.loading}
+            </p>
+          ) : peekItems.length ? (
+            <ul className="space-y-2.5">
+              {peekItems.map(({ place, distance }) => (
+                <PlaceRow
+                  key={place.id}
+                  place={place}
+                  distance={distance}
+                  from={peekFrom.source === "map" ? "centre" : peekFrom.source}
+                  features={[]}
+                  selected={false}
+                  onHighlight={NO_HIGHLIGHT}
+                />
+              ))}
+            </ul>
+          ) : (
+            <p className="text-body-sm text-muted-foreground">{t.list.start.empty}</p>
+          )}
+          <p className="mt-3 text-body-sm text-muted-foreground">{t.list.start.hint}</p>
+        </>
+      ) : places.isError ? (
+        <div className="grid justify-items-start gap-3">
+          <p className="text-body">{t.list.error}</p>
+          <Button variant="outline" onClick={() => places.refetch()}>
+            {t.list.retry}
+          </Button>
+        </div>
+      ) : total !== undefined && shown.length === 0 ? (
+        <div className="grid place-items-center gap-3 py-8 text-center">
+          <span className="grid size-16 place-items-center rounded-full bg-primary-container text-primary">
+            <MagnifyingGlass weight="bold" className="size-8" aria-hidden />
+          </span>
+          {items.length ? (
+            <>
+              <p className="text-title font-semibold">{tp.list.filteredEmpty}</p>
+              <p className="text-body-sm text-muted-foreground">{tp.list.filteredEmptyHint}</p>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setStatusFilter(null);
+                  setHideFailing(false);
+                }}
+              >
+                {tp.list.showAll}
+              </Button>
+            </>
+          ) : (
+            <>
+              <p className="text-title font-semibold">{t.list.empty}</p>
+              {origin ? (
+                <p className="text-body-sm text-muted-foreground">
+                  {chosenPlace ? tn.emptyHintChosen(chosenPlace) : tn.emptyHint}
+                </p>
+              ) : null}
+              {features.length && !showUnknown ? (
+                <p className="text-body-sm text-muted-foreground">
+                  {t.list.noFeatureMatch(features.map((f) => t.filters[f]).join(", "))}
+                </p>
+              ) : null}
+              {category === "transit_stop" || category === "parking" ? (
+                <p className="text-body-sm text-muted-foreground">
+                  {t.list.licenceHold[category]}{" "}
+                  <Link href={routes.aboutData} className="font-semibold text-primary underline">
+                    {t.list.licenceHold.link}
+                  </Link>
+                </p>
+              ) : null}
+              <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                <Button variant="outline" onClick={searchWider}>
+                  {t.list.searchWider}
+                </Button>
+                {features.length && !showUnknown ? (
+                  <Button variant="ghost" onClick={() => setShowUnknown(true)}>
+                    {t.showUnknown}
+                  </Button>
+                ) : null}
+              </div>
+            </>
+          )}
+        </div>
+      ) : (
+        <ul className="space-y-2.5">
+          {rows.map(({ place, distance }) => (
+            <PlaceRow
+              distance={distance}
+              from={origin ? (chosenPlace ? "chosen" : "user") : "centre"}
+              key={place.id}
+              ref={(node) => {
+                if (node) rowRefs.current.set(place.id, node);
+                else rowRefs.current.delete(place.id);
+              }}
+              place={place}
+              features={features}
+              selected={place.id === selectedId}
+              onHighlight={setSelectedId}
+            />
+          ))}
+        </ul>
+      )}
+      {hasMore && !places.isError ? (
+        <div ref={moreRef} className="pt-3">
+          <Button variant="outline" className="w-full" onClick={showMore}>
+            {t.list.more(rendered, shown.length)}
+          </Button>
+        </div>
+      ) : null}
+    </div>
+  );
+
   return (
     // Full bleed: cancel the body's bottom safe-area padding so the map and sheet reach the screen edge;
     // the sheet pads its own content instead.
@@ -416,11 +639,11 @@ export function HomeScreen() {
         label={t.list.label}
         expanded={expanded}
         onExpandedChange={setExpanded}
-        collapsedHeight={COLLAPSED_HEIGHT}
+        collapsedHeight={searching ? COLLAPSED_HEIGHT : PEEK_HEIGHT}
         stowed={stowed}
         onStowedChange={setStowed}
         stowLabels={t.list.stow}
-        stowedSummary={resultsLabel}
+        stowedSummary={searching ? resultsLabel : t.list.start.summary}
         stowedHeight={STOWED_HEIGHT}
         onHeightChange={followPanel}
         headerClassName="lg:hidden"
@@ -429,168 +652,8 @@ export function HomeScreen() {
         <div className="space-y-2 px-4 pt-1 pb-2">
           <QuickActionRow active={quick?.id ?? null} onRun={runQuick} className={cn(CHIP_ROW, "-mx-4 pl-4")} />
           {quick && quickState ? <QuickResult action={quick} state={quickState} /> : null}
-          <ProfileSwitch value={profile} onChange={changeProfile} />
-          <NearbyToggle ref={nearbyRef} origin={nearby} onChange={setNearby} />
-          {unknownCommand ? (
-            <div role="note" className="space-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-body-sm">
-              <p className="font-semibold">{t.command.unknownTitle}</p>
-              <p>{t.command.unknownHint}</p>
-            </div>
-          ) : null}
-          {profile && searching ? (
-            <>
-              <div className="flex items-center gap-2">
-                <div role="group" aria-label={tp.countersLabel} className="flex min-w-0 items-center gap-2">
-                  {STATUS_ORDER.map((status) => (
-                    <Toggle
-                      key={status}
-                      pressed={statusFilter === status}
-                      onPressedChange={() => toggleStatus(status)}
-                      aria-label={tp.counter(counts[status], m.common.status[status])}
-                      className={cn("h-11 min-w-0 gap-1.5 px-3 aria-pressed:ring-2", COUNTER_PRESSED[status])}
-                    >
-                      <StatusIcon status={status} className="size-5!" />
-                      <span className="font-num text-[17px] text-foreground">{counts[status]}</span>
-                    </Toggle>
-                  ))}
-                </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label={tp.settings}
-                  onClick={() => setThresholdsOpen(true)}
-                  className="ml-auto size-11 shrink-0"
-                >
-                  <SlidersHorizontal weight="bold" />
-                </Button>
-              </div>
-              <LabeledSwitch label={tp.hideFailing} checked={hideFailing} onCheckedChange={changeHideFailing} className="-my-1" />
-              {missing.length && !pending ? (
-                <div role="note" className="space-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-body-sm">
-                  <p className="font-semibold">{tp.list.noneMet.title}</p>
-                  <p>{tp.list.noneMet.missing(missing, verdictCount)}</p>
-                  <p className="text-muted-foreground">{tp.list.noneMet.hint}</p>
-                </div>
-              ) : null}
-            </>
-          ) : null}
-          <div role="group" aria-label={t.filtersLabel} className={cn(CHIP_ROW, "-mx-4 flex gap-2 pl-4")}>
-            {FEATURES.map((feature) => (
-              <Toggle key={feature} pressed={features.includes(feature)} onPressedChange={() => toggleFeature(feature)} className={CHIP}>
-                {t.filters[feature]}
-              </Toggle>
-            ))}
-          </div>
-          {features.length ? (
-            <label className="flex min-h-12 cursor-pointer items-center justify-between gap-3 text-body-sm font-semibold">
-              <span>{t.showUnknown}</span>
-              <Switch checked={showUnknown} onCheckedChange={setShowUnknown} />
-            </label>
-          ) : null}
         </div>
-
-        <div ref={listRef} id={LIST_ID} tabIndex={-1} className="scroll-mt-2 px-4 pt-1 pb-8 outline-none">
-          <h2 className="mb-2 text-caption font-semibold text-muted-foreground">
-            {resultsLabel}
-          </h2>
-          {!searching ? <p className="text-body-sm text-muted-foreground">{t.list.start.hint}</p> : null}
-          {cutNote ? <p className="mb-2 text-body-sm text-muted-foreground">{cutNote}</p> : null}
-          {routeTo ? (
-            <div role="group" aria-label={t.search.route.button} className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl bg-primary-container px-4 py-3">
-              <p className="min-w-0 flex-1 text-body-sm font-semibold">{t.search.route.prompt(routeTo.name)}</p>
-              <Link href={routes.route(routeTo.id)} aria-label={t.search.route.aria(routeTo.name)} className={buttonVariants()}>
-                {t.search.route.button}
-              </Link>
-            </div>
-          ) : null}
-          {places.isError ? (
-            <div className="grid justify-items-start gap-3">
-              <p className="text-body">{t.list.error}</p>
-              <Button variant="outline" onClick={() => places.refetch()}>
-                {t.list.retry}
-              </Button>
-            </div>
-          ) : !searching ? null : total !== undefined && shown.length === 0 ? (
-            <div className="grid place-items-center gap-3 py-8 text-center">
-              <span className="grid size-16 place-items-center rounded-full bg-primary-container text-primary">
-                <MagnifyingGlass weight="bold" className="size-8" aria-hidden />
-              </span>
-              {items.length ? (
-                <>
-                  <p className="text-title font-semibold">{tp.list.filteredEmpty}</p>
-                  <p className="text-body-sm text-muted-foreground">{tp.list.filteredEmptyHint}</p>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setStatusFilter(null);
-                      setHideFailing(false);
-                    }}
-                  >
-                    {tp.list.showAll}
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <p className="text-title font-semibold">{t.list.empty}</p>
-                  {origin ? (
-                    <p className="text-body-sm text-muted-foreground">
-                      {chosenPlace ? tn.emptyHintChosen(chosenPlace) : tn.emptyHint}
-                    </p>
-                  ) : null}
-                  {features.length && !showUnknown ? (
-                    <p className="text-body-sm text-muted-foreground">
-                      {t.list.noFeatureMatch(features.map((f) => t.filters[f]).join(", "))}
-                    </p>
-                  ) : null}
-                  {category === "transit_stop" || category === "parking" ? (
-                    <p className="text-body-sm text-muted-foreground">
-                      {t.list.licenceHold[category]}{" "}
-                      <Link href={routes.aboutData} className="font-semibold text-primary underline">
-                        {t.list.licenceHold.link}
-                      </Link>
-                    </p>
-                  ) : null}
-                  <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    <Button variant="outline" onClick={searchWider}>
-                      {t.list.searchWider}
-                    </Button>
-                    {features.length && !showUnknown ? (
-                      <Button variant="ghost" onClick={() => setShowUnknown(true)}>
-                        {t.showUnknown}
-                      </Button>
-                    ) : null}
-                  </div>
-                </>
-              )}
-            </div>
-          ) : (
-            <ul className="space-y-2.5">
-              {rows.map(({ place, distance }) => (
-                <PlaceRow
-                  distance={distance}
-                  from={origin ? (chosenPlace ? "chosen" : "user") : "centre"}
-                  key={place.id}
-                  ref={(node) => {
-                    if (node) rowRefs.current.set(place.id, node);
-                    else rowRefs.current.delete(place.id);
-                  }}
-                  place={place}
-                  features={features}
-                  selected={place.id === selectedId}
-                  onHighlight={setSelectedId}
-                />
-              ))}
-            </ul>
-          )}
-          {hasMore && !places.isError ? (
-            <div ref={moreRef} className="pt-3">
-              <Button variant="outline" className="w-full" onClick={showMore}>
-                {t.list.more(rendered, shown.length)}
-              </Button>
-            </div>
-          ) : null}
-        </div>
+        {searching ? [controls, listBlock] : [listBlock, controls]}
       </BottomPanel>
       {/* Resolves --list-collapsed in px: the map's padding and controls never rise above the half-height panel. */}
       <div ref={collapsedRef} aria-hidden className="pointer-events-none invisible absolute bottom-0 left-0 h-(--list-collapsed) w-px lg:hidden" />
@@ -604,7 +667,7 @@ export function HomeScreen() {
           inset={desktop ? 0 : panelInset}
           revealSelected={!desktop}
           controlsClassName={CONTROLS_ABOVE_PANEL}
-          you={origin}
+          you={searching ? origin : peekFrom.from}
           youLabel={chosenPlace}
         />
       </div>

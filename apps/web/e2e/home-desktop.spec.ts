@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { gotoAllPlaces } from "./map";
 
 // The home screen as a laptop or monitor shows it (the desktop project).
 
@@ -8,7 +9,7 @@ for (const width of WIDTHS) {
   test(`at ${width}px the list is a side panel and the map fills the rest of the window`, async ({ page }) => {
     // GIVEN the home screen in a desktop window
     await page.setViewportSize({ width, height: 900 });
-    await page.goto("/");
+    await gotoAllPlaces(page);
     const panel = page.getByRole("region", { name: "Lista miejsc" });
     await expect(panel.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
     const canvas = page.locator(".maplibregl-canvas");
@@ -42,7 +43,7 @@ test("the list scrolls inside its panel while the page and the map stay put, and
 }) => {
   // GIVEN the home screen at 1440 px, first as a full desktop window for the evidence
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await gotoAllPlaces(page);
   const panel = page.getByRole("region", { name: "Lista miejsc" });
   await expect(panel.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "home-desktop.aria.yml" });
@@ -71,7 +72,7 @@ test("the list scrolls inside its panel while the page and the map stay put, and
 test("on a short window the search and chips leave the list at least a third of the height", async ({ page }) => {
   // GIVEN the home screen in a 1024×600 window (a laptop at 125% zoom)
   await page.setViewportSize({ width: 1024, height: 600 });
-  await page.goto("/");
+  await gotoAllPlaces(page);
   const panel = page.getByRole("region", { name: "Lista miejsc" });
   await expect(panel.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
@@ -85,7 +86,7 @@ test("on a short window the search and chips leave the list at least a third of 
 test("the skip link jumps to the list on desktop", async ({ page }) => {
   // GIVEN the home screen at 1440 px
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN the visitor tabs to "Przejdź do listy" (the second skip link after the page-wide one) and activates it
@@ -101,7 +102,7 @@ test("the skip link jumps to the list on desktop", async ({ page }) => {
 test("the document order, which tab order follows, is search, categories, filters, list, then the map", async ({ page }) => {
   // GIVEN the home screen at 1440 px
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN comparing where these controls sit in the document

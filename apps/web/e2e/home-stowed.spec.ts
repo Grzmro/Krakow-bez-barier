@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { expandClusters, pins } from "./map";
+import { expandClusters, pins, gotoAllPlaces } from "./map";
 
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -9,7 +9,7 @@ test("the list panel collapses to a bar, leaves the map in view and brings the l
   evidence,
 }) => {
   // GIVEN the home screen on a phone with the list at half height
-  await page.goto("/");
+  await gotoAllPlaces(page);
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   const half = (await list.boundingBox())!;
@@ -47,10 +47,10 @@ test("the list panel collapses to a bar, leaves the map in view and brings the l
   // WHEN they show the list again
   await list.getByRole("button", { name: "Pokaż listę" }).press("Enter");
 
-  // THEN the places are listed and reachable again
+  // THEN the peek of the nearest places is back and reachable (a reload starts a new search-free session state)
   await expect(list.getByRole("button", { name: "Schowaj listę" })).toBeFocused();
   await expect(list.getByRole("button", { name: "Schowaj listę" })).toHaveAttribute("aria-expanded", "true");
-  await expect(list.getByRole("link", { name: /Sukiennice/ })).toBeVisible();
+  await expect(list.locator("#lista > ul > li").first()).toBeVisible();
   await expect(list.getByRole("button", { name: "Rozwiń arkusz" })).toHaveAttribute("aria-expanded", "false");
 });
 
@@ -58,7 +58,7 @@ test("selecting a pin while the list is hidden shows that place in the list", as
   // Each cluster zoom waits for the full-screen software-GL map to settle (as in map-touch.spec.ts).
   test.setTimeout(30_000);
   // GIVEN the list hidden
-  await page.goto("/");
+  await gotoAllPlaces(page);
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await page.getByRole("button", { name: "Schowaj listę" }).click();
@@ -108,8 +108,8 @@ test("on desktop a stowed flag from the session is ignored and no stow button is
   // WHEN the home screen opens at desktop width
   await page.goto("/");
 
-  // THEN the side panel lists the places and has no stow buttons
+  // THEN the side panel lists the nearest places and has no stow buttons
   const list = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(list.getByRole("link", { name: /Sukiennice/ })).toBeVisible();
+  await expect(list.locator("#lista > ul > li").first()).toBeVisible();
   await expect(page.getByRole("button", { name: /Schowaj listę|Pokaż listę/ })).toHaveCount(0);
 });

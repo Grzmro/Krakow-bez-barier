@@ -1,6 +1,6 @@
 import { devices, type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { expandClusters, markersSettled, pins } from "./map";
+import { expandClusters, markersSettled, pins, gotoAllPlaces } from "./map";
 import { finger } from "./touch";
 
 /** The two pins `view` follows, picked per test: markers come and go as the map moves, these stay near the middle. */
@@ -61,7 +61,7 @@ async function freeMapArea(page: Page) {
 }
 
 async function openHome(page: Page) {
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   // Zoomed out, the sample pins merge into clusters; one level past the split keeps them apart during a pinch.
   await expandClusters(page);

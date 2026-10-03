@@ -1,6 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { clusters, expandClusters, markersSettled, pins, placesOnMap } from "./map";
+import { clusters, expandClusters, markersSettled, pins, placesOnMap, gotoAllPlaces } from "./map";
 
 const list = (page: Page) => page.getByRole("region", { name: "Lista miejsc" });
 const liveRegion = (page: Page) => page.locator('div[role="status"][aria-atomic="true"]');
@@ -30,7 +30,7 @@ test("tapping a cluster zooms in until its places are pins, and a pin leads to t
   evidence,
 }) => {
   // GIVEN the home screen zoomed out to the sample places
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // THEN nearby places merge into clusters, named with their number of places, and none is left out
@@ -95,7 +95,7 @@ test("tapping a cluster zooms in until its places are pins, and a pin leads to t
 
 test("with a profile on, clusters tell their verdicts in words", async ({ page, expectAccessible, evidence }) => {
   // GIVEN the home screen
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN the visitor turns on the wheelchair profile

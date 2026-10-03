@@ -1,6 +1,6 @@
 import { devices, type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { expandClusters, markersSettled, pins } from "./map";
+import { expandClusters, markersSettled, pins, gotoAllPlaces } from "./map";
 import { finger, type Point } from "./touch";
 
 // One phone, the one the stretching map was reported on.
@@ -29,7 +29,7 @@ async function topRow(page: Page): Promise<Point> {
 async function openHome(page: Page) {
   // Without the install hint, as in map-touch.spec.ts: the page is one screen tall and the hint takes a strip of it.
   await page.addInitScript(() => localStorage.setItem("kbb:install-dismissed", "1"));
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(panel(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await settledPanel(page);
 }
