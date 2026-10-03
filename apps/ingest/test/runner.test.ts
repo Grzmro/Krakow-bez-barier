@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MappedPlace, SourceAdapter, SourceMeta } from "../src/adapter";
 import { krakow } from "../src/cities/krakow";
-import { runIngest, type IngestStore, type RunSummary } from "../src/runner";
+import { runIngest, SIMULATED_OUTAGE_ERROR, type IngestStore, type RunSummary } from "../src/runner";
 
 const meta: SourceMeta = {
   id: "artificial",
@@ -40,7 +40,7 @@ function memoryStore() {
 }
 
 const run = (adapter: SourceAdapter<never>, store: IngestStore) =>
-  runIngest({ adapter, city: krakow, store, userAgent: "test" });
+  runIngest({ adapter, city: krakow, store, userAgent: "test", retry: { attempts: 1, baseDelayMs: 0 } });
 
 describe("runIngest", () => {
   it("ingests a source added without touching anything else", async () => {
@@ -126,5 +126,86 @@ describe("runIngest", () => {
     // THEN the run row is closed as failed instead of staying open
     expect(summary.status).toBe("failed");
     expect(calls.runs).toHaveLength(1);
+  });
+
+  it("retries a failing fetch with growing waits and ingests once it recovers", async () => {
+    // GIVEN a source that fails twice, then answers
+    let attempts = 0;
+    const adapter: SourceAdapter<number> = {
+      meta,
+      fetch: async () => {
+        if (++attempts < 3) throw new Error("HTTP 503");
+        return [1];
+      },
+      map: (n) => ({ place: place(n), skipped: [] }),
+    };
+    const { store, calls } = memoryStore();
+    const waits: number[] = [];
+    // WHEN running it with three attempts
+    const summary = await runIngest({
+      adapter: adapter as SourceAdapter<never>,
+      city: krakow,
+      store,
+      userAgent: "test",
+      retry: { attempts: 3, baseDelayMs: 100 },
+      sleep: async (ms) => void waits.push(ms),
+    });
+    // THEN it succeeds after waiting 100 ms and 200 ms
+    expect(summary.status).toBe("ok");
+    expect(waits).toEqual([100, 200]);
+    expect(calls.source).toEqual([{ ok: true }]);
+  });
+
+  it("gives up after the configured attempts and writes only the run row", async () => {
+    // GIVEN a source that is always down
+    let attempts = 0;
+    const adapter: SourceAdapter<number> = {
+      meta,
+      fetch: async () => {
+        attempts++;
+        throw new Error("HTTP 404");
+      },
+      map: () => ({ place: null, skipped: [] }),
+    };
+    const { store, calls } = memoryStore();
+    // WHEN running it with two attempts
+    const summary = await runIngest({
+      adapter: adapter as SourceAdapter<never>,
+      city: krakow,
+      store,
+      userAgent: "test",
+      retry: { attempts: 2, baseDelayMs: 0 },
+    });
+    // THEN it tried twice, applied nothing and marked the source failed
+    expect(attempts).toBe(2);
+    expect(calls.applied).toEqual([]);
+    expect(summary).toMatchObject({ status: "failed", error: "HTTP 404" });
+  });
+
+  it("fails a simulated-outage source without fetching it", async () => {
+    // GIVEN an adapter that would work, but whose id is on the simulated outage list
+    let fetched = false;
+    const adapter: SourceAdapter<number> = {
+      meta,
+      fetch: async () => {
+        fetched = true;
+        return [1];
+      },
+      map: (n) => ({ place: place(n), skipped: [] }),
+    };
+    const { store, calls } = memoryStore();
+    // WHEN running it
+    const summary = await runIngest({
+      adapter: adapter as SourceAdapter<never>,
+      city: krakow,
+      store,
+      userAgent: "test",
+      simulateOutage: [meta.id],
+    });
+    // THEN nothing is fetched or stored and the source is marked failed
+    expect(fetched).toBe(false);
+    expect(calls.applied).toEqual([]);
+    expect(summary).toMatchObject({ status: "failed", error: SIMULATED_OUTAGE_ERROR });
+    expect(calls.source).toEqual([{ ok: false, error: SIMULATED_OUTAGE_ERROR }]);
   });
 });

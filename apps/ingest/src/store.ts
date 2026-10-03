@@ -235,11 +235,10 @@ export function drizzleStore(db: Db): IngestStore {
           .where(eq(sources.id, sourceId));
         return;
       }
-      const [source] = await db.select({ last: sources.lastSuccessAt }).from(sources).where(eq(sources.id, sourceId));
       await db
         .update(sources)
         .set({
-          refreshStatus: source?.last ? "stale" : "outage",
+          refreshStatus: "outage",
           lastAttemptAt: at,
           statusNote: outcome.error.slice(0, 500),
         })

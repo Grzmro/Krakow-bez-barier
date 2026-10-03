@@ -2,6 +2,8 @@ import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createDb, facts, ingestionRuns, places, sources } from "@krakow-bez-barier/db";
 import type { MappedPlace, SourceMeta } from "../src/adapter";
+import { krakow } from "../src/cities/krakow";
+import { runIngest } from "../src/runner";
 import { drizzleStore, namesMatch } from "../src/store";
 
 const url = process.env.TEST_DATABASE_URL;
@@ -175,12 +177,37 @@ describe.skipIf(!url)("drizzleStore (needs TEST_DATABASE_URL with migrations app
     expect(p.location.x).toBeCloseTo(19.9401);
   });
 
-  it("marks a failing source stale and records the error, keeping its facts", async () => {
+  it("marks a failing source as outage and records the error, keeping its facts", async () => {
     // GIVEN a source that succeeded once and then fails
     await store.markSource(meta.id, { ok: true }, at(1));
     await store.markSource(meta.id, { ok: false, error: "Overpass responded 504" }, at(2));
-    // THEN it is stale, with the last success preserved
+    // THEN it is in outage, with the last success preserved
     const [s] = await db.select().from(sources).where(eq(sources.id, meta.id));
-    expect(s).toMatchObject({ refreshStatus: "stale", statusNote: "Overpass responded 504", lastSuccessAt: at(1) });
+    expect(s).toMatchObject({ refreshStatus: "outage", statusNote: "Overpass responded 504", lastSuccessAt: at(1) });
+  });
+
+  it("keeps every active fact when the adapter fails or the outage is simulated", async () => {
+    // GIVEN a source with stored facts
+    await store.applyPlace(meta, place("yes", "store-test:node/1@v3"), at(3));
+    await store.markSource(meta.id, { ok: true }, at(3));
+    const before = await activeFacts();
+    expect(before.length).toBeGreaterThan(0);
+    const broken = {
+      meta,
+      fetch: async () => Promise.reject(new Error("HTTP 404")),
+      map: () => ({ place: null, skipped: [] }),
+    };
+    const base = { adapter: broken, city: krakow, store, userAgent: "test", retry: { attempts: 2, baseDelayMs: 0 } };
+
+    // WHEN the adapter fails, and again with the outage simulated
+    const failed = await runIngest(base);
+    const simulated = await runIngest({ ...base, simulateOutage: [meta.id] });
+
+    // THEN both runs are failed, the facts are untouched and the source is in outage with its last success kept
+    expect(failed.status).toBe("failed");
+    expect(simulated.status).toBe("failed");
+    expect(await activeFacts()).toEqual(before);
+    const [s] = await db.select().from(sources).where(eq(sources.id, meta.id));
+    expect(s).toMatchObject({ refreshStatus: "outage", lastSuccessAt: at(3) });
   });
 });
