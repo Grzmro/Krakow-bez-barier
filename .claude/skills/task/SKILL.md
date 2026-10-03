@@ -111,7 +111,8 @@ scripts/merge-pr.sh   # rebase → full local gate (lint, typecheck, unit, build
 CI only runs lint, typecheck and unit tests (fast); build and e2e run on this machine inside the
 script, on the rebased commit. It retries up to 3 rounds when `main` moves and exits non-zero (PR
 stays open) on a rebase conflict, a red local gate or red CI. Fix, then run it again. Don't merge
-by hand around it.
+by hand around it. Working on a differently named local branch (the PR's branch is checked out in
+another worktree)? Pass the PR number: `scripts/merge-pr.sh 42`.
 
 **Evidence:** before merging, attach the main evidence screenshot(s) from
 `apps/web/test-results/evidence/` to the Linear task (`prepare_attachment_upload` →
