@@ -61,7 +61,7 @@ test("wheelchair profile on the home screen shows verdicts on the list and map, 
   await expect(row(page, "Hotel Przykład").getByRole("heading", { name: "Pasuje (4)" })).toBeVisible();
 
   // AND nothing on the page asks about a disability
-  await expect(page.locator("main")).not.toContainText(/niepełnospraw|diagnoz|choroba/i);
+  await expect(page.getByRole("group", { name: "Profil potrzeb" })).not.toContainText(/niepełnospraw|diagnoz|choroba/i);
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "profile.aria.yml" });
   await expectAccessible();
   await evidence("home-profile");
@@ -254,7 +254,7 @@ test("the senior profile is one tap away on a 360 px phone and judges places by 
   await expect(drawer.getByRole("switch", { name: "Toaleta dostosowana" })).not.toBeChecked();
   await drawer.getByRole("button", { name: "Gotowe" }).click();
 
-  await expect(page.locator("main")).not.toContainText(/niepełnospraw|diagnoz|choroba/i);
+  await expect(profiles).not.toContainText(/niepełnospraw|diagnoz|choroba/i);
   await expect(profiles).toMatchAriaSnapshot({ name: "profile-senior.aria.yml" });
   await expectAccessible();
   await evidence("home-profile-senior");

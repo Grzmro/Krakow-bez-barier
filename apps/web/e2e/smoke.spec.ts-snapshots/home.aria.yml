@@ -5,15 +5,38 @@
   - search:
     - text: Wyszukaj miejsce
     - combobox "Wyszukaj miejsce"
+    - button "Wpisz głosem"
   - group "Kategorie":
     - button "Wszystko" [pressed]
     - button "Restauracje"
     - button "Muzea"
     - button "Toalety"
     - button "Hotele"
+    - button "Zabytki"
+    - button "Teatry i kina"
+    - button "Apteki"
+    - button "Miejsca postojowe"
+    - button "Przystanki"
+    - button "Handel"
+    - button "Inne"
   - region "Lista miejsc":
     - button "Rozwiń arkusz"
+    - button "Schowaj listę" [expanded]
     - group "Lista miejsc":
+      - group "Profil potrzeb":
+        - text: ""
+        - radio "Profil wyłączony, widok dla każdego" [checked]
+        - text: Dla każdego
+        - radio "Wózek"
+        - text: Wózek
+        - radio "Wózek dziecięcy"
+        - text: Dziecięcy
+        - radio "Senior"
+        - text: Senior
+      - button "W mojej okolicy"
+      - text: Pokaż miejsca od najbliższych
+      - button "Albo wybierz dzielnicę"
+      - paragraph: Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.
       - group "Filtry cech":
         - button "Bez schodów"
         - button "Winda"
@@ -51,6 +74,9 @@
           - link /Toaleta publiczna Planty \(przykład\) ul\. Basztowa 1, Kraków Toaleta dostosowana · Przewijak · Ławki obok Dane przykładowe \d+ m od Rynku/:
             - /url: /miejsca/toaleta-planty-przyklad
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
+  - 'img "Grupa: 4 miejsca"'
+  - 'img "Grupa: 2 miejsca"'
+  - 'img "Grupa: 2 miejsca"'
   - button "Informacje o źródłach mapy"
   - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
   - button "Przybliż"

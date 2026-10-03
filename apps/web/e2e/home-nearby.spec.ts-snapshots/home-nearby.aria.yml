@@ -2,9 +2,11 @@
   - heading "Mapa i lista miejsc" [level=1]
   - link "Przejdź do listy":
     - /url: "#lista"
+  - button "Wróć do całej mapy"
   - search:
     - text: Wyszukaj miejsce
     - combobox "Wyszukaj miejsce"
+    - button "Wpisz głosem"
   - group "Kategorie":
     - button "Wszystko" [pressed]
     - button "Restauracje"
@@ -14,10 +16,13 @@
     - button "Zabytki"
     - button "Teatry i kina"
     - button "Apteki"
+    - button "Miejsca postojowe"
+    - button "Przystanki"
     - button "Handel"
     - button "Inne"
   - region "Lista miejsc":
     - button "Rozwiń arkusz"
+    - button "Schowaj listę" [expanded]
     - group "Lista miejsc":
       - group "Profil potrzeb":
         - text: ""
@@ -27,8 +32,11 @@
         - text: Wózek
         - radio "Wózek dziecięcy"
         - text: Dziecięcy
+        - radio "Senior"
+        - text: Senior
       - button "W mojej okolicy" [pressed]
       - text: Od najbliższych, odległość od Ciebie
+      - button "Albo wybierz dzielnicę"
       - paragraph: Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.
       - group "Filtry cech":
         - button "Bez schodów"
@@ -67,6 +75,7 @@
           - link /Toaleta publiczna Planty \(przykład\) ul\. Basztowa 1, Kraków Toaleta dostosowana · Przewijak · Ławki obok Dane przykładowe \d+,\d+ km od Ciebie/:
             - /url: /miejsca/toaleta-planty-przyklad
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
+  - 'img "Grupa: 2 miejsca"'
   - button "Informacje o źródłach mapy"
   - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
   - button "Przybliż"

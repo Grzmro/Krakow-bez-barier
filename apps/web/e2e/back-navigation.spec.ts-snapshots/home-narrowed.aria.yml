@@ -6,6 +6,7 @@
   - search:
     - text: Wyszukaj miejsce
     - combobox "Wyszukaj miejsce"
+    - button "Wpisz głosem"
   - group "Kategorie":
     - button "Wszystko"
     - button "Restauracje"

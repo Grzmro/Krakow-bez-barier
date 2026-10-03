@@ -5,6 +5,7 @@
   - search:
     - text: Wyszukaj miejsce
     - combobox "Wyszukaj miejsce"
+    - button "Wpisz głosem"
   - group "Kategorie":
     - button "Wszystko" [pressed]
     - button "Restauracje"
@@ -20,6 +21,7 @@
     - button "Inne"
   - region "Lista miejsc":
     - button "Rozwiń arkusz"
+    - button "Schowaj listę" [expanded]
     - group "Lista miejsc":
       - group "Profil potrzeb":
         - text: ""
@@ -33,13 +35,14 @@
         - text: Senior
       - button "W mojej okolicy"
       - text: Pokaż miejsca od najbliższych
+      - button "Albo wybierz dzielnicę"
       - paragraph: Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.
       - group "Filtry cech":
         - button "Bez schodów"
         - button "Winda"
         - button "Toaleta dostosowana"
         - button "Ławki"
-        - button "Parking N"
+        - button "Parking dla niepełnosprawnych"
         - button "Przewijak"
       - heading "9 miejsc" [level=2]
       - list:
