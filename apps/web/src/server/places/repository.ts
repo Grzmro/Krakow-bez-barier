@@ -10,7 +10,7 @@ export type SourceRecord = typeof sources.$inferSelect;
 export type FactRecord = typeof facts.$inferSelect & { source: SourceRecord; confirmations: number };
 
 export type PlaceSearch = {
-  /** Already normalized with `normalizeText`. */
+  /** Already normalized with `normalizeText`; every space-separated word must occur in the name or address. */
   text?: string;
   categories?: Category[];
   /** Left out when `categories` is not given (hidden by default). */
@@ -54,7 +54,7 @@ export function createDbPlaceRepository(db: Db = getDb()): PlaceRepository {
       const where: SQL[] = [];
       if (text) {
         const haystack = sql`translate(lower(concat_ws(' ', ${places.name}, ${places.street}, ${places.houseNumber})), ${FOLD_FROM}, ${FOLD_TO})`;
-        where.push(sql`${haystack} like ${`%${escapeLike(text)}%`}`);
+        for (const word of text.split(/\s+/).filter(Boolean)) where.push(sql`${haystack} like ${`%${escapeLike(word)}%`}`);
       }
       if (categories?.length) where.push(inArray(places.category, categories));
       else if (excludeCategories?.length) where.push(notInArray(places.category, excludeCategories));

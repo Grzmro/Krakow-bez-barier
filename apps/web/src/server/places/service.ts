@@ -24,13 +24,13 @@ import { pendingReportsByAttribute, type ReportsStore } from "@/server/reports";
 import { localizeSourceText, simulatedOutageIds, withSimulatedOutage } from "@/server/sources";
 import {
   createDbPlaceRepository,
-  normalizeText,
   type FactRecord,
   type PlaceHit,
   type PlaceRecord,
   type PlaceRepository,
   type SourceRecord,
 } from "./repository";
+import { searchTextAttempts } from "./search-query";
 
 /** A query the spec accepts but the values don't make sense (e.g. an inverted bbox); answered with 400. */
 export class InvalidQueryError extends Error {
@@ -230,20 +230,21 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
     throw new InvalidQueryError("query.category", `names "${unknownCategory}", which is not a configured category`);
   }
   const near = readNear(query.near);
-  const text = query.q ? normalizeText(query.q) : "";
+  const attempts = query.q ? searchTextAttempts(query.q) : [];
   const features = [...new Set(query.feature ?? [])];
   const thresholds = thresholdsFor(query);
   const limit = query.limit ?? 25;
 
   // Feature filters need resolved facts, so every candidate is resolved before paging (see docs/architecture.md).
   const hiddenByDefault = categories.filter((c) => c.hiddenByDefault).map((c) => c.id);
-  const candidates = await repository.searchPlaces({
-    text: text || undefined,
-    categories: query.category,
-    excludeCategories: hiddenByDefault,
-    bbox,
-    near,
-  });
+  const search = (text?: string) =>
+    repository.searchPlaces({ text, categories: query.category, excludeCategories: hiddenByDefault, bbox, near });
+  let candidates = await search(attempts[0]);
+  // Typed or dictated Polish rarely matches verbatim: retry without the lead-in, then de-inflected.
+  for (const text of attempts.slice(1)) {
+    if (candidates.length) break;
+    candidates = await search(text);
+  }
   const facts = withOutages(await repository.activeFacts(candidates.map((p) => p.id)), now, simulated, locale);
   const factsByPlace = Map.groupBy(facts, (f) => f.placeId);
 
