@@ -12,14 +12,13 @@ trap 'rm -f "$log"' EXIT
 for round in $(seq 1 "$MAX_ROUNDS"); do
   echo "── round $round/$MAX_ROUNDS"
   git fetch origin --quiet
-  before="$(git rev-parse HEAD)"
   if ! git rebase origin/main; then
     git rebase --abort || true
     echo "rebase conflict — resolve it, rerun local checks, then run this script again"
     exit 1
   fi
   head="$(git rev-parse HEAD)"
-  [ "$head" != "$before" ] && npm install --no-audit --no-fund --silent
+  npm install --no-audit --no-fund --prefer-offline --silent   # cheap when nothing changed
 
   echo "local gate on $head"
   if ! { npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e; } >"$log" 2>&1; then
