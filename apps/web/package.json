@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@capacitor/core": "^8.5.2",
+    "@capacitor/geolocation": "^8.2.3",
     "@krakow-bez-barier/contracts": "*",
     "@krakow-bez-barier/ui": "*",
     "@phosphor-icons/react": "^2.1.10",

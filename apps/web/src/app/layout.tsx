@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { LiveRegionProvider, Providers, Toaster } from "@krakow-bez-barier/ui";
 import { SampleBanner } from "@/components/kbb";
@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   title: pl.common.app.name,
   description: pl.common.app.description,
 };
+
+// "cover" lets the native app draw under the iPhone notch; globals.css pads by the safe areas.
+export const viewport: Viewport = { viewportFit: "cover" };
 
 // Pages render their own <main id="main" tabIndex={-1}> — the skip link targets it.
 export default function RootLayout({ children }: LayoutProps<"/">) {

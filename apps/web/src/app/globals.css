@@ -7,5 +7,21 @@
 
 /* Keep focused and anchored content clear of the sticky header (WCAG 2.4.11). */
 html {
-  scroll-padding-top: 5rem;
+  scroll-padding-top: calc(5rem + env(safe-area-inset-top));
+}
+
+/* The native app (Capacitor, viewport-fit=cover) draws under the status bar and home indicator.
+   Pad the page by the safe areas and keep a background strip under the status bar so scrolled
+   content doesn't show through it. env() is 0 in a normal browser, so nothing changes there. */
+body {
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 40;
+  height: env(safe-area-inset-top);
+  background: var(--background);
 }

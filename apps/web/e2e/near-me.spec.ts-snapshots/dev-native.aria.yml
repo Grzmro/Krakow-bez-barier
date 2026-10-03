@@ -1,0 +1,8 @@
+- main:
+  - heading "Funkcje natywne" [level=1]
+  - paragraph: "Diagnostyka aplikacji mobilnej: na której platformie działa strona i czy lokalizacja działa. Pozycja jest ustalana od razu po wejściu."
+  - term: "Platforma:"
+  - definition: przeglądarka
+  - button "W mojej okolicy Ustal moją pozycję"
+  - paragraph: "/Jesteś tutaj: \\d+,\\d+° N, \\d+,\\d+° E \\(dokładność ±\\d+ m\\)/"
+  - paragraph: Pozycja zostaje na Twoim urządzeniu — nie wysyłamy jej na serwer.
