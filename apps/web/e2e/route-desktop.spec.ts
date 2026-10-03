@@ -200,6 +200,6 @@ test("the map stays one window tall however long the step list is, with zoom and
       .poll(() => page.evaluate(() => document.querySelector(".maplibregl-map")!.getBoundingClientRect().bottom), { message: kind })
       .toBeLessThanOrEqual(900);
     await expect(page.getByRole("button", { name: "Przybliż" })).toBeInViewport();
-    await expect(page.getByRole("link", { name: /OpenStreetMap/ })).toBeInViewport();
+    await expect(page.getByRole("button", { name: "Informacje o źródłach mapy" })).toBeInViewport();
   }
 });

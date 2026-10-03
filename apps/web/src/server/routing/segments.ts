@@ -183,20 +183,21 @@ function judge(attributes: Map<AccessibilityAttribute, ResolvedAttribute>, data:
   if (th && attributes.get("incline_pct")?.state !== "known") missing.push(t.noIncline);
   if (missing.length) return { state: "unknown" as NeedVerdict, note: missing.join(t.separator) };
 
-  // Kerbs come only from our facts (the provider reports none), so a met segment says when it has no kerb data.
+  // Kerbs come only from our facts (the provider reports none): with a profile, a segment without kerb data is unknown, not met.
+  const kerbUnknown = th !== null && kerb === null;
   const notes = [
     surface ? surfaceLabel(m, surface) : null,
     th && incline !== null ? (incline <= 1 ? t.inclineLow : t.incline(incline)) : null,
-    th && kerb === null ? t.noKerb : null,
+    kerbUnknown ? t.noKerb : null,
   ];
-  return { state: "met" as NeedVerdict, note: notes.filter(Boolean).join(t.separator) || null };
+  return { state: (kerbUnknown ? "unknown" : "met") as NeedVerdict, note: notes.filter(Boolean).join(t.separator) || null };
 }
 
 /**
  * Splits a provider route into segments (one per instruction), attaches the facts found on each — from the
  * provider and from our sources nearby — and judges every segment: stairs are always a barrier; with a
  * profile so are kerbs and inclines over its limits and, if it asks for it, an uneven surface. A segment
- * lacking surface or stairs data (or incline, with a profile) is `unknown`, never met.
+ * lacking surface or stairs data (or incline or kerb, with a profile) is `unknown`, never met.
  */
 export function buildRoute(input: BuildRouteInput): Route {
   const { route, thresholds, now } = input;

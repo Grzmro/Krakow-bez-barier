@@ -76,7 +76,7 @@ test.describe("with location access", () => {
     await expect(main).toContainText(`Krok 2 z ${total}`);
     await expect(page.getByRole("status")).toContainText(`Krok 2 z ${total}: ${steps[1].instruction}`);
     // AND the gap in the data on that step is named with its source, date and reliability
-    await expect(main).toContainText(/Na tym odcinku: Brak danych — brak danych o nawierzchni.*\(OpenStreetMap.*\d{1,2}\.\d{1,2}\.\d{4} · \S[^)]*\)/);
+    await expect(main).toContainText(/Na tym odcinku: Częściowo nie wiemy — brak danych o nawierzchni.*\(OpenStreetMap.*\d{1,2}\.\d{1,2}\.\d{4} · \S[^)]*\)/);
 
     await context.setGeolocation(at(steps[1].geometry.coordinates.at(-1)!));
     await expect(main).toContainText(`Krok 3 z ${total}`);
@@ -134,8 +134,8 @@ test("without location access guidance runs by hand, by keyboard", async ({ page
 
   // THEN step 2 is shown and read out, the next one is named, and the step's missing data carries its source
   await expect(main).toContainText("Krok 2 z 33");
-  await expect(page.getByRole("status")).toContainText("Krok 2 z 33: Skręć w prawo, 257 m. Brak danych");
-  await expect(main).toContainText(/Na tym odcinku: Brak danych/);
+  await expect(page.getByRole("status")).toContainText("Krok 2 z 33: Skręć w prawo, 257 m. Częściowo nie wiemy");
+  await expect(main).toContainText(/Na tym odcinku: Częściowo nie wiemy/);
   await expectAccessible();
   await evidence("route-guidance-manual");
 

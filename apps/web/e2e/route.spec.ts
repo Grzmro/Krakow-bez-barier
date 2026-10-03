@@ -13,16 +13,17 @@ test("avoid-stairs route from Dworzec Główny to Rynek names the segments witho
   await page.goto("/trasa");
   const main = page.locator("main");
 
-  // THEN the avoid-stairs route reports no known barriers, but always with the segments we know nothing about
+  // THEN the avoid-stairs route reports no known barriers, but never as a pass while some segments lack data
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
-  await expect(main).toContainText("Trasa nie zawiera znanych barier");
+  await expect(main).toContainText("Brak znanych barier, ale 336 m bez danych");
+  await expect(main).not.toContainText("Trasa nie zawiera znanych barier");
   await expect(main).toContainText("brak danych na 5 odcinkach (336 m)");
   await expect(main).toMatchAriaSnapshot({ name: "route-avoid-stairs.aria.yml" });
   await expectAccessible();
   await evidence("route-avoid-stairs");
 
   // WHEN a keyboard user opens the second step
-  const step = page.getByRole("button", { name: /^Odcinek 2 z 33\. Skręć w prawo, 257 metrów\. Brak danych/ });
+  const step = page.getByRole("button", { name: /^Odcinek 2 z 33\. Skręć w prawo, 257 metrów\. Częściowo nie wiemy/ });
   await step.focus();
   await page.keyboard.press("Enter");
 
@@ -50,18 +51,32 @@ test("with the wheelchair profile the route keeps its limits and Floriańska sho
 }) => {
   // GIVEN the route screen
   await page.goto("/trasa");
-  await expect(page.locator("main")).toContainText("Trasa nie zawiera znanych barier");
+  const main = page.locator("main");
+  await expect(main).toContainText("Brak znanych barier, ale 336 m bez danych");
 
   // WHEN the visitor picks the wheelchair profile
   await page.getByRole("radio", { name: "Wózek", exact: true }).check();
 
   // THEN the route is judged against the profile, incline included, and the unsurveyed street is not a pass
-  await expect(page.locator("main")).toContainText("Ocena według progów profilu: wózek");
-  await expect(page.locator("main")).toContainText("brak danych na 5 odcinkach (678 m)");
-  await expect(page.getByRole("button", { name: /Floriańska.*346 metrów\. Brak danych: brak danych o nawierzchni/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: /^Odcinek 1 z 24\..*Spełnia: płyty chodnikowe, płasko \(do 1%\)/ })).toBeVisible();
+  await expect(main).toContainText("Ocena według progów profilu: wózek");
+  await expect(page.getByRole("button", { name: /Floriańska.*346 metrów\. Częściowo nie wiemy: brak danych o nawierzchni/ })).toBeVisible();
+  // AND an unknown kerb never passes: no segment meets the profile without kerb data, so nothing reads as green
+  await expect(main).toContainText("Brak znanych barier, ale 1,6 km bez danych");
+  await expect(main).toContainText("brak danych na 24 odcinkach (1595 m)");
+  await expect(
+    page.getByRole("button", { name: /^Odcinek 1 z 24\..*Częściowo nie wiemy: płyty chodnikowe, płasko \(do 1%\), brak danych o krawężnikach/ }),
+  ).toBeVisible();
+  await expect(main).not.toContainText("Spełnia");
   await expectAccessible();
   await evidence("route-wheelchair");
+
+  // WHEN they look at the same route as the alternative of the shortest one
+  await page.getByRole("button", { name: "Najkrótsza", exact: true }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/13 min/);
+
+  // THEN it carries the same state there: no data, never a pass
+  await expect(page.getByRole("button", { name: /^Unikaj schodów · / })).toContainText("Brak danych");
+  await expect(page.getByRole("button", { name: /^Unikaj schodów · / })).toContainText("brak danych na 24 odcinkach (1595 m)");
 });
 
 test("a route without a routing key says so, offers the example route, and still shows the destination's entrance facts", async ({

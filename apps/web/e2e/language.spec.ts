@@ -107,9 +107,9 @@ test("the route screen, opened from the menu, is English end to end", async ({ p
   await expect(page).toHaveTitle("Route · Kraków bez barier");
   const main = page.locator("main");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
-  await expect(main).toContainText("No known barriers on this route");
+  await expect(main).toContainText("No known barriers, but 336 m without data");
   await expect(main).toContainText("no data on 5 segments (336 m)");
-  const step = page.getByRole("button", { name: /^Segment 2 of 33\. Turn right, 257 metres\. No data/ });
+  const step = page.getByRole("button", { name: /^Segment 2 of 33\. Turn right, 257 metres\. Partly unknown/ });
   await step.focus();
   await page.keyboard.press("Enter");
   const details = page.locator(`#${await step.getAttribute("aria-controls")}`);

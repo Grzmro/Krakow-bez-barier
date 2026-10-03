@@ -46,6 +46,21 @@ const BAR: Record<Status, string> = {
   unknown: "stripes-unknown",
 };
 
+// Summary card: neutral, never green, while any segment lacks data.
+const CARD: Record<Status, string> = {
+  met: "bg-status-met-bg",
+  barrier: "bg-status-barrier-bg",
+  conflict: "bg-status-conflict-bg",
+  unknown: "bg-status-unknown-bg",
+};
+
+const HEADLINE: Record<Status, string> = {
+  met: "text-status-met",
+  barrier: "text-status-barrier",
+  conflict: "text-status-conflict",
+  unknown: "text-foreground",
+};
+
 type RouteMessages = Messages["route"];
 
 const barrierList = (route: Route) =>
@@ -65,13 +80,28 @@ function gaps(t: RouteMessages, route: Route) {
   return [t.unknownOn(route.unknownSegmentCount, route.unknownMeters), conflicts ? t.conflictOn(conflicts) : null].filter(Boolean).join(", ");
 }
 
+/** One state per route, the same wherever the route is shown: barriers, then conflicts, then missing data. */
+function routeStatus(route: Route): Status {
+  if (route.knownBarrierCount) return "barrier";
+  if (route.segments.some((s) => s.state === "conflict")) return "conflict";
+  return route.unknownSegmentCount ? "unknown" : "met";
+}
+
+/** Headline of a route without known barriers: green only when no segment lacks data. */
+const cleanHeadline = (t: RouteMessages, route: Route) => (route.unknownSegmentCount ? t.noKnownGaps(route.unknownMeters) : t.noKnown);
+
 function alternativeLine(t: RouteMessages, route: Route, limits: string) {
   return route.knownBarrierCount ? `${t.alternative} ${barrierList(route)}` : `${t.alternativeUnmet} ${limits}`;
 }
 
+function alternativeReason(t: RouteMessages, route: Route) {
+  if (route.knownBarrierCount) return barrierList(route);
+  return routeStatus(route) === "met" ? t.noKnown : gaps(t, route);
+}
+
 function summary(t: RouteMessages, route: Route, limits: string) {
   if (route.fallback) return `${t.noneOk}. ${alternativeLine(t, route, limits)}. ${gaps(t, route)}.`;
-  if (route.knownBarrierCount === 0) return `${t.noKnown}, ${gaps(t, route)}.`;
+  if (route.knownBarrierCount === 0) return `${cleanHeadline(t, route)}. ${gaps(t, route)}.`;
   return `${t.hasBarriers(barrierList(route))}. ${gaps(t, route)}.`;
 }
 
@@ -476,10 +506,10 @@ function RouteDetails({
   limits: string;
 }) {
   const t = useMessages().route;
-  const clean = route.knownBarrierCount === 0;
-  const conflicted = route.segments.some((s) => s.state === "conflict");
+  const status = routeStatus(route);
+  const clean = status !== "barrier";
   const unknown = gaps(t, route);
-  const background = route.fallback || !clean ? "bg-status-barrier-bg" : conflicted ? "bg-status-conflict-bg" : "bg-status-met-bg";
+  const background = route.fallback ? "bg-status-barrier-bg" : CARD[status];
 
   return (
     <>
@@ -498,9 +528,9 @@ function RouteDetails({
           </>
         ) : clean ? (
           <>
-            <p className={cn("flex items-center gap-2 text-body font-semibold", conflicted ? "text-status-conflict" : "text-status-met")}>
-              <StatusIcon status={conflicted ? "conflict" : "met"} className="size-5" />
-              {t.noKnown}
+            <p className={cn("flex items-center gap-2 text-body font-semibold", HEADLINE[status])}>
+              <StatusIcon status={status} className="size-5 shrink-0" />
+              {cleanHeadline(t, route)}
             </p>
             <p className="mt-1 pl-7 text-body-sm font-semibold text-status-unknown">{unknown}</p>
           </>
@@ -542,14 +572,7 @@ function RouteDetails({
               {other.kind === "avoid_stairs" ? t.avoidStairs : t.shortest} <span className="font-normal text-muted-foreground">· {t.minutes(other.durationMinutes)}</span>
             </span>
             <span className="mt-1.5 block">
-              {other.knownBarrierCount ? (
-                <StatusBadge status="barrier" reason={barrierList(other)} />
-              ) : (
-                <StatusBadge
-                  status={other.unknownSegmentCount ? "unknown" : "met"}
-                  reason={t.unknownOn(other.unknownSegmentCount, other.unknownMeters)}
-                />
-              )}
+              <StatusBadge status={routeStatus(other)} reason={alternativeReason(t, other)} />
             </span>
           </span>
           <CaretRight className="size-5 text-muted-foreground" aria-hidden />

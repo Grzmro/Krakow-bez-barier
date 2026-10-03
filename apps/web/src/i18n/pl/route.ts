@@ -46,6 +46,8 @@ export const route = {
   profileOff: "Bez profilu sprawdzamy schody i nawierzchnię. Włącz profil, by ocenić krawężniki i nachylenie.",
   loading: "Wyznaczamy trasę…",
   noKnown: "Trasa nie zawiera znanych barier",
+  noKnownGaps: (m: number) => `Brak znanych barier, ale ${m < 1000 ? `${Math.round(m)} m` : km(m)} bez danych`,
+  partlyUnknown: "Częściowo nie wiemy",
   unknownOn: (n: number, m: number) =>
     `brak danych na ${n} ${plural(n, "odcinku", "odcinkach", "odcinkach")}${n ? ` (${Math.round(m)} m)` : ""}`,
   conflictOn: (n: number) => `sprzeczne dane na ${n} ${plural(n, "odcinku", "odcinkach", "odcinkach")}`,

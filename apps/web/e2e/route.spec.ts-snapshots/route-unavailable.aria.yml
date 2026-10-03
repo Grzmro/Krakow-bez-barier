@@ -24,7 +24,7 @@
         - radio "Senior"
         - text: Senior
       - paragraph: Bez profilu sprawdzamy schody i nawierzchnię. Włącz profil, by ocenić krawężniki i nachylenie.
-      - paragraph: Tryb demonstracyjny: bez klucza openrouteservice działa tylko przykładowa trasa Dworzec Główny → Rynek Główny, z domyślnymi progami profilu.
+      - paragraph: "Tryb demonstracyjny: bez klucza openrouteservice działa tylko przykładowa trasa Dworzec Główny → Rynek Główny, z domyślnymi progami profilu."
       - link "Pokaż przykładową trasę":
         - /url: /trasa
       - 'region "Cel: wejście · Kawiarnia Przykład"':
@@ -46,6 +46,6 @@
       - text: ""
   - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
   - button "Informacje o źródłach mapy"
-  - paragraph: Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors
+  - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
   - button "Przybliż"
   - button "Oddal"
