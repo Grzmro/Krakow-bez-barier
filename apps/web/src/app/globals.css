@@ -36,3 +36,10 @@ body:has([data-fill-viewport]) {
   height: 100dvh;
   min-height: 0;
 }
+
+/* Desktop route screen: one viewport tall, so the side panel scrolls on its own and the map fills the rest. */
+@media (min-width: 64rem) {
+  body:has([data-desktop-fill]) {
+    height: 100dvh;
+  }
+}
