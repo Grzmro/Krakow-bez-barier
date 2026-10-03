@@ -1,0 +1,91 @@
+# Ochrona danych i bezpieczeństwo
+
+Materiał do oceny (R7: „jakie dane o użytkowniku zbieramy, jak chronimy zgłoszenia i konta,
+tylko bezpieczne połączenia”). Stan `main` na **3.10.2026**. Przy każdym punkcie podajemy, gdzie
+jest w kodzie; to, czego kod jeszcze nie wymusza, jest oznaczone **„deklaracja, nie w kodzie”**.
+
+## Zasada: nie pytamy o zdrowie i nie mamy kont użytkowników
+
+- Żaden ekran nie pyta o niepełnosprawność, diagnozę, wiek ani tożsamość (US-1.1, R4). Dopasowanie
+  wyników opiera się tylko na progach barier i udogodnień (np. „szerokość wejścia min. 90 cm”).
+- **Profil potrzeb i progi zostają w przeglądarce** (`localStorage`); serwer dostaje tylko progi jako
+  parametry zapytania `GET /places`, bez identyfikatora użytkownika i bez zapisu
+  (`apps/web/src/lib/profile/`, decyzja w [architecture.md](../architecture.md)).
+- **Lokalizacja zostaje na urządzeniu**: „W mojej okolicy” ustala pozycję przez przeglądarkę albo
+  natywnie w aplikacji (za zgodą systemu) i nie wysyła jej na serwer
+  (`apps/web/src/lib/native/geolocation.ts`, `components/layout/near-me.tsx`).
+- Brak kont dla mieszkańców i turystów. Jedyne logowanie to panel moderatora (niżej).
+- Brak reklam, analityki śledzącej i pikseli zewnętrznych — w kodzie nie ma żadnego skryptu
+  analitycznego.
+
+## Jakie dane powstają
+
+| Dane | Skąd | Gdzie | Kto widzi |
+|---|---|---|---|
+| Zgłoszenie (cecha, wartość, opcjonalny komentarz, data) | formularz „To się nie zgadza” / „Uzupełnij” | tabela `reports` w Postgres | moderator; po zatwierdzeniu wartość widzą wszyscy |
+| Potwierdzenie (fakt, opcjonalny komentarz, data) | „Potwierdzam” | tabela `confirmations`; aktualizuje datę faktu | wszyscy (data i licznik) |
+| Decyzja moderatora (nazwa moderatora, decyzja, data) | panel `/moderator` | tabela `moderation_log` | moderatorzy |
+| Profil i progi | użytkownik | tylko przeglądarka | nikt poza użytkownikiem |
+| Adres IP | połączenie | **tylko w pamięci procesu** na czas okna limitu, nie jest zapisywany ani logowany (`server/http/rate-limit.ts`) | nikt |
+
+- **Dane kontaktowe są usuwane z komentarzy** przed zapisem: adresy e-mail i numery telefonów
+  (9+ cyfr) zamieniamy na „[usunięto]” (`redactContactData`, `server/reports/service.ts`).
+- Zgłoszenie nie przyjmuje zdjęć (`photoUrl` musi być puste) — nie ma więc metadanych lokalizacji
+  ze zdjęć do usuwania.
+- Retencja: strona „Prywatność” deklaruje przechowywanie zgłoszeń 24 miesiące — **deklaracja, nie
+  w kodzie** (brak automatycznego usuwania; do zrobienia przed pilotażem).
+
+## Ochrona zgłoszeń przed nadużyciem (US-4.5)
+
+Bez zagadek CAPTCHA, zgodnie z WCAG 3.3.8 (dostępne uwierzytelnianie):
+
+| Ochrona | Wartość | Kod |
+|---|---|---|
+| Limit zgłoszeń na klienta | 10 na 10 minut | `app/api/v1/reports/route.ts` |
+| Limit potwierdzeń na klienta | 30 na 10 minut | `app/api/v1/places/[id]/confirmations/route.ts` |
+| Niezależność potwierdzeń | 1 potwierdzenie faktu z jednego klienta na dobę | jw. |
+| Pułapka na boty | ukryte pole `website` musi być puste | `server/reports/service.ts` |
+| Walidacja wartości | zakresy z kontraktu (`ReportCreate.x-value-ranges`, np. szerokość w cm), tekst 1–100 znaków; błąd 422 | `checkReportValue` |
+| Walidacja każdego żądania | schemat OpenAPI 3.1 (Ajv) | `server/http/route.ts` |
+| Klucz klienta | adres widziany przez proxy hostingu, nie nagłówki podane przez klienta | `clientKey` w `server/http` |
+
+- **Zgłoszenie nigdy nie nadpisuje danych źródła.** Przed moderacją nie zmienia wartości ani werdyktu
+  (zgłaszający widzi je obok faktu jako „Niezweryfikowane”; dla innych użytkowników — KBB-49); po zatwierdzeniu staje się osobnym faktem ze źródła „Społeczność, zweryfikowane
+  przez moderatora”, więc różnica z innym źródłem jest widoczna jako „Sprzeczne”.
+- Odrzucone zgłoszenie nie trafia do widoku publicznego.
+- Ograniczenie: limity są w pamięci jednej instancji serwera (zatrzymują serię, nie są globalnym
+  limitem). Przy wielu instancjach — wspólny magazyn limitów (np. Redis) — do zrobienia.
+
+## Panel moderatora
+
+- Dostęp tokenem z `MODERATOR_TOKENS` (zmienna środowiskowa, para `nazwa:token`, token min. 16
+  znaków; krótszy jest ignorowany). Tokeny porównujemy jako skróty SHA-256 w stałym czasie
+  (`server/reports/moderator-auth.ts`).
+- **5 nieudanych prób blokuje klienta na 15 minut** (HTTP 429), blokada sprawdzana przed tokenem.
+- Token wpisuje się w pole hasła (działa wklejanie i menedżer haseł, bez zagadek — WCAG 3.3.8);
+  panel trzyma go tylko w `sessionStorage` tej karty i wysyła jako nagłówek `Authorization: Bearer`.
+- Historia decyzji zapisuje nazwę moderatora, decyzję i datę (kto, co, kiedy — US-4.4).
+- Do zrobienia przy usłudze: indywidualne konta z 2FA albo logowanie SSO operatora, rotacja tokenów.
+
+## Bezpieczne połączenia i konfiguracja
+
+- **HTTPS**: aplikację publikujemy wyłącznie przez HTTPS na hostingu (Vercel wymusza HTTPS; PR #44).
+  Aplikacja mobilna pozwala na HTTP tylko w sieci lokalnej do developmentu (iOS ATS
+  `NSAllowsLocalNetworking`, Android cleartext tylko localhost/IP prywatne); produkcja to HTTPS.
+  Nagłówek HSTS ustawia hosting — **w kodzie aplikacji brak własnego HSTS** (do dodania przy
+  innym hostingu).
+- Publiczne API tylko do odczytu ma CORS `*` wyłącznie dla ścieżek z listy (`next.config.ts`);
+  zgłoszenia i moderacja nie są na tej liście, więc nowy endpoint zapisu jest domyślnie zamknięty.
+- Sekrety (`DATABASE_URL`, `MODERATOR_TOKENS`, `ORS_API_KEY`) tylko w zmiennych środowiskowych i
+  sekretach GitHub; w repozytorium są tylko `.env.example` z pustymi wartościami.
+- Przełącznik demo awarii źródła (`SIMULATE_SOURCE_OUTAGE`) to zmienna serwera, nie parametr
+  żądania; w produkcji działa tylko z `ALLOW_SIMULATED_OUTAGE=true`.
+- Logi serwera: tylko błędy API (nazwa operacji i błąd), bez treści zgłoszeń i bez adresów IP.
+
+## Plan przed usługą
+
+1. Automatyczne usuwanie zgłoszeń po 24 miesiącach (zostaje zatwierdzona wartość i data).
+2. Konta moderatorów z 2FA, rotacja tokenów, dziennik logowań.
+3. Wspólny magazyn limitów dla wielu instancji.
+4. HSTS i polityka CSP dla całej aplikacji, test penetracyjny raz w roku.
+5. Rejestr czynności przetwarzania (RODO) i umowa powierzenia z hostingiem w UE.
