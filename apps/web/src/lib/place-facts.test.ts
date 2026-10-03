@@ -12,7 +12,7 @@ async function demoPlace(id: string): Promise<Place> {
 
 describe("factViews", () => {
   it("shows both conflicting values with their sources and keeps unknowns named", async () => {
-    // GIVEN the conflicting demo place (toilet differs between ZIW and OSM, lift unknown)
+    // GIVEN the conflicting demo place (toilet differs between MSIP and OSM, lift unknown)
     const place = await demoPlace("palac-krzysztofory");
 
     // WHEN it is turned into card rows
@@ -23,11 +23,11 @@ describe("factViews", () => {
     // THEN the toilet row carries both values and both sources, flagged as a conflict
     expect(toilet).toMatchObject({ value: "Jest / Nie ma", reliability: "conflict", conflict: true });
     expect(toilet?.sources.map((s) => [s.name, s.value])).toEqual([
-      ["Zintegrowany Informator Wojewódzki (ZIW)", "Jest"],
+      ["Toalety publiczne — MSIP Kraków (dane ISDP)", "Jest"],
       ["OpenStreetMap", "Nie ma"],
     ]);
-    // AND the stale ZIW fact says it may be outdated, with its date
-    expect(toilet?.sources[0].staleNote).toBe("Może być nieaktualne · 14.11.2023");
+    // AND the stale MSIP fact says it may be outdated, with its date
+    expect(toilet?.sources[0].staleNote).toBe("Może być nieaktualne · 8.11.2023");
     // AND missing data is named, not hidden or treated as accessible
     expect(lift).toMatchObject({ unknown: true, reliability: "unknown" });
     expect(lift?.value).toBeUndefined();
@@ -87,11 +87,11 @@ describe("formatValue", () => {
 
 describe("sources", () => {
   it("finds the failed source and the latest successful fetch", async () => {
-    // GIVEN the conflicting demo place, whose ZIW source is in outage
+    // GIVEN the conflicting demo place, whose MSIP source is in outage
     const place = await demoPlace("palac-krzysztofory");
 
     // WHEN its sources are inspected
-    // THEN ZIW is the failed one and OSM's fetch is the latest
+    // THEN MSIP is the failed one and OSM's fetch is the latest
     expect(failedSources(place).map((s) => s.id)).toEqual(["ziw"]);
     expect(latestSourceDate(place)).toBe("2026-10-03T03:00:00Z");
   });

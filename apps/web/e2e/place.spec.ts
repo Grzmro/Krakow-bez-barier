@@ -13,7 +13,7 @@ test("conflicting data and an unavailable source are both visible on the card", 
 
   // THEN the card shows the place, the failed-refresh banner and the conflict warning
   await expect(page.getByRole("heading", { level: 1, name: "Pałac Krzysztofory" })).toBeVisible();
-  await expect(main).toContainText("Odświeżenie nie powiodło się — dane z 14.11.2023");
+  await expect(main).toContainText("Odświeżenie nie powiodło się — dane z 8.11.2023");
   await expect(main).toContainText("Źródła podają sprzeczne dane");
   await expect(main).toMatchAriaSnapshot({ name: "place-conflict.aria.yml" });
 
@@ -27,9 +27,9 @@ test("conflicting data and an unavailable source are both visible on the card", 
   // THEN both sources are listed with their values and the stale one is flagged
   await expect(toilet).toHaveAttribute("aria-expanded", "true");
   const panel = page.locator(`#${await toilet.getAttribute("aria-controls")}`);
-  await expect(panel).toContainText("Źródło: Zintegrowany Informator Wojewódzki (ZIW) · Jest");
+  await expect(panel).toContainText("Źródło: Toalety publiczne — MSIP Kraków (dane ISDP) · Jest");
   await expect(panel).toContainText("Źródło: OpenStreetMap · Nie ma");
-  await expect(panel).toContainText("Może być nieaktualne · 14.11.2023");
+  await expect(panel).toContainText("Może być nieaktualne · 8.11.2023");
 
   await expectAccessible();
   await evidence("place-conflict");
@@ -86,15 +86,15 @@ test("an unavailable source keeps its last data, marked as outdated", async ({ p
 
   // THEN the failed-refresh banner names the source and the date of the last good data
   const main = page.locator("main");
-  await expect(main).toContainText("Odświeżenie nie powiodło się — dane z 14.11.2023");
-  await expect(main).toContainText("Źródło: Zintegrowany Informator Wojewódzki (ZIW)");
+  await expect(main).toContainText("Odświeżenie nie powiodło się — dane z 8.11.2023");
+  await expect(main).toContainText("Źródło: Toalety publiczne — MSIP Kraków (dane ISDP)");
   await expect(main).not.toContainText("Źródła podają sprzeczne dane");
 
   // WHEN the toilet fact is expanded
   await page.getByRole("button", { name: /Toaleta dostosowana/ }).click();
 
   // THEN the last known value is shown with its staleness note
-  await expect(main).toContainText("Może być nieaktualne · 14.11.2023");
+  await expect(main).toContainText("Może być nieaktualne · 8.11.2023");
   await expectAccessible();
   await evidence("place-source-unavailable");
 });

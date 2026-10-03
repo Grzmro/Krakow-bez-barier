@@ -62,11 +62,11 @@ test("O danych shows every source's refresh status, including an unavailable one
   // THEN each source shows its status as text, with the outage note and last successful update
   const osm = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "OpenStreetMap" }) });
   await expect(osm).toContainText("Działa");
-  const ziw = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: /ZIW/ }) });
-  await expect(ziw).toContainText("Niedostępne");
-  await expect(ziw).toContainText("Źródło niedostępne (HTTP 404)");
-  await expect(ziw).toContainText("Ostatnia udana aktualizacja");
-  await expect(ziw).toContainText("Ostatnia próba");
+  const msip = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: /MSIP/ }) });
+  await expect(msip).toContainText("Niedostępne");
+  await expect(msip).toContainText("Źródło niedostępne (HTTP 404)");
+  await expect(msip).toContainText("Ostatnia udana aktualizacja");
+  await expect(msip).toContainText("Ostatnia próba");
 
   // AND the data is labelled as sample while the API is mocked, with OSM attribution visible
   await expect(page.getByText("Dane przykładowe").first()).toBeAttached();
