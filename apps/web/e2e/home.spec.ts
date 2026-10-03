@@ -147,3 +147,14 @@ test("the whole flow works with the keyboard alone", async ({ page }) => {
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/miejsca\//);
 });
+
+test("category chips come from GET /categories, including configured-only ones", async ({ page }) => {
+  // GIVEN the home screen
+  // WHEN it loads
+  await page.goto("/");
+
+  // THEN the filter offers the configured categories, e.g. Apteki, with no web code naming it
+  const chips = page.getByRole("group", { name: "Kategorie" });
+  await expect(chips.getByRole("button", { name: "Apteki" })).toBeVisible();
+  await expect(chips.getByRole("button", { name: "Muzea" })).toBeVisible();
+});

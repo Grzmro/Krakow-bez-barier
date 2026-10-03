@@ -1,6 +1,5 @@
-import type { FactValue } from "@krakow-bez-barier/contracts";
+import { categories as configuredCategories, type CategoryConfig, type FactValue } from "@krakow-bez-barier/contracts";
 import type { MappedFact, MappedPlace, MapResult } from "../adapter";
-import { OSM_CATEGORIES } from "./osm-categories";
 
 export type OsmElement = {
   type: "node" | "way" | "relation";
@@ -48,25 +47,25 @@ export function recordRef(el: OsmElement): string {
   return `osm:${el.type}/${el.id}${el.version ? `@v${el.version}` : ""}`;
 }
 
-function categoryOf(tags: Record<string, string>) {
-  for (const rule of OSM_CATEGORIES) {
-    if (tags[rule.key] && rule.values.includes(tags[rule.key])) return rule.category;
-  }
-  return null;
+function categoryOf(tags: Record<string, string>, categories: readonly CategoryConfig[]) {
+  return (
+    categories.find((c) => c.osm.some((rule) => tags[rule.key] !== undefined && rule.values.includes(tags[rule.key]))) ??
+    null
+  );
 }
 
 /**
  * Maps one OSM element to a place with facts. A missing tag yields no fact; a tag whose value
  * does not fit the vocabulary is skipped and reported, never guessed.
  */
-export function mapOsmElement(el: OsmElement): MapResult {
+export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfig[] = configuredCategories): MapResult {
   const tags = el.tags ?? {};
   const skipped: string[] = [];
-  const category = categoryOf(tags);
+  const category = categoryOf(tags, categories);
   const lat = el.lat ?? el.center?.lat;
   const lon = el.lon ?? el.center?.lon;
   if (!category || lat === undefined || lon === undefined) return { place: null, skipped };
-  if (!tags.name && category !== "toilet") return { place: null, skipped: ["unnamed place"] };
+  if (!tags.name && !category?.unnamedName) return { place: null, skipped: ["unnamed place"] };
 
   const ref = recordRef(el);
   const observedAt = parseDate(tags.check_date);
@@ -139,8 +138,8 @@ export function mapOsmElement(el: OsmElement): MapResult {
 
   const place: MappedPlace = {
     externalRef: `osm:${el.type}/${el.id}`,
-    name: tags.name ?? "Toaleta publiczna",
-    category,
+    name: tags.name ?? category.unnamedName ?? "",
+    category: category.id,
     location: { x: lon, y: lat },
     street: tags["addr:street"] ?? null,
     houseNumber: tags["addr:housenumber"] ?? null,

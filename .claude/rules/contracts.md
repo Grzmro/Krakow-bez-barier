@@ -25,8 +25,9 @@ Background: `.claude/context/openapi-spec-first.md`. Accessibility data model:
 - Every accessibility value in a response is an `AccessibilityFact` (or a resolved attribute that
   carries its facts) with `source`, `fetchedAt`, `reliability` — never a bare value
   (R2, `.claude/context/accessibility-facts.md`).
-- Shared vocabularies (accessibility attributes, place categories, reliability levels) are enums in
-  the spec, not TS constants elsewhere.
+- Shared closed vocabularies (accessibility attributes, reliability levels) are enums in the spec, not TS
+  constants elsewhere. Place categories are configuration: a free string id in the spec, the list is
+  `GET /categories`, defined in `packages/contracts/src/categories.ts`.
 - Geometry: GeoJSON (`Point`, `LineString`, `Feature`, `FeatureCollection`), WGS84, `[lon, lat]`.
 - Schemas in `components/schemas`, `PascalCase`; properties `camelCase`; enums as lowercase
   `snake_case` strings; dates as ISO 8601 `date-time`. Every operation has an `operationId`,

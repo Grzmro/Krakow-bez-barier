@@ -15,6 +15,7 @@ export type Route = Schemas["Route"];
 export type Problem = Schemas["Problem"];
 export type AccessibilityAttribute = Schemas["AccessibilityAttribute"];
 export type Category = Schemas["Category"];
+export type CategoryList = Schemas["CategoryList"];
 export type Profile = Schemas["Profile"];
 export type Reliability = Schemas["Reliability"];
 export type ReliabilityStatus = Schemas["ReliabilityStatus"];
@@ -52,6 +53,14 @@ export function createApiClient(options: ClientOptions = {}) {
 }
 
 export { checkReportNumber, reportRules, type RangeCheck, type ReportRules, type ValueRange } from "./report-rules";
+export {
+  categories,
+  isKnownCategory,
+  toCategoryDefinition,
+  type CategoryConfig,
+  type CategoryDefinition,
+  type OsmTagRule,
+} from "./categories";
 export { createMockFetch, type MockChoice, type MockFetchOptions, type OperationId } from "./mock";
 
 /** Response examples from `openapi.yaml`, typed against the spec — the source for front-end mocks. */

@@ -2,38 +2,17 @@
 
 import { forwardRef, useState } from "react";
 import Link from "next/link";
-import {
-  Bank,
-  Bed,
-  Church,
-  ForkKnife,
-  MapPin,
-  MaskHappy,
-  ShoppingBag,
-  Toilet,
-  type Icon,
-} from "@phosphor-icons/react";
-import type { Category, FeatureFilter, PlaceSummary } from "@krakow-bez-barier/contracts";
+import type { FeatureFilter, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { Button, cn } from "@krakow-bez-barier/ui";
 import { SampleTag, StatusBadge } from "@/components/kbb";
 import { NeedGroups } from "@/components/profile/need-groups";
 import { pl } from "@/i18n/pl";
+import { useCategoryLookup } from "@/lib/categories";
 import { filterGapStatus, matchFeature, summaryLine } from "@/lib/place-features";
 import { routes } from "@/lib/routes";
 
 const t = pl.home;
 const tp = pl.profile.list;
-
-const CATEGORY_ICON: Record<Category, Icon> = {
-  restaurant: ForkKnife,
-  museum: Bank,
-  toilet: Toilet,
-  hotel: Bed,
-  monument: Church,
-  theatre: MaskHappy,
-  shop: ShoppingBag,
-  other: MapPin,
-};
 
 function chipFallback(chip: PlaceSummary["summary"][number]) {
   const name = pl.common.attribute[chip.attribute];
@@ -62,7 +41,7 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
   ref,
 ) {
   const [open, setOpen] = useState(false);
-  const I = CATEGORY_ICON[place.category];
+  const I = useCategoryLookup()(place.category).icon;
   const verdict = place.verdict;
   const gap = features.length ? filterGapStatus(place, features) : null;
   const gapFilters =

@@ -31,7 +31,7 @@ servers:
   description: Same-origin Next.js route handlers
 tags:
 - name: places
-  description: Search and read places with their accessibility facts.
+  description: Search and read places with their accessibility facts, and the configured place categories.
 - name: sources
   description: Data sources, licences and refresh status.
 - name: reports
@@ -46,6 +46,69 @@ tags:
   description: Service liveness and dependency checks.
 security: []
 paths:
+  /categories:
+    get:
+      operationId: listCategories
+      summary: List place categories
+      description: 'The categories configured for this deployment (`packages/contracts/src/categories.ts`), with Polish labels and
+        an icon key. Clients build category filters from this list; `Place.category` and the `category` filter of `GET /places` use
+        these ids. Adding a category is a configuration change, not a contract change.
+
+        '
+      tags:
+      - places
+      responses:
+        '200':
+          description: All configured categories, in display order.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryList'
+              examples:
+                default:
+                  summary: The configured categories
+                  value:
+                    items:
+                    - id: restaurant
+                      label: Restauracje
+                      singularLabel: Restauracja
+                      icon: fork-knife
+                    - id: museum
+                      label: Muzea
+                      singularLabel: Muzeum
+                      icon: bank
+                    - id: toilet
+                      label: Toalety
+                      singularLabel: Toaleta
+                      icon: toilet
+                    - id: hotel
+                      label: Hotele
+                      singularLabel: Hotel
+                      icon: bed
+                    - id: monument
+                      label: Zabytki
+                      singularLabel: Zabytek
+                      icon: church
+                    - id: theatre
+                      label: Teatry i kina
+                      singularLabel: Teatr lub kino
+                      icon: mask-happy
+                    - id: pharmacy
+                      label: Apteki
+                      singularLabel: Apteka
+                      icon: pill
+                    - id: shop
+                      label: Handel
+                      singularLabel: Handel
+                      icon: shopping-bag
+                    - id: other
+                      label: Inne
+                      singularLabel: Inne
+                      icon: map-pin
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /places:
     get:
       operationId: listPlaces
@@ -1184,15 +1247,40 @@ components:
                 type: string
     Category:
       type: string
-      enum:
-      - restaurant
+      description: 'Category id, one of the ids returned by `GET /categories`. A free string, not a closed enum: categories are
+        configuration.'
+      pattern: ^[a-z][a-z0-9_]*$
+      maxLength: 40
+      examples:
       - museum
-      - toilet
-      - hotel
-      - monument
-      - theatre
-      - shop
-      - other
+    CategoryDefinition:
+      type: object
+      required:
+      - id
+      - label
+      - singularLabel
+      - icon
+      properties:
+        id:
+          $ref: '#/components/schemas/Category'
+        label:
+          type: string
+          description: Polish plural label for filters, e.g. "Apteki".
+        singularLabel:
+          type: string
+          description: Polish label of one place of this category, e.g. "Apteka".
+        icon:
+          type: string
+          description: Icon key (kebab-case, e.g. `pill`). Clients map unknown keys to a generic pin.
+    CategoryList:
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryDefinition'
     AccessibilityAttribute:
       type: string
       description: Shared vocabulary of measurable accessibility attributes.

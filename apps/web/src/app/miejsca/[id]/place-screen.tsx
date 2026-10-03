@@ -8,37 +8,32 @@ import {
   ArrowsHorizontal,
   Armchair,
   Baby,
-  Bank,
-  Bed,
   Car,
-  Church,
   CloudSlash,
   Database,
   Elevator,
   EnvelopeSimple,
-  ForkKnife,
   Globe,
   GridFour,
   HandPalm,
   Info,
   MapPin,
-  MaskHappy,
   PencilSimple,
   Phone,
   Plus,
   ShareNetwork,
-  ShoppingBag,
   Stairs,
   Toilet,
   TrendUp,
   WarningDiamond,
   type Icon,
 } from "@phosphor-icons/react";
-import type { AccessibilityAttribute, Category, Place } from "@krakow-bez-barier/contracts";
+import type { AccessibilityAttribute, Place } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { FactRow, ReliabilityBadge, SampleTag } from "@/components/kbb";
 import { pl } from "@/i18n/pl";
 import { api } from "@/lib/api";
+import { useCategoryLookup } from "@/lib/categories";
 import { CARD_ATTRIBUTES, factViews, failedSources, formatDate, latestSourceDate, osmEditUrl } from "@/lib/place-facts";
 import { withPending, type PendingEntry } from "@/lib/reports";
 import { usePlaceReports } from "@/lib/use-place-reports";
@@ -46,17 +41,6 @@ import { routes } from "@/lib/routes";
 import { ReportDrawer, type ReportMode, type ReportSubmission } from "./report-drawer";
 
 const t = pl.place;
-
-const CATEGORY_ICON: Record<Category, Icon> = {
-  restaurant: ForkKnife,
-  museum: Bank,
-  toilet: Toilet,
-  hotel: Bed,
-  monument: Church,
-  theatre: MaskHappy,
-  shop: ShoppingBag,
-  other: MapPin,
-};
 
 const FACT_ICON: Partial<Record<AccessibilityAttribute, Icon>> = {
   step_count: Stairs,
@@ -136,7 +120,8 @@ function PlaceCard({ place }: { place: Place }) {
   const latest = latestSourceDate(place);
   const contact = place.contact;
   const hasContact = !!(contact?.phone || contact?.website || contact?.email);
-  const CategoryIcon = CATEGORY_ICON[place.category];
+  const category = useCategoryLookup()(place.category);
+  const CategoryIcon = category.icon;
   const address = [
     [place.address?.street, place.address?.houseNumber].filter(Boolean).join(" "),
     place.address?.city,
@@ -199,7 +184,7 @@ function PlaceCard({ place }: { place: Place }) {
         {place.name}
       </h1>
       <p className="mt-1 text-body-sm text-muted-foreground">
-        {t.category[place.category]}
+        {category.label}
         {address ? ` · ${address}` : null}
       </p>
       <p className="mt-3 flex gap-2 text-body-sm">
