@@ -3,6 +3,8 @@
   - heading "To się nie zgadza" [level=2]
   - group "Która cecha?":
     - text: ""
+    - radio "Ogólna dostępność"
+    - text: Ogólna dostępność
     - radio "Wejście — stopnie"
     - text: Wejście — stopnie
     - radio "Próg"

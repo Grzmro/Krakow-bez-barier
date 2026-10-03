@@ -81,12 +81,30 @@ describe("factViews", () => {
 
     // THEN the overall row comes first, with the value, the OpenStreetMap source and its date
     expect(rows[0]).toBe(overall);
-    expect(overall).toMatchObject({ label: "Ogólna dostępność (OSM)", value: "Niedostępne dla wózków", unknown: false });
+    expect(overall).toMatchObject({ label: "Ogólna dostępność", value: "Niedostępne dla wózków", unknown: false });
     expect(overall?.sources).toMatchObject([{ name: "OpenStreetMap", date: "2.10.2026" }]);
     // AND the list chip says the same thing
-    expect(messagesFor("pl").summary.chip("wheelchair_overall", "known", osm.value)).toBe(`${overall?.value} (OSM)`);
+    expect(messagesFor("pl").summary.chip("wheelchair_overall", "known", osm.value)).toBe(overall?.value);
     // AND the wheelchair profile names it as the barrier
     expect(matchProfile(place, PROFILE_PRESETS.wheelchair, "pl")).toMatchObject({ state: "barrier", blockers: ["wheelchair_overall"] });
+  });
+
+  it("names the city's MSIP, not OSM, when MSIP is the only source of the overall tag", () => {
+    // GIVEN a public toilet whose overall tag comes only from MSIP
+    const msip = fact("wheelchair_overall", text("limited"), {
+      sourceId: "msip-toilets",
+      source: { id: "msip-toilets", name: "MSIP: Toalety publiczne", kind: "official_open_data", recordRef: "msip-toilets:toalety/1" },
+    });
+    const place = { attributes: resolveAttributes([msip]) } as unknown as Place;
+
+    // WHEN it is turned into a card row and a list chip
+    const overall = factViews(place, "pl").find((r) => r.attribute === "wheelchair_overall");
+    const chip = messagesFor("pl").summary.chip("wheelchair_overall", "known", msip.value);
+
+    // THEN neither the label nor the chip claims OpenStreetMap, and the row names MSIP as its source
+    expect(overall?.label).not.toContain("OSM");
+    expect(chip).not.toContain("OSM");
+    expect(overall?.sources.map((s) => s.name)).toEqual(["MSIP: Toalety publiczne"]);
   });
 
   it("marks outdated facts as outdated with the original date", async () => {

@@ -1,5 +1,5 @@
 - listitem:
-  - 'button "Ogólna dostępność (OSM): Niedostępne dla wózków. Wiarygodność: Niezweryfikowane." [expanded]': Ogólna dostępność (OSM) Niedostępne dla wózków Niezweryfikowane
+  - 'button "Ogólna dostępność: Niedostępne dla wózków. Wiarygodność: Niezweryfikowane." [expanded]': Ogólna dostępność Niedostępne dla wózków Niezweryfikowane
   - button "To się nie zgadza":
     - img
     - text: ""

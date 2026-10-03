@@ -176,7 +176,7 @@ export const place = {
     separator: " / ",
   },
   unit: { cm: "cm", pct: "%", m: "m", count: "" },
-  // OSM `wheelchair=*` values; the list chip adds the source name to the same words.
+  // `wheelchair_overall` text values (OSM `wheelchair=*`, MSIP access); the list chip uses the same words.
   overall: {
     yes: "Dostępne dla wózków",
     limited: "Częściowo dostępne dla wózków",

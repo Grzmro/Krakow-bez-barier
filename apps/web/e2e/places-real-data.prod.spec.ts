@@ -128,13 +128,13 @@ async function allPlaces(request: APIRequestContext): Promise<PlaceList["items"]
   return items;
 }
 
-test("a place OSM tags only wheelchair=no says so on the list and on the card, with its source and date", async ({
+test("a place tagged only as not wheelchair accessible says so on the list and on the card, with its source and date", async ({
   page,
   request,
   expectAccessible,
   evidence,
 }) => {
-  // GIVEN a real place whose only known card fact is the OSM overall tag wheelchair=no, under a name no other place has
+  // GIVEN a real place whose only known card fact is the overall tag "no" (OSM wheelchair=no), under a name no other place has
   test.skip(!process.env.DATABASE_URL, "DATABASE_URL is unset — no database to read real places from (npm run db:setup)");
   const chipText = pl.summary.chip("wheelchair_overall", "known", { kind: "text", text: "no" });
   const all = await allPlaces(request);
@@ -146,7 +146,9 @@ test("a place OSM tags only wheelchair=no says so on the list and on the card, w
   );
   test.skip(!target, "the database has no place tagged only wheelchair=no");
   const place = (await (await request.get(`/api/v1/places/${target!.id}`)).json()) as Place;
-  const osm = place.attributes.find((a) => a.attribute === "wheelchair_overall")!.facts[0];
+  const overall = place.attributes.find((a) => a.attribute === "wheelchair_overall")!.facts[0];
+  const value = pl.place.overall.no;
+  expect(chipText).toBe(value);
   const name = new RegExp(escape(target!.name));
 
   // WHEN the visitor finds it on the list
@@ -155,7 +157,7 @@ test("a place OSM tags only wheelchair=no says so on the list and on the card, w
   const list = page.getByRole("region", { name: "Lista miejsc" });
   const row = list.getByRole("listitem").filter({ has: page.getByRole("link", { name }) }).first();
 
-  // THEN the row carries the OSM chip
+  // THEN the row carries the overall chip
   await expect(row).toContainText(chipText);
 
   // WHEN they pick the wheelchair profile
@@ -167,18 +169,16 @@ test("a place OSM tags only wheelchair=no says so on the list and on the card, w
   // WHEN they open the card and the overall fact
   await row.getByRole("link", { name }).click();
   await expect(page.getByRole("heading", { level: 1, name: target!.name })).toBeVisible();
-  const value = pl.place.overall.no;
   const factButton = page.getByRole("button", {
     name: new RegExp(`^${escape(pl.common.attribute.wheelchair_overall)}: ${escape(value)}`),
   });
   await factButton.click();
 
-  // THEN the card says what the chip says, with OpenStreetMap as the source and the date it was fetched
-  expect(chipText).toBe(`${value} (OSM)`);
+  // THEN the card says what the chip says, naming the fact's own source and the date it was fetched
   await expect(factButton).toHaveAttribute("aria-expanded", "true");
   const panel = page.locator(`#${await factButton.getAttribute("aria-controls")}`);
-  await expect(panel).toContainText(`${pl.common.fact.source}: OpenStreetMap`);
-  await expect(panel).toContainText(formatDate(osm.fetchedAt, "pl"));
+  await expect(panel).toContainText(`${pl.common.fact.source}: ${overall.source.name}`);
+  await expect(panel).toContainText(formatDate(overall.fetchedAt, "pl"));
   await expect(page.getByRole("listitem").filter({ has: factButton })).toMatchAriaSnapshot({ name: "real-overall-fact.aria.yml" });
   await expectAccessible();
   await evidence("real-data-overall-fact");

@@ -78,6 +78,9 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
   await page.keyboard.press("Enter");
   await expect(door).toHaveAttribute("aria-expanded", "true");
   await expect(page.locator(`#${await door.getAttribute("aria-controls")}`)).toContainText("Źródło");
+  // axe's target-size counts only the visible part of a control, so one half under the sticky header fails
+  // depending on where focus scrolled the page; centre the focused fact so the result doesn't hang on row heights.
+  await door.evaluate((el) => el.scrollIntoView({ block: "center" }));
   await expectAccessible();
 
   // WHEN they open the report form on that fact and close it with Escape

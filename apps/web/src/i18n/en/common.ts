@@ -57,7 +57,7 @@ export const common: Messages["common"] = {
     kerb_height_cm: "Kerb height",
     bench: "Places to rest",
     disabled_parking: "Disabled parking",
-    wheelchair_overall: "Overall accessibility (OSM)",
+    wheelchair_overall: "Overall accessibility",
     levels: "Storeys",
     stairs: "Stairs on the route",
   },

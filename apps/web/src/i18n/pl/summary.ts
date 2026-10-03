@@ -17,7 +17,7 @@ function valueLabel(attribute: AccessibilityAttribute, value: FactValue): string
     const n = value.number;
     return n === 0 ? "Wejście bez stopni" : `${n} ${plural(n, "stopień", "stopnie", "stopni")} przy wejściu`;
   }
-  if (attribute === "wheelchair_overall" && value.kind === "text" && place.overall[value.text]) return `${place.overall[value.text]} (OSM)`;
+  if (attribute === "wheelchair_overall" && value.kind === "text" && place.overall[value.text]) return place.overall[value.text];
   switch (value.kind) {
     case "boolean":
       return value.boolean ? name : `${name}: brak`;
