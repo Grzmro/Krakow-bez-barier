@@ -42,6 +42,8 @@ tags:
   description: Accessible routing.
 - name: widget
   description: Read-only embeddable card for venues and organisers.
+- name: health
+  description: Service liveness and dependency checks.
 security: []
 paths:
   /places:
@@ -793,6 +795,49 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /health:
+    get:
+      operationId: getHealth
+      summary: Service health
+      description: 'Liveness plus dependency checks. Returns 200 whenever the app itself runs; a failing dependency is
+
+        reported in the body (`status: degraded`), so monitoring can tell "app down" from "database down".
+
+        '
+      tags:
+      - health
+      responses:
+        '200':
+          description: The app is running; see `checks` for dependencies.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+              examples:
+                default:
+                  summary: All dependencies up
+                  value:
+                    status: ok
+                    time: '2026-10-03T12:00:00Z'
+                    checks:
+                      database:
+                        status: up
+                        latencyMs: 4
+                        detail: null
+                databaseDown:
+                  summary: Database unreachable — the app still answers
+                  value:
+                    status: degraded
+                    time: '2026-10-03T12:00:00Z'
+                    checks:
+                      database:
+                        status: down
+                        latencyMs: null
+                        detail: Database did not answer within 2000 ms.
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
 components:
   securitySchemes:
     bearerAuth:
@@ -964,6 +1009,59 @@ components:
                 title: Internal server error
                 status: 500
   schemas:
+    Health:
+      type: object
+      description: Service health. `status` is `degraded` when any check is not `up`.
+      required:
+      - status
+      - time
+      - checks
+      properties:
+        status:
+          $ref: '#/components/schemas/HealthStatus'
+        time:
+          type: string
+          format: date-time
+          description: Server time of the check.
+        checks:
+          type: object
+          required:
+          - database
+          properties:
+            database:
+              $ref: '#/components/schemas/HealthCheck'
+    HealthStatus:
+      type: string
+      enum:
+      - ok
+      - degraded
+    HealthCheck:
+      type: object
+      required:
+      - status
+      - latencyMs
+      - detail
+      properties:
+        status:
+          $ref: '#/components/schemas/DependencyStatus'
+        latencyMs:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          description: Round-trip time of the probe; null when it did not complete.
+        detail:
+          type:
+          - string
+          - 'null'
+          description: Human-readable reason when the dependency is not up.
+    DependencyStatus:
+      type: string
+      description: '`not_configured` means the connection setting (e.g. `DATABASE_URL`) is missing.'
+      enum:
+      - up
+      - down
+      - not_configured
     Problem:
       type: object
       description: RFC 9457 problem details.
