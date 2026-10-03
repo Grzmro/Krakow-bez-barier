@@ -2,7 +2,7 @@
   - link "Wstecz":
     - /url: /miejsca/kawiarnia-przyklad
   - text: Start
-  - combobox "Start": Dworzec Główny
+  - combobox "Start": Moja lokalizacja
   - paragraph: "Cel: Kawiarnia Przykład"
   - button "Zamień start i cel":
     - img

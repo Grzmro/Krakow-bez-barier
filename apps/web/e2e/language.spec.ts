@@ -102,10 +102,17 @@ test("the route screen, opened from the menu, is English end to end", async ({ p
   await page.getByRole("button", { name: "Menu" }).click();
   await page.getByRole("link", { name: /Plan a route/ }).click();
 
-  // THEN the route summary, the turn instructions and the segment notes are English
-  await expect(page).toHaveURL(/\/trasa$/);
+  // THEN, without a location or a chosen start, the screen says in English that it has no route to plan
   await expect(page).toHaveTitle("Route · Kraków bez barier");
   const main = page.locator("main");
+  await expect(main).toContainText("We are not planning a route because we don't know where it starts");
+
+  // WHEN they choose the station as the start
+  await page.getByRole("combobox", { name: "From" }).click();
+  await page.getByRole("option", { name: "Main Railway Station" }).click();
+
+  // THEN the route summary, the turn instructions and the segment notes are English
+  await expect(page).toHaveURL(/\/trasa\?z=station$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
   await expect(main).toContainText("No known barriers, but 336 m without data");
   await expect(main).toContainText("no data on 5 segments (336 m)");

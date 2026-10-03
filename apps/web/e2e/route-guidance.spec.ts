@@ -32,7 +32,7 @@ async function segments(request: APIRequestContext): Promise<Segment[]> {
 const at = ([longitude, latitude]: [number, number]) => ({ longitude, latitude, accuracy: 10 });
 
 async function openRoute(page: Page) {
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
 }
 

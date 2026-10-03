@@ -5,7 +5,7 @@ export const routes = {
   place: (id: string) => `/miejsca/${encodeURIComponent(id)}`,
   /**
    * Route screen; `to` is a place id, without it the route ends at Rynek Główny. `from` is the start's `?z=` value
-   * (`startParam` in lib/route-start.ts), without it the route starts at Dworzec Główny.
+   * (`startParam` in lib/route-start.ts), without it the route starts at the device position (or waits for a chosen start).
    */
   route: (to?: string, from?: string) => {
     const query = [
