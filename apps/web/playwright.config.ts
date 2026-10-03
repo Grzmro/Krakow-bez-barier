@@ -52,13 +52,18 @@ const servers: PlaywrightTestConfig["webServer"] = [
     : []),
 ];
 
+// Parallel agents share one machine: an uncapped run starts a browser per core and starves the others.
+// E2E_WORKERS takes a count or a share of the cores ("50%").
+const e2eWorkers = process.env.E2E_WORKERS?.trim();
+const localWorkers = !e2eWorkers ? 3 : /^\d+$/.test(e2eWorkers) ? Number(e2eWorkers) : e2eWorkers;
+
 // Fast by design: one browser, parallel files, no retries. Locally it reuses this worktree's dev server.
 export default defineConfig({
   testDir: "e2e",
   fullyParallel: true,
   forbidOnly: isCI,
   retries: 0,
-  workers: isCI ? 2 : undefined,
+  workers: isCI ? 2 : localWorkers,
   reporter: isCI ? [["github"], ["list"]] : "list",
   timeout: 15_000,
   use: {
