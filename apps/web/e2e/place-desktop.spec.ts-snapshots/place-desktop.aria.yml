@@ -132,6 +132,6 @@
       - paragraph: Popraw dane u źródła — trafią do nas przy następnym pobraniu.
     - region "Mapa z położeniem miejsca. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Adres jest podany w tekście powyżej."
     - button "Informacje o źródłach mapy"
-    - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
+    - paragraph: Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors
     - button "Przybliż"
     - button "Oddal"

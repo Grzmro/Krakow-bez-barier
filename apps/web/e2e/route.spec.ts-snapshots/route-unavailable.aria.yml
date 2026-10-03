@@ -46,6 +46,6 @@
       - text: ""
   - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
   - button "Informacje o źródłach mapy"
-  - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
+  - paragraph: Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors
   - button "Przybliż"
   - button "Oddal"

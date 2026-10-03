@@ -42,7 +42,7 @@
         - button "Winda"
         - button "Toaleta dostosowana"
         - button "Ławki"
-        - button "Parking N"
+        - button "Parking dla niepełnosprawnych"
         - button "Przewijak"
       - heading "3 miejsca" [level=2]
       - list:
