@@ -20,7 +20,7 @@ function segment(id: number, state: RouteSegment["state"], facts: AccessibilityF
   };
 }
 
-function fact(source: string, fetchedAt: string): AccessibilityFact {
+function fact(source: string, fetchedAt: string, extra: Partial<AccessibilityFact> = {}): AccessibilityFact {
   return {
     id: `${source}-${fetchedAt}`,
     attribute: "step_count",
@@ -30,6 +30,7 @@ function fact(source: string, fetchedAt: string): AccessibilityFact {
     reliability: "community",
     status: "active",
     stale: false,
+    ...extra,
   } as unknown as AccessibilityFact;
 }
 
@@ -158,8 +159,24 @@ describe("provenance", () => {
     // WHEN its provenance is listed
     // THEN OSM appears once with September, MSIP with its own date
     expect(provenance(s)).toEqual([
-      { name: "OpenStreetMap", fetchedAt: "2025-09-01T00:00:00Z" },
-      { name: "MSIP", fetchedAt: "2024-01-01T00:00:00Z" },
+      { name: "OpenStreetMap", fetchedAt: "2025-09-01T00:00:00Z", reliability: "community", stale: false },
+      { name: "MSIP", fetchedAt: "2024-01-01T00:00:00Z", reliability: "community", stale: false },
+    ]);
+  });
+
+  it("keeps the reliability and staleness of each source's latest fact, so sample data stays labelled", () => {
+    // GIVEN an older community fact and a newer sample fact from one source, and a stale fact from another
+    const s = segment(2, "barrier", [
+      fact("OpenStreetMap", "2025-08-01T00:00:00Z"),
+      fact("OpenStreetMap", "2025-09-01T00:00:00Z", { reliability: "sample" }),
+      fact("MSIP", "2024-01-01T00:00:00Z", { reliability: "confirmed", stale: true }),
+    ]);
+
+    // WHEN its provenance is listed
+    // THEN each source carries the reliability and staleness of its latest fact
+    expect(provenance(s)).toEqual([
+      { name: "OpenStreetMap", fetchedAt: "2025-09-01T00:00:00Z", reliability: "sample", stale: false },
+      { name: "MSIP", fetchedAt: "2024-01-01T00:00:00Z", reliability: "confirmed", stale: true },
     ]);
   });
 });

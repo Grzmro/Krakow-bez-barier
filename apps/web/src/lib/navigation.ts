@@ -1,4 +1,4 @@
-import type { Route, RouteSegment } from "@krakow-bez-barier/contracts";
+import type { Reliability, Route, RouteSegment } from "@krakow-bez-barier/contracts";
 
 /** Closer than this to the end of a step: the next one starts. */
 export const ARRIVE_METERS = 15;
@@ -108,12 +108,17 @@ export function concerns(route: Route, progress: Pick<Progress, "step" | "toStep
   return { here, ahead: null };
 }
 
-/** The sources behind a segment's facts, each with its latest fetch date (ISO), in the order they first appear. */
-export function provenance(segment: RouteSegment): { name: string; fetchedAt: string }[] {
-  const latest = new Map<string, string>();
+/** A source behind a segment's facts, as of its latest fact: when it was fetched, how reliable it is, whether it's stale. */
+export type SegmentSource = { name: string; fetchedAt: string; reliability: Reliability; stale: boolean };
+
+/** The sources behind a segment's facts, each as of its latest fact, in the order they first appear. */
+export function provenance(segment: RouteSegment): SegmentSource[] {
+  const latest = new Map<string, SegmentSource>();
   for (const fact of segment.facts) {
     const seen = latest.get(fact.source.name);
-    if (!seen || fact.fetchedAt > seen) latest.set(fact.source.name, fact.fetchedAt);
+    if (!seen || fact.fetchedAt > seen.fetchedAt) {
+      latest.set(fact.source.name, { name: fact.source.name, fetchedAt: fact.fetchedAt, reliability: fact.reliability, stale: Boolean(fact.stale) });
+    }
   }
-  return [...latest].map(([name, fetchedAt]) => ({ name, fetchedAt }));
+  return [...latest.values()];
 }

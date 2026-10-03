@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, type Ref, type RefObject } from "react";
+import { Fragment, useEffect, useRef, type Ref, type RefObject } from "react";
 import { CaretLeft, CaretRight, CloudSlash, FlagCheckered, MapPin } from "@phosphor-icons/react";
 import type { Route } from "@krakow-bez-barier/contracts";
 import { Button, cn, LabeledSwitch, StatusIcon, useAnnounce } from "@krakow-bez-barier/ui";
 import { useLocale, useMessages } from "@/i18n/client";
+import { SampleTag } from "@/components/kbb";
 import { formatDate } from "@/lib/place-facts";
 import { concerns, provenance, type Concern } from "@/lib/navigation";
 import type { Guidance } from "@/lib/use-guidance";
@@ -40,10 +41,15 @@ export function RouteNavigation({
   const modeText = mode === "located" ? t.tracking : mode === "locating" ? t.locating : failure === "denied" ? t.manualDenied : t.manualUnavailable;
   const stepText = useStepText(route, progress);
 
-  // Each new step, being off the route, arriving and falling back to manual mode are read out.
+  // Each new step, being off the route, arriving and falling back to manual mode are read out. The live region holds one
+  // message, and the switch to manual mode often lands right after step 1 is announced, so it repeats the current step.
+  const announced = useRef<{ stepText: string | null; mode: Guidance["mode"] | null }>({ stepText: null, mode: null });
   useEffect(() => {
-    if (stepText) announce(stepText);
-  }, [announce, stepText]);
+    const previous = announced.current;
+    announced.current = { stepText, mode };
+    if (mode === "manual" && previous.mode !== "manual") announce([modeText, stepText].filter(Boolean).join(" "));
+    else if (stepText && stepText !== previous.stepText) announce(stepText);
+  }, [announce, mode, modeText, stepText]);
   const offRoute = progress?.offRoute ? t.offRoute(progress.offBy ?? 0) : null;
   const offRouteShown = Boolean(offRoute);
   const lastOff = useRef(false);
@@ -54,9 +60,6 @@ export function RouteNavigation({
   useEffect(() => {
     if (progress?.arrived) announce(t.arrived);
   }, [announce, progress?.arrived, t.arrived]);
-  useEffect(() => {
-    if (mode === "manual") announce(modeText);
-  }, [announce, mode, modeText]);
   // A short buzz on a new step while walking by GPS (where supported).
   const step = progress?.step;
   useEffect(() => {
@@ -150,7 +153,7 @@ function ConcernItem({ label, concern }: { label: string; concern: Concern }) {
   const m = useMessages();
   const locale = useLocale();
   const { segment } = concern;
-  const sources = provenance(segment).map((source) => `${source.name}, ${formatDate(source.fetchedAt, locale)}`);
+  const sources = provenance(segment);
   return (
     <li className="flex gap-2 rounded-2xl bg-surface-raised p-3 shadow-soft ring-1 ring-border/70">
       <StatusIcon status={segment.state} className="mt-0.5 size-5 shrink-0" />
@@ -160,7 +163,20 @@ function ConcernItem({ label, concern }: { label: string; concern: Concern }) {
           {m.common.status[segment.state]}
           {segment.note ? ` — ${segment.note}` : ""}
         </span>{" "}
-        <span className="text-muted-foreground">({sources.length ? sources.join("; ") : m.route.nav.unchecked})</span>
+        <span className="text-muted-foreground">
+          (
+          {sources.length
+            ? sources.map((source, i) => (
+                <Fragment key={source.name}>
+                  {i ? "; " : ""}
+                  {`${source.name}, ${formatDate(source.fetchedAt, locale)} · ${m.place.level[source.reliability]}`}
+                  {source.stale ? ` · ${m.common.reliability.outdated}` : ""}
+                  {source.reliability === "sample" ? <SampleTag className="ml-1 align-middle" /> : null}
+                </Fragment>
+              ))
+            : m.route.nav.unchecked}
+          )
+        </span>
       </p>
     </li>
   );

@@ -76,7 +76,7 @@ export const route = {
     follow: "Mapa podąża za mną",
     offRoute: (m: number) => `Zboczyłeś z trasy (ok. ${Math.round(m)} m)`,
     reroute: "Wyznacz od nowa",
-    rerouteHint: "Nowa trasa poprowadzi od miejsca, w którym jesteś. Pozycję wysyłamy tylko do jej wyznaczenia i nie zapisujemy.",
+    rerouteHint: "Nowa trasa poprowadzi od miejsca, w którym jesteś. Pozycję wysyłamy do serwisu wyznaczania tras (openrouteservice) tylko w tym celu; my jej nie zapisujemy.",
     arrived: "Jesteś u celu",
     previous: "Poprzedni krok",
     next: "Następny krok",

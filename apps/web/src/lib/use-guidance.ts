@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Route } from "@krakow-bez-barier/contracts";
 import { watchDevice, type DevicePosition, type LocateFailure } from "./native/geolocation";
 import { atStepStart, locate, type Progress } from "./navigation";
@@ -31,17 +31,20 @@ export function useGuidance(route: Route | undefined): Guidance {
   const [device, setDevice] = useState<DevicePosition | null>(null);
   const [failure, setFailure] = useState<LocateFailure | null>(null);
   const [follow, setFollow] = useState(true);
-  const [guided, setGuided] = useState(route);
+  const routeKey = useMemo(() => (route ? JSON.stringify(route.segments.map((s) => s.geometry.coordinates)) : null), [route]);
+  const [guided, setGuided] = useState(routeKey);
   const routeRef = useRef(route);
   const stepRef = useRef(step);
+  const hadFix = useRef(false);
   useEffect(() => {
     routeRef.current = route;
     stepRef.current = step;
   });
 
-  // A new route (planned again from here, another kind) starts from its first step.
-  if (guided !== route) {
-    setGuided(route);
+  // A new route (planned again from here, another kind) starts from its first step; a refetch of the same one keeps the
+  // step, and so does the gap while a new route loads.
+  if (routeKey !== null && guided !== routeKey) {
+    setGuided(routeKey);
     setStep(0);
   }
 
@@ -52,7 +55,10 @@ export function useGuidance(route: Route | undefined): Guidance {
         setDevice(position);
         const current = routeRef.current;
         if (!current) return;
-        const next = locate(current, toLonLat(position), stepRef.current).step;
+        // The first fix is matched from the start: a step picked by hand before it is no reason to skip ahead.
+        const from = hadFix.current ? stepRef.current : 0;
+        hadFix.current = true;
+        const next = locate(current, toLonLat(position), from).step;
         if (next === stepRef.current) return;
         stepRef.current = next;
         setStep(next);
@@ -76,6 +82,7 @@ export function useGuidance(route: Route | undefined): Guidance {
     setFollow,
     start: useCallback(() => {
       setStep(0);
+      hadFix.current = false;
       setDevice(null);
       setFailure(null);
       setFollow(true);

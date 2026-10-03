@@ -22,7 +22,7 @@
           - listitem:
             - paragraph:
               - strong: /Za \d+ m:/
-              - text: /Brak danych — brak danych o nawierzchni na części odcinka \(OpenStreetMap \(przez openrouteservice\), \d+\.\d+\.\d+\)/
+              - text: /Brak danych — brak danych o nawierzchni na części odcinka \(OpenStreetMap \(przez openrouteservice\), \d+\.\d+\.\d+ · [^)]+\)/
         - paragraph: "/Do celu: \\d+,\\d+ km · \\d+ min/"
         - paragraph: Prowadzimy według Twojej pozycji. Pozycja zostaje na tym urządzeniu.
         - text: Mapa podąża za mną

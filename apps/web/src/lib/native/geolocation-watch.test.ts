@@ -107,4 +107,22 @@ describe("watchDevice in the native app", () => {
     await vi.waitFor(() => expect(onFailure).toHaveBeenCalledWith("denied"));
     expect(watchPosition).not.toHaveBeenCalled();
   });
+
+  it("stays silent when stopped while the permission prompt is open", async () => {
+    // GIVEN a permission prompt the user answers with "deny" only after guidance has ended
+    let answer: (value: unknown) => void = () => {};
+    requestPermissions.mockReturnValue(new Promise((resolve) => (answer = resolve)));
+    const onFailure = vi.fn();
+    const stop = watchDevice(vi.fn(), onFailure);
+    await vi.waitFor(() => expect(requestPermissions).toHaveBeenCalled());
+
+    // WHEN guidance ends, then the prompt is answered
+    stop();
+    answer({ location: "denied", coarseLocation: "denied" });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    // THEN no failure is reported and nothing is watched
+    expect(onFailure).not.toHaveBeenCalled();
+    expect(watchPosition).not.toHaveBeenCalled();
+  });
 });

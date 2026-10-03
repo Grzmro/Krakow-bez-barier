@@ -106,8 +106,8 @@ function watchNative(onPosition: OnPosition, onFailure: OnFailure): () => void {
     const { Geolocation } = await import("@capacitor/geolocation");
     try {
       const permission = await Geolocation.requestPermissions({ permissions: ["location"] });
-      if (permission.location === "denied" && permission.coarseLocation !== "granted") return onFailure("denied");
       if (stopped) return;
+      if (permission.location === "denied" && permission.coarseLocation !== "granted") return onFailure("denied");
       const id = await Geolocation.watchPosition(WATCH, (position, error) => {
         if (stopped) return;
         if (position) onPosition(toPosition(position.coords));

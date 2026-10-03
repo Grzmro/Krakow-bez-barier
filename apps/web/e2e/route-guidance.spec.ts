@@ -75,8 +75,8 @@ test.describe("with location access", () => {
     // THEN step 2 takes over and is read out
     await expect(main).toContainText(`Krok 2 z ${total}`);
     await expect(page.getByRole("status")).toContainText(`Krok 2 z ${total}: ${steps[1].instruction}`);
-    // AND the gap in the data on that step is named with its source and date
-    await expect(main).toContainText(/Na tym odcinku: Brak danych — brak danych o nawierzchni.*\(OpenStreetMap.*\d{1,2}\.\d{1,2}\.\d{4}\)/);
+    // AND the gap in the data on that step is named with its source, date and reliability
+    await expect(main).toContainText(/Na tym odcinku: Brak danych — brak danych o nawierzchni.*\(OpenStreetMap.*\d{1,2}\.\d{1,2}\.\d{4} · \S[^)]*\)/);
 
     await context.setGeolocation(at(steps[1].geometry.coordinates.at(-1)!));
     await expect(main).toContainText(`Krok 3 z ${total}`);
@@ -91,7 +91,7 @@ test.describe("with location access", () => {
     await expect(main).toContainText("Zboczyłeś z trasy");
     await expect(page.getByRole("status")).toContainText("Zboczyłeś z trasy");
     const reroute = page.getByRole("button", { name: "Wyznacz od nowa" });
-    await expect(reroute).toHaveAccessibleDescription(/Pozycję wysyłamy tylko do jej wyznaczenia/);
+    await expect(reroute).toHaveAccessibleDescription(/Pozycję wysyłamy do serwisu wyznaczania tras \(openrouteservice\) tylko w tym celu/);
     await evidence("route-guidance-off-route");
 
     // WHEN they ask for it
@@ -123,7 +123,8 @@ test("without location access guidance runs by hand, by keyboard", async ({ page
   // THEN manual mode says why and starts on step 1 with "Poprzedni krok" disabled
   const main = page.locator("main");
   await expect(main).toContainText("Brak zgody na lokalizację, więc prowadzimy ręcznie");
-  await expect(page.getByRole("status")).toContainText("Brak zgody na lokalizację");
+  // The switch to manual mode repeats the current step, so it never replaces step 1 in the live region unheard.
+  await expect(page.getByRole("status")).toContainText(/Brak zgody na lokalizację.*Krok 1 z 33/);
   await expect(main).toContainText("Krok 1 z 33");
   await expect(page.getByRole("button", { name: "Poprzedni krok" })).toBeDisabled();
 

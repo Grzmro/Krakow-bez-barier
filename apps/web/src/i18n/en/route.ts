@@ -71,7 +71,7 @@ export const route: Messages["route"] = {
     follow: "Map follows me",
     offRoute: (m: number) => `You're off the route (about ${Math.round(m)} m)`,
     reroute: "Plan again",
-    rerouteHint: "The new route starts where you are. Your position is sent only to plan it and is not stored.",
+    rerouteHint: "The new route starts where you are. Your position is sent to the routing service (openrouteservice) only for that; we don't store it.",
     arrived: "You've arrived",
     previous: "Previous step",
     next: "Next step",
