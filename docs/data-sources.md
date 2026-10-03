@@ -19,6 +19,7 @@ see the status column.
 | `zdmk-parking-ozn` | ZDMK "Miejsca postojowe OZN" (ArcGIS Online) | marked parking spaces for disabled drivers | No licence in the ArcGIS item | **To confirm** | only after confirmation |
 | `ztp-stops` | ZTP "Przystanki Komunikacji Miejskiej w Krakowie" (ArcGIS Online) | stop inventory: benches, platform surface | No licence in the ArcGIS item | **To confirm** | only after confirmation |
 | `msip-koh` | MSIP "Obiekty hotelarskie KOH" (`WT_OBIEKTY_HOTELOWE_KOH`) | hotel names/categories/addresses, no accessibility fields | Not stated; derived from the national register of hotel facilities | **To confirm** | only after confirmation |
+| `ztp-gtfs-rt` | ZTP Kraków GTFS + GTFS-Realtime | nearest stops, next departures, vehicle wheelchair flag | None published | **To confirm** | no (on demand, server-side; off in production until confirmed) |
 | (runtime) | openrouteservice | routing, not stored | Service terms (HeiGIT) | Partly confirmed | no (on demand, server-side) |
 | (runtime) | OpenFreeMap tiles | base map | MIT (project); map data OSM/ODbL | Confirmed | no (browser loads tiles) |
 
@@ -117,6 +118,19 @@ city's ArcGIS Online organisation) for the licence. We could not complete any of
 | Freshness | Depends on the OSM extract the provider runs; not under our control |
 | Verification | A route is a computed suggestion, labelled as such; it is not an accessibility fact and carries no per-segment guarantee. Routes show attribution |
 | When unavailable | `RoutingProvider` returns an error; the UI says routing is unavailable and still shows place data. Other providers (self-hosted ORS, others) can implement the interface |
+
+### `ztp-gtfs-rt` — ZTP Kraków GTFS and GTFS-Realtime (transit departures)
+
+| | |
+|---|---|
+| Origin | Zarząd Transportu Publicznego w Krakowie, https://gtfs.ztp.krakow.pl (feeds published by MPK S.A. and, for Mobilis buses, R&G PLUS per `feed_info.txt`) |
+| Endpoint | Per feed `T` (MPK trams), `A` (MPK buses), `M` (Mobilis buses): `GTFS_KRK_<id>.zip` (timetable; we read `stops`, `routes`, `trips`), `TripUpdates_<id>.pb` and `VehiclePositions_<id>.pb` (GTFS-Realtime protobuf). Base URL `ZTP_GTFS_BASE_URL` |
+| What we read | Stops within 400 m of a place (grouped by name), predicted departures in the next hour, and `VehicleDescriptor.wheelchair_accessible` of the vehicle on each trip |
+| Licence | **To confirm.** No licence or terms next to the files (checked 2026-10-03); none found on otwartedane / dane.gov.pl. `ZTP_SOURCE.licenseConfirmed = false`, so a production build answers `mode: disabled` and the card says the data awaits licence confirmation |
+| Freshness | Realtime files are regenerated every few seconds; the server reads them at most every 30 s and shows the feed's own timestamp ("dane z …"). Timetable zips are re-read every 12 h |
+| Verification | What the flag says on 2026-10-03: every one of 122 trams is `WHEELCHAIR_ACCESSIBLE`, high-floor trams included, so for trams it is a default and shown as „Niezweryfikowane” (reliability `inferred`); bus feeds send no flag at all, shown as „Brak danych”. Only a flag from a feed we trust (buses, if ZTP starts sending it) becomes „Pojazd dostępny / niedostępny dla wózka” (`confirmed`); `WHEELCHAIR_INACCESSIBLE` is always believed. A realtime trip missing from the timetable is left out |
+| When unavailable | The last data read stays in memory and is served with `refreshStatus: outage` and its time („Pokazujemy ostatnie pobrane, z …”); with nothing read yet the card says to check the stop's board. `outage` means every feed (T, A, M) failed; when only some fail, the status follows the working ones and `statusNote` (shown on the card) names the missing modes, e.g. „Część danych przewoźnika jest niedostępna (autobusy)”. Live data more than 5 minutes old (the feed answers but stopped updating) is `stale` and the card says so („Dane przewoźnika nie odświeżają się od …”), not that the operator is down. `lastSuccessAt` is our last good read; `fetchedAt` is when the operator produced the data. An empty `VehiclePositions` file (seen during the day) only drops the vehicle data — departures stay, vehicles read „Brak danych”. A failing endpoint never breaks the place card. `SIMULATE_SOURCE_OUTAGE=ztp-gtfs-rt` simulates it |
+| Tests | Recorded with `npm run transit:record -w apps/web` into `apps/web/src/server/transit/fixtures/ztp-<date>.json` (cut to the city centre); tests and e2e use it (`TRANSIT_FEED=recorded`) and the UI labels it as a recording, never as live |
 
 ### OpenFreeMap — base map tiles
 

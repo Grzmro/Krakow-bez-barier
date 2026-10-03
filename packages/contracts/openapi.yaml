@@ -42,6 +42,8 @@ tags:
   description: Aggregated statistics and repair priorities for the city's staff (authenticated).
 - name: routes
   description: Accessible routing.
+- name: transit
+  description: Public transport departures near a place, with live vehicle accessibility.
 - name: widget
   description: Read-only embeddable card for venues and organisers.
 - name: health
@@ -1262,6 +1264,113 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '502':
           $ref: '#/components/responses/BadGateway'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /transit/departures:
+    get:
+      operationId: listTransitDepartures
+      summary: Upcoming departures near a point, with vehicle accessibility
+      description: 'Public transport stops (ZTP Kraków GTFS) within `radius` metres of the point, grouped by stop name,
+        nearest first, each with its next departures from the live GTFS-Realtime feed and whether the vehicle on that
+        trip can take a wheelchair. Missing vehicle data is `no_data`, never accessible; a flag the operator sends as a
+        default (trams) is `unverified`.
+
+        `mode` says where the data comes from: `live` (the feed, refreshed at most every 30 s), `recorded` (a recording
+        for tests and the demo, never presented as live) or `disabled` (the feed''s licence is not confirmed, so nothing
+        is served). When every feed fails, the last data is served with `source.refreshStatus: outage` and `fetchedAt`
+        telling how old it is; when only some fail, the status follows the rest and `source.statusNote` names the
+        missing modes. Live data more than 5 minutes old is `stale`.
+
+        '
+      tags:
+      - transit
+      parameters:
+      - name: lat
+        in: query
+        required: true
+        schema:
+          type: number
+          minimum: -90
+          maximum: 90
+      - name: lon
+        in: query
+        required: true
+        schema:
+          type: number
+          minimum: -180
+          maximum: 180
+      - name: radius
+        in: query
+        description: Search radius in metres.
+        schema:
+          type: integer
+          minimum: 50
+          maximum: 1000
+          default: 400
+      responses:
+        '200':
+          description: Nearby stops and their next departures.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransitDepartures'
+              examples:
+                default:
+                  summary: A tram stop near the Rynek (recorded feed)
+                  value:
+                    mode: recorded
+                    fetchedAt: '2026-10-03T18:06:23Z'
+                    source:
+                      id: ztp-gtfs-rt
+                      name: 'ZTP Kraków: GTFS i GTFS-Realtime'
+                      kind: official_open_data
+                      license: Do sprawdzenia
+                      attribution: Zarząd Transportu Publicznego w Krakowie
+                      url: https://gtfs.ztp.krakow.pl
+                      refreshInterval: 30 s
+                      refreshStatus: ok
+                      lastSuccessAt: '2026-10-03T18:06:23Z'
+                      lastAttemptAt: '2026-10-03T18:06:23Z'
+                      statusNote: null
+                      isSample: false
+                    stops:
+                    - id: T:stop_43_6119
+                      name: Teatr Bagatela
+                      location:
+                        type: Point
+                        coordinates:
+                        - 19.9333
+                        - 50.0636
+                      distanceMeters: 230
+                      departures:
+                      - tripId: block_12_trip_7_service_2
+                        mode: tram
+                        line: '8'
+                        headsign: Borek Fałęcki
+                        platform: '01'
+                        departureAt: '2026-10-03T18:09:00Z'
+                        delaySeconds: null
+                        vehicle:
+                          state: unverified
+                          reliability: inferred
+                          label: '405'
+                          observedAt: '2026-10-03T18:06:20Z'
+                      - tripId: 20260930_2_128804900_11
+                        mode: bus
+                        line: '502'
+                        headsign: Krowodrza Górka P+R
+                        platform: '03'
+                        departureAt: '2026-10-03T18:12:00Z'
+                        delaySeconds: 60
+                        vehicle:
+                          state: no_data
+                          reliability: null
+                          label: '147'
+                          observedAt: '2026-10-03T18:06:20Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
   /widget/{placeId}:
@@ -2992,6 +3101,140 @@ components:
             $ref: '#/components/schemas/RouteSegment'
         attribution:
           type: string
+    TransitDepartures:
+      type: object
+      required:
+      - mode
+      - fetchedAt
+      - source
+      - stops
+      properties:
+        mode:
+          type: string
+          description: '`live`: the operator''s feed; `recorded`: a recording (tests, demo), never shown as live;
+            `disabled`: not served because the feed''s licence is not confirmed (`stops` is empty).'
+          enum:
+          - live
+          - recorded
+          - disabled
+        fetchedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the feed produced the data shown (the oldest of the feeds used). Null when there is none.
+        source:
+          $ref: '#/components/schemas/Source'
+        stops:
+          type: array
+          items:
+            $ref: '#/components/schemas/TransitStop'
+    TransitStop:
+      type: object
+      description: Platforms that share a stop name, represented by the nearest one.
+      required:
+      - id
+      - name
+      - location
+      - distanceMeters
+      - departures
+      properties:
+        id:
+          type: string
+          description: '`<feed>:<stop_id>` of the nearest platform.'
+        name:
+          type: string
+        location:
+          $ref: '#/components/schemas/Point'
+        distanceMeters:
+          type: integer
+          minimum: 0
+          description: Straight-line distance to the nearest platform.
+        departures:
+          type: array
+          description: Next departures from any of the stop's platforms, soonest first. Empty when none is due within
+            an hour (or the feed has none).
+          items:
+            $ref: '#/components/schemas/TransitDeparture'
+    TransitDeparture:
+      type: object
+      required:
+      - tripId
+      - mode
+      - line
+      - headsign
+      - platform
+      - departureAt
+      - delaySeconds
+      - vehicle
+      properties:
+        tripId:
+          type: string
+        mode:
+          type: string
+          enum:
+          - tram
+          - bus
+        line:
+          type: string
+          examples:
+          - '8'
+        headsign:
+          type:
+          - string
+          - 'null'
+        platform:
+          type:
+          - string
+          - 'null'
+          description: Platform number within the stop (GTFS `stop_desc`), e.g. "01".
+        departureAt:
+          type: string
+          format: date-time
+          description: Predicted departure from the feed.
+        delaySeconds:
+          type:
+          - integer
+          - 'null'
+        vehicle:
+          $ref: '#/components/schemas/VehicleAccessibility'
+    VehicleAccessibility:
+      type: object
+      description: 'Whether the vehicle on the trip takes a wheelchair, from GTFS-Realtime `wheelchair_accessible`, with
+        its provenance (source and time are the response''s `source` and `fetchedAt`).
+
+        '
+      required:
+      - state
+      - reliability
+      - label
+      - observedAt
+      properties:
+        state:
+          type: string
+          description: '`accessible` / `inaccessible`: the operator says so for this vehicle; `unverified`: the feed says
+            accessible, but for this mode the flag is a default (every tram is flagged), so it is not trusted;
+            `no_data`: the feed says nothing — never treat as accessible.'
+          enum:
+          - accessible
+          - inaccessible
+          - unverified
+          - no_data
+        reliability:
+          oneOf:
+          - $ref: '#/components/schemas/Reliability'
+          - type: 'null'
+        label:
+          type:
+          - string
+          - 'null'
+          description: Fleet number shown on the vehicle.
+        observedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When the vehicle last reported its position.
     WidgetFact:
       type: object
       required:

@@ -22,9 +22,13 @@ import {
   SampleBanner,
   SampleTag,
   StatusBadge,
+  VehicleBadge,
   VerdictBlock,
 } from "@/components/kbb";
 import { useMessages } from "@/i18n/client";
+import { VEHICLE_STATUS } from "@/lib/transit";
+
+const VEHICLE_STATES = Object.keys(VEHICLE_STATUS) as (keyof typeof VEHICLE_STATUS)[];
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
@@ -68,6 +72,11 @@ export function ComponentsPreview() {
           {STATUSES.map((s) => (
             <li key={`${s}-sm`}>
               <StatusBadge status={s} size="sm" unconfirmed={s === "met"} />
+            </li>
+          ))}
+          {VEHICLE_STATES.map((state) => (
+            <li key={`vehicle-${state}`}>
+              <VehicleBadge state={state} />
             </li>
           ))}
         </ul>

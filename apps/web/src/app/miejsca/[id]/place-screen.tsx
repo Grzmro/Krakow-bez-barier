@@ -49,6 +49,7 @@ import { useMediaQuery } from "@/lib/use-media-query";
 import { OutageBanners } from "./outage-banners";
 import { OutageConfirmDrawer } from "./outage-confirm-drawer";
 import { ReportDrawer, type ReportMode, type ReportSubmission } from "./report-drawer";
+import { TransitSection } from "./transit-section";
 
 const DESKTOP = "(min-width: 64rem)";
 const MAP_PADDING = { top: 40, bottom: 40 };
@@ -502,6 +503,8 @@ function PlaceCard({ place }: { place: Place }) {
             </div>
           </div>
         ) : null}
+
+        <TransitSection location={place.location.coordinates as [number, number]} />
       </div>
 
       <div

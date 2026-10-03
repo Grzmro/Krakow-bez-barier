@@ -29,8 +29,9 @@ const runProdSpecs = process.env.E2E_PROD === "1" || !!process.env.E2E_PROD_BASE
 const startProdServer = runProdSpecs && !process.env.E2E_PROD_BASE_URL;
 
 const device = { ...devices["Pixel 7"], browserName: "chromium" as const };
-// Routes come from the recorded openrouteservice answers, never the live API (the root .env may hold a key).
-const env = { ORS_API_KEY: "" };
+// Routes come from the recorded openrouteservice answers, never the live API (the root .env may hold a key); transit
+// departures from the recorded ZTP feeds (a production build serves none until the licence is confirmed).
+const env = { ORS_API_KEY: "", TRANSIT_FEED: "recorded" };
 // The dev-server specs open the openapi.yaml sample places by id, so that server answers from the examples.
 // It must be `next dev` (also in CI): NEXT_PUBLIC_API_MOCK is inlined at build time, so `next start` of the
 // real-API build would ignore it. A reused dev server started without it serves real data and these specs fail.
