@@ -12,7 +12,7 @@ describe("isDetailRoute", () => {
   it("is false for the home, route and menu pages", () => {
     // GIVEN top-level pages, which have their own way back or none is needed
     // WHEN they are checked THEN none is a detail page
-    for (const path of [routes.home, "/trasa", routes.aboutData, routes.business]) {
+    for (const path of [routes.home, routes.route(), routes.aboutData, routes.business]) {
       expect(isDetailRoute(path)).toBe(false);
     }
   });
