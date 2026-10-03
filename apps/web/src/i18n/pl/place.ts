@@ -1,4 +1,4 @@
-import type { Category,Reliability, components } from "@krakow-bez-barier/contracts";
+import type { Reliability, components } from "@krakow-bez-barier/contracts";
 
 type SourceKind = components["schemas"]["SourceKind"];
 type SourceRefreshStatus = components["schemas"]["SourceRefreshStatus"];
@@ -126,6 +126,7 @@ export const place = {
   lastConfirmed: (date: string) => `ostatnio potwierdzone ${date}`,
   confirmations: (n: number) => `${n}/2 potwierdzeń`,
   communityConfirmed: "potwierdzone przez społeczność",
+  // Fallback only: labels come from GET /categories.
   category: {
     restaurant: "Restauracja",
     museum: "Muzeum",
@@ -135,7 +136,7 @@ export const place = {
     theatre: "Teatr",
     shop: "Handel",
     other: "Inne",
-  } satisfies Record<Category, string>,
+  } satisfies Record<string, string>,
   value: {
     yes: "Jest",
     no: "Nie ma",

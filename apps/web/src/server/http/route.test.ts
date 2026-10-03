@@ -50,12 +50,12 @@ describe("defineRoute — request validation", () => {
     expect(problem.errors).toEqual([expect.objectContaining({ field: "query.limit" })]);
   });
 
-  it("rejects a value outside a spec enum", async () => {
+  it("rejects a value that does not match a spec pattern", async () => {
     // GIVEN the listPlaces route
     const GET = listPlaces();
 
-    // WHEN a category is not in the Category enum
-    const res = await GET(new Request(`${BASE}/places?category=museum,casino`));
+    // WHEN a category id is not a valid id
+    const res = await GET(new Request(`${BASE}/places?category=museum,Not%20Valid`));
 
     // THEN the offending array item is reported
     expect(res.status).toBe(400);

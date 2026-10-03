@@ -147,3 +147,14 @@ test("the whole flow works with the keyboard alone", async ({ page }) => {
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/miejsca\//);
 });
+
+test("category chips are rendered from the categories API response, including ones web code never names", async ({ page }) => {
+  // GIVEN the home screen on the mock API (its categories response is kept equal to the config by a contracts test)
+  // WHEN it loads
+  await page.goto("/");
+
+  // THEN the filter offers Apteki, which no web code names
+  const chips = page.getByRole("group", { name: "Kategorie" });
+  await expect(chips.getByRole("button", { name: "Apteki" })).toBeVisible();
+  await expect(chips.getByRole("button", { name: "Muzea" })).toBeVisible();
+});

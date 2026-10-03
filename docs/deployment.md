@@ -3,10 +3,6 @@
 Answers the jury's questions on dependencies, licences, portability and scaling to other cities
 (challenge R3, R5, R8). Data sources and their terms: `docs/data-sources.md`.
 
-> **Status.** The ingest code (`apps/ingest`) is being built on branch `feat/KBB-18` and is not in
-> `main` yet. Paths under `apps/ingest` below describe the intended structure from
-> `.claude/rules/ingest.md`; items marked *(not yet in main)* must be checked against the code
-> once merged.
 
 ## Components and provider dependencies
 
@@ -54,24 +50,28 @@ No code depends on Vercel-only features; the ingest never runs at request time (
 
 ## Add a city
 
-A city is configuration only, in `apps/ingest/src/cities/<city>.ts` *(not yet in main)*:
+A city is configuration only, in `apps/ingest/src/cities/<city>.ts`:
 
-1. Create `apps/ingest/src/cities/<city>.ts` with the city id, name, bbox and the dataset URLs
-   per source (OSM needs only the bbox).
-2. Register it in `apps/ingest/src/registry.ts`.
-3. Run `npm run ingest -- --source osm --city <city>`.
+1. Create `apps/ingest/src/cities/<city>.ts` exporting a `CityConfig`: id, name, language, bbox,
+   map defaults, enabled sources, optional category subset and the endpoint per source (OSM
+   needs only the bbox). `wroclaw.ts` is a minimal example. Files in that directory are
+   discovered at start-up, there is nothing to register.
+2. Run `npm run ingest -- --source osm --city <city>`. Add it to `.github/workflows/ingest.yml`
+   to schedule it.
 
 OSM works for any city with no code. City-specific open datasets (like MSIP) need an adapter, see
 "Add a source". No web or API change is needed.
 
 ## Add a place category
 
-1. Add the category to the shared vocabulary enum in `packages/contracts/openapi.yaml` and run
-   `npm run contracts:generate`.
-2. Add the OSM tag mapping in the OSM adapter's mapper (and a fixture case in its test).
-3. Add the Polish label in `apps/web/src/i18n/pl.ts`.
+Add one entry to `packages/contracts/src/categories.ts`: id, Polish plural and singular label,
+icon key and the OSM tags (e.g. `{ key: "amenity", values: ["pharmacy"] }`). That feeds the
+Overpass query, the mapper and `GET /categories`, which the web filter and place card read; no
+change in `apps/web`. The icon key must be one the web icon registry knows
+(`apps/web/src/lib/categories.tsx`), otherwise a generic pin is shown. Re-run the ingest to fill it.
 
-An attribute follows the same path. Adapters skip and count values they cannot map.
+A new accessibility attribute still goes through the enum in `packages/contracts/openapi.yaml`.
+Adapters skip and count values they cannot map.
 
 ## Add a source
 

@@ -1,4 +1,4 @@
-import type { Category, FeatureFilter, GetPlaceQuery, Problem, Profile } from "@krakow-bez-barier/contracts";
+import type { FeatureFilter, GetPlaceQuery, Problem, Profile } from "@krakow-bez-barier/contracts";
 import { mockGetPlace, mockListPlaces } from "./mock-api";
 
 // Profile-aware `/places` mocks for the example-data mode (NEXT_PUBLIC_API_MOCK). Everything else
@@ -46,7 +46,7 @@ export const withPlacesMocks = (fallback: Fetch): Fetch => async (input) => {
     return json(
       mockListPlaces({
         q: params.get("q") ?? undefined,
-        category: list("category") as Category[] | undefined,
+        category: list("category"),
         feature: list("feature") as FeatureFilter[] | undefined,
         includeUnknown: params.has("includeUnknown") ? params.get("includeUnknown") === "true" : undefined,
         bbox: bbox?.length === 4 ? bbox : undefined,

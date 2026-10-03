@@ -1,6 +1,6 @@
 import { createDb } from "@krakow-bez-barier/db";
 import { cities } from "./cities";
-import { adapters } from "./registry";
+import { adapters, resolveTarget } from "./registry";
 import { runIngest } from "./runner";
 import { drizzleStore } from "./store";
 
@@ -9,19 +9,12 @@ function arg(name: string): string | undefined {
   return i >= 0 ? process.argv[i + 1] : undefined;
 }
 
-const cityId = arg("city");
-const city = cityId ? cities[cityId] : undefined;
-if (!city) {
-  console.error(`Usage: npm run ingest -- --city <${Object.keys(cities).join("|")}> [--source <id>]`);
+const target = resolveTarget(cities, arg("city"), arg("source"));
+if ("error" in target) {
+  console.error(target.error);
   process.exit(2);
 }
-
-const sourceIds = arg("source") ? [arg("source")!] : city.sources;
-const unknown = sourceIds.filter((id) => !adapters[id] || !city.sources.includes(id));
-if (unknown.length > 0) {
-  console.error(`Source(s) not available for ${city.id}: ${unknown.join(", ")}`);
-  process.exit(2);
-}
+const { city, sourceIds } = target;
 
 const userAgent =
   process.env.INGEST_USER_AGENT ??

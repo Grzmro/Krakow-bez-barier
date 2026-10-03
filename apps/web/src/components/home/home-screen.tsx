@@ -8,7 +8,7 @@ import { BottomPanel } from "@/components/kbb";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
 import { ThresholdsDrawer } from "@/components/profile/thresholds-drawer";
 import { pl } from "@/i18n/pl";
-import type { HomeCategory } from "@/i18n/pl/home";
+import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
 import { distanceMeters } from "@/lib/place-features";
 import { usePlaces } from "@/lib/places";
@@ -22,7 +22,7 @@ import { SearchBox } from "./search-box";
 const t = pl.home;
 const tp = pl.profile;
 
-const CATEGORIES: HomeCategory[] = ["all", "restaurant", "museum", "toilet", "hotel"];
+const ALL = "all";
 const FEATURES: FeatureFilter[] = ["step_free", "lift", "toilet_accessible", "bench", "disabled_parking", "changing_table"];
 const LIST_ID = "lista";
 const MAP_PADDING = { top: 150, bottom: 100 };
@@ -51,7 +51,8 @@ export function HomeScreen() {
   const [hideFailing, setHideFailing] = useState(false);
   const [thresholdsOpen, setThresholdsOpen] = useState(false);
   const [q, setQ] = useState("");
-  const [category, setCategory] = useState<HomeCategory>("all");
+  const [category, setCategory] = useState<string>(ALL);
+  const categories = useCategories();
   const [features, setFeatures] = useState<FeatureFilter[]>([]);
   const [showUnknown, setShowUnknown] = useState(false);
   const [expanded, setExpanded] = useState(false);
@@ -62,7 +63,7 @@ export function HomeScreen() {
   const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown };
   const places = usePlaces({
     q: query.q || undefined,
-    category: category === "all" ? undefined : [category],
+    category: category === ALL ? undefined : [category],
     feature: features.length ? features : undefined,
     includeUnknown: features.length ? showUnknown : undefined,
     limit: 100,
@@ -119,7 +120,7 @@ export function HomeScreen() {
 
   function searchWider() {
     setQ("");
-    setCategory("all");
+    setCategory(ALL);
     setFeatures([]);
     setShowUnknown(false);
     setStatusFilter(null);
@@ -160,12 +161,15 @@ export function HomeScreen() {
         <ToggleGroup
           aria-label={t.categoriesLabel}
           value={[category]}
-          onValueChange={(value) => value[0] && setCategory(value[0] as HomeCategory)}
+          onValueChange={(value) => value[0] && setCategory(value[0])}
           className="no-scrollbar pointer-events-auto mx-auto mt-1.5 max-w-xl overflow-x-auto px-4 py-1.5"
         >
-          {CATEGORIES.map((c) => (
-            <Toggle key={c} value={c} className="shadow-soft">
-              {t.categories[c]}
+          <Toggle value={ALL} className="shadow-soft">
+            {t.categoryAll}
+          </Toggle>
+          {categories.data?.map((c) => (
+            <Toggle key={c.id} value={c.id} className="shadow-soft">
+              {c.label}
             </Toggle>
           ))}
         </ToggleGroup>

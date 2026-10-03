@@ -1,9 +1,7 @@
-import type { Category, FeatureFilter } from "@krakow-bez-barier/contracts";
+import type { FeatureFilter } from "@krakow-bez-barier/contracts";
 
 const placesWord = (n: number) =>
   n === 1 ? "miejsce" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "miejsca" : "miejsc";
-
-export type HomeCategory = "all" | Extract<Category, "restaurant" | "museum" | "toilet" | "hotel">;
 
 export const home = {
   title: "Mapa i lista miejsc",
@@ -15,13 +13,7 @@ export const home = {
     clear: "Wyczyść wyszukiwanie",
   },
   categoriesLabel: "Kategorie",
-  categories: {
-    all: "Wszystko",
-    restaurant: "Restauracje",
-    museum: "Muzea",
-    toilet: "Toalety",
-    hotel: "Hotele",
-  } satisfies Record<HomeCategory, string>,
+  categoryAll: "Wszystko",
   filtersLabel: "Filtry cech",
   filters: {
     step_free: "Bez schodów",

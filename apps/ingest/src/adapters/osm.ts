@@ -3,16 +3,24 @@ import path from "node:path";
 import type { FetchContext, SourceAdapter } from "../adapter";
 import { retryAfterMs, SourceHttpError } from "../errors";
 import { mapOsmElement, type OsmElement } from "./osm-map";
-import { OSM_CATEGORIES } from "./osm-categories";
+import { categories as configuredCategories, type CategoryConfig } from "@krakow-bez-barier/contracts";
 
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
-export function buildQuery(bbox: FetchContext["city"]["bbox"]): string {
+/** Overpass QL for the categories enabled in a city (all configured ones unless the city lists a subset). */
+export function buildQuery(
+  bbox: FetchContext["city"]["bbox"],
+  categories: readonly CategoryConfig[] = configuredCategories,
+): string {
   const box = `${bbox.south},${bbox.west},${bbox.north},${bbox.east}`;
-  const clauses = OSM_CATEGORIES.map(
-    (r) => `  nwr["${r.key}"~"^(${r.values.join("|")})$"](${box});`,
+  const clauses = categories.flatMap((c) =>
+    c.osm.map((r) => `  nwr["${r.key}"~"^(${r.values.join("|")})$"](${box});`),
   );
   return `[out:json][timeout:120];\n(\n${clauses.join("\n")}\n);\nout meta center tags;`;
+}
+
+export function cityCategories(city: FetchContext["city"]): readonly CategoryConfig[] {
+  return city.categories ? configuredCategories.filter((c) => city.categories!.includes(c.id)) : configuredCategories;
 }
 
 async function readCache(file: string): Promise<OsmElement[] | null> {
@@ -51,7 +59,7 @@ export const osm: SourceAdapter<OsmElement> = {
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "User-Agent": userAgent, "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ data: buildQuery(city.bbox) }),
+      body: new URLSearchParams({ data: buildQuery(city.bbox, cityCategories(city)) }),
       signal: AbortSignal.timeout(150_000),
     });
     if (!response.ok) {
