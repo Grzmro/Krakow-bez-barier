@@ -9,6 +9,7 @@ export const routes = {
   privacy: "/prywatnosc",
   accessibility: "/deklaracja-dostepnosci",
   moderator: "/moderator",
+  city: "/miasto",
   business: "/dla-firm",
   event: eventPath,
   widget: (placeId: string) => `/widget/${encodeURIComponent(placeId)}`,

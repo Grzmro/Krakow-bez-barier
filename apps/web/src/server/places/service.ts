@@ -102,7 +102,7 @@ function toSource(record: SourceRecord): Source {
   };
 }
 
-function resolvePlace(records: FactRecord[], now: Date): ResolvedAttribute[] {
+export function resolvePlace(records: FactRecord[], now: Date): ResolvedAttribute[] {
   const facts = records.map((r) => toFact(r, now));
   return ATTRIBUTES.map((attribute) => resolveAttribute(attribute, facts, now));
 }

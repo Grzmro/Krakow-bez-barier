@@ -46,6 +46,12 @@ export type ModerationDecisionKind = Schemas["ModerationDecisionKind"];
 export type ModerationEvent = Schemas["ModerationEvent"];
 export type RouteRequest = Schemas["RouteRequest"];
 export type RouteSegment = Schemas["RouteSegment"];
+export type CityStats = Schemas["CityStats"];
+export type CityNeedStats = Schemas["CityNeedStats"];
+export type PriorityFactor = Schemas["PriorityFactor"];
+export type PriorityCriterion = Schemas["PriorityCriterion"];
+export type PriorityItem = Schemas["PriorityItem"];
+export type PriorityAction = Schemas["PriorityAction"];
 
 /** Base path of the v1 API on the app's own origin. */
 export const API_BASE_PATH = "/api/v1";

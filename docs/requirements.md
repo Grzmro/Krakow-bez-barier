@@ -236,6 +236,10 @@ Cel e2e: hotel lub organizator w kilka minut osadza dostępność swojego obiekt
     - Weryfikacja właściciela (np. link wysłany na e-mail powiązany z obiektem).
     - Dane od właściciela mają źródło „Właściciel obiektu” i status „Deklaracja właściciela”, nigdy „Certyfikat dostępności”; przechodzą moderację jak w E3.4.
 - US-9.4 (C) Jako organizator wydarzenia chcę wygenerować stronę lub link „Dojazd i wejście bez barier” dla miejsca wydarzenia.
+- US-9.5 (C) Jako pracownik miasta chcę zobaczyć zbiorcze statystyki barier, luk w danych i zgłoszeń oraz jawny ranking miejsc do naprawy lub uzupełnienia danych, żeby planować działania.
+    - Tylko dane zbiorcze, bez danych osobowych; brak danych liczy się jako „Brak danych”, nigdy jako „dostępne”; dane PRZYKŁAD pominięte lub oznaczone.
+    - Kryteria i wagi rankingu są pokazane w panelu; ranking można pobrać jako CSV (z informacją, jeśli plik jest ucięty).
+    - Dostęp za logowaniem moderatora.
 
 ### E10 — Kolejne miasta, kategorie i źródła · M (konfiguracja) / C (demo) · P6
 

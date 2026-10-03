@@ -25,7 +25,7 @@ function uniqueById<T extends { id: string }>(items: T[]): T[] {
   return items.filter((item) => !seen.has(item.id) && seen.add(item.id));
 }
 
-const PLACES: Place[] = uniqueById(Object.values(responseExamples.getPlace[200]));
+export const EXAMPLE_PLACES: Place[] = uniqueById(Object.values(responseExamples.getPlace[200]));
 
 function toSummary(place: Place): PlaceSummary {
   const { id, name, category, location, address, isSample } = place;
@@ -36,7 +36,7 @@ function toSummary(place: Place): PlaceSummary {
 // List examples first: their chips carry the human-written labels the list shows.
 const SUMMARIES: PlaceSummary[] = uniqueById([
   ...Object.values<PlaceList>(responseExamples.listPlaces[200]).flatMap((list) => list.items),
-  ...PLACES.map(toSummary),
+  ...EXAMPLE_PLACES.map(toSummary),
 ]);
 
 function inBbox(summary: PlaceSummary, bbox?: number[]) {
@@ -46,7 +46,7 @@ function inBbox(summary: PlaceSummary, bbox?: number[]) {
   return lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat;
 }
 
-const factsOf = (summary: PlaceSummary) => PLACES.find((p) => p.id === summary.id) ?? { attributes: [] };
+const factsOf = (summary: PlaceSummary) => EXAMPLE_PLACES.find((p) => p.id === summary.id) ?? { attributes: [] };
 
 // List-only examples have no facts; their hand-written chips mark only present features as known.
 function stateFromChips(summary: PlaceSummary, feature: FeatureFilter): FeatureMatch["state"] {
@@ -58,7 +58,7 @@ function stateFromChips(summary: PlaceSummary, feature: FeatureFilter): FeatureM
 /** Answers each feature filter from the example's facts, like the API does. */
 function withFeatures(summary: PlaceSummary, query: ListPlacesQuery): PlaceSummary {
   if (!query.feature?.length) return summary;
-  const place = PLACES.find((p) => p.id === summary.id);
+  const place = EXAMPLE_PLACES.find((p) => p.id === summary.id);
   const features = query.feature.map((feature) => ({
     feature,
     state: place ? featureState(place.attributes, feature) : stateFromChips(summary, feature),
@@ -92,7 +92,7 @@ const HIDDEN_BY_DEFAULT = new Set(categories.filter((c) => c.hiddenByDefault).ma
  */
 function localizedChips(summary: PlaceSummary, locale: Locale): PlaceSummary {
   if (locale === defaultLocale) return summary;
-  const place = PLACES.find((p) => p.id === summary.id);
+  const place = EXAMPLE_PLACES.find((p) => p.id === summary.id);
   const chip = messagesFor(locale).summary.chip;
   return {
     ...summary,
@@ -122,7 +122,7 @@ export function mockListPlaces(query: ListPlacesQuery = {}, locale: Locale = def
 }
 
 export function mockGetPlace(id: string, query: GetPlaceQuery = {}, locale: Locale = defaultLocale): Place | null {
-  const place = PLACES.find((p) => p.id === id);
+  const place = EXAMPLE_PLACES.find((p) => p.id === id);
   if (!place) return null;
   const thresholds = thresholdsFor(query);
   return { ...place, verdict: thresholds ? matchProfile(place, thresholds, locale) : null };

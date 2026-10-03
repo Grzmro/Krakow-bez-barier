@@ -1,0 +1,179 @@
+- main:
+  - link "Wróć na stronę główną":
+    - /url: /
+  - heading "Panel dla miasta" [level=1]
+  - text: Dane przykładowe
+  - paragraph: /Stan na \d+\.\d+\.\d+, \d+:\d+/
+  - button "Wyloguj"
+  - paragraph: Tylko dane zbiorcze, bez danych osobowych. Brak danych nigdy nie liczy się jako „dostępne”. Liczymy wszystkie miejsca oprócz kategorii ukrytych domyślnie na mapie (miejsca postojowe, przystanki) — potrzeby z profilu „Wózek” ich nie dotyczą.
+  - paragraph: "Tryb przykładowy: statystyki policzone z przykładowych miejsc, nie z danych Krakowa."
+  - heading "W skrócie" [level=2]
+  - term: Miejsca w bazie
+  - definition: "7"
+  - term: Z danymi o dostępności
+  - definition: "6"
+  - definition: /\d+% miejsc/
+  - term: Bez żadnych danych
+  - definition: "1"
+  - definition: /\d+% miejsc/
+  - term: Zgłoszenia do decyzji
+  - definition: "2"
+  - term: /Miejsca z nieaktualnymi danymi \(>\d+ mies\. lub źródło nie odświeża się\)/
+  - definition: "2"
+  - definition: 2 fakty
+  - term: Miejsca ze sprzecznymi źródłami
+  - definition: "1"
+  - definition: 1 atrybut
+  - region "Bariery i luki w danych według potrzeby":
+    - heading "Bariery i luki w danych według potrzeby" [level=2]
+    - paragraph: /Każde miejsce sprawdzone jak w profilu „Wózek” \(wejście, drzwi min\. \d+ cm, winda, toaleta dostosowana\) oraz pod kątem równej nawierzchni\./
+    - region "Liczba miejsc według wyniku dla każdej potrzeby":
+      - table "Liczba miejsc według wyniku dla każdej potrzeby":
+        - caption: Liczba miejsc według wyniku dla każdej potrzeby
+        - rowgroup:
+          - row "Potrzeba Bariera Sprzeczne Brak danych Spełnia":
+            - columnheader "Potrzeba"
+            - columnheader "Bariera"
+            - columnheader "Sprzeczne"
+            - columnheader "Brak danych"
+            - columnheader "Spełnia"
+        - rowgroup:
+          - row "Wejście 1 0 5 1":
+            - rowheader "Wejście"
+            - cell "1"
+            - cell "0"
+            - cell "5"
+            - cell "1"
+          - row "Drzwi 1 0 5 1":
+            - rowheader "Drzwi"
+            - cell "1"
+            - cell "0"
+            - cell "5"
+            - cell "1"
+          - row "Winda 0 0 5 2":
+            - rowheader "Winda"
+            - cell "0"
+            - cell "0"
+            - cell "5"
+            - cell "2"
+          - row "Toaleta dostosowana 0 1 5 1":
+            - rowheader "Toaleta dostosowana"
+            - cell "0"
+            - cell "1"
+            - cell "5"
+            - cell "1"
+          - row "Nawierzchnia 0 0 7 0":
+            - rowheader "Nawierzchnia"
+            - cell "0"
+            - cell "0"
+            - cell "7"
+            - cell "0"
+  - region "Zgłoszenia mieszkańców":
+    - heading "Zgłoszenia mieszkańców" [level=2]
+    - region "Liczba zgłoszeń według statusu":
+      - table "Liczba zgłoszeń według statusu":
+        - caption: Liczba zgłoszeń według statusu
+        - rowgroup:
+          - row "Status Liczba":
+            - columnheader "Status"
+            - columnheader "Liczba"
+        - rowgroup:
+          - row "Oczekuje 1":
+            - rowheader "Oczekuje"
+            - cell "1"
+          - row "Do wyjaśnienia 1":
+            - rowheader "Do wyjaśnienia"
+            - cell "1"
+          - row "Zatwierdzone 0":
+            - rowheader "Zatwierdzone"
+            - cell "0"
+          - row "Odrzucone 0":
+            - rowheader "Odrzucone"
+            - cell "0"
+  - region "Priorytety napraw i uzupełnień":
+    - heading "Priorytety napraw i uzupełnień" [level=2]
+    - button "Pobierz CSV"
+    - paragraph: "Ranking miejsc, którymi warto zająć się najpierw. Wynik to suma punktów za każdy powód:"
+    - list:
+      - listitem: +4 pkt za każdą potrzebę ze znaną barierą (np. stopnie przy wejściu, brak windy, brak toalety dostosowanej)
+      - listitem: +3 pkt za każde zgłoszenie czekające na decyzję (liczą się maks. 3)
+      - listitem: +2 pkt za każdy atrybut, w którym źródła są sprzeczne
+      - listitem: +2 pkt gdy to miejsce, które odwiedza wiele osób (toaleta, apteka, muzeum, teatr lub kino) — tylko razem z innym powodem
+      - listitem: +1 pkt gdy nic nie wiemy o wejściu
+      - listitem: /\+1 pkt gdy o jakimś atrybucie mamy tylko nieaktualne dane \(starsze niż \d+ mies\. lub źródło nie odświeża się\)/
+    - paragraph: Nie mamy danych o liczbie odwiedzin, dlatego ruch przybliża kategoria miejsca. Wagi są jawne i łatwe do zmiany.
+    - region "Tabela priorytetów (przewijana poziomo)":
+      - table "Pierwsze 7 z 7 miejsc z co najmniej jednym powodem":
+        - caption: Pierwsze 7 z 7 miejsc z co najmniej jednym powodem
+        - rowgroup:
+          - row "Nr Miejsce Kategoria Punkty Działanie Powody":
+            - columnheader "Nr"
+            - columnheader "Miejsce"
+            - columnheader "Kategoria"
+            - columnheader "Punkty"
+            - columnheader "Działanie"
+            - columnheader "Powody"
+        - rowgroup:
+          - 'row "1 Restauracja Przykład Restauracja 8 Naprawa bariera: wejście, drzwi (+8)"':
+            - cell "1"
+            - rowheader "Restauracja Przykład":
+              - link "Restauracja Przykład":
+                - /url: /miejsca/restauracja-przyklad
+            - cell "Restauracja"
+            - cell "8"
+            - cell "Naprawa"
+            - 'cell "bariera: wejście, drzwi (+8)"'
+          - row "2 Podziemia Rynku Muzeum 7 Uzupełnienie danych 1 zgłoszenie do decyzji (+3), miejsce o dużym ruchu (+2), brak danych o wejściu (+1), nieaktualne dane (+1)":
+            - cell "2"
+            - rowheader "Podziemia Rynku":
+              - link "Podziemia Rynku":
+                - /url: /miejsca/podziemia-rynku
+            - cell "Muzeum"
+            - cell "7"
+            - cell "Uzupełnienie danych"
+            - cell "1 zgłoszenie do decyzji (+3), miejsce o dużym ruchu (+2), brak danych o wejściu (+1), nieaktualne dane (+1)"
+          - row "3 Pałac Krzysztofory Muzeum 5 Uzupełnienie danych sprzeczne źródła (+2), miejsce o dużym ruchu (+2), brak danych o wejściu (+1)":
+            - cell "3"
+            - rowheader "Pałac Krzysztofory":
+              - link "Pałac Krzysztofory":
+                - /url: /miejsca/palac-krzysztofory
+            - cell "Muzeum"
+            - cell "5"
+            - cell "Uzupełnienie danych"
+            - cell "sprzeczne źródła (+2), miejsce o dużym ruchu (+2), brak danych o wejściu (+1)"
+          - row "4 Teatr im. Juliusza Słowackiego Teatr lub kino 4 Uzupełnienie danych miejsce o dużym ruchu (+2), brak danych o wejściu (+1), nieaktualne dane (+1)":
+            - cell "4"
+            - rowheader "Teatr im. Juliusza Słowackiego":
+              - link "Teatr im. Juliusza Słowackiego":
+                - /url: /miejsca/teatr-slowackiego
+            - cell "Teatr lub kino"
+            - cell "4"
+            - cell "Uzupełnienie danych"
+            - cell "miejsce o dużym ruchu (+2), brak danych o wejściu (+1), nieaktualne dane (+1)"
+          - row "5 Hotel Przykład Hotel 3 Uzupełnienie danych 1 zgłoszenie do decyzji (+3)":
+            - cell "5"
+            - rowheader "Hotel Przykład":
+              - link "Hotel Przykład":
+                - /url: /miejsca/hotel-przyklad
+            - cell "Hotel"
+            - cell "3"
+            - cell "Uzupełnienie danych"
+            - cell "1 zgłoszenie do decyzji (+3)"
+          - row "6 Sukiennice Muzeum 3 Uzupełnienie danych miejsce o dużym ruchu (+2), brak danych o wejściu (+1)":
+            - cell "6"
+            - rowheader "Sukiennice":
+              - link "Sukiennice":
+                - /url: /miejsca/sukiennice
+            - cell "Muzeum"
+            - cell "3"
+            - cell "Uzupełnienie danych"
+            - cell "miejsce o dużym ruchu (+2), brak danych o wejściu (+1)"
+          - row "7 Kawiarnia Przykład Restauracja 1 Uzupełnienie danych brak danych o wejściu (+1)":
+            - cell "7"
+            - rowheader "Kawiarnia Przykład":
+              - link "Kawiarnia Przykład":
+                - /url: /miejsca/kawiarnia-przyklad
+            - cell "Restauracja"
+            - cell "1"
+            - cell "Uzupełnienie danych"
+            - cell "brak danych o wejściu (+1)"

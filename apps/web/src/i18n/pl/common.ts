@@ -29,6 +29,8 @@ export const common = {
     businessSub: "Karta dostępności na Twojej stronie",
     moderator: "Panel moderatora",
     moderatorSub: "Kolejka zgłoszeń",
+    city: "Panel dla miasta",
+    citySub: "Bariery, zgłoszenia, priorytety napraw",
     privacy: "Prywatność",
     privacySub: "Co zbieramy i na jak długo",
     a11y: "Deklaracja dostępności",
