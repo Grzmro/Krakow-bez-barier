@@ -48,6 +48,11 @@ export const home: Messages["home"] = {
     empty: "No places for this search.",
     emptyHint: "Try a wider search: no name, category or filters.",
     searchWider: "Search all of Kraków",
+    licenceHold: {
+      transit_stop: "Stop data is waiting for the ZTP licence to be confirmed.",
+      parking: "Parking space data is waiting for the ZDMK licence to be confirmed.",
+      link: "About the data",
+    },
     more: (shown, total) => `Show more places (${shown} of ${total})`,
     noFeatureMatch: (features: string) =>
       `No place in the results has this in its data: ${features}. Often nobody has described it yet — no data doesn't mean the facility is missing.`,

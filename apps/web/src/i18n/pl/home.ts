@@ -49,6 +49,11 @@ export const home = {
     empty: "Brak miejsc dla tego wyszukiwania.",
     emptyHint: "Spróbuj szerzej: bez nazwy, kategorii i filtrów.",
     searchWider: "Szukaj w całym Krakowie",
+    licenceHold: {
+      transit_stop: "Dane o przystankach czekają na potwierdzenie licencji ZTP.",
+      parking: "Dane o miejscach postojowych czekają na potwierdzenie licencji ZDMK.",
+      link: "O danych",
+    },
     more: (shown: number, total: number) => `Pokaż więcej miejsc (${shown} z ${total})`,
     noFeatureMatch: (features: string) =>
       `Żadne miejsce w wynikach nie ma w danych: ${features}. Często po prostu nikt tego nie opisał — brak danych to nie brak udogodnienia.`,

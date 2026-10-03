@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import type { FeatureFilter } from "@krakow-bez-barier/contracts";
 import { Button, cn, LabeledSwitch, StatusIcon, Switch, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
@@ -10,6 +11,7 @@ import { ThresholdsDrawer } from "@/components/profile/thresholds-drawer";
 import { useMessages } from "@/i18n/client";
 import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
+import { routes } from "@/lib/routes";
 import { byDistance, listCentre, searchArea, toLonLat, type NearbyOrigin } from "@/lib/nearby";
 import { listedCount } from "@/lib/list-count";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
@@ -441,6 +443,14 @@ export function HomeScreen() {
                   {features.length && !showUnknown ? (
                     <p className="text-body-sm text-muted-foreground">
                       {t.list.noFeatureMatch(features.map((f) => t.filters[f]).join(", "))}
+                    </p>
+                  ) : null}
+                  {category === "transit_stop" || category === "parking" ? (
+                    <p className="text-body-sm text-muted-foreground">
+                      {t.list.licenceHold[category]}{" "}
+                      <Link href={routes.aboutData} className="font-semibold text-primary underline">
+                        {t.list.licenceHold.link}
+                      </Link>
                     </p>
                   ) : null}
                   <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>
