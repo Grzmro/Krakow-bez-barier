@@ -13,7 +13,8 @@ barriers and facilities, each with its source, date and reliability. Deadline: *
 
 **[`docs/challenge.md`](docs/challenge.md) holds the most important requirements and is the source
 of truth for scope.** Read it before planning any task. Every feature must map to one of its
-requirements (R1–R8) or deliverables; anything that doesn't is out of scope unless the team decides
+requirements (R1–R8) or deliverables, and to a user story (US-x.y) in
+[`docs/requirements.md`](docs/requirements.md) — our epics and acceptance criteria; anything that doesn't is out of scope unless the team decides
 otherwise. The jury watches a live demo for one user group, checks where every piece of data comes
 from, and looks hard at the business model — optimize for that.
 
@@ -30,6 +31,7 @@ This file holds only what's needed in every session. Keep it short.
 - `.claude/context/*.md` — feature background (the "why"). Add one when you make a non-obvious
   design choice, and add it to the table below.
 - `docs/challenge.md` — challenge requirements, judging and deadlines (source of truth for scope).
+- `docs/requirements.md` — our epics and user stories (US-x.y) with acceptance criteria; Linear tasks cite them.
 - `docs/architecture.md` — the idea, components, and the decision log.
 - `.claude/skills/` — workflows: `task` (Linear task → PR end to end), `review` (self-review
   before PR), `ship` (commit, push, PR), `new-task` (create a Linear task).
