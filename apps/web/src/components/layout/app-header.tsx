@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Popover } from "@base-ui/react/popover";
 import {
+  BookmarkSimple,
   CaretRight,
   ChartBar,
   Crosshair,
@@ -34,8 +35,12 @@ import { BackButton } from "./back-button";
 import { LanguageSwitch } from "./language-switch";
 import { NearMe } from "./near-me";
 
-const menu = (t: Messages["common"]): { href: string; icon: Icon; title: string; short?: string; sub: string }[] => [
+// `phoneOnly`: kept out of the desktop header row, which has no room left; still in the phone menu.
+const menu = (
+  t: Messages["common"],
+): { href: string; icon: Icon; title: string; short?: string; sub: string; phoneOnly?: boolean }[] => [
   { href: routes.route(), icon: Path, title: t.menu.route, sub: t.menu.routeSub },
+  { href: routes.savedRoutes, icon: BookmarkSimple, title: t.menu.savedRoutes, sub: t.menu.savedRoutesSub, phoneOnly: true },
   { href: routes.aboutData, icon: Database, title: t.menu.aboutData, sub: t.menu.aboutDataSub },
   {
     href: routes.business,
@@ -110,7 +115,7 @@ export function AppHeader() {
           </Link>
           <ul className="hidden min-w-0 items-center gap-1 lg:flex">
             {menu(t)
-              .filter(({ href }) => href !== routes.city)
+              .filter(({ href, phoneOnly }) => href !== routes.city && !phoneOnly)
               .map(({ href, title, short }) => (
                 <li key={href}>
                   <Link href={href} aria-current={isCurrent(pathname, href) ? "page" : undefined} className={navLink}>

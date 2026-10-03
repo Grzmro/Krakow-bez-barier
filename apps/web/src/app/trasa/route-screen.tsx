@@ -3,25 +3,28 @@
 import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
 import { ArrowsDownUp, CaretRight, CircleNotch, CloudSlash, MapPin, NavigationArrow, WarningCircle, X } from "@phosphor-icons/react";
-import type { Place, Route } from "@krakow-bez-barier/contracts";
+import type { Route } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, StatusIcon, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
-import { BottomPanel, FactRow, StatusBadge } from "@/components/kbb";
+import { BottomPanel, StatusBadge } from "@/components/kbb";
 import { BackButton } from "@/components/layout/back-button";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
+import { PlaceEntrance } from "@/components/route/place-entrance";
 import { RouteMap } from "@/components/route/route-map";
+import { SaveRoute } from "@/components/route/save-route";
 import { StartPicker, type StartOption, type StartPick } from "@/components/route/start-picker";
-import { useLocale, useMessages } from "@/i18n/client";
+import { useMessages } from "@/i18n/client";
 import type { Messages } from "@/i18n/messages";
 import { config } from "@/lib/config";
 import { locateDevice } from "@/lib/native/geolocation";
 import { locationSettings } from "@/lib/native/platform";
 import { locateFailureText, toLonLat } from "@/lib/nearby";
-import { factViews } from "@/lib/place-facts";
 import { usePlace } from "@/lib/places";
 import type { ProfileSettings } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { parseStart, startParam, STATION, type RouteStart } from "@/lib/route-start";
+import { barrierList, cleanHeadline, gaps, routeStatus } from "@/lib/route-summary";
 import { routes } from "@/lib/routes";
+import type { SavedRouteInput } from "@/lib/saved-routes";
 import { scrollIntoViewWithin } from "@/lib/scroll-within";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useGuidance } from "@/lib/use-guidance";
@@ -35,9 +38,6 @@ const MAP_PADDING = { top: 190, bottom: 80 };
 // Bottom: the attribution and zoom buttons sit there, and the destination dot must stay clear of them.
 const MAP_PADDING_DESKTOP = { top: 48, bottom: 96 };
 const DESKTOP = "(min-width: 64rem)";
-
-// Entrance facts from the destination's card: what the route ends at.
-const ENTRANCE = new Set(["step_count", "threshold_cm", "door_width_cm", "ramp"]);
 
 const BAR: Record<Status, string> = {
   met: "bg-status-met",
@@ -63,9 +63,6 @@ const HEADLINE: Record<Status, string> = {
 
 type RouteMessages = Messages["route"];
 
-const barrierList = (route: Route) =>
-  [...new Set(route.segments.filter((s) => s.state === "barrier").map((s) => s.note).filter(Boolean))].join(", ");
-
 /** What the alternative misses when it shows no known barrier: the request's own limits. */
 const limitsOf = (t: RouteMessages, settings: ProfileSettings) => {
   const profile = settings.profile;
@@ -73,22 +70,6 @@ const limitsOf = (t: RouteMessages, settings: ProfileSettings) => {
   const { maxThresholdCm, requireSmoothSurface } = settings.thresholds[profile];
   return t.limitsProfile(maxThresholdCm, requireSmoothSurface);
 };
-
-/** Segments without data and with conflicting data: neither counts as passable. */
-function gaps(t: RouteMessages, route: Route) {
-  const conflicts = route.segments.filter((s) => s.state === "conflict").length;
-  return [t.unknownOn(route.unknownSegmentCount, route.unknownMeters), conflicts ? t.conflictOn(conflicts) : null].filter(Boolean).join(", ");
-}
-
-/** One state per route, the same wherever the route is shown: barriers, then conflicts, then missing data. */
-function routeStatus(route: Route): Status {
-  if (route.knownBarrierCount) return "barrier";
-  if (route.segments.some((s) => s.state === "conflict")) return "conflict";
-  return route.unknownSegmentCount ? "unknown" : "met";
-}
-
-/** Headline of a route without known barriers: green only when no segment lacks data. */
-const cleanHeadline = (t: RouteMessages, route: Route) => (route.unknownSegmentCount ? t.noKnownGaps(route.unknownMeters) : t.noKnown);
 
 function alternativeLine(t: RouteMessages, route: Route, limits: string) {
   return route.knownBarrierCount ? `${t.alternative} ${barrierList(route)}` : `${t.alternativeUnmet} ${limits}`;
@@ -176,6 +157,25 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
   const other = kind === "avoid_stairs" ? shortest : avoid;
   const route = current.data;
   const limits = limitsOf(t, settings);
+
+  // The start's card goes with a saved route, like the destination's (same query as the link's start above).
+  const startCard = usePlace(start.kind === "place" ? start.id : "", {}, { enabled: start.kind === "place" });
+  const saveInput = (): SavedRouteInput | null => {
+    if (!route || !ends) return null;
+    const startPlaceCard = startCard.data ?? null;
+    const destination = to ? (place.data ?? null) : null;
+    const names = swapped ? [endName, startName] : [startName, endName];
+    return {
+      plannedAt: new Date(current.dataUpdatedAt || Date.now()).toISOString(),
+      from: ends.from,
+      to: ends.to,
+      startName: origin ? t.nav.yourPosition : names[0],
+      endName: names[1],
+      route,
+      start: origin ? null : swapped ? destination : startPlaceCard,
+      destination: swapped ? startPlaceCard : destination,
+    };
+  };
 
   useEffect(() => {
     if (route) announce(summary(t, route, limits));
@@ -465,9 +465,10 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
               onSwitch={() => switchKind(kind === "avoid_stairs" ? "shortest" : "avoid_stairs")}
               noProfile={!profile}
               limits={limits}
+              saveInput={saveInput}
             />
           ) : null}
-          {to && place.data ? <Destination place={place.data} /> : null}
+          {to && place.data ? <PlaceEntrance place={place.data} title={t.destination.title} /> : null}
         </div>
         )}
       </BottomPanel>
@@ -495,6 +496,7 @@ function RouteDetails({
   onSwitch,
   noProfile,
   limits,
+  saveInput,
 }: {
   route: Route;
   other: Route | undefined;
@@ -504,6 +506,7 @@ function RouteDetails({
   onSwitch: () => void;
   noProfile: boolean;
   limits: string;
+  saveInput: () => SavedRouteInput | null;
 }) {
   const t = useMessages().route;
   const status = routeStatus(route);
@@ -579,6 +582,8 @@ function RouteDetails({
         </button>
       ) : null}
 
+      <SaveRoute route={route} input={saveInput} />
+
       <h2 className="mt-7 mb-1 text-title font-semibold">{t.steps}</h2>
       <StepList route={route} selected={selected} onSelect={onSelect} stepRefs={stepRefs} />
 
@@ -591,30 +596,3 @@ function RouteDetails({
   );
 }
 
-function Destination({ place }: { place: Place }) {
-  const t = useMessages().route;
-  const facts = factViews(place, useLocale()).filter((f) => ENTRANCE.has(f.attribute));
-  return (
-    <section aria-labelledby="route-destination" className="mt-6">
-      <h2 id="route-destination" className="text-title font-semibold">
-        {t.destination.title} · {place.name}
-      </h2>
-      <p className="mt-0.5 mb-2 text-caption text-muted-foreground">{t.destination.hint}</p>
-      <ul className="divide-y divide-border overflow-hidden rounded-[20px] bg-surface-raised shadow-soft ring-1 ring-border">
-        {facts.map((fact) => (
-          <FactRow
-            key={fact.attribute}
-            label={fact.label}
-            value={fact.value}
-            unit={fact.unit}
-            reliability={fact.reliability}
-            sources={fact.sources}
-          />
-        ))}
-      </ul>
-      <Link href={routes.place(place.id)} className={cn(buttonVariants({ variant: "link", size: "sm" }), "h-10 px-0")}>
-        {t.destination.open}
-      </Link>
-    </section>
-  );
-}
