@@ -49,6 +49,7 @@ export const home = {
     empty: "Brak miejsc dla tego wyszukiwania.",
     emptyHint: "Spróbuj szerzej: bez nazwy, kategorii i filtrów.",
     searchWider: "Szukaj w całym Krakowie",
+    more: (shown: number, total: number) => `Pokaż więcej miejsc (${shown} z ${total})`,
     noFeatureMatch: (features: string) =>
       `Żadne miejsce w wynikach nie ma w danych: ${features}. Często po prostu nikt tego nie opisał — brak danych to nie brak udogodnienia.`,
     distance: (m: number, from: DistanceFrom = "centre") =>

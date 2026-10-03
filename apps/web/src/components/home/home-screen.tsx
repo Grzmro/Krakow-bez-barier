@@ -13,11 +13,12 @@ import { config } from "@/lib/config";
 import { byDistance, listCentre, searchArea, toLonLat, type NearbyOrigin } from "@/lib/nearby";
 import { listedCount } from "@/lib/list-count";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
+import { LIST_PAGE, nextWindow, windowFor } from "@/lib/list-window";
 import { usePlaces } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { countByStatus, filterByVerdict, missingNeeds, STATUS_ORDER } from "@/lib/profile/verdict-list";
-import { scrollIntoViewWithin } from "@/lib/scroll-within";
+import { scrollIntoViewWithin, scrollParent } from "@/lib/scroll-within";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useSessionFlag } from "@/lib/use-session-flag";
 import { PlaceMap } from "./place-map";
@@ -89,6 +90,8 @@ export function HomeScreen() {
   const chosenPlace = nearby?.place;
   const rowRefs = useRef(new Map<string, HTMLAnchorElement>());
   const listRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const focusRowRef = useRef<string | null>(null);
   const desktop = useMediaQuery(DESKTOP);
   const stowed = stowedFlag && !desktop;
   const mainRef = useRef<HTMLElement>(null);
@@ -151,6 +154,13 @@ export function HomeScreen() {
 
   const resultsLabel = total === undefined ? t.list.loading : t.list.results(listedCount(places.data!, shown.length));
   const queryKey = JSON.stringify(query);
+  // The list renders a window of rows that grows by a page; a new search or verdict filter starts it over.
+  const windowKey = `${queryKey}|${statusFilter}|${hideFailing}`;
+  const [listWindow, setListWindow] = useState({ key: windowKey, rendered: LIST_PAGE });
+  const rendered = listWindow.key === windowKey ? listWindow.rendered : LIST_PAGE;
+  const rows = useMemo(() => shown.slice(0, rendered), [shown, rendered]);
+  const growWindow = (size: (current: number) => number) =>
+    setListWindow((current) => ({ key: windowKey, rendered: size(current.key === windowKey ? current.rendered : LIST_PAGE) }));
   const pending = places.isPlaceholderData || total === undefined;
   const listAnnouncement =
     total === undefined ? null : verdicts && profile ? tp.announce(profile, shown.length, items.length, counts) : t.list.announce(listedCount(places.data!, shown.length));
@@ -225,10 +235,17 @@ export function HomeScreen() {
 
   function selectFromMap(id: string) {
     setSelectedId(id);
-    if (stowed) {
+    const needed = windowFor(shown.findIndex(({ place }) => place.id === id), rendered);
+    if (stowed || needed !== rendered) {
       revealRef.current = id;
-      setStowed(false);
+      if (needed !== rendered) growWindow(() => needed);
+      if (stowed) setStowed(false);
     } else reveal(id);
+  }
+
+  function showMore() {
+    focusRowRef.current = shown[rendered]?.place.id ?? null;
+    growWindow((current) => nextWindow(current, shown.length));
   }
 
   useEffect(() => {
@@ -236,7 +253,30 @@ export function HomeScreen() {
       reveal(revealRef.current);
       revealRef.current = null;
     }
-  }, [stowed]);
+    // "Pokaż więcej" moves focus to the first new row, so a keyboard user carries on where the list grew.
+    if (focusRowRef.current) rowRefs.current.get(focusRowRef.current)?.focus();
+    focusRowRef.current = null;
+  }, [stowed, rendered]);
+
+  // Scrolling near the end of the list renders the next page, so nobody has to press the button.
+  const hasMore = rendered < shown.length;
+  const shownCount = shown.length;
+  useEffect(() => {
+    const more = moreRef.current;
+    if (!more || !hasMore) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        setListWindow((current) => ({
+          key: windowKey,
+          rendered: nextWindow(current.key === windowKey ? current.rendered : LIST_PAGE, shownCount),
+        }));
+      },
+      { root: scrollParent(more), rootMargin: "0px 0px 400px 0px" },
+    );
+    observer.observe(more);
+    return () => observer.disconnect();
+  }, [hasMore, windowKey, shownCount, rendered]);
 
   return (
     // Full bleed: cancel the body's bottom safe-area padding so the map and sheet reach the screen edge;
@@ -427,7 +467,7 @@ export function HomeScreen() {
             </div>
           ) : (
             <ul className="space-y-2.5">
-              {shown.map(({ place, distance }) => (
+              {rows.map(({ place, distance }) => (
                 <PlaceRow
                   distance={distance}
                   from={origin ? (chosenPlace ? "chosen" : "user") : "centre"}
@@ -444,6 +484,13 @@ export function HomeScreen() {
               ))}
             </ul>
           )}
+          {hasMore && !places.isError ? (
+            <div ref={moreRef} className="pt-3">
+              <Button variant="outline" className="w-full" onClick={showMore}>
+                {t.list.more(rendered, shown.length)}
+              </Button>
+            </div>
+          ) : null}
         </div>
       </BottomPanel>
       {/* Resolves --list-collapsed in px: the map's padding and controls never rise above the half-height panel. */}

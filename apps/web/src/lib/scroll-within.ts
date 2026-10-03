@@ -3,8 +3,7 @@
  * `scrollIntoView`, the page itself never moves, so a map laid out next to that ancestor stays put.
  */
 export function scrollIntoViewWithin(element: HTMLElement, behavior: ScrollBehavior = "smooth") {
-  let scroller = element.parentElement;
-  while (scroller && !/auto|scroll/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
+  const scroller = scrollParent(element);
   const view = scroller?.getBoundingClientRect();
   // No scroller, or it lies entirely below the fold (landscape phone): only moving the page can show the element.
   if (!scroller || !view || view.top >= window.innerHeight) {
@@ -16,4 +15,11 @@ export function scrollIntoViewWithin(element: HTMLElement, behavior: ScrollBehav
   const bottom = Math.min(view.bottom, window.innerHeight);
   const delta = box.top < view.top ? box.top - view.top : box.bottom > bottom ? Math.min(box.bottom - bottom, box.top - view.top) : 0;
   if (delta) scroller.scrollBy({ top: delta, behavior });
+}
+
+/** The nearest ancestor of `element` that scrolls vertically, or null when only the page does. */
+export function scrollParent(element: HTMLElement): HTMLElement | null {
+  let scroller = element.parentElement;
+  while (scroller && !/auto|scroll/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
+  return scroller;
 }

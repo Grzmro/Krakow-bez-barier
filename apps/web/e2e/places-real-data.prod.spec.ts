@@ -4,7 +4,7 @@ import { pl } from "../src/i18n/pl";
 import { config } from "../src/lib/config";
 import { CARD_ATTRIBUTES, formatDate } from "../src/lib/place-facts";
 import { expect, test } from "./fixtures";
-import { clusters, pins } from "./map";
+import { clusters, markersSettled, pins } from "./map";
 
 // Runs against `next start` of the real-API build (project chromium-prod, E2E_PROD=1) and the database in
 // DATABASE_URL (`npm run db:setup` seeds it; playwright.config.ts loads the root .env). It skips itself only when
@@ -107,6 +107,53 @@ test("without a position the list starts with the places nearest the Rynek, not 
   const note = list.getByText(/najbliższych Rynku z \d+ miejsc/);
   if (body.nextCursor) await expect(note).toContainText(`Pokazano ${body.items.length} najbliższych Rynku z ${body.total} miejsc`);
   else await expect(note).toBeHidden();
+});
+
+test("a full page of real places renders 20 rows at a time, and a pin further down the list jumps to its row", async ({
+  page,
+  expectAccessible,
+  evidence,
+}) => {
+  // GIVEN the home screen on a phone with a database of more places than one list page
+  test.skip(!process.env.DATABASE_URL, "DATABASE_URL is unset — no database to read real places from (npm run db:setup)");
+  const firstPage = page.waitForResponse((r) => new URL(r.url()).pathname === "/api/v1/places");
+  await page.goto("/");
+  const { items } = (await (await firstPage).json()) as PlaceList;
+  test.skip(items.length <= 40, "the database has 40 places or fewer near the Rynek");
+  const list = page.getByRole("region", { name: "Lista miejsc" });
+  const rows = list.getByRole("listitem");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText(pl.home.list.results(items.length));
+
+  // THEN only the first 20 rows are rendered, and a button says how many of all are shown
+  await expect(rows).toHaveCount(20);
+  const more = list.getByRole("button", { name: pl.home.list.more(20, items.length) });
+  await expect(more).toBeVisible();
+  await expectAccessible();
+  await evidence("real-data-list-window");
+
+  // WHEN a keyboard user reaches it (bringing the end of the list into view may already load the next page) and presses it
+  await more.focus();
+  const before = await rows.count();
+  await page.keyboard.press("Enter");
+
+  // THEN the next 20 rows are rendered and focus lands on the first new one
+  await expect(rows.nth(before).getByRole("link").first()).toBeFocused();
+  expect(await rows.count()).toBeGreaterThanOrEqual(before + 20);
+
+  // WHEN the visitor taps the pin of a place whose row is not rendered yet (the outskirts: unclustered, listed last)
+  const rendered = new Set(await rows.getByRole("link").evaluateAll((links) => links.map((a) => a.getAttribute("href"))));
+  await markersSettled(page);
+  const pinned = await pins(page).evaluateAll((els) => els.map((el) => (el as HTMLElement).dataset.placeId!));
+  const target = pinned.find((id) => !rendered.has(`/miejsca/${id}`));
+  expect(target, "a pin of a place beyond the rendered rows").toBeDefined();
+  await pins(page).and(page.locator(`[data-place-id="${target}"]`)).dispatchEvent("click");
+
+  // THEN the list grows to its row, scrolls it into view and selects it
+  const row = list.locator("li", { has: page.locator(`a[href="/miejsca/${target}"]`) });
+  await expect(row).toHaveAttribute("data-selected", "true");
+  await expect(row).toBeInViewport();
+  await expect(row.getByRole("link").first()).toBeFocused();
+  await evidence("real-data-pin-to-row");
 });
 
 function fromRynek(row: string): number {
