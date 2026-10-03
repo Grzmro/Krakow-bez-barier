@@ -101,6 +101,7 @@ npm run mobile:ios             # Capacitor: sync + build + run in the iOS Simula
 npm run mobile:android         # Capacitor: sync + debug APK (needs JAVA_HOME = JDK 21, ANDROID_HOME = Android SDK)
 npm run build && E2E_PROD=1 npm run test:e2e   # + *.prod.spec.ts (PWA offline) against `next start`; merge-pr.sh does this
 npm run icons -w apps/web      # re-render PWA icons after changing the logo mark or brand tokens
+npm run routes:record -w apps/web   # re-record the openrouteservice fixtures (ORS_API_KEY in root .env; tests never call ORS)
 ```
 
 The native apps load the running web app from `CAP_SERVER_URL` (`apps/mobile/.env`, default

@@ -13,7 +13,8 @@
     "test": "vitest run --passWithNoTests",
     "test:e2e": "playwright test",
     "demo:record": "playwright test -c playwright.demo.config.ts",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "routes:record": "node --env-file=../../.env scripts/record-ors-fixtures.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

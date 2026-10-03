@@ -8,6 +8,7 @@ import {
   Database,
   Gavel,
   List,
+  Path,
   PersonArmsSpread,
   ShieldCheck,
   Storefront,
@@ -29,6 +30,7 @@ import { NearMe } from "./near-me";
 const t = pl.common;
 
 const MENU: { href: string; icon: Icon; title: string; sub: string }[] = [
+  { href: routes.route(), icon: Path, title: t.menu.route, sub: t.menu.routeSub },
   { href: routes.aboutData, icon: Database, title: t.menu.aboutData, sub: t.menu.aboutDataSub },
   { href: routes.business, icon: Storefront, title: t.menu.business, sub: t.menu.businessSub },
   { href: routes.moderator, icon: Gavel, title: t.menu.moderator, sub: t.menu.moderatorSub },

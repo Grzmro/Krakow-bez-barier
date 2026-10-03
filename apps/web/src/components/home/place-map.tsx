@@ -3,13 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
-import { Minus, Plus } from "@phosphor-icons/react";
 import type { PlaceSummary } from "@krakow-bez-barier/contracts";
 import { cn } from "@krakow-bez-barier/ui";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { pl } from "@/i18n/pl";
-import { config, mapAttribution } from "@/lib/config";
+import { config } from "@/lib/config";
+import { MapControls } from "../map/map-controls";
 import { PlacePin } from "./place-pin";
 
 const t = pl.home.map;
@@ -185,40 +185,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, cl
           {t.unavailable}
         </p>
       ) : null}
-      <div className="absolute inset-x-3 bottom-9 z-10 flex items-end justify-between gap-2">
-        <p className="min-w-0 rounded-full bg-card/90 px-2.5 py-1 text-[11px] leading-4 text-muted-foreground"
-        >
-          {mapAttribution.map((item, index) => (
-            <span key={item.href}>
-              {index > 0 ? " · " : null}
-              <a href={item.href} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
-                {item.label}
-              </a>
-            </span>
-          ))}
-        </p>
-        <div className="flex shrink-0 flex-col overflow-hidden rounded-full bg-card shadow-float">
-          <button
-            type="button"
-            aria-label={t.zoomIn}
-            disabled={!map}
-            onClick={() => map?.zoomIn()}
-            className="grid size-12 place-items-center hover:bg-muted"
-          >
-            <Plus weight="bold" className="size-5" aria-hidden />
-          </button>
-          <span aria-hidden className="mx-3 h-px bg-border" />
-          <button
-            type="button"
-            aria-label={t.zoomOut}
-            disabled={!map}
-            onClick={() => map?.zoomOut()}
-            className="grid size-12 place-items-center hover:bg-muted"
-          >
-            <Minus weight="bold" className="size-5" aria-hidden />
-          </button>
-        </div>
-      </div>
+      <MapControls map={map} />
     </div>
   );
 }

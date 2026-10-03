@@ -39,10 +39,13 @@ export class InvalidQueryError extends Error {
 
 export type PlacesDeps = { repository?: PlaceRepository; now?: Date };
 
-// The vocabulary is the spec's enum; `Place.attributes` lists every entry, unknown ones included.
+// Describe a route segment, not a place (see the spec's AccessibilityAttribute).
+const ROUTE_ONLY: AccessibilityAttribute[] = ["stairs"];
+
+// The vocabulary is the spec's enum; `Place.attributes` lists every place entry, unknown ones included.
 const ATTRIBUTES = (
-  (openapiDocument.components as { schemas: Record<string, { enum: string[] }> }).schemas.AccessibilityAttribute
-).enum as AccessibilityAttribute[];
+  (openapiDocument.components as { schemas: Record<string, { enum: string[] }> }).schemas.AccessibilityAttribute.enum as AccessibilityAttribute[]
+).filter((attribute) => !ROUTE_ONLY.includes(attribute));
 
 // Shown in every list row even without data, so "Brak danych" is explicit, not a missing chip.
 const ALWAYS_SUMMARIZED: AccessibilityAttribute[] = ["step_count", "toilet_accessible"];
@@ -51,7 +54,7 @@ const FAILED_REFRESH = new Set<SourceRecord["refreshStatus"]>(["stale", "outage"
 
 const iso = (date: Date | null) => (date ? date.toISOString() : null);
 
-function toFact(record: FactRecord, now: Date): AccessibilityFact {
+export function toFact(record: FactRecord, now: Date): AccessibilityFact {
   const { evidence } = record;
   const fact: AccessibilityFact = {
     id: record.id,

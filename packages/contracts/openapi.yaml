@@ -760,10 +760,14 @@ paths:
     post:
       operationId: createRoute
       summary: Compute an accessible route
-      description: 'Returns a route split into segments. Each segment has a state; segments without data are `unknown`
+      description: 'Returns a walking route split into segments (one per turn instruction). Each segment carries the facts
+        found on it — surface, steepness and stairs from OpenStreetMap via openrouteservice, kerbs from our sources within
+        15 m — and a state. Segments without data are `unknown` and are never treated as barrier-free.
 
-        and are never treated as barrier-free. Without `profile` the route only avoids known stairs when `avoidStairs` is
-        set.
+        `avoidStairs` asks for a route without stairs; with `profile` it also has to stay within the profile''s kerb and
+        incline limits. When no such route exists, the shortest route comes back with `fallback: true` and its barriers
+        listed. Routing runs on the server only (the provider key never reaches the browser); when the provider is
+        unavailable the answer is a `502` problem.
 
         '
       tags:
@@ -780,13 +784,13 @@ paths:
                   from:
                     type: Point
                     coordinates:
-                    - 19.9449
-                    - 50.0647
+                    - 19.9461
+                    - 50.0668
                   to:
                     type: Point
                     coordinates:
                     - 19.9373
-                    - 50.0619
+                    - 50.0617
                   avoidStairs: true
                   profile: wheelchair
       responses:
@@ -798,55 +802,99 @@ paths:
                 $ref: '#/components/schemas/Route'
               examples:
                 noStairs:
-                  summary: Avoid-stairs route with unknown segments
+                  summary: Avoid-stairs route with a segment without data
                   value:
                     kind: avoid_stairs
-                    durationMinutes: 16
-                    distanceMeters: 1200
+                    fallback: false
+                    durationMinutes: 4
+                    distanceMeters: 319
                     geometry:
                       type: LineString
                       coordinates:
-                      - - 19.9449
-                        - 50.0647
-                      - - 19.9412
-                        - 50.0635
-                      - - 19.9373
-                        - 50.0619
+                      - - 19.9461
+                        - 50.0668
+                      - - 19.9458
+                        - 50.0662
+                      - - 19.9432
+                        - 50.0648
                     knownBarrierCount: 0
-                    unknownSegmentCount: 2
-                    unknownMeters: 460
+                    unknownSegmentCount: 1
+                    unknownMeters: 257
                     segments:
                     - id: 1
-                      name: Dworzec Główny – ul. Basztowa
-                      instruction: Przejdź podziemnym przejściem windą
-                      lengthMeters: 320
-                      state: unknown
-                      facts: []
+                      name: ''
+                      instruction: Kieruj się na południe
+                      lengthMeters: 62
+                      state: met
+                      note: płyty chodnikowe
+                      facts:
+                      - id: ors-1-surface
+                        attribute: surface
+                        value:
+                          kind: text
+                          text: paving_stones
+                        unit: null
+                        source:
+                          id: openrouteservice
+                          name: OpenStreetMap (przez openrouteservice)
+                          kind: community
+                          recordRef: null
+                        fetchedAt: '2026-10-03T16:29:11Z'
+                        reliability: community
+                        status: active
+                        stale: false
+                      - id: ors-1-stairs
+                        attribute: stairs
+                        value:
+                          kind: boolean
+                          boolean: false
+                        unit: null
+                        source:
+                          id: openrouteservice
+                          name: OpenStreetMap (przez openrouteservice)
+                          kind: community
+                          recordRef: null
+                        fetchedAt: '2026-10-03T16:29:11Z'
+                        reliability: community
+                        status: active
+                        stale: false
                       geometry:
                         type: LineString
                         coordinates:
-                        - - 19.9449
-                          - 50.0647
-                        - - 19.9425
-                          - 50.0641
+                        - - 19.9461
+                          - 50.0668
+                        - - 19.9458
+                          - 50.0662
                     - id: 2
-                      name: ul. Szpitalna
-                      instruction: Skręć w lewo
-                      lengthMeters: 140
+                      name: ''
+                      instruction: Skręć w prawo
+                      lengthMeters: 257
                       state: unknown
+                      note: brak danych o nawierzchni
                       facts: []
                       geometry:
                         type: LineString
                         coordinates:
-                        - - 19.9425
-                          - 50.0641
-                        - - 19.9412
-                          - 50.0635
+                        - - 19.9458
+                          - 50.0662
+                        - - 19.9432
+                          - 50.0648
                     attribution: © OpenStreetMap contributors, openrouteservice
         '400':
           $ref: '#/components/responses/BadRequest'
         '422':
-          $ref: '#/components/responses/Unprocessable'
+          description: No route between the points (a point is too far from any way, or no route exists at all).
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+              examples:
+                default:
+                  value:
+                    type: https://krakow-bez-barier.example/problems/no-route
+                    title: No route
+                    status: 422
+                    detail: The start or the destination is too far from any walkable way.
         '429':
           $ref: '#/components/responses/TooManyRequests'
         '502':
@@ -1299,7 +1347,8 @@ components:
     AccessibilityAttribute:
       type: string
       description: 'Shared vocabulary of measurable accessibility attributes. `levels` is the number of storeys
-        the place spans, counting the entrance storey (1 = everything on one floor).'
+        the place spans, counting the entrance storey (1 = everything on one floor). `stairs` (boolean: the way has
+        steps) describes a route segment, never a place; places use `step_count`.'
       enum:
       - step_count
       - step_height_cm
@@ -1318,6 +1367,7 @@ components:
       - disabled_parking
       - wheelchair_overall
       - levels
+      - stairs
     FeatureFilter:
       type: string
       description: Quick filter shown on the home screen; each maps to one or more attributes.
@@ -2119,6 +2169,21 @@ components:
           default: false
         profile:
           $ref: '#/components/schemas/Profile'
+        maxThresholdCm:
+          type: number
+          minimum: 0
+          maximum: 20
+          description: 'Profile threshold: highest kerb (cm) that still counts as met. Ignored without `profile`; defaults
+            to the profile''s preset.'
+        maxInclinePct:
+          type: number
+          minimum: 1
+          maximum: 20
+          description: 'Profile threshold: steepest incline (%) that still counts as met. Ignored without `profile`;
+            defaults to the profile''s preset.'
+        requireSmoothSurface:
+          type: boolean
+          description: 'Profile need: an even surface (no cobblestones or gravel). Ignored without `profile`.'
     RouteSegment:
       type: object
       required:
@@ -2146,6 +2211,7 @@ components:
           type:
           - string
           - 'null'
+          description: Short Polish reason for the state, e.g. "schody" or "brak danych o nawierzchni".
         facts:
           type: array
           items:
@@ -2163,12 +2229,19 @@ components:
       - knownBarrierCount
       - unknownSegmentCount
       - unknownMeters
+      - fallback
       properties:
         kind:
           type: string
+          description: '`avoid_stairs`: no stairs (with a profile, also within its kerb and incline limits); `shortest`:
+            the shortest walking route.'
           enum:
           - avoid_stairs
           - shortest
+        fallback:
+          type: boolean
+          description: True when no route met the request (e.g. every way has stairs); this is then the best alternative
+            (`kind` says which) and its barriers are listed in `segments`.
         durationMinutes:
           type: number
           minimum: 0

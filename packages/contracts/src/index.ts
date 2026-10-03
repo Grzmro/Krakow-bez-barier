@@ -43,6 +43,8 @@ export type ModerationReport = Schemas["ModerationReport"];
 export type ModerationDecision = Schemas["ModerationDecision"];
 export type ModerationDecisionKind = Schemas["ModerationDecisionKind"];
 export type ModerationEvent = Schemas["ModerationEvent"];
+export type RouteRequest = Schemas["RouteRequest"];
+export type RouteSegment = Schemas["RouteSegment"];
 
 /** Base path of the v1 API on the app's own origin. */
 export const API_BASE_PATH = "/api/v1";

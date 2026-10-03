@@ -20,6 +20,8 @@ export const common = {
   menu: {
     title: "Menu",
     description: "Strony dodatkowe",
+    route: "Zaplanuj trasę",
+    routeSub: "Dworzec Główny → Rynek, bez schodów",
     aboutData: "O danych",
     aboutDataSub: "Źródła, licencje, wiarygodność",
     business: "Dla firm: widget i API",
@@ -55,6 +57,7 @@ export const common = {
     disabled_parking: "Parking dla osób z niepełnosprawnościami",
     wheelchair_overall: "Ogólna dostępność (OSM)",
     levels: "Kondygnacje",
+    stairs: "Schody na trasie",
   } satisfies Record<AccessibilityAttribute, string>,
   unconfirmed: "niepotwierdzone",
   reliability: {

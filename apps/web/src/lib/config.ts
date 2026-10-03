@@ -7,6 +7,9 @@ export const config = {
   /** Reference point for distances and the initial map view — Rynek Główny, `[lon, lat]`. */
   cityCenter: [19.9373, 50.0614] as [number, number],
   initialZoom: 15,
+  /** Default start and end of the route screen, `[lon, lat]`: the station's main exit and the Rynek. */
+  routeStart: [19.9461, 50.0668] as [number, number],
+  routeEnd: [19.9373, 50.0617] as [number, number],
 } as const;
 
 export const mapAttribution = [
