@@ -196,4 +196,13 @@ describe("GET /api/v1/places", () => {
     expect(responses[0].body.errors).toEqual([{ field: "query.bbox", message: expect.any(String) }]);
     expect(responses[1].body.errors[0].field).toBe("query.cursor");
   });
+
+  it("accepts a category that is in the configuration but not in any enum", async () => {
+    // GIVEN the configured pharmacy category (one entry in packages/contracts/src/categories.ts)
+    // WHEN listing with it
+    const { status } = await list("?category=pharmacy");
+
+    // THEN the query is valid
+    expect(status).toBe(200);
+  });
 });

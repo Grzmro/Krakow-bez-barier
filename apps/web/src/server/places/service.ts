@@ -10,6 +10,7 @@ import type {
   Source,
   SummaryChip,
 } from "@krakow-bez-barier/contracts";
+import { categories } from "@krakow-bez-barier/contracts";
 import { openapiDocument } from "@krakow-bez-barier/contracts/openapi";
 import { pl } from "@/i18n/pl";
 import { FEATURE_ATTRIBUTES, featureState } from "../domain/features";
@@ -161,6 +162,10 @@ function readBbox(bbox: number[] | undefined): [number, number, number, number] 
 export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}): Promise<PlaceList> {
   const { repository = createDbPlaceRepository(), now = new Date() } = deps;
   const bbox = readBbox(query.bbox);
+  const unknownCategory = query.category?.find((id) => !categories.some((c) => c.id === id));
+  if (unknownCategory) {
+    throw new InvalidQueryError("query.category", `names "${unknownCategory}", which is not a configured category`);
+  }
   const after = query.cursor ? decodeCursor(query.cursor) : null;
   const text = query.q ? normalizeText(query.q) : "";
   const features = [...new Set(query.feature ?? [])];
