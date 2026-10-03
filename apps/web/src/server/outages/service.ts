@@ -11,6 +11,7 @@ import { DEMO_REVERT_MINUTES } from "@/server/reports/demo";
 import type { ModeratorPrincipal } from "@/server/reports/moderator-auth";
 import type { OutagesStore, PlacedOutageRecord } from "./store";
 
+const sinceExpiry = (now: Date) => new Date(now.getTime() - outageRules.expiresAfterHours * 3_600_000);
 const isActive = (now: Date) => (record: OutageRecord) => isActiveOutage({ state: outageState(record, now) });
 
 async function requirePlace(store: OutagesStore, ref: string) {
@@ -77,8 +78,6 @@ export async function activeOutagesByPlace(
   const byPlace = Map.groupBy(records, (r) => r.placeId);
   return new Map(placeIds.map((id) => [id, activeOutages(byPlace.get(id) ?? [], now)]));
 }
-
-const sinceExpiry = (now: Date) => new Date(now.getTime() - outageRules.expiresAfterHours * 3_600_000);
 
 const toModerationOutage = (record: PlacedOutageRecord, now: Date): ModerationOutage => ({
   ...toOutage(record, now),
