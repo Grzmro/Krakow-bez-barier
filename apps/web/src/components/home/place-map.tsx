@@ -27,7 +27,7 @@ import { PlacePin } from "./place-pin";
 
 // The map fills a phone's screen; at 3x (iPhone) that canvas is ~3 Mpx redrawn every frame of a pan. 2x stays sharp.
 const MAX_PIXEL_RATIO = 2;
-const PIN_CLASS ="group relative size-9 cursor-pointer data-[selected=true]:z-10";
+const PIN_CLASS = "group relative size-9 cursor-pointer data-[selected=true]:z-10";
 
 function pinElement(place: PlaceSummary, icon: Icon, title: string) {
   const element = document.createElement("div");
@@ -103,13 +103,28 @@ function currentPadding(map: MapLibreMap): Padding {
   return { top, bottom, left, right };
 }
 
+const paddingPending = new WeakSet<MapLibreMap>();
+
+/** Whether `target` is in the map's visible area, clear of its padding. */
+function inView(map: MapLibreMap, target: [number, number]) {
+  const { clientWidth: width, clientHeight: height } = map.getContainer();
+  return insidePadding(map.project(target), width, height, currentPadding(map));
+}
+
 /**
  * Sets the map's padding without moving what is on screen: the point under the new padded centre
  * becomes the map's centre. Waits for a running camera move (a fit, a pan's inertia) to end first.
  */
 function applyPadding(map: MapLibreMap, padding: () => Padding) {
   if (map.isMoving()) {
-    map.once("moveend", () => applyPadding(map, padding));
+    // One deferred call per map: `padding` reads the latest values when it runs.
+    if (!paddingPending.has(map)) {
+      paddingPending.add(map);
+      map.once("moveend", () => {
+        paddingPending.delete(map);
+        applyPadding(map, padding);
+      });
+    }
     return;
   }
   const { clientWidth: width, clientHeight: height } = map.getContainer();
@@ -121,7 +136,7 @@ function applyPadding(map: MapLibreMap, padding: () => Padding) {
 /** Eases the map to `target` when it is hidden under the overlays or the panel, or off the map. */
 function revealPoint(map: MapLibreMap, target: [number, number]) {
   const { clientWidth: width, clientHeight: height } = map.getContainer();
-  if (!width || !height || insidePadding(map.project(target), width, height, currentPadding(map))) return;
+  if (!width || !height || inView(map, target)) return;
   map.easeTo({ center: target, duration: 300 });
 }
 
@@ -313,6 +328,8 @@ export function PlaceMap({
       fittedRef.current = key;
       const bounds = new LngLatBounds();
       for (const place of places) bounds.extend(place.location.coordinates as [number, number]);
+      // New results replace whatever the camera was doing, so the fit always sees the current padding.
+      map.stop();
       applyPadding(map, paddingFor(map));
       // On top of the map's padding (the overlays and the panel): room for a pin on the left, the zoom buttons on the right.
       map.fitBounds(bounds, {
@@ -351,10 +368,12 @@ export function PlaceMap({
   useEffect(() => {
     if (!map) return;
     const sync = () => {
-      applyPadding(map, paddingFor(map));
       const selected = revealSelected ? placesRef.current.find((place) => place.id === selectedIdRef.current) : undefined;
       const target = selected ? (selected.location.coordinates as [number, number]) : youLon !== undefined && youLat !== undefined ? ([youLon, youLat] as [number, number]) : null;
-      if (target && !map.isMoving()) revealPoint(map, target);
+      // A point the visitor had already panned away from stays away.
+      const wasInView = target !== null && !map.isMoving() && inView(map, target);
+      applyPadding(map, paddingFor(map));
+      if (target && wasInView) revealPoint(map, target);
     };
     // Out of React's commit: a camera change redraws the markers, which render React roots synchronously.
     const frame = requestAnimationFrame(sync);
