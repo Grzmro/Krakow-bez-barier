@@ -42,6 +42,7 @@ tags:
   description: Accessible routing.
 - name: widget
   description: Read-only embeddable card for venues and organisers.
+security: []
 paths:
   /places:
     get:
@@ -376,8 +377,7 @@ paths:
               default:
                 value:
                   factId: fact_osm_podziemia_lift
-                  comment: Sprawdzone dziś
-                  winda działa.: null
+                  comment: Sprawdzone dziś, winda działa.
       responses:
         '201':
           description: Confirmation recorded.
@@ -1214,8 +1214,7 @@ components:
           type:
           - string
           - 'null'
-          description: Venue's public e-mail from the source
-          never a user's.: null
+          description: Venue's public e-mail from the source, never a user's.
     Verdict:
       type: object
       description: Result of comparing facts with a profile's thresholds.
@@ -1312,7 +1311,9 @@ components:
         address:
           $ref: '#/components/schemas/Address'
         contact:
-          $ref: '#/components/schemas/Contact'
+          oneOf:
+          - $ref: '#/components/schemas/Contact'
+          - type: 'null'
         entranceHint:
           type:
           - string
