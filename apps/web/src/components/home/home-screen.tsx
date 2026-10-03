@@ -12,6 +12,7 @@ import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
 import type { DevicePosition } from "@/lib/native/geolocation";
 import { byDistance, listCentre, searchArea, toLonLat } from "@/lib/nearby";
+import { listedCount } from "@/lib/list-count";
 import { usePlaces } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
@@ -113,11 +114,11 @@ export function HomeScreen() {
     [items, settled, query.q],
   );
 
-  const resultsLabel = total === undefined ? t.list.loading : t.list.results(shown.length === items.length ? total : shown.length);
+  const resultsLabel = total === undefined ? t.list.loading : t.list.results(listedCount(places.data!, shown.length));
   const queryKey = JSON.stringify(query);
   const pending = places.isPlaceholderData || total === undefined;
   const listAnnouncement =
-    total === undefined ? null : verdicts && profile ? tp.announce(profile, shown.length, items.length, counts) : t.list.announce(total);
+    total === undefined ? null : verdicts && profile ? tp.announce(profile, shown.length, items.length, counts) : t.list.announce(listedCount(places.data!, shown.length));
   const announcement = listAnnouncement && [origin ? tn.announce : null, listAnnouncement, cutNote].filter(Boolean).join(". ");
   useEffect(() => {
     if (!pending && announcement) announce(announcement);
