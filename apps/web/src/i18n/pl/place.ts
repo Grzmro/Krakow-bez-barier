@@ -1,4 +1,4 @@
-import type { Reliability, components } from "@krakow-bez-barier/contracts";
+import type { OutageEquipment, Reliability, components } from "@krakow-bez-barier/contracts";
 
 type SourceKind = components["schemas"]["SourceKind"];
 type SourceRefreshStatus = components["schemas"]["SourceRefreshStatus"];
@@ -91,6 +91,28 @@ export const place = {
     title: (date: string) => `Odświeżenie nie powiodło się — dane z ${date}`,
     titleNoDate: "Odświeżenie nie powiodło się — brak wcześniejszych danych",
     source: (name: string) => `Źródło: ${name}`,
+  },
+  // Temporary outages of a lift or ramp reported by visitors (`Place.outages`); `outage` above is a data source's.
+  breakdown: {
+    heading: "Zgłoszone awarie",
+    title: (equipment: OutageEquipment): string =>
+      equipment === "lift" ? "Zgłoszona awaria windy" : "Zgłoszona awaria podjazdu",
+    confirmations: (n: number) => `${n} ${plural(n, "potwierdzenie", "potwierdzenia", "potwierdzeń")}`,
+    source: "Zgłoszenie odwiedzających, bez moderacji. Werdykt profilu liczy awarię jako barierę.",
+    expires: (time: string) => `Zniknie ${time}, jeśli nikt jej nie potwierdzi.`,
+    communityConfirmed: "Potwierdzona przez społeczność",
+    confirm: "Potwierdzam awarię",
+    working: "Działa",
+    report: "Zgłoś awarię",
+    reportAria: (equipment: OutageEquipment): string =>
+      equipment === "lift" ? "Zgłoś awarię windy" : "Zgłoś awarię podjazdu",
+    reported: "Dzięki! Awaria jest widoczna dla innych.",
+    confirmed: "Dzięki! Potwierdzenie awarii zapisane.",
+    resolved: "Dzięki! Awaria zdjęta z karty.",
+    workingSaved: "Dzięki! Zapisaliśmy, że działa.",
+    gone: "Ta awaria jest już nieaktualna.",
+    repeat: "Ten głos został już dziś oddany z tego urządzenia.",
+    failed: "Nie udało się zapisać. Spróbuj ponownie.",
   },
   mapLabel: "Mapa z położeniem miejsca. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Adres jest podany w tekście powyżej.",
   conflict: {
