@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import type { FetchContext, FetchedRecords, SourceAdapter } from "../adapter";
 import { withDownloadCache } from "../cache";
 import { retryAfterMs, SourceHttpError } from "../errors";
@@ -12,7 +13,7 @@ export function buildQuery(
 ): string {
   const box = `${bbox.south},${bbox.west},${bbox.north},${bbox.east}`;
   const clauses = categories.flatMap((c) =>
-    c.osm.map((r) => `  nwr["${r.key}"~"^(${r.values.join("|")})$"](${box});`),
+    c.osm.map((r) => `  nwr["${r.key}"~"^(${r.values.join("|")})$"]${r.requires ? `["${r.requires}"]` : ""}(${box});`),
   );
   return `[out:json][timeout:120];\n(\n${clauses.join("\n")}\n);\nout meta center tags;`;
 }
@@ -24,11 +25,14 @@ export function cityCategories(city: FetchContext["city"]): readonly CategoryCon
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 function fetchOverpass(endpoint: string, { city, userAgent }: FetchContext): Promise<OsmElement[]> {
-  return withDownloadCache(`osm-${city.id}`, async () => {
+  const query = buildQuery(city.bbox, cityCategories(city));
+  // Keyed by the query too, so a cached answer to an older category list is never reused.
+  const key = createHash("sha256").update(query).digest("hex").slice(0, 12);
+  return withDownloadCache(`osm-${city.id}-${key}`, async () => {
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "User-Agent": userAgent, "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ data: buildQuery(city.bbox, cityCategories(city)) }),
+      body: new URLSearchParams({ data: query }),
       signal: AbortSignal.timeout(150_000),
     });
     if (!response.ok) {

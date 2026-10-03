@@ -1,6 +1,6 @@
-import type { AccessibilityAttribute } from "@krakow-bez-barier/contracts";
+import { routeCategoryIds, type AccessibilityAttribute } from "@krakow-bez-barier/contracts";
 import { confirmations, facts, places, sources, type Db } from "@krakow-bez-barier/db";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { getDb } from "../db";
 import type { FactRecord } from "../places/repository";
 import { toFact } from "../places/service";
@@ -12,6 +12,9 @@ import type { RouteFactsSource } from "./service";
  * (steps, doors) are not barriers on it; surface and incline of a place are its own, not the pavement's.
  */
 export const ROUTE_FACT_ATTRIBUTES: AccessibilityAttribute[] = ["kerb_height_cm", "stairs"];
+
+/** Facts that count only from the bits of the way (a flight of steps), never from a place's entrance. */
+export const ROUTE_CATEGORY_ATTRIBUTES: AccessibilityAttribute[] = ["step_count"];
 
 export type NearbyFactRecord = FactRecord & { location: LonLat };
 
@@ -42,7 +45,10 @@ export function createDbRouteFacts(db: Db = getDb()): RouteFactsSource {
       .where(
         and(
           eq(facts.status, "active"),
-          inArray(facts.attribute, ROUTE_FACT_ATTRIBUTES),
+          or(
+            inArray(facts.attribute, ROUTE_FACT_ATTRIBUTES),
+            and(inArray(facts.attribute, ROUTE_CATEGORY_ATTRIBUTES), inArray(places.category, routeCategoryIds())),
+          ),
           sql`ST_DWithin(${places.location}::geography, ST_SetSRID(ST_GeomFromGeoJSON(${geojson}), 4326)::geography, ${meters})`,
         ),
       );

@@ -9,7 +9,7 @@ import type {
   PriorityItem,
   ReportStatus,
 } from "@krakow-bez-barier/contracts";
-import { categories } from "@krakow-bez-barier/contracts";
+import { hiddenCategoryIds } from "@krakow-bez-barier/contracts";
 import { defaultLocale } from "@/i18n/locale";
 import { matchProfile } from "./matcher";
 import { PROFILE_PRESETS, type Thresholds } from "./profiles";
@@ -32,7 +32,7 @@ export const AUDIT_THRESHOLDS: Thresholds = { ...PROFILE_PRESETS.wheelchair, req
  * Bulk city data (parking bays, transit stops) the statistics leave out, as the map does by default: the wheelchair
  * needs (entrance, door, lift, toilet) don't apply to them, so they would only add "Brak danych" rows.
  */
-export const CITY_EXCLUDED_CATEGORIES: Category[] = categories.filter((c) => c.hiddenByDefault).map((c) => c.id);
+export const CITY_EXCLUDED_CATEGORIES: Category[] = hiddenCategoryIds();
 
 /** Categories many people visit; they add points only to a place that already has another reason. */
 export const BUSY_CATEGORIES: Category[] = ["toilet", "pharmacy", "museum", "theatre"];

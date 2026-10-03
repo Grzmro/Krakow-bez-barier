@@ -337,4 +337,38 @@ describe("GET /api/v1/places", () => {
     expect(await names("?q=Sebastiana")).toEqual([]);
     expect(await names("?q=Sebastiana&category=parking")).toEqual([parking.name]);
   });
+
+  it("lists benches and disabled parking bays for their feature filter, but never mapped steps", async () => {
+    // GIVEN an OSM bench, a disabled parking bay and a flight of steps next to a café with a bench
+    const osm = sourceRecord();
+    const bench = placeRecord({ name: "Ławka", category: "bench", location: { x: 19.94, y: 50.06 } });
+    const bay = placeRecord({ name: "Miejsce postojowe dla osób z niepełnosprawnościami", category: "parking", location: { x: 19.94, y: 50.05 } });
+    const steps = placeRecord({ name: "Schody", category: "steps", location: { x: 19.94, y: 50.06 } });
+    const cafe = placeRecord({ name: "Kawiarnia z ławką", category: "restaurant", location: { x: 19.94, y: 50.06 } });
+    const saved = repository.current;
+    repository.current = createFakePlaceRepository(
+      [bench, bay, steps, cafe],
+      [
+        factRecord(bench, "bench", bool(true), { source: osm }),
+        factRecord(cafe, "bench", bool(true), { source: osm }),
+        factRecord(bay, "disabled_parking", bool(true), { source: osm }),
+        factRecord(steps, "step_count", num(12, "count"), { source: osm }),
+      ],
+    );
+    try {
+      // WHEN listing without a filter, with the bench filter and with the parking filter
+      const all = names((await list("")).body);
+      const benches = names((await list("?feature=bench")).body);
+      const parkingBays = names((await list("?feature=disabled_parking")).body);
+
+      // THEN benches and bays show up only for their own filter, next to the places that have the feature
+      expect(all).toEqual([cafe.name]);
+      expect(benches.sort()).toEqual([cafe.name, bench.name].sort());
+      expect(parkingBays).toEqual([bay.name]);
+      // AND the steps stay out, even with places of unknown benches included
+      expect(names((await list("?feature=bench&includeUnknown=true")).body)).not.toContain(steps.name);
+    } finally {
+      repository.current = saved;
+    }
+  });
 });

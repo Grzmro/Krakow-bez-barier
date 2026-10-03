@@ -77,7 +77,10 @@ export { outageRules, type OutageRules } from "./outage-rules";
 export { checkReportNumber, reportRules, type RangeCheck, type ReportRules, type ValueRange } from "./report-rules";
 export {
   categories,
+  hiddenCategoryIds,
   isKnownCategory,
+  listedCategories,
+  routeCategoryIds,
   toCategoryDefinition,
   type CategoryConfig,
   type CategoryDefinition,

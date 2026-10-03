@@ -148,6 +148,8 @@ export const route: Messages["route"] = {
   },
   note: {
     stairs: "stairs",
+    stairsSteps: (counts: number[]) =>
+      counts.length === 1 ? `stairs (${counts[0]} ${plural(counts[0], "step", "steps")})` : `stairs (steps: ${counts.join(", ")})`,
     kerb: (cm: number) => `${cm} cm kerb`,
     incline: (pct: number) => `incline up to ${pct}%`,
     inclineLow: "flat (up to 1%)",

@@ -137,6 +137,33 @@ describe("createRoute — Dworzec Główny → Rynek Główny (recorded openrout
     expect(route.segments[2]).toMatchObject({ state: "unknown", note: "utwardzona, płasko (do 1%), brak danych o krawężnikach" });
   });
 
+  it("names the step count of mapped steps on a stair segment, and ignores it elsewhere", async () => {
+    // GIVEN OSM steps with 12 steps in the middle of the stair segment 4 and a flight with 30 steps next to segment 1
+    const route0 = await createRoute(request(), { provider: recorded, now });
+    const osm = sourceRecord();
+    const stepsAt = (location: LonLat, count: number): NearbyFactRecord => {
+      const place = placeRecord({ name: "Schody", category: "steps", location: { x: location[0], y: location[1] } });
+      return { ...factRecord(place, "step_count", { kind: "number", number: count, unit: "count" }, { source: osm }), location };
+    };
+    const onStairs = route0.segments[3].geometry.coordinates;
+    const facts = nearbySource(async () => [
+      stepsAt(onStairs[Math.floor(onStairs.length / 2)] as LonLat, 12),
+      stepsAt(route0.segments[0].geometry.coordinates[0] as LonLat, 30),
+    ]);
+
+    // WHEN the shortest route is requested
+    const route = await createRoute(request(), { provider: recorded, facts, now });
+
+    // THEN the stair segment says how many steps it has, with the OSM fact behind it
+    expect(route.segments[3]).toMatchObject({ state: "barrier", note: "schody (12 stopni)" });
+    expect(route.segments[3].facts.find((f) => f.attribute === "step_count")).toMatchObject({ value: { number: 12 } });
+    // AND the other stair segment, with no mapped steps near it, keeps the plain note
+    expect(route.segments[5].note).toBe("schody");
+    // AND steps near a segment the provider walks without stairs are no barrier and not shown
+    expect(route.segments[0].facts.some((f) => f.attribute === "step_count")).toBe(false);
+    expect(route.segments[0].state).not.toBe("barrier");
+  });
+
   it("shows sources that disagree about a kerb as a conflict, never as met", async () => {
     // GIVEN the city says 1 cm and OSM says 4 cm at the same crossing
     const route0 = await createRoute(request({ avoidStairs: true }), { provider: recorded, now });
