@@ -3,7 +3,7 @@
     - /url: /
   - heading "Dla firm" [level=1]
   - text: Dane przykładowe
-  - paragraph: Hotel albo organizator wydarzenia osadza na swojej stronie aktualną kartę dostępności — z faktami, źródłami i datami. Odwiedzający nie potrzebują konta.
+  - paragraph: Aktualna karta dostępności na stronie hotelu lub wydarzenia: fakty, źródła, daty. Odwiedzający nie potrzebują konta.
   - heading "Podgląd na stronie obiektu" [level=2]
   - paragraph: /Tak wyglądałaby strona hotelu z naszym widgetem/
   - paragraph: strona-hotelu.example
@@ -16,7 +16,7 @@
   - button "Kopiuj kod widgetu":
     - img
   - heading "Strona wydarzenia" [level=2]
-  - paragraph: /Organizator wydarzenia tworzy link „Dojazd i wejście bez barier”/
+  - paragraph: /Link „Dojazd i wejście bez barier”/
   - text: Szukaj miejsca
   - searchbox "Szukaj miejsca"
   - paragraph: Nazwa albo ulica, np. „Sukiennice”.

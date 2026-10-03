@@ -63,7 +63,7 @@ export const nearby = {
   },
   devPage: {
     title: "Funkcje natywne",
-    lead: "Diagnostyka aplikacji mobilnej: na której platformie działa strona i czy lokalizacja działa. Pozycja jest ustalana od razu po wejściu.",
+    lead: "Diagnostyka: platforma i lokalizacja. Pozycja jest ustalana po wejściu na stronę.",
     platform: "Platforma",
     platforms: { ios: "aplikacja iOS", android: "aplikacja Android", web: "przeglądarka" },
   },

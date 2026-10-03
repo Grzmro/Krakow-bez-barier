@@ -46,7 +46,7 @@
       - text: Done
       - paragraph: With the system “reduce motion” setting, interface animations and transitions are shortened. This doesn't cover the smooth map panning. We don't test this setting.
   - heading "Known limitations and improvement plan" [level=2]
-  - paragraph: The status shows how far each fix has got. We don't give dates we can't keep.
+  - paragraph: The status shows each fix's stage. We give no dates.
   - list:
     - listitem:
       - heading "Map gestures on a phone" [level=3]

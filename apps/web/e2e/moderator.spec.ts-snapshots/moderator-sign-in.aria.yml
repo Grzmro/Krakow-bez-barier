@@ -4,7 +4,7 @@
   - heading "Panel moderatora" [level=1]
   - text: Dane przykładowe
   - heading "Logowanie moderatora" [level=2]
-  - paragraph: Wklej token moderatora od administratora. Możesz użyć menedżera haseł — bez zagadek i przepisywania kodów.
+  - paragraph: Wklej token moderatora od administratora.
   - text: Token moderatora
   - textbox "Token moderatora"
   - checkbox "Pokaż token"

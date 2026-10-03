@@ -1,6 +1,6 @@
 - dialog "Progi profilu":
   - heading "Progi profilu" [level=2]
-  - paragraph: Wartości domyślne to propozycja. Zmień je pod siebie.
+  - paragraph: Wartości domyślne możesz zmienić.
   - group "Profil potrzeb":
     - text: ""
     - radio "Wózek" [checked]

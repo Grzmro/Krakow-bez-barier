@@ -38,7 +38,7 @@ export const profile = {
   needName,
   thresholds: {
     title: "Progi profilu",
-    proposal: "Wartości domyślne to propozycja. Zmień je pod siebie.",
+    proposal: "Wartości domyślne możesz zmienić.",
     maxThresholdCm: "Maks. próg",
     minDoorWidthCm: "Min. szerokość wejścia",
     requireStepFree: "Bez stopni",
@@ -87,7 +87,7 @@ export const profile = {
     hideDetailsAria: (place: string) => `Ukryj szczegóły: ${place}`,
     showAll: "Pokaż wszystkie wyniki",
     filteredEmpty: "Żadne miejsce nie pasuje do wybranego wyniku",
-    filteredEmptyHint: "Wyniki wyszukiwania są, ale ukrywa je filtr wyniku profilu.",
+    filteredEmptyHint: "Wyniki ukrywa filtr wyniku profilu.",
     noneMet: {
       title: "Żadne miejsce na liście nie ma jeszcze kompletu danych dla tego profilu",
       missing: (missing: { need: Need; count: number }[], total: number) =>

@@ -33,7 +33,7 @@ export const profile: Messages["profile"] = {
   needName,
   thresholds: {
     title: "Profile thresholds",
-    proposal: "The defaults are a suggestion. Adjust them to suit you.",
+    proposal: "You can change the defaults.",
     maxThresholdCm: "Max. threshold",
     minDoorWidthCm: "Min. entrance width",
     requireStepFree: "Step-free",
@@ -82,7 +82,7 @@ export const profile: Messages["profile"] = {
     hideDetailsAria: (place: string) => `Hide details: ${place}`,
     showAll: "Show all results",
     filteredEmpty: "No place matches the selected result",
-    filteredEmptyHint: "There are search results, but the profile result filter hides them.",
+    filteredEmptyHint: "The profile result filter hides the results.",
     noneMet: {
       title: "No place on the list has complete data for this profile yet",
       missing: (missing: { need: Need; count: number }[], total: number) =>

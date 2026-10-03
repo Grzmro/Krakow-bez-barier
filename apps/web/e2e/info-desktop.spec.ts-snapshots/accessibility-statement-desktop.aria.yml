@@ -65,7 +65,7 @@
       - text: Zrobione
       - paragraph: Przy ustawieniu systemowym „zmniejsz ruch” animacje i przejścia interfejsu są skrócone. Nie dotyczy to płynnego przesuwania mapy. Tego ustawienia nie sprawdzamy testem.
   - heading "Znane ograniczenia i plan poprawy" [level=2]
-  - paragraph: Status mówi, na jakim etapie jest poprawa. Nie podajemy terminów, których nie możemy dotrzymać.
+  - paragraph: Status pokazuje etap poprawy. Terminów nie podajemy.
   - list:
     - listitem:
       - heading "Gesty mapy na telefonie" [level=3]
@@ -96,7 +96,7 @@
       - text: Poza zakresem
       - paragraph: Część danych to przykład i jest oznaczona „PRZYKŁAD”. Nazw miejsc i wartości z danych źródłowych nie tłumaczymy na angielski.
   - heading "Czego nie sprawdziliśmy" [level=2]
-  - paragraph: Tych rzeczy nikt jeszcze nie zweryfikował, więc nie twierdzimy, że działają.
+  - paragraph: Nikt tego jeszcze nie zweryfikował, więc nie twierdzimy, że działa.
   - list:
     - listitem: "Niesprawdzone Ręczny przebieg z czytnikami ekranu: VoiceOver (iOS i macOS), TalkBack i NVDA."
     - listitem: Niesprawdzone Przeglądarki inne niż Chromium (Firefox, Safari). Testy automatyczne uruchamiamy tylko w Chromium.

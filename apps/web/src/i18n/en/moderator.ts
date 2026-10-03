@@ -4,7 +4,7 @@ export const moderator: Messages["moderator"] = {
   title: "Moderator panel",
   signIn: {
     heading: "Moderator sign-in",
-    lead: "Paste the moderator token from your administrator. You can use a password manager — no puzzles or retyping codes.",
+    lead: "Paste the moderator token from your administrator.",
     token: "Moderator token",
     show: "Show token",
     submit: "Sign in",

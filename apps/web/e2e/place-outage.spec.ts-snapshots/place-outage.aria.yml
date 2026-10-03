@@ -30,7 +30,7 @@
             - text: ""
     - region "Fakty":
       - heading "Fakty" [level=2]
-      - paragraph: Pokazujemy konkretne dane, bez zbiorczej oceny. Rozwiń cechę, aby zobaczyć źródło i datę.
+      - paragraph: Rozwiń cechę, by zobaczyć źródło i datę.
       - list:
         - listitem:
           - 'button "Wejście — stopnie: Bez stopni. Wiarygodność: Potwierdzone."': Wejście — stopnie Bez stopni Potwierdzone

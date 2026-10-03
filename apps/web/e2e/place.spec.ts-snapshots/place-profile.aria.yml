@@ -17,7 +17,7 @@
       - text: ""
     - 'region "Twój profil: Wózek"':
       - 'heading "Twój profil: Wózek" [level=2]'
-      - paragraph: Wynik według progów Twojego profilu. Źródła i daty znajdziesz w faktach poniżej.
+      - paragraph: Według progów Twojego profilu. Źródła i daty w faktach poniżej.
       - paragraph: Nie spełnia · 2 stopnie
       - paragraph: Pasuje 0 z 4 potrzeb profilu
       - heading "Blokuje (2)" [level=3]
@@ -30,7 +30,7 @@
         - listitem: Toaleta dostosowana Brak danych
     - region "Fakty":
       - heading "Fakty" [level=2]
-      - paragraph: Pokazujemy konkretne dane, bez zbiorczej oceny. Rozwiń cechę, aby zobaczyć źródło i datę.
+      - paragraph: Rozwiń cechę, by zobaczyć źródło i datę.
       - list:
         - listitem:
           - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych Brak danych

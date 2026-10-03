@@ -19,9 +19,9 @@ export const business: Messages["business"] = {
   },
   page: {
     title: "For businesses",
-    lead: "A hotel or an event organiser embeds an up-to-date accessibility card on their website — with facts, sources and dates. Visitors don't need an account.",
+    lead: "An up-to-date accessibility card on a hotel or event website: facts, sources, dates. Visitors don't need an account.",
     previewTitle: "Preview on a venue's website",
-    previewNote: "What a hotel's website would look like with our widget. Below is a working widget in an iframe — with this hotel's data, sources and dates.",
+    previewNote: "A hotel website with our widget. Below, a working widget (iframe) with this hotel's data.",
     hotelUrl: "hotel-website.example",
     showcaseLoading: "Finding a hotel with data to show…",
     showcaseError: "Couldn't load a hotel to show.",
@@ -49,7 +49,7 @@ export const business: Messages["business"] = {
   },
   event: {
     title: "Event page",
-    lead: "An event organiser creates a “Step-free access and entry” link for the venue — for an email, a ticket or a poster (print version). Attendees don't need an account.",
+    lead: "A “Step-free access and entry” link for the venue — for an email, a ticket or a poster (print version). Attendees don't need an account.",
     search: "Search for a place",
     searchHint: "Name or street, e.g. “Sukiennice”.",
     place: "Event venue",

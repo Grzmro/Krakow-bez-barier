@@ -154,7 +154,7 @@ export const pages = {
     limits: {
       id: "ograniczenia",
       title: "Znane ograniczenia i plan poprawy",
-      intro: "Status mówi, na jakim etapie jest poprawa. Nie podajemy terminów, których nie możemy dotrzymać.",
+      intro: "Status pokazuje etap poprawy. Terminów nie podajemy.",
       items: [
         [
           "inProgress",
@@ -197,7 +197,7 @@ export const pages = {
       id: "niesprawdzone",
       title: "Czego nie sprawdziliśmy",
       badge: "Niesprawdzone",
-      intro: "Tych rzeczy nikt jeszcze nie zweryfikował, więc nie twierdzimy, że działają.",
+      intro: "Nikt tego jeszcze nie zweryfikował, więc nie twierdzimy, że działa.",
       items: [
         "Ręczny przebieg z czytnikami ekranu: VoiceOver (iOS i macOS), TalkBack i NVDA.",
         "Przeglądarki inne niż Chromium (Firefox, Safari). Testy automatyczne uruchamiamy tylko w Chromium.",

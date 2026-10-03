@@ -79,7 +79,7 @@ test("a route without a routing key says so, offers the example route, and still
   // THEN the route screen says this route can't be planned in demo mode, offers the example route (not a pointless retry), and still shows the entrance facts
   await expect(page).toHaveURL(/\/trasa\?do=kawiarnia-przyklad$/);
   const main = page.locator("main");
-  await expect(main).toContainText("Tej trasy nie wyznaczymy w trybie demonstracyjnym");
+  await expect(main).toContainText("Tryb demonstracyjny: bez klucza openrouteservice");
   await expect(page.getByRole("link", { name: "Pokaż przykładową trasę" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Spróbuj ponownie" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: /Cel: wejście · Kawiarnia Przykład/ })).toBeVisible();
