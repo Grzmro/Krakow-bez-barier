@@ -40,6 +40,13 @@ test("tapping a cluster zooms in until its places are pins, and a pin leads to t
   await expectAccessible();
   await evidence("map-clusters");
 
+  // WHEN a row on the list is focused
+  await list(page).getByRole("link").first().focus();
+
+  // THEN the map marks the one marker that holds that place, even when it is inside a cluster
+  await expect(page.locator('.maplibregl-marker[data-selected="true"]')).toHaveCount(1);
+  await evidence("map-clusters-selected");
+
   // WHEN the visitor taps a cluster
   const tapped = await reachable(clusters(page));
   const count = await page.evaluate(
@@ -92,4 +99,12 @@ test("with a profile on, clusters tell their verdicts in words", async ({ page, 
   await markersSettled(page);
   await expectAccessible();
   await evidence("map-clusters-profile");
+
+  // WHEN the visitor taps a cluster
+  await markersSettled(page);
+  const tapped = await reachable(clusters(page));
+  await page.touchscreen.tap(tapped.x, tapped.y);
+
+  // THEN the announcement repeats the breakdown in words, as the donut's colours alone don't tell it
+  await expect(liveRegion(page)).toHaveText(/^Przybliżono: \d+ miejsc\w* \((Spełnia|Sprzeczne|Brak danych|Nie spełnia): \d+/);
 });

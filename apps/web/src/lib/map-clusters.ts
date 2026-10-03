@@ -96,6 +96,26 @@ export function expansionZoom({ index }: ClusterIndex, clusterId: number): numbe
   return index.getClusterExpansionZoom(clusterId);
 }
 
+/** Ids of every place inside a cluster. */
+export function clusterPlaceIds({ index }: ClusterIndex, clusterId: number): string[] {
+  return index.getLeaves(clusterId, Infinity).map((leaf) => leaf.properties.id);
+}
+
+/**
+ * Donut segments as fractions of the whole cluster (`start`, `length` in 0..1). The denominator is
+ * `count`, not the sum of verdicts: places without a verdict leave their share of the ring unpainted,
+ * so missing data never reads as accessible.
+ */
+export function donutSegments(breakdown: [Status, number][], count: number): { status: Status; start: number; length: number }[] {
+  if (count <= 0) return [];
+  let start = 0;
+  return breakdown.map(([status, n]) => {
+    const segment = { status, start, length: n / count };
+    start += segment.length;
+    return segment;
+  });
+}
+
 /** Verdict counts as `[status, count]` pairs in the legend's order, skipping zeros; empty without a profile. */
 export function verdictBreakdown(counts: VerdictCounts): [Status, number][] {
   return STATUS_ORDER.filter((status) => counts[status] > 0).map((status) => [status, counts[status]]);

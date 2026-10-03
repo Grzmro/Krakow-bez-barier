@@ -1,7 +1,16 @@
 import { describe, expect, it } from "vitest";
 import type { PlaceSummary } from "@krakow-bez-barier/contracts";
 import type { Status } from "@krakow-bez-barier/ui";
-import { buildClusterIndex, CLUSTER_MAX_ZOOM, expansionZoom, mapItems, spreadOffsets, verdictBreakdown } from "./map-clusters";
+import {
+  buildClusterIndex,
+  CLUSTER_MAX_ZOOM,
+  clusterPlaceIds,
+  donutSegments,
+  expansionZoom,
+  mapItems,
+  spreadOffsets,
+  verdictBreakdown,
+} from "./map-clusters";
 
 const KRAKOW: [number, number, number, number] = [19.7, 49.9, 20.2, 50.2];
 
@@ -103,5 +112,45 @@ describe("map clusters", () => {
     const ring = spreadOffsets(12);
     const gap = Math.hypot(ring[0][0] - ring[1][0], ring[0][1] - ring[1][1]);
     expect(gap).toBeGreaterThanOrEqual(36);
+  });
+
+  it("never paints the share of places without a verdict in the donut", () => {
+    // GIVEN a cluster of 5 places where only one has a verdict (met)
+    const breakdown: [Status, number][] = [["met", 1]];
+
+    // WHEN the donut is drawn
+    const segments = donutSegments(breakdown, 5);
+
+    // THEN green covers a fifth of the ring and the rest stays unpainted
+    expect(segments).toEqual([{ status: "met", start: 0, length: 0.2 }]);
+  });
+
+  it("lays donut segments end to end in the breakdown's order", () => {
+    // GIVEN / WHEN a fully judged cluster of 4
+    const segments = donutSegments([["met", 1], ["unknown", 1], ["barrier", 2]], 4);
+
+    // THEN the segments are contiguous and fill the ring
+    expect(segments).toEqual([
+      { status: "met", start: 0, length: 0.25 },
+      { status: "unknown", start: 0.25, length: 0.25 },
+      { status: "barrier", start: 0.5, length: 0.5 },
+    ]);
+  });
+
+  it("lists the places inside a cluster, so a highlighted list row can mark it", () => {
+    // GIVEN three places on the Main Square and one in Nowa Huta
+    const index = buildClusterIndex([
+      place("a", 19.9373, 50.0617),
+      place("b", 19.9378, 50.0619),
+      place("c", 19.9369, 50.0613),
+      place("d", 20.0347, 50.0717),
+    ]);
+
+    // WHEN the city is in view and the square is one cluster
+    const cluster = mapItems(index, KRAKOW, 11).find((item) => item.kind === "cluster");
+    if (cluster?.kind !== "cluster") throw new Error("expected a cluster");
+
+    // THEN it holds exactly the square's places
+    expect(clusterPlaceIds(index, cluster.clusterId).toSorted()).toEqual(["a", "b", "c"]);
   });
 });

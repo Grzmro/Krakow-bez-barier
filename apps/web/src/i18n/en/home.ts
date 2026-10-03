@@ -1,6 +1,8 @@
 import type { Messages } from "../messages";
 
 const placesWord = (n: number) => (n === 1 ? "place" : "places");
+const verdictParts = (parts: [string, number][]) =>
+  parts.length ? ` (${parts.map(([label, count]) => `${label}: ${count}`).join(", ")})` : "";
 
 export const home: Messages["home"] = {
   title: "Map and list of places",
@@ -28,9 +30,8 @@ export const home: Messages["home"] = {
     zoomIn: "Zoom in",
     zoomOut: "Zoom out",
     unavailable: "The map isn't available in this browser. All places are in the list.",
-    cluster: (n, parts) =>
-      `Group: ${n} ${placesWord(n)}${parts.length ? ` (${parts.map(([label, count]) => `${label}: ${count}`).join(", ")})` : ""}`,
-    zoomedToCluster: (n) => `Zoomed in: ${n} ${placesWord(n)}`,
+    cluster: (n, parts) => `Group: ${n} ${placesWord(n)}${verdictParts(parts)}`,
+    zoomedToCluster: (n, parts) => `Zoomed in: ${n} ${placesWord(n)}${verdictParts(parts)}`,
   },
   list: {
     label: "List of places",

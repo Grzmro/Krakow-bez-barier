@@ -9,7 +9,14 @@ import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useMessages } from "@/i18n/client";
 import { config } from "@/lib/config";
-import { buildClusterIndex, expansionZoom, mapItems, verdictBreakdown, type MapItem } from "@/lib/map-clusters";
+import {
+  buildClusterIndex,
+  clusterPlaceIds,
+  expansionZoom,
+  mapItems,
+  verdictBreakdown,
+  type MapItem,
+} from "@/lib/map-clusters";
 import { MapControls } from "../map/map-controls";
 import { clusterSize, PlaceCluster } from "./place-cluster";
 import { PlacePin } from "./place-pin";
@@ -30,7 +37,7 @@ function pinElement(place: PlaceSummary) {
 function clusterElement(item: Extract<MapItem, { kind: "cluster" }>, label: string) {
   const element = document.createElement("div");
   const size = clusterSize(item.count);
-  element.className = "relative cursor-pointer";
+  element.className = "group relative cursor-pointer data-[selected=true]:z-10";
   element.style.width = element.style.height = `${size}px`;
   // Not a tab stop, like the pins: keyboard users zoom with +/- or the arrows, and the list holds every place.
   element.setAttribute("role", "img");
@@ -58,7 +65,15 @@ function youElement(you: string) {
   return element;
 }
 
-type Markers = Map<string, { marker: Marker; root: Root }>;
+/** `places` = the ids a marker stands for: one for a pin, every leaf for a cluster. */
+type Markers = Map<string, { marker: Marker; root: Root; places: ReadonlySet<string> }>;
+
+/** Marks the pin of the selected place, or the cluster that holds it. */
+function markSelected(markers: Markers, selectedId: string | null) {
+  for (const { marker, places } of markers.values()) {
+    marker.getElement().dataset.selected = String(selectedId !== null && places.has(selectedId));
+  }
+}
 
 function removeMarkers(markers: Markers, keys: Iterable<string> = [...markers.keys()]) {
   const roots: Root[] = [];
@@ -176,13 +191,12 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
           if (item.kind === "place") {
             const { place } = item;
             const { element, root } = pinElement(place);
-            element.dataset.selected = String(place.id === selectedIdRef.current);
             element.addEventListener("click", (event) => {
               event.stopPropagation();
               onSelectRef.current(place.id);
             });
             const marker = new Marker({ element, offset: item.offset }).setLngLat(item.coordinates).addTo(map);
-            markers.set(item.key, { marker, root });
+            markers.set(item.key, { marker, root, places: new Set([place.id]) });
           } else {
             const parts = verdictBreakdown(item.counts).map(([status, n]) => [statusWords[status], n] as [string, number]);
             const { element, root } = clusterElement(item, t.cluster(item.count, parts));
@@ -194,12 +208,13 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
                 padding: { ...paddingRef.current, left: 0, right: 0 },
                 duration: 400,
               });
-              announce(t.zoomedToCluster(item.count));
+              announce(t.zoomedToCluster(item.count, parts));
             });
             const marker = new Marker({ element }).setLngLat(item.coordinates).addTo(map);
-            markers.set(item.key, { marker, root });
+            markers.set(item.key, { marker, root, places: new Set(clusterPlaceIds(index, item.clusterId)) });
           }
         }
+        markSelected(markers, selectedIdRef.current);
       };
       update();
       map.on("moveend", update);
@@ -261,10 +276,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
   }, [map, centered, padding.top, padding.bottom]);
 
   useEffect(() => {
-    for (const { marker } of markersRef.current.values()) {
-      const element = marker.getElement();
-      if (element.dataset.placeId) element.dataset.selected = String(element.dataset.placeId === selectedId);
-    }
+    markSelected(markersRef.current, selectedId);
   }, [selectedId]);
 
   return (
