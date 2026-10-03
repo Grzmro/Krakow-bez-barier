@@ -1946,7 +1946,7 @@ components:
               type:
               - string
               - 'null'
-              description: Id of the record in the source (e.g. OSM node id).
+              description: Id of the record in the source (e.g. `osm:node/123456@v21` for an OSM element and its version).
         fetchedAt:
           type: string
           format: date-time
@@ -3072,7 +3072,7 @@ components:
               id: osm
               name: OpenStreetMap
               kind: community
-              recordRef: node/123456
+              recordRef: osm:node/123456@v21
             fetchedAt: '2026-10-03T03:00:00Z'
             observedAt: null
             confirmedAt: '2026-08-20T10:00:00Z'
@@ -3116,7 +3116,7 @@ components:
               id: osm
               name: OpenStreetMap
               kind: community
-              recordRef: node/123456
+              recordRef: osm:node/123456@v21
             fetchedAt: '2026-10-03T03:00:00Z'
             observedAt: '2026-07-01T00:00:00Z'
             confirmedAt: null
@@ -3479,7 +3479,7 @@ components:
               id: osm
               name: OpenStreetMap
               kind: community
-              recordRef: node/987654
+              recordRef: osm:node/987654@v7
             fetchedAt: '2026-10-03T03:00:00Z'
             observedAt: null
             confirmedAt: null
@@ -3609,7 +3609,7 @@ components:
               id: osm
               name: OpenStreetMap
               kind: community
-              recordRef: node/555111
+              recordRef: osm:node/555111@v4
             fetchedAt: '2026-10-03T03:00:00Z'
             observedAt: '2026-06-15T00:00:00Z'
             confirmedAt: null
@@ -3634,7 +3634,7 @@ components:
               id: osm
               name: OpenStreetMap
               kind: community
-              recordRef: node/555111
+              recordRef: osm:node/555111@v4
             fetchedAt: '2026-10-03T03:00:00Z'
             observedAt: '2026-06-15T00:00:00Z'
             confirmedAt: null
@@ -3661,7 +3661,7 @@ components:
               id: osm
               name: OpenStreetMap
               kind: community
-              recordRef: node/555111
+              recordRef: osm:node/555111@v4
             fetchedAt: '2026-10-03T03:00:00Z'
             observedAt: '2026-06-15T00:00:00Z'
             confirmedAt: null

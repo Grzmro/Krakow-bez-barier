@@ -150,6 +150,7 @@ describe("OSM edit link", () => {
   it.each([
     ["osm:node/1", { type: "node", id: "1" }],
     ["osm:way/2@v3", { type: "way", id: "2" }],
+    ["osm:node/1@geofabrik-2026-10-02", { type: "node", id: "1" }],
     ["osm:way/2;geofabrik-2026-10-02", { type: "way", id: "2" }],
     ["osm:relation/7@v21;geofabrik-2026-10-02", { type: "relation", id: "7" }],
     ["node/123456", { type: "node", id: "123456" }],
