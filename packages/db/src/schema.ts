@@ -130,6 +130,7 @@ export const ingestionRuns = pgTable(
     status: text("status").$type<"ok" | "partial" | "failed">().notNull(),
     recordsSeen: integer("records_seen").notNull().default(0),
     recordsWritten: integer("records_written").notNull().default(0),
+    recordsSkipped: integer("records_skipped").notNull().default(0),
     error: text("error"),
   },
   (t) => [index("ingestion_runs_source_idx").on(t.sourceId, t.startedAt)],

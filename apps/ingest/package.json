@@ -1,0 +1,24 @@
+{
+  "name": "@krakow-bez-barier/ingest",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Data source adapters: scheduled ingestion of accessibility facts with provenance into the database.",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "ingest": "tsx --env-file-if-exists=../../.env src/cli.ts",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@krakow-bez-barier/contracts": "*",
+    "@krakow-bez-barier/db": "*",
+    "drizzle-orm": "^0.44.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsx": "^4.20.0",
+    "typescript": "^5",
+    "vitest": "^3.2.0"
+  }
+}

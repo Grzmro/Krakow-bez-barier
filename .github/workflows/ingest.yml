@@ -1,0 +1,51 @@
+name: Ingest
+
+# Daily refresh of source data into the production database. Needs the DATABASE_URL secret
+# (set up with the deployment, KBB-21); without it the job is skipped.
+
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    name: ingest krakow
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Check configuration
+        id: config
+        run: |
+          if [ -z "$DATABASE_URL" ]; then echo "::warning::DATABASE_URL secret is not set; ingest skipped"; fi
+          echo "enabled=$([ -n "$DATABASE_URL" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v5
+        if: steps.config.outputs.enabled == 'true'
+
+      - uses: actions/setup-node@v5
+        if: steps.config.outputs.enabled == 'true'
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install
+        if: steps.config.outputs.enabled == 'true'
+        run: npm ci --no-audit --no-fund
+
+      - name: Migrate
+        if: steps.config.outputs.enabled == 'true'
+        run: npm run db:migrate
+
+      - name: Ingest
+        if: steps.config.outputs.enabled == 'true'
+        run: npm run ingest -- --city krakow
