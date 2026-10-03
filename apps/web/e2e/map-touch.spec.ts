@@ -1,42 +1,7 @@
-import { devices, type CDPSession, type Page } from "@playwright/test";
+import { devices, type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 import { expandClusters, markersSettled, pins } from "./map";
-
-type Point = { x: number; y: number };
-
-// Real touch input through CDP, so the browser hit-tests every finger like on a phone and MapLibre's
-// touch handlers see exactly what a user's finger would give them.
-async function touchscreen(page: Page) {
-  const cdp: CDPSession = await page.context().newCDPSession(page);
-  const send = (type: "touchStart" | "touchMove" | "touchEnd", touchPoints: (Point & { id?: number })[]) =>
-    cdp.send("Input.dispatchTouchEvent", { type, touchPoints });
-  const STEPS = 4;
-  return {
-    async drag(from: Point, delta: Point) {
-      await send("touchStart", [from]);
-      for (let i = 1; i <= STEPS; i++) {
-        await send("touchMove", [{ x: from.x + (delta.x * i) / STEPS, y: from.y + (delta.y * i) / STEPS }]);
-      }
-      // Hold still before lifting, like a deliberate pan: MapLibre then skips its inertia and the map settles at once.
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      await send("touchEnd", []);
-    },
-    async pinch(center: Point, fromGap: number, toGap: number) {
-      const fingers = (gap: number) => [
-        { x: center.x - gap / 2, y: center.y, id: 0 },
-        { x: center.x + gap / 2, y: center.y, id: 1 },
-      ];
-      await send("touchStart", fingers(fromGap));
-      for (let i = 1; i <= STEPS; i++) await send("touchMove", fingers(fromGap + ((toGap - fromGap) * i) / STEPS));
-      await send("touchEnd", []);
-    },
-    async tap(at: Point) {
-      await send("touchStart", [at]);
-      await send("touchEnd", []);
-    },
-  };
-}
-
+import { finger } from "./touch";
 
 /** The two pins `view` follows, picked per test: markers come and go as the map moves, these stay near the middle. */
 const tracked = new WeakMap<Page, string[]>();
@@ -120,7 +85,7 @@ for (const [name, device] of [
     test("ten drags anywhere on the visible map each pan it, also after the sheet is toggled", async ({ page, evidence }) => {
       // GIVEN the home screen zoomed in to single sample pins
       await openHome(page);
-      const touch = await touchscreen(page);
+      const touch = await finger(page);
       const area = await freeMapArea(page);
       const sheetToggle = page.getByRole("region", { name: "Lista miejsc" }).getByRole("button", { name: "Rozwiń arkusz", expanded: false });
 
@@ -155,7 +120,7 @@ for (const [name, device] of [
     test("a two-finger pinch zooms the map in and out", async ({ page }) => {
       // GIVEN the home screen
       await openHome(page);
-      const touch = await touchscreen(page);
+      const touch = await finger(page);
       const area = await freeMapArea(page);
       // Low on the map, beside the zoom buttons and attribution: both fingers must get past their container.
       const center = { x: (area.left + area.right) / 2, y: area.top + 0.8 * (area.bottom - area.top) };
@@ -174,7 +139,7 @@ for (const [name, device] of [
     test("scrolling the sheet's list leaves the map alone, and dragging the map leaves the list alone", async ({ page }) => {
       // GIVEN the home screen with the list scrolled down a little (a swipe up at half height would expand the sheet instead)
       await openHome(page);
-      const touch = await touchscreen(page);
+      const touch = await finger(page);
       const scroller = page.getByRole("group", { name: "Lista miejsc" });
       const list = (await scroller.boundingBox())!;
       const scrollTop = () => scroller.evaluate((el) => el.scrollTop);
@@ -209,7 +174,7 @@ for (const [name, device] of [
       // hint an iPhone 15 keeps only a strip of map between the chips and the list, and the pins hide under them)
       await page.addInitScript(() => localStorage.setItem("kbb:install-dismissed", "1"));
       await openHome(page);
-      const touch = await touchscreen(page);
+      const touch = await finger(page);
 
       // WHEN the visitor taps the topmost pin under a free spot of its own
       const target = await pins(page).evaluateAll((els) => {
