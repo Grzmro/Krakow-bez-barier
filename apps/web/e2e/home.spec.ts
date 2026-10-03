@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { placesOnMap } from "./map";
 
 test("search for Sukiennice shows it on the list and the map and opens its card", async ({
   page,
@@ -59,7 +60,8 @@ test("feature filter hides places without data until the switch shows them as Br
   const palace = list.getByRole("link", { name: /Pałac Krzysztofory/ });
   await expect(palace).toBeVisible();
   await expect(palace.getByText("Brak danych", { exact: true })).toBeVisible();
-  await expect(page.locator("[data-place-id]")).toHaveCount(await list.getByRole("listitem").count());
+  const rows = await list.getByRole("listitem").count();
+  await expect.poll(() => placesOnMap(page)).toBe(rows);
   await expectAccessible();
   await evidence("home-filter-show-unknown");
 });

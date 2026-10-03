@@ -2,6 +2,8 @@ import type { FeatureFilter } from "@krakow-bez-barier/contracts";
 
 const placesWord = (n: number) =>
   n === 1 ? "miejsce" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "miejsca" : "miejsc";
+const verdictParts = (parts: [string, number][]) =>
+  parts.length ? ` (${parts.map(([label, count]) => `${label}: ${count}`).join(", ")})` : "";
 
 export const home = {
   title: "Mapa i lista miejsc",
@@ -29,6 +31,8 @@ export const home = {
     zoomIn: "Przybliż",
     zoomOut: "Oddal",
     unavailable: "Mapa jest niedostępna w tej przeglądarce. Wszystkie miejsca są na liście.",
+    cluster: (n: number, parts: [string, number][]) => `Grupa: ${n} ${placesWord(n)}${verdictParts(parts)}`,
+    zoomedToCluster: (n: number, parts: [string, number][]) => `Przybliżono: ${n} ${placesWord(n)}${verdictParts(parts)}`,
   },
   list: {
     label: "Lista miejsc",

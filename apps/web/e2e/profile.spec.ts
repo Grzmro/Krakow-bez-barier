@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { verdictsOnMap } from "./map";
 
 const liveRegion = (page: Page) => page.locator('div[role="status"][aria-atomic="true"]');
 const list = (page: Page) => page.getByRole("region", { name: "Lista miejsc" });
@@ -44,10 +45,8 @@ test("wheelchair profile on the home screen shows verdicts on the list and map, 
   await expect(row(page, "Hotel Przykład")).not.toContainText("Toaleta dostosowana");
   await expect(liveRegion(page)).toHaveText("Profil: wózek. 5 miejsc: 1 spełnia, 1 nie spełnia, 3 brak danych, 0 sprzeczne.");
 
-  // AND the map pins carry the same verdicts as the list
-  await expect(page.locator('[data-place-id="hotel-przyklad"]')).toHaveAttribute("data-status", "met");
-  await expect(page.locator('[data-place-id="restauracja-przyklad"]')).toHaveAttribute("data-status", "barrier");
-  await expect(page.locator("[data-place-id][data-status]")).toHaveCount(5);
+  // AND the map's pins and clusters carry the same verdicts as the list
+  await expect.poll(() => verdictsOnMap(page)).toEqual({ met: 1, barrier: 1, unknown: 3 });
 
   // AND "Dlaczego?" explains the verdict under the row
   await row(page, "Hotel Przykład").getByRole("button", { name: "Dlaczego? Hotel Przykład" }).click();

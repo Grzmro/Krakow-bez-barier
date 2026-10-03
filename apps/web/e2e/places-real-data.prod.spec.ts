@@ -2,6 +2,7 @@ import type { Place, PlaceList } from "@krakow-bez-barier/contracts";
 import { pl } from "../src/i18n/pl";
 import { CARD_ATTRIBUTES } from "../src/lib/place-facts";
 import { expect, test } from "./fixtures";
+import { clusters, pins } from "./map";
 
 // Runs against `next start` of the real-API build (project chromium-prod, E2E_PROD=1) and the database in
 // DATABASE_URL (`npm run db:setup` seeds it; playwright.config.ts loads the root .env). It skips itself only when
@@ -37,7 +38,9 @@ test("list, map and card show seeded places from the real API with their sources
   // THEN the list counts the places the API returned, not the spec's samples, and the map pins them
   await expect(list.getByRole("heading", { level: 2 })).toHaveText(/^\d+ miejsc/);
   await expect(list.getByRole("link", { name: /Przykład/ })).toHaveCount(0);
-  await expect(page.locator("[data-place-id]").first()).toBeAttached();
+  await expect(pins(page).or(clusters(page)).first()).toBeAttached();
+  // Clustered: a few dozen markers for the whole city, not one DOM element per place
+  expect(await page.locator(".maplibregl-marker").count()).toBeLessThan(150);
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "real-home.aria.yml" });
   await expectAccessible();
   await evidence("real-data-home");
