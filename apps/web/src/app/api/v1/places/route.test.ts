@@ -1,0 +1,167 @@
+import { describe, expect, it, vi } from "vitest";
+import { validateResponse } from "@/server/http";
+import {
+  createFakePlaceRepository,
+  factRecord,
+  placeRecord,
+  sourceRecord,
+} from "@/server/places/fake-repository";
+import type { PlaceRepository } from "@/server/places/repository";
+
+const bool = (boolean: boolean) => ({ kind: "boolean" as const, boolean });
+const num = (number: number, unit: "cm" | "count" = "cm") => ({ kind: "number" as const, number, unit });
+
+const city = sourceRecord({ id: "msip", name: "MSIP", kind: "official_open_data", baseReliability: "confirmed" });
+
+const palac = placeRecord({ name: "Pałac Krzysztofory", street: "Rynek Główny", houseNumber: "35", location: { x: 19.9381, y: 50.0623 } });
+const kawiarnia = placeRecord({ name: "Kawiarnia Przykład", category: "restaurant", street: "Floriańska", location: { x: 19.9445, y: 50.0612 } });
+const muzeum = placeRecord({ name: "Muzeum bez windy", location: { x: 19.9, y: 50.03 } });
+const hotel = placeRecord({ name: "Hotel Dostępny", category: "hotel", location: { x: 19.94, y: 50.06 } });
+
+const world = {
+  places: [palac, kawiarnia, muzeum, hotel],
+  facts: [
+    factRecord(palac, "lift", bool(true), { source: city, reliability: "confirmed" }),
+    factRecord(palac, "toilet_accessible", bool(true)),
+    factRecord(palac, "toilet_accessible", bool(false), { source: city, reliability: "confirmed" }),
+    factRecord(muzeum, "lift", bool(false)),
+    factRecord(hotel, "step_count", num(0, "count"), { source: city, reliability: "confirmed" }),
+    factRecord(hotel, "threshold_cm", num(1), { source: city, reliability: "confirmed" }),
+    factRecord(hotel, "door_width_cm", num(95), { source: city, reliability: "confirmed" }),
+    factRecord(hotel, "lift", bool(true), { source: city, reliability: "confirmed" }),
+    factRecord(hotel, "toilet_accessible", bool(true), { source: city, reliability: "confirmed" }),
+  ],
+};
+
+const repository: { current: PlaceRepository } = {
+  current: createFakePlaceRepository(world.places, world.facts),
+};
+
+vi.mock("@/server/places/repository", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/places/repository")>()),
+  createDbPlaceRepository: () => repository.current,
+}));
+
+const { GET } = await import("./route");
+
+async function list(params: string) {
+  const res = await GET(new Request(`http://localhost/api/v1/places${params}`));
+  const body = await res.json();
+  expect(validateResponse("listPlaces", res.status, body)).toEqual([]);
+  return { status: res.status, body };
+}
+
+const names = (body: { items: { name: string }[] }) => body.items.map((p) => p.name);
+
+describe("GET /api/v1/places", () => {
+  it("lists every place sorted by name, without verdicts when no profile is set", async () => {
+    // GIVEN four places
+    // WHEN listing without parameters
+    const { status, body } = await list("");
+
+    // THEN all come back in name order with explicit "brak danych" chips and no verdict
+    expect(status).toBe(200);
+    expect(names(body)).toEqual(["Hotel Dostępny", "Kawiarnia Przykład", "Muzeum bez windy", "Pałac Krzysztofory"]);
+    expect(body.total).toBe(4);
+    expect(body.items.every((p: { verdict: unknown }) => p.verdict === null)).toBe(true);
+    const cafe = body.items.find((p: { name: string }) => p.name === "Kawiarnia Przykład");
+    expect(cafe.summary).toEqual([
+      { attribute: "step_count", state: "unknown", status: "no_data", label: "Wejście — stopnie: brak danych" },
+      { attribute: "toilet_accessible", state: "unknown", status: "no_data", label: "Toaleta dostosowana: brak danych" },
+    ]);
+  });
+
+  it("finds a place by name or address, ignoring Polish letters and case", async () => {
+    // GIVEN "Pałac Krzysztofory" at "Rynek Główny" and a café on "Floriańska"
+    // WHEN searching without diacritics
+    const byName = await list("?q=palac");
+    const byStreet = await list("?q=FLORIANSKA");
+
+    // THEN each finds its place only
+    expect(names(byName.body)).toEqual(["Pałac Krzysztofory"]);
+    expect(names(byStreet.body)).toEqual(["Kawiarnia Przykład"]);
+  });
+
+  it("filters by category and bbox", async () => {
+    // GIVEN places in and out of a small Old Town box
+    // WHEN filtering by bbox, then by category
+    const inBox = await list("?bbox=19.93,50.05,19.95,50.07");
+    const hotels = await list("?category=hotel,restaurant");
+
+    // THEN the distant museum is left out, and only the requested categories come back
+    expect(names(inBox.body)).not.toContain("Muzeum bez windy");
+    expect(inBox.body.total).toBe(3);
+    expect(names(hotels.body)).toEqual(["Hotel Dostępny", "Kawiarnia Przykład"]);
+  });
+
+  it("hides places without data for a feature by default and marks them with includeUnknown", async () => {
+    // GIVEN a lift in the palace and the hotel, no lift in the museum, no data for the café
+    // WHEN filtering by lift, without and with includeUnknown
+    const strict = await list("?feature=lift");
+    const withUnknown = await list("?feature=lift&includeUnknown=true");
+
+    // THEN only known lifts pass by default; with includeUnknown the café is added, marked "brak danych",
+    // and the museum with a known missing lift never comes back
+    expect(names(strict.body)).toEqual(["Hotel Dostępny", "Pałac Krzysztofory"]);
+    expect(names(withUnknown.body)).toEqual(["Hotel Dostępny", "Kawiarnia Przykład", "Pałac Krzysztofory"]);
+    const cafe = withUnknown.body.items.find((p: { name: string }) => p.name === "Kawiarnia Przykład");
+    expect(cafe.summary).toContainEqual({ attribute: "lift", state: "unknown", status: "no_data", label: "Winda: brak danych" });
+  });
+
+  it("adds a verdict with per-need groups for a profile and honours the user's thresholds", async () => {
+    // GIVEN the hotel meets every wheelchair need on confirmed data, with a 95 cm door
+    // WHEN listing with the wheelchair profile, then with a stricter door width
+    const preset = await list("?q=hotel&profile=wheelchair");
+    const strict = await list("?q=hotel&profile=wheelchair&minDoorWidthCm=100");
+
+    // THEN the preset is met and confirmed, the stricter threshold blocks on the door
+    expect(preset.body.items[0].verdict).toMatchObject({ state: "met", unconfirmed: false });
+    expect(preset.body.items[0].verdict.needs.map((n: { need: string }) => n.need)).toEqual([
+      "entrance",
+      "door",
+      "lift",
+      "toilet",
+    ]);
+    expect(strict.body.items[0].verdict).toMatchObject({ state: "barrier", blockers: ["door_width_cm"], reasons: ["drzwi 95 cm"] });
+  });
+
+  it("never gives the conflicting or the empty place a met verdict", async () => {
+    // GIVEN the palace's toilet data conflicts and the café has none
+    // WHEN listing with either profile
+    for (const profile of ["wheelchair", "stroller"]) {
+      const { body } = await list(`?profile=${profile}`);
+      const verdictOf = (name: string) => body.items.find((p: { name: string }) => p.name === name).verdict.state;
+      // THEN neither is met
+      expect(verdictOf("Pałac Krzysztofory")).toBe("conflict");
+      expect(verdictOf("Kawiarnia Przykład")).toBe("unknown");
+    }
+  });
+
+  it("pages with an opaque cursor", async () => {
+    // GIVEN four places
+    // WHEN reading two pages of two
+    const first = await list("?limit=2");
+    const second = await list(`?limit=2&cursor=${first.body.nextCursor}`);
+
+    // THEN the pages don't overlap, the total stays the full count and the last page has no cursor
+    expect(names(first.body)).toEqual(["Hotel Dostępny", "Kawiarnia Przykład"]);
+    expect(names(second.body)).toEqual(["Muzeum bez windy", "Pałac Krzysztofory"]);
+    expect(second.body.total).toBe(4);
+    expect(second.body.nextCursor).toBeNull();
+  });
+
+  it("answers 400 with a Problem for an inverted bbox, a forged cursor or an unknown category", async () => {
+    // GIVEN requests the spec or the semantics reject
+    // WHEN listing
+    const responses = await Promise.all([
+      list("?bbox=19.95,50.05,19.93,50.07"),
+      list("?cursor=not-a-cursor"),
+      list("?category=castle"),
+    ]);
+
+    // THEN each is a 400 problem naming the field
+    for (const { status } of responses) expect(status).toBe(400);
+    expect(responses[0].body.errors).toEqual([{ field: "query.bbox", message: expect.any(String) }]);
+    expect(responses[1].body.errors[0].field).toBe("query.cursor");
+  });
+});

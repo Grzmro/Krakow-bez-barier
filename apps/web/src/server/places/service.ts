@@ -1,0 +1,239 @@
+import type {
+  AccessibilityAttribute,
+  AccessibilityFact,
+  GetPlaceQuery,
+  ListPlacesQuery,
+  Place,
+  PlaceList,
+  PlaceSummary,
+  ResolvedAttribute,
+  Source,
+  SummaryChip,
+} from "@krakow-bez-barier/contracts";
+import { openapiDocument } from "@krakow-bez-barier/contracts/openapi";
+import { pl } from "@/i18n/pl";
+import { FEATURE_ATTRIBUTES, featureState } from "../domain/features";
+import { matchProfile } from "../domain/matcher";
+import { thresholdsFor } from "../domain/profiles";
+import { isStale, resolveAttribute } from "../domain/resolver";
+import {
+  createDbPlaceRepository,
+  normalizeText,
+  type FactRecord,
+  type PlaceRecord,
+  type PlaceRepository,
+  type SourceRecord,
+} from "./repository";
+
+/** A query the spec accepts but the values don't make sense (e.g. an inverted bbox); answered with 400. */
+export class InvalidQueryError extends Error {
+  constructor(
+    readonly field: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = "InvalidQueryError";
+  }
+}
+
+export type PlacesDeps = { repository?: PlaceRepository; now?: Date };
+
+// The vocabulary is the spec's enum; `Place.attributes` lists every entry, unknown ones included.
+const ATTRIBUTES = (
+  (openapiDocument.components as { schemas: Record<string, { enum: string[] }> }).schemas.AccessibilityAttribute
+).enum as AccessibilityAttribute[];
+
+// Shown in every list row even without data, so "Brak danych" is explicit, not a missing chip.
+const ALWAYS_SUMMARIZED: AccessibilityAttribute[] = ["step_count", "toilet_accessible"];
+
+const FAILED_REFRESH = new Set<SourceRecord["refreshStatus"]>(["stale", "outage"]);
+
+const iso = (date: Date | null) => (date ? date.toISOString() : null);
+
+function toFact(record: FactRecord, now: Date): AccessibilityFact {
+  const { evidence } = record;
+  const fact: AccessibilityFact = {
+    id: record.id,
+    attribute: record.attribute,
+    value: record.value,
+    unit: record.unit,
+    source: {
+      id: record.source.id,
+      name: record.source.name,
+      kind: record.source.kind,
+      recordRef: record.sourceRecordRef || null,
+    },
+    fetchedAt: record.fetchedAt.toISOString(),
+    observedAt: iso(record.observedAt),
+    confirmedAt: iso(record.confirmedAt),
+    reliability: record.reliability,
+    evidence:
+      evidence || record.confirmations > 0
+        ? { photoUrl: evidence?.photoUrl ?? null, comment: evidence?.comment ?? null, confirmations: record.confirmations }
+        : null,
+    status: record.status,
+    stale: false,
+  };
+  return { ...fact, stale: FAILED_REFRESH.has(record.source.refreshStatus) || isStale(fact, now) };
+}
+
+function toSource(record: SourceRecord): Source {
+  return {
+    id: record.id,
+    name: record.name,
+    kind: record.kind,
+    license: record.license,
+    attribution: record.attribution,
+    url: record.url,
+    refreshInterval: record.refreshInterval,
+    refreshStatus: record.refreshStatus,
+    lastSuccessAt: iso(record.lastSuccessAt),
+    lastAttemptAt: iso(record.lastAttemptAt),
+    statusNote: record.statusNote,
+    isSample: record.isSample,
+  };
+}
+
+function resolvePlace(records: FactRecord[], now: Date): ResolvedAttribute[] {
+  const facts = records.map((r) => toFact(r, now));
+  return ATTRIBUTES.map((attribute) => resolveAttribute(attribute, facts, now));
+}
+
+const isSample = (place: PlaceRecord, records: FactRecord[]) =>
+  place.isSample || records.some((r) => r.source.isSample || r.reliability === "sample");
+
+const address = (place: PlaceRecord) => ({
+  street: place.street,
+  houseNumber: place.houseNumber,
+  postalCode: place.postalCode,
+  city: place.city,
+});
+
+const location = (place: PlaceRecord) => ({ type: "Point" as const, coordinates: [place.location.x, place.location.y] });
+
+function summaryChips(attributes: ResolvedAttribute[], extra: AccessibilityAttribute[]): SummaryChip[] {
+  const wanted = new Set([...ALWAYS_SUMMARIZED, ...extra]);
+  return attributes
+    .filter((a) => a.state !== "unknown" || wanted.has(a.attribute))
+    .map(({ attribute, state, status, value }) => ({
+      attribute,
+      state,
+      status,
+      label: pl.summary.chip(attribute, state, value),
+    }));
+}
+
+type Cursor = { name: string; id: string };
+
+const collator = new Intl.Collator("pl", { sensitivity: "base" });
+const byNameThenId = (a: Cursor, b: Cursor) => collator.compare(a.name, b.name) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+
+const encodeCursor = ({ name, id }: Cursor) => Buffer.from(JSON.stringify([name, id])).toString("base64url");
+
+function decodeCursor(cursor: string): Cursor {
+  try {
+    const [name, id] = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as unknown[];
+    if (typeof name === "string" && typeof id === "string") return { name, id };
+  } catch {
+    // falls through to the error below
+  }
+  throw new InvalidQueryError("query.cursor", "is not a cursor returned in nextCursor");
+}
+
+function readBbox(bbox: number[] | undefined): [number, number, number, number] | undefined {
+  if (!bbox) return undefined;
+  const [minLon, minLat, maxLon, maxLat] = bbox;
+  const lonOk = (v: number) => v >= -180 && v <= 180;
+  const latOk = (v: number) => v >= -90 && v <= 90;
+  if (![minLon, maxLon].every(lonOk) || ![minLat, maxLat].every(latOk) || minLon > maxLon || minLat > maxLat) {
+    throw new InvalidQueryError("query.bbox", "must be minLon,minLat,maxLon,maxLat within WGS84 bounds");
+  }
+  return [minLon, minLat, maxLon, maxLat];
+}
+
+/**
+ * Searches places (text on name and address, category, bbox in PostGIS), resolves their facts and applies
+ * feature filters: a place passes a filter only when the feature is known to be there; with
+ * `includeUnknown`, places we can't say about pass too (their chips read "brak danych"), but a feature
+ * known to be missing never does. Adds a profile verdict when `profile` is set.
+ */
+export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}): Promise<PlaceList> {
+  const { repository = createDbPlaceRepository(), now = new Date() } = deps;
+  const bbox = readBbox(query.bbox);
+  const after = query.cursor ? decodeCursor(query.cursor) : null;
+  const text = query.q ? normalizeText(query.q) : "";
+  const features = [...new Set(query.feature ?? [])];
+  const thresholds = thresholdsFor(query);
+  const limit = query.limit ?? 25;
+
+  // Feature filters need resolved facts, so every candidate is resolved before paging (see docs/architecture.md).
+  const candidates = await repository.searchPlaces({ text: text || undefined, categories: query.category, bbox });
+  const factsByPlace = Map.groupBy(await repository.activeFacts(candidates.map((p) => p.id)), (f) => f.placeId);
+
+  const matching = candidates
+    .map((place) => {
+      const records = factsByPlace.get(place.id) ?? [];
+      return { place, records, attributes: resolvePlace(records, now) };
+    })
+    .filter(({ attributes }) => {
+      const states = features.map((feature) => featureState(attributes, feature));
+      return query.includeUnknown ? !states.includes("absent") : states.every((s) => s === "met");
+    })
+    .sort((a, b) => byNameThenId(a.place, b.place));
+
+  const remaining = after ? matching.filter(({ place }) => byNameThenId(place, after) > 0) : matching;
+  const page = remaining.slice(0, limit);
+  const featureAttributes = features.map((feature) => FEATURE_ATTRIBUTES[feature][0]);
+
+  const items: PlaceSummary[] = page.map(({ place, records, attributes }) => ({
+    id: place.id,
+    name: place.name,
+    category: place.category,
+    location: location(place),
+    address: address(place),
+    summary: summaryChips(attributes, featureAttributes),
+    verdict: thresholds ? matchProfile({ attributes }, thresholds) : null,
+    isSample: isSample(place, records),
+  }));
+
+  const last = page.at(-1);
+  return {
+    items,
+    nextCursor: remaining.length > page.length && last ? encodeCursor(last.place) : null,
+    total: matching.length,
+  };
+}
+
+function contact(place: PlaceRecord): Place["contact"] {
+  // OSM websites are free text; only a parseable URL fits the spec's `format: uri`.
+  const website = place.website && URL.canParse(place.website) ? place.website : null;
+  if (!place.phone && !website && !place.email) return null;
+  return { phone: place.phone, website, email: place.email };
+}
+
+/** One place with every attribute resolved, all active facts behind each, its sources and an optional verdict. */
+export async function getPlace(id: string, query: GetPlaceQuery = {}, deps: PlacesDeps = {}): Promise<Place | null> {
+  const { repository = createDbPlaceRepository(), now = new Date() } = deps;
+  const place = await repository.findPlace(id);
+  if (!place) return null;
+
+  const records = await repository.activeFacts([place.id]);
+  const attributes = resolvePlace(records, now);
+  const thresholds = thresholdsFor(query);
+  const sources = [...new Map(records.map((r) => [r.source.id, r.source])).values()].map(toSource);
+
+  return {
+    id: place.id,
+    name: place.name,
+    category: place.category,
+    location: location(place),
+    address: address(place),
+    contact: contact(place),
+    entranceHint: place.entranceHint,
+    attributes,
+    verdict: thresholds ? matchProfile({ attributes }, thresholds) : null,
+    sources,
+    updatedAt: place.updatedAt.toISOString(),
+    isSample: isSample(place, records),
+  };
+}
