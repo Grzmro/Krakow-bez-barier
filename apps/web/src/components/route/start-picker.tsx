@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CaretDown, Check, Crosshair, MapPin, Train, type IconProps } from "@phosphor-icons/react";
 import { Combobox } from "@base-ui/react/combobox";
+import { SampleTag } from "@/components/kbb";
 import { useMessages } from "@/i18n/client";
 import { usePlaces } from "@/lib/places";
 import type { RouteStart } from "@/lib/route-start";
@@ -11,7 +12,8 @@ import { useDebounced } from "@/lib/use-debounced";
 /** What picking an option asks for: a start, or `locate` = find the device position first. */
 export type StartPick = RouteStart | { kind: "locate" };
 
-export type StartOption = { value: string; label: string; pick: StartPick; hint?: string };
+/** `sample`: a place from the example data, labelled PRZYKŁAD like everywhere else. */
+export type StartOption = { value: string; label: string; pick: StartPick; hint?: string; sample?: boolean };
 
 const SEARCH_MIN = 2;
 const SEARCH_LIMIT = 6;
@@ -54,6 +56,7 @@ export function StartPicker({
         value: `place:${place.id}`,
         label: place.name,
         hint: place.address?.street ?? undefined,
+        sample: place.isSample,
         pick: { kind: "place", id: place.id, name: place.name, position: place.location.coordinates as [number, number] },
       }))
     : [];
@@ -103,20 +106,21 @@ export function StartPicker({
           >
             <Combobox.List className="max-h-[min(22rem,var(--available-height))] overflow-y-auto">
               {(option: StartOption) => (
-                  <Combobox.Item
-                    key={option.value}
-                    value={option}
-                    className="flex min-h-12 cursor-default items-center gap-3 px-4 py-2 text-body outline-none select-none data-highlighted:bg-primary-container"
-                  >
-                    <StartIcon pick={option.pick} weight="duotone" className="size-5 shrink-0 text-primary" aria-hidden />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate">{option.label}</span>
-                      {option.hint ? <span className="block text-caption text-muted-foreground">{option.hint}</span> : null}
-                    </span>
-                    <Combobox.ItemIndicator>
-                      <Check weight="bold" className="size-4 text-primary" aria-hidden />
-                    </Combobox.ItemIndicator>
-                  </Combobox.Item>
+                <Combobox.Item
+                  key={option.value}
+                  value={option}
+                  className="flex min-h-12 cursor-default items-center gap-3 px-4 py-2 text-body outline-none select-none data-highlighted:bg-primary-container"
+                >
+                  <StartIcon pick={option.pick} weight="duotone" className="size-5 shrink-0 text-primary" aria-hidden />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">{option.label}</span>
+                    {option.hint ? <span className="block text-caption text-muted-foreground">{option.hint}</span> : null}
+                  </span>
+                  {option.sample ? <SampleTag /> : null}
+                  <Combobox.ItemIndicator>
+                    <Check weight="bold" className="size-4 text-primary" aria-hidden />
+                  </Combobox.ItemIndicator>
+                </Combobox.Item>
               )}
             </Combobox.List>
             {nothingFound ? <p className="px-4 pt-2 pb-1 text-body-sm text-muted-foreground">{t.start.empty}</p> : null}
