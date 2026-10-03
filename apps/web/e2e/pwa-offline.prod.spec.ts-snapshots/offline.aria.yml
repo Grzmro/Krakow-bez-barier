@@ -1,0 +1,5 @@
+- main:
+  - heading "Jesteś offline" [level=1]
+  - paragraph: Tej strony nie ma jeszcze w pamięci urządzenia. Połącz się z internetem albo wróć do strony głównej — pokażemy ostatnio zapisane dane.
+  - link "Strona główna":
+    - /url: /

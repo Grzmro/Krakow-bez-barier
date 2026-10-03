@@ -28,7 +28,7 @@ for round in $(seq 1 "$MAX_ROUNDS"); do
   npm run contracts:generate --silent
 
   echo "local gate on $head"
-  if ! { npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e; } >"$log" 2>&1; then
+  if ! { npm run lint && npm run typecheck && npm run test && npm run build && E2E_PROD=1 npm run test:e2e; } >"$log" 2>&1; then
     tail -40 "$log"
     echo "local gate red on $head — fix it, then run this script again"
     exit 1

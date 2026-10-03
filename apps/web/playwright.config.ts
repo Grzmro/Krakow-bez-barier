@@ -1,4 +1,4 @@
-import { defineConfig, devices } from "@playwright/test";
+import { defineConfig, devices, type PlaywrightTestConfig } from "@playwright/test";
 
 const isCI = !!process.env.CI;
 
@@ -12,6 +12,31 @@ function worktreePort(dir: string): number {
 
 const port = Number(process.env.PORT ?? (isCI ? 3000 : worktreePort(__dirname)));
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${port}`;
+
+// Offline specs (*.prod.spec.ts) need the production service worker setup — the dev client doesn't
+// hydrate offline. They run only on request (E2E_PROD=1, set by scripts/merge-pr.sh right after its
+// build) against `next start` of the current build, or against E2E_PROD_BASE_URL.
+const prodPort = port + 1000;
+const prodURL = process.env.E2E_PROD_BASE_URL ?? (isCI ? baseURL : `http://localhost:${prodPort}`);
+const runProdSpecs = process.env.E2E_PROD === "1" || !!process.env.E2E_PROD_BASE_URL;
+const startProdServer = runProdSpecs && !isCI && !process.env.E2E_PROD_BASE_URL;
+
+const device = { ...devices["Pixel 7"], browserName: "chromium" as const };
+const servers: PlaywrightTestConfig["webServer"] = [
+  ...(process.env.E2E_BASE_URL
+    ? []
+    : [
+        {
+          command: isCI ? `npm run start -- --port ${port}` : `npm run dev -- --port ${port}`,
+          url: baseURL,
+          reuseExistingServer: !isCI,
+          timeout: 60_000,
+        },
+      ]),
+  ...(startProdServer
+    ? [{ command: `npm run start -- --port ${prodPort}`, url: prodURL, reuseExistingServer: false, timeout: 60_000 }]
+    : []),
+];
 
 // Fast by design: one browser, parallel files, no retries. CI runs against the production build
 // made earlier in the same job (`next start`); locally it reuses this worktree's dev server.
@@ -28,13 +53,9 @@ export default defineConfig({
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },
-  projects: [{ name: "chromium", use: { ...devices["Pixel 7"], browserName: "chromium" } }],
-  webServer: process.env.E2E_BASE_URL
-    ? undefined
-    : {
-        command: isCI ? `npm run start -- --port ${port}` : `npm run dev -- --port ${port}`,
-        url: baseURL,
-        reuseExistingServer: !isCI,
-        timeout: 60_000,
-      },
+  projects: [
+    { name: "chromium", testIgnore: /\.prod\.spec\.ts$/, use: device },
+    ...(runProdSpecs ? [{ name: "chromium-prod", testMatch: /\.prod\.spec\.ts$/, use: { ...device, baseURL: prodURL } }] : []),
+  ],
+  webServer: servers,
 });
