@@ -4,7 +4,7 @@ const isCI = !!process.env.CI;
 
 // Parallel agents run e2e in separate git worktrees; a shared default port would let one worktree's
 // tests hit another worktree's dev server. Derive a stable per-worktree port instead.
-function worktreePort(dir: string): number {
+export function worktreePort(dir: string): number {
   let hash = 0;
   for (const char of dir) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
   return 3100 + (hash % 800);
