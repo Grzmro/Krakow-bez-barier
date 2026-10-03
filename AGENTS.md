@@ -18,39 +18,83 @@ otherwise. The jury watches a live demo for one user group, checks where every p
 from, and looks hard at the business model — optimize for that.
 
 Respond in the language of the prompt. Code, comments, commits, PRs and docs are in English.
-User-facing UI text is in Polish (the jury and the city are Polish); keep it in one place so English can be added later.
+User-facing UI text is in Polish (the jury and the city are Polish); keep it in one place (`apps/web/src/i18n/pl.ts`) so English can be added later.
 
 ## How instructions are organized
 
 This file holds only what's needed in every session. Keep it short.
 
-- `apps/<name>/AGENTS.md` — stack-specific rules and commands for one app (read it before touching that app).
-- `.claude/rules/*.md` — area conventions, path-scoped via `paths:` frontmatter so they load only
-  when matching files are opened (e.g. `paths: ["apps/api/**"]`).
-- `.claude/context/*.md` — feature background (the "why"). Read the relevant file when a task
-  touches that feature; add one when you make a non-obvious design choice.
+- `.claude/rules/*.md` — area conventions. Claude Code auto-loads one only when it
+  Reads/Edits/Writes a file matching its `paths:` — too late for planning, so read them explicitly
+  (table below). Other agents never auto-load them.
+- `.claude/context/*.md` — feature background (the "why"). Add one when you make a non-obvious
+  design choice, and add it to the table below.
 - `docs/challenge.md` — challenge requirements, judging and deadlines (source of truth for scope).
 - `docs/architecture.md` — the idea, components, and the decision log.
 - `.claude/skills/` — workflows: `task` (Linear task → PR end to end), `review` (self-review
   before PR), `ship` (commit, push, PR), `new-task` (create a Linear task).
 
+### Read before you start
+
+| Task touches | Read |
+|---|---|
+| API endpoints, `packages/contracts/**`, `apps/web/src/app/api/**`, `apps/web/src/server/**` | `.claude/rules/contracts.md`, `.claude/context/openapi-spec-first.md` |
+| UI: `apps/web/src/app/**` pages, `components/`, `i18n/`, `packages/ui/**` | `.claude/rules/web.md` |
+| DB schema, migrations, SQL: `packages/db/**` | `.claude/rules/database.md` |
+| Data sources: `apps/ingest/**` | `.claude/rules/ingest.md` |
+| Anything that stores, matches or shows accessibility data (facts, Resolver, Matcher, place/route UI) | `.claude/context/accessibility-facts.md` |
+
 ## Stack
 
-> TODO: fill in once the team picks the technologies (languages, frameworks, database, deployment).
+TypeScript everywhere, npm workspaces monorepo. Why each piece was chosen: `docs/architecture.md` → Decisions.
+
+- **Contracts:** OpenAPI 3.1, spec-first — `packages/contracts/openapi.yaml` is the single source of
+  truth; TS types (`openapi-typescript`) and the client (`openapi-fetch`) are generated from it.
+  Geometry is GeoJSON. API docs (Scalar) served from the spec.
+- **Web + API:** Next.js 16 (App Router, `src/` layout) in `apps/web`; the API lives in Route
+  Handlers under `src/app/api/`, server-only logic in `src/server/`. UI: MUI + `@krakow-bez-barier/ui` (theme, providers), React Query, MapLibre GL with
+  OpenFreeMap tiles (OSM attribution required).
+- **Data:** Postgres + PostGIS; schema, migrations and client with Drizzle ORM in `packages/db`
+  (shared by web and ingest).
+- **Ingestion:** `apps/ingest` — one adapter per data source, run by a GitHub Actions cron, writes normalized
+  facts to the DB. Never called by the web app at request time (R5).
+- **Routing:** openrouteservice `wheelchair` profile, server-side only (API key) behind a
+  `RoutingProvider` interface.
+- **Tests:** Vitest, next to the code as `*.test.ts`. **Deploy:** Vercel (web) + managed Postgres.
 
 ## Repo layout
 
 ```
-apps/       # runnable applications (e.g. apps/api, apps/web), each with its own AGENTS.md
-packages/   # shared code (types, API contracts, utils)
-docs/       # architecture and decisions
+apps/web/src/app/       # Next.js pages; api/ = route handlers
+apps/web/src/server/    # server-only: Resolver, Matcher, RoutingProvider, DB queries
+apps/web/src/i18n/      # all Polish UI strings (pl.ts)
+apps/ingest/            # data source adapters → normalized accessibility facts in the DB
+packages/contracts/     # openapi.yaml + generated types/client (src/generated/: gitignored, never edit)
+packages/db/            # Drizzle schema, migrations, client
+packages/ui/            # MUI theme and app providers
+docs/                # challenge, architecture and decisions
 ```
 
 Don't create a new app or package without a Linear task for it.
 
 ## Commands
 
-> TODO: fill in after choosing the stack (install, dev, build, test, lint — from the repo root).
+> **Planned** — wired up by the monorepo skeleton task. Until it's merged only `packages/ui` has
+> scripts (`build`, `dev`, `typecheck`). Update this list when a script actually exists.
+
+From the repo root. Target a single workspace with `-w <path>` (e.g. `npm run test -w apps/web`).
+
+```bash
+cp .env.example .env           # DATABASE_URL, ORS_API_KEY
+docker compose up -d db        # local Postgres + PostGIS
+npm install                    # all workspaces; postinstall regenerates contracts
+npm run contracts:generate     # after editing openapi.yaml
+npm run dev                    # web app (http://localhost:3000)
+npm run build | lint | typecheck | test
+npm run db:generate            # drizzle-kit generate after a schema change
+npm run db:migrate             # apply migrations
+npm run ingest -- --source <id> --city krakow
+```
 
 ## Working with tasks (Linear)
 
@@ -75,6 +119,14 @@ Don't create a new app or package without a Linear task for it.
 - Stage only files relevant to the change (`git add <path>`, never `git add -A` / `git add .`).
 - Update a feature branch with `git rebase origin/main`, not by merging `main` into it.
 - Never `--no-verify`, never force-push `main`.
+
+## Product invariants (the jury tests these)
+
+- Every accessibility value carries provenance (source, fetchedAt, reliability) — never a bare value (R2).
+- Unknown ≠ accessible: missing data is a neutral "Brak danych", never green; conflicts show both sources.
+- Sample data is labeled "PRZYKŁAD" everywhere. A failed source keeps its last data, marked stale.
+- Everything on the map is also available as text; keyboard and screen reader work (WCAG 2.2 AA, R6).
+- No personal data: the needs profile stays in the browser; reports have no e-mail/IP, photos no EXIF (R4, R7).
 
 ## Hard rules
 
