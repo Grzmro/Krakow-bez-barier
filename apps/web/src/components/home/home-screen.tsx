@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import type { FeatureFilter } from "@krakow-bez-barier/contracts";
 import { Button, cn, LabeledSwitch, StatusIcon, Switch, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
-import { MagnifyingGlass, SlidersHorizontal } from "@phosphor-icons/react";
+import { CaretLeft, MagnifyingGlass, SlidersHorizontal } from "@phosphor-icons/react";
 import { BottomPanel } from "@/components/kbb";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
 import { ThresholdsDrawer } from "@/components/profile/thresholds-drawer";
@@ -12,6 +12,7 @@ import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
 import { byDistance, listCentre, searchArea, toLonLat, type NearbyOrigin } from "@/lib/nearby";
 import { listedCount } from "@/lib/list-count";
+import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
 import { usePlaces } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
@@ -22,7 +23,7 @@ import { useSessionFlag } from "@/lib/use-session-flag";
 import { PlaceMap } from "./place-map";
 import { NearbyToggle } from "./nearby-toggle";
 import { PlaceRow } from "./place-list";
-import { SearchBox } from "./search-box";
+import { SEARCH_INPUT_ID, SearchBox } from "./search-box";
 
 const ALL = "all";
 const FEATURES: FeatureFilter[] = ["step_free", "lift", "toilet_accessible", "bench", "disabled_parking", "changing_table"];
@@ -165,6 +166,25 @@ export function HomeScreen() {
     setHideFailing(false);
   }
 
+  // Anything that hides part of the city from the map and list; "back" undoes all of it at once.
+  const narrowed = Boolean(q || category !== ALL || features.length || nearby || statusFilter || hideFailing);
+
+  function resetView() {
+    searchWider();
+    setSelectedId(null);
+    setExpanded(false);
+  }
+
+  const back = useEffectEvent(() => {
+    if (expanded) setExpanded(false);
+    else if (narrowed) resetView();
+    else return false;
+    return true;
+  });
+  const resetFromLogo = useEffectEvent(resetView);
+  useEffect(() => registerBackHandler(back), []);
+  useEffect(() => onHomeReset(resetFromLogo), []);
+
   function reveal(id: string) {
     if (id === LIST_ID) {
       listRef.current?.focus();
@@ -215,7 +235,21 @@ export function HomeScreen() {
       </a>
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 pt-3 lg:pointer-events-auto lg:static lg:col-start-1 lg:row-start-1 lg:max-h-[45dvh] lg:overflow-y-auto lg:border-r lg:border-border lg:bg-card lg:pt-4">
-        <div className="mx-auto flex max-w-xl px-4 *:pointer-events-auto">
+        <div className="mx-auto flex max-w-xl items-center gap-2 px-4 *:pointer-events-auto">
+          {narrowed ? (
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label={t.backToMap}
+              onClick={() => {
+                resetView();
+                document.getElementById(SEARCH_INPUT_ID)?.focus();
+              }}
+              className="shrink-0 border-0 shadow-float lg:border lg:shadow-none"
+            >
+              <CaretLeft weight="bold" aria-hidden />
+            </Button>
+          ) : null}
           <SearchBox value={q} onValueChange={setQ} suggestions={suggestions} />
         </div>
         <ToggleGroup

@@ -27,8 +27,10 @@ import {
 } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
 import type { Messages } from "@/i18n/messages";
+import { isPlainClick, requestHomeReset } from "@/lib/back-navigation";
 import { isWidgetRoute, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
+import { BackButton } from "./back-button";
 import { LanguageSwitch } from "./language-switch";
 import { NearMe } from "./near-me";
 
@@ -80,17 +82,29 @@ export function AppHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   if (isWidgetRoute(pathname)) return null;
+  // Detail pages have no back control of their own; it sits here so it stays in reach while the page scrolls.
+  const showBack = pathname.startsWith(routes.place(""));
   return (
     <header className="sticky top-[env(safe-area-inset-top)] z-30 border-b border-border bg-background print:hidden">
       <VaulDrawer open={menuOpen} onOpenChange={setMenuOpen}>
         <nav aria-label={t.layout.mainNav} className="flex h-16 w-full items-center gap-3 px-4 lg:gap-4 lg:px-8">
+          {showBack ? <BackButton label={t.app.back} /> : null}
           <Link
             href={routes.home}
             aria-label={t.layout.homeLink}
+            onClick={(event) => {
+              if (pathname !== routes.home || !isPlainClick(event)) return;
+              // Already home: a link to itself would do nothing, so the logo returns the map to its starting view.
+              event.preventDefault();
+              requestHomeReset();
+            }}
             className="flex min-h-12 items-center gap-2.5 rounded-full pr-2"
           >
             <LogoMark className="size-9" />
-            <span aria-hidden className="font-display text-title font-extrabold lg:max-xl:sr-only">
+            <span
+              aria-hidden
+              className={cn("font-display text-title font-extrabold lg:max-xl:sr-only", showBack && "max-[25rem]:hidden")}
+            >
               {t.app.name}
             </span>
           </Link>

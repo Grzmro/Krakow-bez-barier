@@ -8,6 +8,7 @@ const verdictParts = (parts: [string, number][]) =>
 export const home: Messages["home"] = {
   title: "Map and list of places",
   skipToList: "Skip to the list",
+  backToMap: "Back to the whole map",
   search: {
     label: "Search for a place",
     placeholder: "Where to?",
