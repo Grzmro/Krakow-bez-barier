@@ -1,0 +1,126 @@
+import type { operations } from "@krakow-bez-barier/contracts";
+import { getOperation, readQuery, toFieldErrors, validateResponse, type OperationId } from "./openapi";
+import { HttpError, problemResponse } from "./problem";
+import { clientKey, type RateLimiter } from "./rate-limit";
+
+type Op<K extends OperationId> = operations[K];
+type OrEmpty<T> = [NonNullable<T>] extends [never] ? Record<string, never> : NonNullable<T>;
+
+export type PathParams<K extends OperationId> = OrEmpty<Op<K>["parameters"]["path"]>;
+export type QueryParams<K extends OperationId> = OrEmpty<Op<K>["parameters"]["query"]>;
+export type RequestBody<K extends OperationId> =
+  NonNullable<Op<K>["requestBody"]> extends { content: { "application/json": infer B } } ? B : undefined;
+
+type ResponseBody<R> = R extends { content: Record<string, infer B> } ? B : undefined;
+
+/** What a handler returns: one of the operation's documented statuses with exactly its body type. */
+export type ApiResult<K extends OperationId> = {
+  [S in keyof Op<K>["responses"]]: { status: S; body: ResponseBody<Op<K>["responses"][S]>; headers?: HeadersInit };
+}[keyof Op<K>["responses"]];
+
+/**
+ * Builds a handler result. Prefer it over an object literal: it keeps `status` a literal (e.g. `200`), so the
+ * compiler checks `body` against that status in the spec even in a handler that takes no arguments.
+ */
+export function respond<const S extends number, B>(status: S, body: B, headers?: HeadersInit) {
+  return { status, body, ...(headers && { headers }) };
+}
+
+export type ApiRequest<K extends OperationId> = {
+  request: Request;
+  path: PathParams<K>;
+  query: QueryParams<K>;
+  body: RequestBody<K>;
+};
+
+export type RouteOptions = {
+  /** Per-client limit; the operation must document a 429 response. */
+  rateLimit?: RateLimiter;
+};
+
+type RouteContext = { params?: Promise<Record<string, string | string[] | undefined>> };
+
+// Responses are checked against the spec everywhere except production, so drift fails tests and dev, not users.
+const validateResponses = process.env.NODE_ENV !== "production";
+
+/**
+ * Wraps a Next route handler for one spec operation: rate limit → parse and validate path/query/body
+ * (400 `Problem` with `errors[]`) → handler → response validation (non-production) → JSON response.
+ * Throw `HttpError` for documented problems; anything else becomes a 500 `Problem`.
+ */
+export function defineRoute<K extends OperationId>(
+  operationId: K,
+  handler: (input: ApiRequest<K>) => Promise<ApiResult<K>>,
+  options: RouteOptions = {},
+) {
+  const op = getOperation(operationId);
+  if (options.rateLimit && !op.statuses.includes("429")) {
+    throw new Error(`defineRoute(${operationId}): rateLimit is set but the spec documents no 429 response`);
+  }
+
+  return async function routeHandler(request: Request, context: RouteContext = {}): Promise<Response> {
+    try {
+      if (request.method !== op.method && !(request.method === "HEAD" && op.method === "GET")) {
+        throw new Error(`defineRoute(${operationId}) is mounted on ${request.method}, the spec says ${op.method}`);
+      }
+
+      if (options.rateLimit) {
+        const decision = options.rateLimit.check(clientKey(request));
+        if (!decision.allowed) {
+          throw new HttpError(429, {
+            detail: `Limit of ${options.rateLimit.limit} requests exceeded. Retry in ${decision.retryAfterSeconds} s.`,
+            headers: { "retry-after": String(decision.retryAfterSeconds) },
+          });
+        }
+      }
+
+      const input = {
+        path: { ...((await context.params) ?? {}) },
+        query: readQuery(op, new URL(request.url).searchParams),
+        ...(op.hasBody && { body: await readJsonBody(request) }),
+      };
+      if (!op.validateRequest(input)) {
+        throw new HttpError(400, {
+          detail: "The request does not match the API specification.",
+          errors: toFieldErrors(op.validateRequest.errors),
+        });
+      }
+
+      const result = await handler({ request, ...input } as ApiRequest<K>);
+      const status = Number(result.status);
+
+      if (validateResponses) {
+        const errors = validateResponse(operationId, status, result.body);
+        if (errors.length > 0) {
+          console.error(`[api] ${operationId} returned a ${status} that does not match the spec`, errors);
+          return problemResponse(
+            new HttpError(500, { detail: "Response does not match the API specification.", errors }).problem,
+          );
+        }
+      }
+
+      if (result.body === undefined) return new Response(null, { status, headers: result.headers });
+      const headers = new Headers(result.headers);
+      if (status >= 400) headers.set("content-type", "application/problem+json");
+      return Response.json(result.body, { status, headers });
+    } catch (error) {
+      if (error instanceof HttpError) return problemResponse(error.problem, error.headers);
+      console.error(`[api] ${operationId} failed`, error);
+      return problemResponse(new HttpError(500).problem);
+    }
+  };
+}
+
+async function readJsonBody(request: Request): Promise<unknown> {
+  const text = await request.text();
+  if (text.trim() === "") return undefined;
+  const type = request.headers.get("content-type") ?? "";
+  if (!/^application\/([\w.+-]+\+)?json\b/i.test(type)) {
+    throw new HttpError(400, { detail: 'Send the request body as "application/json".' });
+  }
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new HttpError(400, { detail: "The request body is not valid JSON." });
+  }
+}
