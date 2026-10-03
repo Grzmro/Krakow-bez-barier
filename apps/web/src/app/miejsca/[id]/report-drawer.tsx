@@ -82,7 +82,11 @@ function ReportForm({
   const unit = input.kind === "number" ? unitLabel(input.range, locale) : "";
 
   useEffect(() => {
-    chipsRef.current?.querySelector("label:has(:checked)")?.scrollIntoView({ block: "nearest", inline: "center" });
+    const row = chipsRef.current;
+    const chip = row?.querySelector<HTMLElement>("label:has(:checked)");
+    if (!row || !chip) return;
+    // Set scrollLeft directly: scrollIntoView would also scroll the sheet and the page behind it.
+    row.scrollLeft = chip.offsetLeft - (row.clientWidth - chip.offsetWidth) / 2;
   }, []);
 
   const pickAttribute = (next: AccessibilityAttribute) => {
@@ -141,7 +145,12 @@ function ReportForm({
 
       <fieldset className="mt-4">
         <legend className="mb-2 text-body-sm font-semibold">{r.which}</legend>
-        <div ref={chipsRef} className="-mx-4 flex gap-2 overflow-x-auto px-4 pt-1 pb-2">
+        {/* data-vaul-no-drag: a horizontal swipe here scrolls the chips; Vaul would drag the whole sheet. */}
+        <div
+          ref={chipsRef}
+          data-vaul-no-drag
+          className="-mx-4 flex gap-2 overflow-x-auto overscroll-x-contain px-4 pt-1 pb-2"
+        >
           {attributes.map((a) => (
             <label
               key={a}
