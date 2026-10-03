@@ -17,9 +17,11 @@ const palac = placeRecord({ name: "Pałac Krzysztofory", street: "Rynek Główny
 const kawiarnia = placeRecord({ name: "Kawiarnia Przykład", category: "restaurant", street: "Floriańska", location: { x: 19.9445, y: 50.0612 } });
 const muzeum = placeRecord({ name: "Muzeum bez windy", location: { x: 19.9, y: 50.03 } });
 const hotel = placeRecord({ name: "Hotel Dostępny", category: "hotel", location: { x: 19.94, y: 50.06 } });
+const parking = placeRecord({ name: "Miejsce postojowe: Sebastiana 7", category: "parking", location: { x: 19.94, y: 50.05 } });
+const stop = placeRecord({ name: "Przystanek Wawrzyńca 01", category: "transit_stop", location: { x: 19.95, y: 50.05 } });
 
 const world = {
-  places: [palac, kawiarnia, muzeum, hotel],
+  places: [palac, kawiarnia, muzeum, hotel, parking, stop],
   facts: [
     factRecord(palac, "lift", bool(true), { source: city, reliability: "confirmed" }),
     factRecord(palac, "toilet_accessible", bool(true)),
@@ -214,5 +216,23 @@ describe("GET /api/v1/places", () => {
 
     // THEN the query is valid
     expect(status).toBe(200);
+  });
+
+  it("leaves parking spaces and stops out of the default list, unless their category is named", async () => {
+    // GIVEN a parking space and a transit stop next to the ordinary places
+    // WHEN listing without and with a category
+    const names = async (params: string) => (await list(params)).body.items.map((p: { name: string }) => p.name);
+    const all = await names("");
+    const onlyParking = await names("?category=parking");
+    const both = await names("?category=parking,transit_stop");
+
+    // THEN the default list has neither, and naming the category brings them back
+    expect(all).toHaveLength(4);
+    expect(all).not.toContain(parking.name);
+    expect(all).not.toContain(stop.name);
+    expect(onlyParking).toEqual([parking.name]);
+    expect(both.sort()).toEqual([parking.name, stop.name].sort());
+    expect(await names("?q=Sebastiana")).toEqual([]);
+    expect(await names("?q=Sebastiana&category=parking")).toEqual([parking.name]);
   });
 });

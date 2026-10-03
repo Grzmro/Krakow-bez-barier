@@ -97,6 +97,14 @@ paths:
                       label: Apteki
                       singularLabel: Apteka
                       icon: pill
+                    - id: parking
+                      label: Miejsca postojowe
+                      singularLabel: Miejsce postojowe
+                      icon: car
+                    - id: transit_stop
+                      label: Przystanki
+                      singularLabel: Przystanek
+                      icon: bus
                     - id: shop
                       label: Handel
                       singularLabel: Handel
@@ -129,6 +137,8 @@ paths:
           maxLength: 200
       - name: category
         in: query
+        description: Categories to return (ids from `GET /categories`). Without it, categories that are hidden by default
+          (parking spaces, transit stops) are left out; name them here to list them.
         schema:
           type: array
           items:

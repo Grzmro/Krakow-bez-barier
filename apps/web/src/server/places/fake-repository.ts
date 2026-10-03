@@ -88,11 +88,12 @@ export function factRecord(
 
 export function createFakePlaceRepository(places: PlaceRecord[], facts: FactRecord[]): PlaceRepository {
   return {
-    async searchPlaces({ text, categories, bbox }) {
+    async searchPlaces({ text, categories, excludeCategories, bbox }) {
       return places.filter((p) => {
         const haystack = normalizeText([p.name, p.street, p.houseNumber].filter(Boolean).join(" "));
         if (text && !haystack.includes(text)) return false;
         if (categories?.length && !categories.includes(p.category)) return false;
+        if (!categories?.length && excludeCategories?.includes(p.category)) return false;
         if (bbox) {
           const [minLon, minLat, maxLon, maxLat] = bbox;
           const { x, y } = p.location;

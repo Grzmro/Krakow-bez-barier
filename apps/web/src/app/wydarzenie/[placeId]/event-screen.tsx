@@ -155,7 +155,7 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
         </Card>
       ))}
 
-      {/* TODO(KBB-60): list the nearest ZTP stops with their accessibility facts once KBB-52 lands. */}
+      {/* TODO(KBB-60): list the nearest ZTP stops with their accessibility facts once the ZTP licence is confirmed. */}
       <Card id="event-transit" title={t.transit.title} icon={Bus}>
         <p className="mt-2 text-body-sm text-muted-foreground">{t.transit.noData}</p>
       </Card>

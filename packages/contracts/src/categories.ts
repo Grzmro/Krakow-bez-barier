@@ -9,6 +9,8 @@ export type CategoryConfig = CategoryDefinition & {
   osm: OsmTagRule[];
   /** Name given to unnamed places of this category; without it an unnamed place is skipped. */
   unnamedName?: string;
+  /** Left out of `GET /places` unless the request names the category (bulk city data such as parking spaces). */
+  hiddenByDefault?: boolean;
 };
 
 /**
@@ -24,6 +26,8 @@ export const categories: readonly CategoryConfig[] = [
   { id: "monument", label: "Zabytki", singularLabel: "Zabytek", icon: "church", osm: [{ key: "historic", values: ["monument", "memorial"] }] },
   { id: "theatre", label: "Teatry i kina", singularLabel: "Teatr lub kino", icon: "mask-happy", osm: [{ key: "amenity", values: ["theatre", "cinema"] }] },
   { id: "pharmacy", label: "Apteki", singularLabel: "Apteka", icon: "pill", osm: [{ key: "amenity", values: ["pharmacy"] }] },
+  { id: "parking", label: "Miejsca postojowe", singularLabel: "Miejsce postojowe", icon: "car", osm: [], hiddenByDefault: true },
+  { id: "transit_stop", label: "Przystanki", singularLabel: "Przystanek", icon: "bus", osm: [], hiddenByDefault: true },
   { id: "shop", label: "Handel", singularLabel: "Handel", icon: "shopping-bag", osm: [] },
   { id: "other", label: "Inne", singularLabel: "Inne", icon: "map-pin", osm: [{ key: "tourism", values: ["gallery", "attraction"] }] },
 ];

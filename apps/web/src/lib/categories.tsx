@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bank, Bed, Church, ForkKnife, MapPin, MaskHappy, Pill, ShoppingBag, Toilet, type Icon } from "@phosphor-icons/react";
+import { Bank, Bed, Bus, Car, Church, ForkKnife, MapPin, MaskHappy, Pill, ShoppingBag, Toilet, type Icon } from "@phosphor-icons/react";
 import type { Category, CategoryDefinition } from "@krakow-bez-barier/contracts";
 import { pl } from "@/i18n/pl";
 import { api } from "./api";
@@ -17,6 +17,8 @@ const ICONS: Record<string, Icon> = {
   "mask-happy": MaskHappy,
   pill: Pill,
   "shopping-bag": ShoppingBag,
+  car: Car,
+  bus: Bus,
   "map-pin": MapPin,
 };
 
