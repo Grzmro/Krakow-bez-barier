@@ -10,6 +10,8 @@ export type RunSummary = {
   recordsWritten: number;
   recordsSkipped: number;
   error: string | null;
+  /** Where the records came from when not the source's usual endpoint (e.g. an extract). */
+  note: string | null;
 };
 
 /** Everything the runner needs from storage; the Drizzle implementation lives in store.ts. */
@@ -19,7 +21,7 @@ export interface IngestStore {
   finishRun(runId: string, summary: RunSummary): Promise<void>;
   /** Number of facts inserted or superseded (refreshing an unchanged fact doesn't count). */
   applyPlace(meta: SourceMeta, place: MappedPlace, fetchedAt: Date): Promise<number>;
-  markSource(sourceId: string, outcome: { ok: true } | { ok: false; error: string }, at: Date): Promise<void>;
+  markSource(sourceId: string, outcome: { ok: true; note?: string | null } | { ok: false; error: string }, at: Date): Promise<void>;
 }
 
 export type RunOptions = {
@@ -66,6 +68,7 @@ export async function runIngest(options: RunOptions): Promise<RunSummary> {
       recordsWritten: 0,
       recordsSkipped: 0,
       error,
+      note: null,
     };
     await store.finishRun(runId, summary);
     await store.markSource(meta.id, { ok: false, error }, now());
@@ -79,7 +82,7 @@ export async function runIngest(options: RunOptions): Promise<RunSummary> {
   const fetchWithRetry = async () => {
     for (let attempt = 1; ; attempt++) {
       try {
-        return await adapter.fetch({ city, userAgent });
+        return await adapter.fetch({ city, userAgent, log });
       } catch (e) {
         if (attempt >= attempts || !isRetryable(e)) throw e;
         log(`fetch attempt ${attempt}/${attempts} failed: ${message(e)}`);
@@ -90,7 +93,10 @@ export async function runIngest(options: RunOptions): Promise<RunSummary> {
   };
 
   try {
-    const raw = await fetchWithRetry();
+    const fetched = await fetchWithRetry();
+    const raw = Array.isArray(fetched) ? fetched : fetched.records;
+    const note = Array.isArray(fetched) ? null : fetched.note;
+    if (note) log(note);
     if (!Array.isArray(raw) || raw.length === 0) return await fail("Source returned no records");
 
     let written = 0;
@@ -115,9 +121,10 @@ export async function runIngest(options: RunOptions): Promise<RunSummary> {
       recordsWritten: written,
       recordsSkipped: skipped + failures.length,
       error: failures.length > 0 ? `${failures.length} records failed, first: ${failures[0]}` : null,
+      note,
     };
     await store.finishRun(runId, summary);
-    await store.markSource(meta.id, { ok: true }, now());
+    await store.markSource(meta.id, { ok: true, note }, now());
     return summary;
   } catch (e) {
     return await fail(message(e));

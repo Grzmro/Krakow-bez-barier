@@ -11,5 +11,6 @@ export type CityConfig = {
   /** Category ids (from the category config) ingested for this city; all configured ones when omitted. */
   categories?: string[];
   /** Endpoints and other per-source settings; the key is the source id. */
-  sourceConfig: Record<string, { endpoint?: string }>;
+  /** `extractUrl`: a file with the same data, read when the endpoint is unreachable (OSM: a Geofabrik `.osm.pbf`). */
+  sourceConfig: Record<string, { endpoint?: string; extractUrl?: string }>;
 };

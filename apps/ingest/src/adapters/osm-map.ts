@@ -9,6 +9,8 @@ export type OsmElement = {
   lon?: number;
   center?: { lat: number; lon: number };
   tags?: Record<string, string>;
+  /** The copy the element was read from when not the live API, e.g. `geofabrik-2026-10-02`. */
+  via?: string;
 };
 
 const bool = (boolean: boolean): FactValue => ({ kind: "boolean", boolean });
@@ -71,8 +73,10 @@ const WHOLE_BUILDING_VENUES: Readonly<Record<string, readonly string[]>> = {
 const fillsBuilding = (tags: Record<string, string>) =>
   Object.entries(WHOLE_BUILDING_VENUES).some(([key, values]) => tags[key] !== undefined && values.includes(tags[key]));
 
+/** `osm:node/1@v5`, or `osm:node/1@v5;geofabrik-2026-10-02` for an element read from an extract. */
 export function recordRef(el: OsmElement): string {
-  return `osm:${el.type}/${el.id}${el.version ? `@v${el.version}` : ""}`;
+  const suffix = [el.version ? `v${el.version}` : null, el.via ?? null].filter(Boolean).join(";");
+  return `osm:${el.type}/${el.id}${suffix ? `@${suffix}` : ""}`;
 }
 
 function categoryOf(tags: Record<string, string>, categories: readonly CategoryConfig[]) {

@@ -13,7 +13,8 @@
   "dependencies": {
     "@krakow-bez-barier/contracts": "*",
     "@krakow-bez-barier/db": "*",
-    "drizzle-orm": "^0.44.0"
+    "drizzle-orm": "^0.44.0",
+    "osm-pbf-parser-node": "^1.1.4"
   },
   "devDependencies": {
     "@types/node": "^22",

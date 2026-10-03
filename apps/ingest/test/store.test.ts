@@ -187,6 +187,24 @@ describe.skipIf(!url)("drizzleStore (needs TEST_DATABASE_URL with migrations app
     expect(s).toMatchObject({ refreshStatus: "outage", statusNote: "Overpass responded 504", lastSuccessAt: at(1) });
   });
 
+  it("refreshes an unchanged fact read from an extract in place and notes the extract on the source", async () => {
+    // GIVEN a fact stored from the live API and the same value read later from an extract
+    await store.applyPlace(meta, place("yes", "store-test:node/1@v3"), at(3));
+    const changed = await store.applyPlace(meta, place("yes", "store-test:node/1@v3;geofabrik-2026-10-02"), at(4));
+    await store.markSource(meta.id, { ok: true, note: "OSM (Geofabrik, ekstrakt z 2026-10-02)" }, at(4));
+    // THEN no new fact is inserted, the record ref names the extract and the source carries the note
+    expect(changed).toBe(0);
+    const rows = await activeFacts();
+    const own = rows.filter((r) => r.sourceRecordRef.startsWith("store-test:node/1@"));
+    expect(own.map((r) => r.sourceRecordRef)).toEqual(["store-test:node/1@v3;geofabrik-2026-10-02"]);
+    const [s] = await db.select().from(sources).where(eq(sources.id, meta.id));
+    expect(s).toMatchObject({ refreshStatus: "ok", statusNote: "OSM (Geofabrik, ekstrakt z 2026-10-02)", lastSuccessAt: at(4) });
+    // AND a later run from the live API clears the note
+    await store.markSource(meta.id, { ok: true }, at(5));
+    const [after] = await db.select().from(sources).where(eq(sources.id, meta.id));
+    expect(after.statusNote).toBeNull();
+  });
+
   it("keeps every active fact when the adapter fails or the outage is simulated", async () => {
     // GIVEN a source with stored facts
     await store.applyPlace(meta, place("yes", "store-test:node/1@v3"), at(3));
