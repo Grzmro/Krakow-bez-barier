@@ -1,0 +1,64 @@
+- main:
+  - heading "Mapa i lista miejsc" [level=1]
+  - link "Przejdź do listy":
+    - /url: "#lista"
+  - search:
+    - text: Wyszukaj miejsce
+    - combobox "Wyszukaj miejsce"
+  - group "Kategorie":
+    - button "Wszystko" [pressed]
+    - button "Restauracje"
+    - button "Muzea"
+    - button "Toalety"
+    - button "Hotele"
+  - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
+  - paragraph:
+    - link "OpenFreeMap":
+      - /url: https://openfreemap.org
+    - text: ·
+    - link "© OpenMapTiles":
+      - /url: https://www.openmaptiles.org/
+    - text: ·
+    - link "© OpenStreetMap contributors":
+      - /url: https://www.openstreetmap.org/copyright
+  - button "Przybliż"
+  - button "Oddal"
+  - region "Lista miejsc":
+    - button "Zwiń arkusz" [expanded]
+    - group "Lista miejsc":
+      - group "Filtry cech":
+        - button "Bez schodów"
+        - button "Winda"
+        - button "Toaleta dostosowana"
+        - button "Ławki"
+        - button "Parking N"
+        - button "Przewijak"
+      - heading "9 miejsc" [level=2]
+      - list:
+        - listitem:
+          - link /Podziemia Rynku Rynek Główny 1, Kraków Toaleta dostosowana Dane przykładowe \d+ m od Rynku/:
+            - /url: /miejsca/podziemia-rynku
+        - listitem:
+          - 'link /Sukiennice Rynek Główny 1-3, Kraków Wejście bez stopni · Winda · Toaleta: brak danych Dane przykładowe \d+ m od Rynku/':
+            - /url: /miejsca/sukiennice
+        - listitem:
+          - 'link /Pałac Krzysztofory Rynek Główny \d+, Kraków Wejście bez stopni · Toaleta: sprzeczne dane · Winda: brak danych Dane przykładowe \d+ m od Rynku/':
+            - /url: /miejsca/palac-krzysztofory
+        - listitem:
+          - link /Restauracja Przykład ul\. Szewska 8, Kraków Wejście — stopnie · Podjazd · Szerokość drzwi Dane przykładowe \d+ m od Rynku/:
+            - /url: /miejsca/restauracja-przyklad
+        - listitem:
+          - 'link /Hotel Przykład ul\. Sienna 5, Kraków Wejście — stopnie · Próg · Szerokość drzwi · Winda · Toaleta dostosowana · Przewijak: brak danych Dane przykładowe \d+ m od Rynku/':
+            - /url: /miejsca/hotel-przyklad
+        - listitem:
+          - 'link /Bistro Przykład ul\. Grodzka \d+, Kraków Wejście bez stopni · Toaleta: brak danych Dane przykładowe \d+ m od Rynku/':
+            - /url: /miejsca/bistro-przyklad
+        - listitem:
+          - link /Teatr im\. Juliusza Słowackiego pl\. Świętego Ducha 1, Kraków Podjazd Dane przykładowe \d+ m od Rynku/:
+            - /url: /miejsca/teatr-slowackiego
+        - listitem:
+          - 'link /Kawiarnia Przykład ul\. Floriańska \d+, Kraków Wejście: brak danych · Toaleta: brak danych Dane przykładowe \d+ m od Rynku/':
+            - /url: /miejsca/kawiarnia-przyklad
+        - listitem:
+          - link /Toaleta publiczna Planty \(przykład\) ul\. Basztowa 1, Kraków Toaleta dostosowana · Przewijak · Ławki obok Dane przykładowe \d+ m od Rynku/:
+            - /url: /miejsca/toaleta-planty-przyklad
