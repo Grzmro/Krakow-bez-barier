@@ -11,7 +11,16 @@ const SPREAD_RADIUS = 26;
 
 export type VerdictCounts = Record<Status | "none", number>;
 
-type PointProps = { id: string; status: Status | null };
+type PointProps = { id: string; category: PlaceSummary["category"]; status: Status | null };
+
+/** Places as GeoJSON points (`[lon, lat]`, altitude dropped) carrying what a pin needs: id, category, verdict. */
+export function placeFeatures(places: PlaceSummary[]) {
+  return places.map((place) => ({
+    type: "Feature" as const,
+    geometry: { type: "Point" as const, coordinates: place.location.coordinates.slice(0, 2) },
+    properties: { id: place.id, category: place.category, status: place.verdict?.state ?? null } satisfies PointProps,
+  }));
+}
 type ClusterProps = VerdictCounts;
 
 export type MapItem =
@@ -38,14 +47,18 @@ export function buildClusterIndex(places: PlaceSummary[]): ClusterIndex {
       for (const key of Object.keys(emptyCounts()) as (keyof VerdictCounts)[]) acc[key] += props[key];
     },
   });
-  index.load(
-    places.map((place) => ({
-      type: "Feature" as const,
-      geometry: { type: "Point" as const, coordinates: place.location.coordinates.slice(0, 2) },
-      properties: { id: place.id, status: place.verdict?.state ?? null },
-    })),
-  );
+  index.load(placeFeatures(places));
   return { index, byId: new Map(places.map((place) => [place.id, place])) };
+}
+
+/** Number of places inside a viewport (`bbox` = west, south, east, north), clustered or not. */
+export function placesInView({ byId }: ClusterIndex, [west, south, east, north]: [number, number, number, number]): number {
+  let n = 0;
+  for (const place of byId.values()) {
+    const [lon, lat] = place.location.coordinates;
+    if (lon >= west && lon <= east && lat >= south && lat <= north) n++;
+  }
+  return n;
 }
 
 /** Pixel offsets that fan `n` pins out in a ring around their shared spot (none for a single pin). */

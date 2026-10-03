@@ -1,9 +1,10 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { clusters, markersSettled, pins, placesOnMap } from "./map";
+import { clusters, expandClusters, markersSettled, pins, placesOnMap } from "./map";
 
 const list = (page: Page) => page.getByRole("region", { name: "Lista miejsc" });
 const liveRegion = (page: Page) => page.locator('div[role="status"][aria-atomic="true"]');
+const canvas = (page: Page) => page.locator("canvas.maplibregl-canvas");
 
 /** Centre of the first marker a finger can reach: not under the search bar, chips, controls or sheet. */
 async function reachable(markers: Locator) {
@@ -36,6 +37,8 @@ test("tapping a cluster zooms in until its places are pins, and a pin leads to t
   await expect(page.getByRole("img", { name: /^Grupa: \d+ miejsc/ }).first()).toBeVisible();
   await expect.poll(() => placesOnMap(page)).toBe(9);
   await markersSettled(page);
+  // AND a screen reader hears how many places are in view
+  await expect(canvas(page)).toHaveAccessibleDescription(/^W widoku: \d+ miejsc/);
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "map-clusters.aria.yml" });
   await expectAccessible();
   await evidence("map-clusters");
@@ -67,6 +70,12 @@ test("tapping a cluster zooms in until its places are pins, and a pin leads to t
   }
   await markersSettled(page);
   await evidence("map-clusters-zoomed");
+
+  // THEN each pin shows its category's icon and names the place on hover
+  const firstPin = pins(page).first();
+  await expect(firstPin).toHaveAttribute("data-category", /^[a-z_]+$/);
+  await expect(firstPin).toHaveAttribute("title", /\S · \S/);
+  await expect(firstPin.locator("svg svg")).toHaveCount(1);
 
   // AND tap a pin
   const pin = await reachable(pins(page));
@@ -107,4 +116,14 @@ test("with a profile on, clusters tell their verdicts in words", async ({ page, 
 
   // THEN the announcement repeats the breakdown in words, as the donut's colours alone don't tell it
   await expect(liveRegion(page)).toHaveText(/^Przybliżono: \d+ miejsc\w* \((Spełnia|Sprzeczne|Brak danych|Nie spełnia): \d+/);
+
+  // WHEN the clusters are expanded into pins
+  await expandClusters(page);
+  await evidence("map-pins-profile");
+
+  // THEN every pin carries a category and a verdict, and its hover hint says the verdict in words
+  const pin = pins(page).first();
+  await expect(pin).toHaveAttribute("data-category", /^[a-z_]+$/);
+  await expect(pin).toHaveAttribute("data-status", /^(met|barrier|conflict|unknown)$/);
+  await expect(pin).toHaveAttribute("title", / · (Spełnia|Sprzeczne|Brak danych|Nie spełnia)$/);
 });

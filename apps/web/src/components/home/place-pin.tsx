@@ -1,9 +1,10 @@
-import { Check, ExclamationMark, Minus, Question, type Icon } from "@phosphor-icons/react";
+import { Check, ExclamationMark, MapPin, Minus, Question, type Icon } from "@phosphor-icons/react";
 import type { Status } from "@krakow-bez-barier/ui";
 
 const SIZE = 36;
 const R = SIZE / 2;
 const VIEW = R + 9;
+const BADGE = 8;
 const GLYPH: Record<Status, Icon> = { met: Check, barrier: Minus, conflict: ExclamationMark, unknown: Question };
 export const PIN_SHADOW = "drop-shadow(0 2px 3px rgb(22 20 31 / .18)) drop-shadow(0 6px 10px rgb(91 61 245 / .12))";
 const OCTAGON = Array.from({ length: 8 }, (_, i) => {
@@ -39,13 +40,32 @@ function Shape({ status }: { status: Status | null }) {
   return <circle r={R} fill={fill} stroke="var(--card)" strokeWidth={2.5} />;
 }
 
+/** Status glyph in a small disc on the pin's upper right, so the verdict reads without the colour or the shape. */
+function Badge({ status }: { status: Status }) {
+  const I = GLYPH[status];
+  const unknown = status === "unknown";
+  const at = R * 0.72;
+  const glyph = BADGE * 1.3;
+  return (
+    <g transform={`translate(${at} ${-at})`}>
+      <circle
+        r={BADGE}
+        fill={unknown ? "var(--status-unknown-bg)" : `var(--status-${status})`}
+        stroke={unknown ? "var(--status-unknown)" : "var(--card)"}
+        strokeWidth={unknown ? 1.5 : 2}
+      />
+      <I x={-glyph / 2} y={-glyph / 2} width={glyph} height={glyph} weight="bold" color={unknown ? "var(--status-unknown)" : "var(--card)"} />
+    </g>
+  );
+}
+
 /**
- * Map pin: circle (met or no profile), octagon (barrier), diamond (conflict), dashed circle (unknown),
- * each with its status glyph, so the verdict never rests on colour alone. The selected ring shows
- * when an ancestor has `data-selected="true"`.
+ * Map pin: the place's category icon inside its verdict shape — circle (met, or no profile), octagon
+ * (barrier), diamond (conflict), dashed circle (unknown) — plus a status glyph badge with a profile on,
+ * so the verdict never rests on colour alone. The selected ring shows when an ancestor has
+ * `data-selected="true"`.
  */
-export function PlacePin({ status }: { status: Status | null }) {
-  const I = status ? GLYPH[status] : null;
+export function PlacePin({ status, icon: I = MapPin }: { status: Status | null; icon?: Icon }) {
   const glyph = SIZE * 0.5;
   return (
     <svg
@@ -65,18 +85,15 @@ export function PlacePin({ status }: { status: Status | null }) {
       <g style={{ filter: PIN_SHADOW }} className="pointer-events-auto">
         <Shape status={status} />
       </g>
-      {I ? (
-        <I
-          x={-glyph / 2}
-          y={-glyph / 2}
-          width={glyph}
-          height={glyph}
-          weight="bold"
-          color={status === "unknown" ? "var(--status-unknown)" : "var(--card)"}
-        />
-      ) : (
-        <circle r={4} fill="var(--card)" />
-      )}
+      <I
+        x={-glyph / 2}
+        y={-glyph / 2}
+        width={glyph}
+        height={glyph}
+        weight="fill"
+        color={status === "unknown" ? "var(--status-unknown)" : "var(--card)"}
+      />
+      {status ? <Badge status={status} /> : null}
     </svg>
   );
 }

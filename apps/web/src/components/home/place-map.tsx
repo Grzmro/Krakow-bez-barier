@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import type { Icon } from "@phosphor-icons/react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import type { PlaceSummary } from "@krakow-bez-barier/contracts";
@@ -8,12 +9,14 @@ import { cn, useAnnounce } from "@krakow-bez-barier/ui";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useMessages } from "@/i18n/client";
+import { useCategoryLookup } from "@/lib/categories";
 import { config } from "@/lib/config";
 import {
   buildClusterIndex,
   clusterPlaceIds,
   expansionZoom,
   mapItems,
+  placesInView,
   verdictBreakdown,
   type MapItem,
 } from "@/lib/map-clusters";
@@ -24,14 +27,16 @@ import { PlacePin } from "./place-pin";
 
 const PIN_CLASS = "group relative size-9 cursor-pointer data-[selected=true]:z-10";
 
-function pinElement(place: PlaceSummary) {
+function pinElement(place: PlaceSummary, icon: Icon, title: string) {
   const element = document.createElement("div");
   element.className = PIN_CLASS;
   element.setAttribute("aria-hidden", "true");
+  element.title = title;
   element.dataset.placeId = place.id;
+  element.dataset.category = place.category;
   if (place.verdict) element.dataset.status = place.verdict.state;
   const root = createRoot(element);
-  flushSync(() => root.render(<PlacePin status={place.verdict?.state ?? null} />));
+  flushSync(() => root.render(<PlacePin status={place.verdict?.state ?? null} icon={icon} />));
   return { element, root };
 }
 
@@ -105,15 +110,19 @@ export interface PlaceMapProps {
 }
 
 /**
- * MapLibre map with neutral pins, or verdict pins when a profile is on. Nearby pins merge into clusters
- * (a verdict donut with a profile); only what is in or near the viewport gets a DOM marker. Pins are
- * mouse shortcuts only and hidden from assistive tech: the list next to the map holds the same places.
+ * MapLibre map with category-icon pins, neutral or shaped by their verdict when a profile is on. Nearby
+ * pins merge into clusters (a verdict donut with a profile); only what is in or near the viewport gets a
+ * DOM marker. Pins are mouse shortcuts only and hidden from assistive tech: the list next to the map
+ * holds the same places, and the canvas's description gives the number of places in view.
  */
 export function PlaceMap({ places, selectedId, onSelect, padding, you = null, youLabel: chosenLabel, label, className }: PlaceMapProps) {
   const messages = useMessages();
   const t = messages.home.map;
   const statusWords = messages.common.status;
   const announce = useAnnounce();
+  const category = useCategoryLookup();
+  const descriptionId = useId();
+  const [inView, setInView] = useState<number | null>(null);
   const youLabel = chosenLabel ?? messages.nearby.home.you;
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MapLibreMap | null>(null);
@@ -165,7 +174,8 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
   // MapLibre names the canvas once, at creation; this keeps it in the current language.
   useEffect(() => {
     map?.getCanvas().setAttribute("aria-label", label ?? t.label);
-  }, [map, label, t.label]);
+    map?.getCanvas().setAttribute("aria-describedby", descriptionId);
+  }, [map, label, t.label, descriptionId]);
 
   useEffect(() => {
     if (!map) return;
@@ -186,6 +196,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
           Math.min(180, bounds.getEast() + padLon),
           Math.min(85, bounds.getNorth() + padLat),
         ];
+        setInView(placesInView(index, [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]));
         const items = mapItems(index, bbox, map.getZoom());
         const keys = new Set(items.map((item) => item.key));
         removeMarkers(markers, [...markers.keys()].filter((key) => !keys.has(key)));
@@ -193,7 +204,9 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
           if (markers.has(item.key)) continue;
           if (item.kind === "place") {
             const { place } = item;
-            const { element, root } = pinElement(place);
+            const { label: categoryLabel, icon } = category(place.category);
+            const status = place.verdict ? statusWords[place.verdict.state] : null;
+            const { element, root } = pinElement(place, icon, t.pin(place.name, categoryLabel, status));
             element.addEventListener("click", (event) => {
               event.stopPropagation();
               onSelectRef.current(place.id);
@@ -226,7 +239,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
       cancelled = true;
       if (update) map.off("moveend", update);
     };
-  }, [map, index, announce, t, statusWords]);
+  }, [map, index, announce, t, statusWords, category]);
 
   useEffect(() => {
     if (!map) return;
@@ -291,6 +304,10 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
       )}
     >
       <div ref={containerRef} className="absolute inset-0 size-full" />
+      {/* Read as the canvas's description only: `hidden` keeps it out of the page text. */}
+      <p id={descriptionId} hidden>
+        {inView === null ? "" : t.inView(inView)}
+      </p>
       {unavailable ? (
         <p role="status" className="absolute inset-x-4 top-1/3 rounded-2xl bg-card p-4 text-body-sm shadow-soft">
           {t.unavailable}

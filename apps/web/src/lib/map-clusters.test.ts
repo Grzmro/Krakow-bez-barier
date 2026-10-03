@@ -8,6 +8,8 @@ import {
   donutSegments,
   expansionZoom,
   mapItems,
+  placeFeatures,
+  placesInView,
   spreadOffsets,
   verdictBreakdown,
 } from "./map-clusters";
@@ -104,6 +106,51 @@ describe("map clusters", () => {
     // THEN there are few markers and every place is counted in one of them
     expect(items.length).toBeLessThan(60);
     expect(items.reduce((sum, item) => sum + (item.kind === "cluster" ? item.count : 1), 0)).toBe(960);
+  });
+
+  it("keeps markers bounded at every zoom with several thousand places", () => {
+    // GIVEN 5000 places over the whole city (a deterministic grid)
+    const places = Array.from({ length: 5000 }, (_, i) => place(`p${i}`, 19.8 + (i % 100) * 0.0035, 49.98 + Math.floor(i / 100) * 0.003));
+    const index = buildClusterIndex(places);
+
+    // WHEN the whole city is in view, and later one street-level viewport (~400 × 800 px at zoom 17)
+    const city = mapItems(index, KRAKOW, 11);
+    const street = mapItems(index, [19.93, 50.05, 19.934, 50.054], 17);
+
+    // THEN the city (~730 px wide at zoom 11) draws about one marker per cluster radius, a street a few
+    // dozen, never thousands, and the city view counts every place
+    expect(city.length).toBeLessThan(400);
+    expect(street.length).toBeLessThan(80);
+    expect(city.reduce((sum, item) => sum + (item.kind === "cluster" ? item.count : 1), 0)).toBe(5000);
+  });
+
+  it("turns places into GeoJSON points with what a pin needs", () => {
+    // GIVEN a museum with a 3D location and a verdict, and a toilet without one
+    const museum = { ...place("m", 19.9373, 50.0617, "barrier"), category: "museum", location: { type: "Point", coordinates: [19.9373, 50.0617, 210] } } as PlaceSummary;
+    const toilet = { ...place("t", 19.94, 50.06), category: "toilet" } as PlaceSummary;
+
+    // WHEN they become features
+    const features = placeFeatures([museum, toilet]);
+
+    // THEN each is a 2D point with its id, category and verdict (null when there is no profile)
+    expect(features).toEqual([
+      { type: "Feature", geometry: { type: "Point", coordinates: [19.9373, 50.0617] }, properties: { id: "m", category: "museum", status: "barrier" } },
+      { type: "Feature", geometry: { type: "Point", coordinates: [19.94, 50.06] }, properties: { id: "t", category: "toilet", status: null } },
+    ]);
+  });
+
+  it("counts the places inside the viewport, clustered or not", () => {
+    // GIVEN three places on the Main Square and one in Nowa Huta
+    const index = buildClusterIndex([
+      place("a", 19.9373, 50.0617),
+      place("b", 19.9378, 50.0619),
+      place("c", 19.9369, 50.0613),
+      place("d", 20.0347, 50.0717),
+    ]);
+
+    // WHEN / THEN the old town alone holds three, the whole city four
+    expect(placesInView(index, [19.92, 50.05, 19.95, 50.07])).toBe(3);
+    expect(placesInView(index, KRAKOW)).toBe(4);
   });
 
   it("leaves a lone pin in place and spreads a group at least a pin apart", () => {
