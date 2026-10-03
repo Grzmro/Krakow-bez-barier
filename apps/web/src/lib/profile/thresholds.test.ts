@@ -12,10 +12,10 @@ describe("parseSettings", () => {
   });
 
   it("keeps valid values, clamps numbers and fills missing ones from the preset", () => {
-    // GIVEN a stored stroller profile with an out-of-range threshold and a missing flag
+    // GIVEN a stored stroller profile with an out-of-range threshold, a malformed flag and a missing one
     const raw = JSON.stringify({
       profile: "stroller",
-      thresholds: { stroller: { maxThresholdCm: 99, minDoorWidthCm: 75, requireLift: false } },
+      thresholds: { stroller: { maxThresholdCm: 99, minDoorWidthCm: 75, requireLift: false, requireBench: true, requireStepFree: "yes" } },
     });
     // WHEN parsed
     const settings = parseSettings(raw);
@@ -26,6 +26,7 @@ describe("parseSettings", () => {
       maxThresholdCm: 10,
       minDoorWidthCm: 75,
       requireLift: false,
+      requireBench: true,
     });
     expect(settings.thresholds.wheelchair).toEqual(DEFAULT_THRESHOLDS.wheelchair);
   });

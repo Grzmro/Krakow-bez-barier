@@ -157,6 +157,16 @@ describe("GET /api/v1/places", () => {
     expect(strict.body.items[0].verdict).toMatchObject({ state: "barrier", blockers: ["door_width_cm"], reasons: ["drzwi 95 cm"] });
   });
 
+  it("checks a facility need the profile switches on through its query parameter", async () => {
+    // GIVEN the wheelchair profile, which doesn't ask for a bench by default
+    // WHEN listing with requireBench=true
+    const { status, body } = await list("?q=hotel&profile=wheelchair&requireBench=true");
+
+    // THEN the request is valid and the bench is one of the verdict's needs
+    expect(status).toBe(200);
+    expect(body.items[0].verdict.needs.map((n: { need: string }) => n.need)).toEqual(["entrance", "door", "lift", "toilet", "bench"]);
+  });
+
   it("never gives the conflicting or the empty place a met verdict", async () => {
     // GIVEN the palace's toilet data conflicts and the café has none
     // WHEN listing with either profile

@@ -139,6 +139,32 @@ test("thresholds change verdicts, persist in the browser and reset to defaults",
   await expect(row(page, "Hotel Przykład")).toContainText("Spełnia · niepotwierdzone");
 });
 
+test("a facility need switched on in the thresholds drawer joins the verdict", async ({ page, expectAccessible, evidence }) => {
+  // GIVEN the wheelchair profile on a small 360 px phone, under which the hotel meets every need
+  await page.setViewportSize({ width: 360, height: 640 });
+  await page.goto("/");
+  await page.getByRole("radio", { name: "Wózek", exact: true }).check();
+  await expect(row(page, "Hotel Przykład")).toContainText("Spełnia · niepotwierdzone");
+
+  // WHEN the user also asks for a bench or another place to rest
+  await page.getByRole("button", { name: "Progi profilu" }).click();
+  const drawer = page.getByRole("dialog", { name: "Progi profilu" });
+  const bench = drawer.getByRole("switch", { name: "Ławka lub miejsce odpoczynku" });
+  await expect(bench).not.toBeChecked();
+  await bench.check();
+  await expect(bench).toBeChecked();
+  await expect(drawer).toMatchAriaSnapshot({ name: "profile-thresholds.aria.yml" });
+  await expectAccessible();
+  const done = drawer.getByRole("button", { name: "Gotowe" });
+  await done.scrollIntoViewIfNeeded();
+  await expect(done).toBeInViewport({ ratio: 1 });
+  await evidence("home-profile-bench");
+  await done.click();
+
+  // THEN the hotel, with no bench data, is "can't say" instead of met, and says what is missing
+  await expect(row(page, "Hotel Przykład")).toContainText("Brak danych · ławka");
+});
+
 test("no-data and conflicting places never meet a profile; turning it off returns the neutral view", async ({ page }) => {
   // GIVEN the stroller profile
   await page.goto("/");

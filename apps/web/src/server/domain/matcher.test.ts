@@ -255,6 +255,7 @@ describe("matchProfile with facts through the resolver", () => {
       requireAccessibleToilet: false,
       requireSmoothSurface: false,
       requireChangingTable: false,
+      requireBench: false,
     };
     const facts = [
       fact("step_count", numFact(0, "count"), confirmed),
@@ -268,6 +269,61 @@ describe("matchProfile with facts through the resolver", () => {
   });
 });
 
+describe("a profile added only as configuration", () => {
+  // US-2.8: no steps, a lift and somewhere to rest — no matcher change, just thresholds.
+  const senior: Thresholds = {
+    maxThresholdCm: 3,
+    minDoorWidthCm: 70,
+    requireStepFree: true,
+    requireLift: true,
+    requireAccessibleToilet: false,
+    requireSmoothSurface: false,
+    requireChangingTable: false,
+    requireBench: true,
+  };
+  const restful = (bench: AccessibilityFact[]) => [
+    fact("step_count", numFact(0, "count"), confirmed),
+    fact("threshold_cm", numFact(2), confirmed),
+    fact("door_width_cm", numFact(80), confirmed),
+    fact("lift", boolFact(true), confirmed),
+    ...bench,
+  ];
+
+  it("is met with a step-free entrance, a lift and a bench, and lists the bench as a need", () => {
+    // GIVEN a place with a step-free entrance, a lift and a confirmed bench, but no accessible toilet
+    const facts = [...restful([fact("bench", boolFact(true), confirmed)]), fact("toilet_accessible", boolFact(false), confirmed)];
+    // WHEN matched against the senior thresholds
+    const verdict = match(senior, facts);
+    // THEN it is met, and the needs are the entrance, the door, the lift and the bench only
+    expect(verdict).toMatchObject({ state: "met", unconfirmed: false, reasons: [] });
+    expect(verdict.needs?.map((n) => n.need)).toEqual(["entrance", "door", "lift", "bench"]);
+  });
+
+  it("is blocked by a known missing bench and can't say without bench data", () => {
+    // GIVEN the same place once with no bench and once without any bench data
+    const noBench = restful([fact("bench", boolFact(false), confirmed)]);
+    const noData = restful([]);
+    // WHEN matched against the senior thresholds
+    // THEN a missing bench blocks with its reason, missing data is unknown, never met
+    expect(match(senior, noBench)).toMatchObject({ state: "barrier", blockers: ["bench"], reasons: ["ławka: brak"] });
+    expect(match(senior, noData)).toMatchObject({ state: "unknown", unknowns: ["bench"], reasons: ["ławka"] });
+  });
+
+  it("is blocked by steps without a ramp, like the wheelchair preset", () => {
+    // GIVEN two steps and no ramp, with a lift and a bench
+    const facts = [
+      fact("step_count", numFact(2, "count"), confirmed),
+      fact("ramp", boolFact(false), confirmed),
+      fact("door_width_cm", numFact(80), confirmed),
+      fact("lift", boolFact(true), confirmed),
+      fact("bench", boolFact(true), confirmed),
+    ];
+    // WHEN matched against the senior thresholds
+    // THEN the steps block the entrance
+    expect(match(senior, facts)).toMatchObject({ state: "barrier", blockers: ["step_count"], reasons: ["2 stopnie"] });
+  });
+});
+
 describe("thresholdsFor", () => {
   it("returns null without a profile and fills missing thresholds from the presets", () => {
     // GIVEN queries without a profile and with one overridden threshold
@@ -275,5 +331,10 @@ describe("thresholdsFor", () => {
     // THEN thresholds are ignored without a profile, and the override wins over the preset
     expect(thresholdsFor({ maxThresholdCm: 5 })).toBeNull();
     expect(thresholdsFor({ profile: "stroller", minDoorWidthCm: 60 })).toEqual({ ...stroller, minDoorWidthCm: 60 });
+    expect(thresholdsFor({ profile: "wheelchair", requireBench: true, requireLift: false })).toEqual({
+      ...wheelchair,
+      requireBench: true,
+      requireLift: false,
+    });
   });
 });

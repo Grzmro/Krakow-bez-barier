@@ -1,0 +1,40 @@
+- dialog "Progi profilu":
+  - heading "Progi profilu" [level=2]
+  - paragraph: Wartości domyślne to propozycja. Zmień je pod siebie.
+  - group "Profil potrzeb":
+    - text: ""
+    - radio "Wózek" [checked]
+    - text: Wózek
+    - radio "Wózek dziecięcy"
+    - text: Dziecięcy
+  - text: Maks. próg
+  - group "Maks. próg":
+    - 'button "Zmniejsz: Maks. próg"':
+      - img
+    - status: 2 cm
+    - 'button "Zwiększ: Maks. próg"':
+      - img
+  - text: Min. szerokość wejścia
+  - group "Min. szerokość wejścia":
+    - 'button "Zmniejsz: Min. szerokość wejścia"':
+      - img
+    - status: /\d+ cm/
+    - 'button "Zwiększ: Min. szerokość wejścia"':
+      - img
+  - text: Bez stopni Gdy wyłączone, 1 stopień jest dopuszczalny
+  - switch "Bez stopni Gdy wyłączone, 1 stopień jest dopuszczalny" [checked]
+  - text: Winda przy piętrach
+  - switch "Winda przy piętrach" [checked]
+  - text: Toaleta dostosowana
+  - switch "Toaleta dostosowana" [checked]
+  - text: Równa nawierzchnia
+  - switch "Równa nawierzchnia"
+  - text: Przewijak
+  - switch "Przewijak"
+  - text: Ławka lub miejsce odpoczynku
+  - switch "Ławka lub miejsce odpoczynku" [checked]
+  - paragraph: Ustawienia zostają tylko w tej przeglądarce.
+  - button "Przywróć domyślne":
+    - img
+    - text: ""
+  - button "Gotowe"

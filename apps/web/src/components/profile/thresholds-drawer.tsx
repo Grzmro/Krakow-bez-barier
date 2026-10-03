@@ -11,22 +11,13 @@ import {
   VaulDrawerTitle,
 } from "@krakow-bez-barier/ui";
 import { pl } from "@/i18n/pl";
-import { THRESHOLD_LIMITS, type Thresholds } from "@/lib/profile/thresholds";
+import { THRESHOLD_FLAGS, THRESHOLD_LIMITS, type Thresholds } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { ProfileSwitch } from "./profile-switch";
 
 const t = pl.profile.thresholds;
 
 type NumberKey = keyof typeof THRESHOLD_LIMITS;
-type FlagKey = Exclude<keyof Thresholds, NumberKey>;
-
-const FLAGS: FlagKey[] = [
-  "requireStepFree",
-  "requireLift",
-  "requireAccessibleToilet",
-  "requireSmoothSurface",
-  "requireChangingTable",
-];
 
 function Stepper({ label, value, limits, onChange }: { label: string; value: number; limits: (typeof THRESHOLD_LIMITS)[NumberKey]; onChange: (v: number) => void }) {
   const id = useId();
@@ -94,7 +85,7 @@ export function ThresholdsDrawer({ open, onOpenChange }: { open: boolean; onOpen
               limits={THRESHOLD_LIMITS.minDoorWidthCm}
               onChange={(v) => set("minDoorWidthCm", v)}
             />
-            {FLAGS.map((key) => (
+            {THRESHOLD_FLAGS.map((key) => (
               <LabeledSwitch
                 key={key}
                 label={t[key]}
