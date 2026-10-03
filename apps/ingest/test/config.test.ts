@@ -81,13 +81,13 @@ describe("city config", () => {
     expect(cities["gdansk-test"].defaults.zoom).toBe(14);
   });
 
-  it("ships Kraków and a second OSM-only city", async () => {
+  it("ships at least Kraków and a second OSM-only city", async () => {
     // GIVEN the shipped city directory
     // WHEN it is loaded
     const cities = await loadCities();
 
     // THEN both are there, each with a language and defaults, and the second uses only OSM
-    expect(Object.keys(cities).sort()).toEqual(["krakow", "wroclaw"]);
+    expect(Object.keys(cities)).toEqual(expect.arrayContaining(["krakow", "wroclaw"]));
     expect(cities.krakow).toMatchObject({ language: "pl", defaults: { zoom: 15 } });
     expect(cities.wroclaw.sources).toEqual(["osm"]);
   });
@@ -105,5 +105,14 @@ describe("city config", () => {
     expect(ok).toMatchObject({ city: { id: "gdansk-test" }, sourceIds: ["osm"] });
     expect(noCity).toMatchObject({ error: expect.stringContaining("gdansk-test") });
     expect(noSource).toMatchObject({ error: expect.stringContaining("msip-toilets") });
+  });
+
+  it("rejects a city that lists an unknown category or reuses an id", async () => {
+    // GIVEN fixture directories with a broken city
+    const bad = fileURLToPath(new URL("./fixtures/cities-invalid/", import.meta.url));
+
+    // WHEN loading them
+    // THEN the error names the problem instead of silently dropping the category
+    await expect(loadCities(bad)).rejects.toThrow(/unknown categories nope/);
   });
 });

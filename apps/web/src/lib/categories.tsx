@@ -20,6 +20,9 @@ const ICONS: Record<string, Icon> = {
   "map-pin": MapPin,
 };
 
+/** Icon keys the web UI can draw. */
+export const ICON_KEYS = Object.keys(ICONS);
+
 export const categoryIcon = (key: string | undefined): Icon => (key && ICONS[key]) || MapPin;
 
 /** `GET /categories`: the categories configured for this deployment, in display order. */
