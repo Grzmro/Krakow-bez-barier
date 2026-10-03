@@ -40,7 +40,7 @@ export type RouteDeps = {
   locale?: Locale;
 };
 
-/** openrouteservice with `ORS_API_KEY`; without it, the recorded demo answers (Dworzec Główny → Rynek Główny). */
+/** openrouteservice with `ORS_API_KEY`; without it, only the recorded demo answers (Dworzec Główny → Rynek Główny); any other request fails as `not_configured`. */
 export function defaultProvider(): RoutingProvider {
   const apiKey = process.env.ORS_API_KEY;
   if (!apiKey) return createRecordedProvider();

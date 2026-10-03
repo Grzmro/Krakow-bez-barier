@@ -95,10 +95,11 @@ describe("POST /api/v1/routes", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
 
     // WHEN a route that was never recorded is requested
-    const { status } = await post({ ...body(), to: { type: "Point", coordinates: [19.94, 50.05] } });
+    const { status, body: problem } = await post({ ...body(), to: { type: "Point", coordinates: [19.94, 50.05] } });
 
-    // THEN it is a 502 problem and nothing left the server
+    // THEN it is a 502 problem naming the missing configuration, and nothing left the server
     expect(status).toBe(502);
+    expect(problem.type).toMatch(/\/routing-not-configured$/);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

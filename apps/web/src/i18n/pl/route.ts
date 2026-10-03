@@ -64,6 +64,8 @@ export const route = {
     unavailable: "Wyznaczanie tras jest chwilowo niedostępne. Reszta aplikacji działa — sprawdź miejsca na liście.",
     noRoute: "Nie znaleźliśmy trasy między tymi punktami.",
     noPlace: "Nie znaleźliśmy miejsca docelowego. Link może być nieaktualny.",
+    notConfigured: "Tej trasy nie wyznaczymy w trybie demonstracyjnym (brak klucza openrouteservice). Działa przykładowa trasa Dworzec Główny → Rynek Główny z domyślnymi ustawieniami profilu.",
+    showExample: "Pokaż przykładową trasę",
     retry: "Spróbuj ponownie",
   },
   back: "Wstecz",

@@ -33,9 +33,12 @@
         - text: Wózek
         - radio "Wózek dziecięcy"
         - text: Dziecięcy
+        - radio "Senior"
+        - text: Senior
       - paragraph: Bez profilu sprawdzamy schody i nawierzchnię. Włącz profil, by ocenić krawężniki i nachylenie.
-      - paragraph: Wyznaczanie tras jest chwilowo niedostępne. Reszta aplikacji działa — sprawdź miejsca na liście.
-      - button "Spróbuj ponownie"
+      - paragraph: Tej trasy nie wyznaczymy w trybie demonstracyjnym (brak klucza openrouteservice). Działa przykładowa trasa Dworzec Główny → Rynek Główny z domyślnymi ustawieniami profilu.
+      - link "Pokaż przykładową trasę":
+        - /url: /trasa
       - 'region "Cel: wejście · Kawiarnia Przykład"':
         - 'heading "Cel: wejście · Kawiarnia Przykład" [level=2]'
         - paragraph: Fakty z karty miejsca.
