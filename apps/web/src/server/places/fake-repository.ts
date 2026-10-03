@@ -99,7 +99,7 @@ export function createFakePlaceRepository(places: PlaceRecord[], facts: FactReco
     async searchPlaces({ text, categories, excludeCategories, bbox, near }) {
       const hits = places.filter((p) => {
         const haystack = normalizeText([p.name, p.street, p.houseNumber].filter(Boolean).join(" "));
-        if (text && !haystack.includes(text)) return false;
+        if (text && !text.split(/\s+/).filter(Boolean).every((word) => haystack.includes(word))) return false;
         if (categories?.length && !categories.includes(p.category)) return false;
         if (!categories?.length && excludeCategories?.includes(p.category)) return false;
         if (bbox) {
