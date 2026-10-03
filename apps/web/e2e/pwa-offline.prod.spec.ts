@@ -43,7 +43,6 @@ test("home page works offline after the first visit and says so", async ({
   await expect(page.getByRole("note").filter({ hasText: "Jesteś offline" })).toHaveText(
     /^Jesteś offline — pokazujemy dane z \d{1,2} \S+ \d{4} \d{1,2}:\d{2}\.$/,
   );
-  await expect(page.getByRole("status")).toContainText("Jesteś offline");
   await expectAccessible();
   await evidence("pwa-offline-home");
 
@@ -51,6 +50,8 @@ test("home page works offline after the first visit and says so", async ({
   await page.goto(routes.privacy);
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "offline.aria.yml" });
   await expect(page.getByRole("note").filter({ hasText: "Jesteś offline" })).toHaveText("Jesteś offline.");
+  // Announced through the layout's live region (on home, the profile list's own announcement follows it).
+  await expect(page.getByRole("status")).toHaveText("Jesteś offline.");
   await expectAccessible();
   await evidence("pwa-offline-fallback");
   await page.keyboard.press("Tab");
