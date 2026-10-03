@@ -153,20 +153,23 @@ for (const [name, device] of [
     });
 
     test("scrolling the sheet's list leaves the map alone, and dragging the map leaves the list alone", async ({ page }) => {
-      // GIVEN the home screen
+      // GIVEN the home screen with the list scrolled down a little (a swipe up at half height would expand the sheet instead)
       await openHome(page);
       const touch = await touchscreen(page);
       const scroller = page.getByRole("group", { name: "Lista miejsc" });
       const list = (await scroller.boundingBox())!;
       const scrollTop = () => scroller.evaluate((el) => el.scrollTop);
+      await scroller.evaluate((el) => (el.scrollTop = 300));
+      const scrolled = await scrollTop();
+      expect(scrolled).toBeGreaterThan(100);
       const before = await view(page);
 
-      // WHEN a finger swipes up inside the visible part of the list
-      const listBottom = Math.min(list.y + list.height, page.viewportSize()!.height);
-      await touch.drag({ x: list.x + list.width / 2, y: listBottom - 20 }, { x: 0, y: -150 });
+      // WHEN a finger swipes down inside the visible part of the list
+      await touch.drag({ x: list.x + list.width / 2, y: list.y + 20 }, { x: 0, y: 150 });
 
-      // THEN the list scrolls and the map does not move
-      await expect.poll(scrollTop).toBeGreaterThan(50);
+      // THEN the list scrolls back up, the sheet keeps its height and the map does not move
+      await expect.poll(scrollTop).toBeLessThan(scrolled - 50);
+      await expect(page.getByRole("region", { name: "Lista miejsc" })).toHaveAttribute("data-stowed", "false");
       const afterList = await settledView(page);
       expect(Math.hypot(afterList.x - before.x, afterList.y - before.y)).toBeLessThan(1);
 
@@ -183,7 +186,9 @@ for (const [name, device] of [
     });
 
     test("tapping a pin selects its place in the list; swiping the chips scrolls them, not the map", async ({ page }) => {
-      // GIVEN the home screen
+      // GIVEN the home screen of a visitor who dismissed the install hint (the page is one screen tall, so with the
+      // hint an iPhone 15 keeps only a strip of map between the chips and the list, and the pins hide under them)
+      await page.addInitScript(() => localStorage.setItem("kbb:install-dismissed", "1"));
       await openHome(page);
       const touch = await touchscreen(page);
 

@@ -38,6 +38,9 @@ const MAP_PADDING_STOWED = { top: 150, bottom: 60 };
 const MAP_PADDING_DESKTOP = { top: 48, bottom: 48 };
 const STOWED_KEY = "kbb-list-stowed";
 const STOWED_HEIGHT = "calc(4.5rem + env(safe-area-inset-bottom))";
+// Set on <main> as --list-collapsed: half the screen, but on a short phone (banners, browser toolbars) down to 40%,
+// so ~20rem stays for the map and its overlays. The map's bottom edge follows the same value.
+const COLLAPSED_HEIGHT = "var(--list-collapsed)";
 const DESKTOP = "(min-width: 64rem)";
 
 const COUNTER_PRESSED: Record<Status, string> = {
@@ -188,8 +191,8 @@ export function HomeScreen() {
     <main
       id="main"
       tabIndex={-1}
-      data-desktop-fill
-      className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[600px] flex-1 overflow-hidden outline-none lg:mb-0 lg:grid lg:min-h-0 lg:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)]"
+      data-fill-viewport
+      className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[22rem] [--list-collapsed:min(50%,max(40%,100%_-_20rem))] flex-1 overflow-hidden outline-none lg:mb-0 lg:grid lg:min-h-0 lg:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)]"
     >
       <h1 className="sr-only">{t.title}</h1>
       <a
@@ -231,7 +234,7 @@ export function HomeScreen() {
         label={t.list.label}
         expanded={expanded}
         onExpandedChange={setExpanded}
-        collapsedHeight="50%"
+        collapsedHeight={COLLAPSED_HEIGHT}
         stowed={stowed}
         onStowedChange={setStowed}
         stowLabels={t.list.stow}
@@ -360,7 +363,7 @@ export function HomeScreen() {
       </BottomPanel>
       <div
         style={stowed ? { bottom: STOWED_HEIGHT } : undefined}
-        className="absolute inset-x-0 top-0 bottom-[calc(50%-24px)] transition-[bottom] duration-[420ms] ease-(--ease-out-soft) lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0"
+        className="absolute inset-x-0 top-0 bottom-[calc(var(--list-collapsed)_-_24px)] transition-[bottom] duration-[420ms] ease-(--ease-out-soft) lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0"
       >
         <PlaceMap
           places={mapPlaces}
