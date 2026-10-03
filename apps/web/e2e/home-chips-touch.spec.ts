@@ -82,7 +82,8 @@ test("a slanted swipe that starts between two feature filters scrolls them, not 
   // GIVEN the list panel brought up at half height
   const { watchMap, mapMoved } = await openHome(page);
   const panel = page.getByRole("region", { name: "Lista miejsc" });
-  await panel.getByRole("button", { name: "Pokaż listę" }).click();
+  const show = panel.getByRole("button", { name: "Pokaż listę" });
+  if (await show.isVisible()) await show.click();
   await expect(panel).toHaveAttribute("data-stowed", "false");
   await expect.poll(() => panel.evaluate((el) => el.getAnimations().length)).toBe(0);
   const filters = panel.getByRole("group", { name: "Filtry cech" });
