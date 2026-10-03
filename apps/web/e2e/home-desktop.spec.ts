@@ -52,7 +52,10 @@ test("the list scrolls inside its panel while the page and the map stay put, and
   // AND then in a short window, so the list certainly overflows its panel
   await page.setViewportSize({ width: 1440, height: 600 });
   const scroller = panel.getByRole("group", { name: "Lista miejsc" });
-  const mapBefore = await page.locator(".maplibregl-canvas").boundingBox();
+  const canvas = page.locator(".maplibregl-canvas");
+  // MapLibre resizes its canvas on the next frame after the window shrinks.
+  await expect.poll(async () => (await canvas.boundingBox())!.height).toBeLessThanOrEqual(600);
+  const mapBefore = await canvas.boundingBox();
   expect(await scroller.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
 
   // WHEN the list is scrolled to its end
@@ -61,7 +64,7 @@ test("the list scrolls inside its panel while the page and the map stay put, and
   // THEN the panel scrolled, the page and the map did not move, and the mobile sheet toggle isn't offered
   expect(await scroller.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
-  expect(await page.locator(".maplibregl-canvas").boundingBox()).toEqual(mapBefore);
+  expect(await canvas.boundingBox()).toEqual(mapBefore);
   await expect(page.getByRole("button", { name: /arkusz/ })).toBeHidden();
 });
 
