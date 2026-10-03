@@ -54,12 +54,13 @@ export function VoiceButton({ speech, className }: { speech: ReturnType<typeof u
       aria-pressed={active}
       onClick={press}
       className={cn(
-        "grid size-10 place-items-center rounded-full",
-        active ? "bg-primary text-primary-foreground motion-safe:animate-pulse" : "hover:bg-muted",
+        "relative grid size-10 place-items-center rounded-full",
+        active ? "bg-primary text-primary-foreground" : "hover:bg-muted",
         className,
       )}
     >
-      {active ? <Stop weight="fill" className="size-5" aria-hidden /> : <Microphone weight="bold" className="size-5" aria-hidden />}
+      {active ? <span aria-hidden className="absolute inset-0 rounded-full bg-primary/40 motion-safe:animate-ping" /> : null}
+      {active ? <Stop weight="fill" className="relative size-5" aria-hidden /> : <Microphone weight="bold" className="size-5" aria-hidden />}
     </button>
   );
 }
