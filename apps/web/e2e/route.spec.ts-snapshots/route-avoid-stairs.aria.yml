@@ -102,6 +102,6 @@
       - text: ""
   - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
   - button "Informacje o źródłach mapy"
-  - paragraph: Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors, openrouteservice
+  - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors, openrouteservice"
   - button "Przybliż"
   - button "Oddal"
