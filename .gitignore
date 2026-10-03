@@ -15,3 +15,4 @@ apps/web/public/vendor/
 # Playwright CLI output (may contain credentials)
 .playwright-cli/
 .ingest-cache/
+.neon
