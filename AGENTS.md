@@ -94,7 +94,7 @@ npm run lint                   # ESLint
 npm run typecheck              # next typegen + tsc
 npm run test                   # Vitest (unit)
 npm run build                  # production build
-npm run test:e2e               # Playwright smoke (apps/web/e2e); reuses a running dev server
+npm run test:e2e               # Playwright smoke (apps/web/e2e); own port per worktree (PORT overrides)
 ```
 
 Planned — add them here when the task lands: `cp .env.example .env` + `docker compose up -d db` +
