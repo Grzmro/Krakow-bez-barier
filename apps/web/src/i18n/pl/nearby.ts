@@ -21,8 +21,8 @@ export const nearby = {
     announce: "W Twojej okolicy, od najbliższych",
     you: "Ty",
     emptyHint: "Szukasz tylko w Twojej okolicy (w promieniu ok. 2 km).",
-    truncated: (shown: number, total: number) =>
-      `Lista obejmuje ${shown} z ${total} pasujących miejsc w okolicy, więc najbliższe mogą w niej nie być. Zawęź wyszukiwanie nazwą, kategorią lub filtrem.`,
+    nearestOnly: (shown: number, total: number) =>
+      `Pokazano ${shown} najbliższych z ${total} miejsc w okolicy. Zawęź wyszukiwanie nazwą, kategorią lub filtrem, żeby zobaczyć pozostałe.`,
   },
   devPage: {
     title: "Funkcje natywne",

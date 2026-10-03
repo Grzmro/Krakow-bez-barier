@@ -15,11 +15,16 @@ export type PlaceSearch = {
   excludeCategories?: Category[];
   /** `[minLon, minLat, maxLon, maxLat]`, WGS84. */
   bbox?: [number, number, number, number];
+  /** `[lon, lat]`, WGS84: every hit carries its `distance` from here in metres and the list comes back nearest first. */
+  near?: [number, number];
 };
+
+/** `distance` (metres, spheroid) is set only for a search with `near`. */
+export type PlaceHit = PlaceRecord & { distance?: number };
 
 /** Read access the places service needs; tests pass an in-memory fake. */
 export interface PlaceRepository {
-  searchPlaces(search: PlaceSearch): Promise<PlaceRecord[]>;
+  searchPlaces(search: PlaceSearch): Promise<PlaceHit[]>;
   findPlace(id: string): Promise<PlaceRecord | null>;
   /** Active facts of the given places, each with its source and number of confirmations. */
   activeFacts(placeIds: string[]): Promise<FactRecord[]>;
@@ -41,7 +46,7 @@ const escapeLike = (text: string) => text.replace(/[\\%_]/g, (c) => `\\${c}`);
 
 export function createDbPlaceRepository(db: Db = getDb()): PlaceRepository {
   return {
-    async searchPlaces({ text, categories, excludeCategories, bbox }) {
+    async searchPlaces({ text, categories, excludeCategories, bbox, near }) {
       const where: SQL[] = [];
       if (text) {
         const haystack = sql`translate(lower(concat_ws(' ', ${places.name}, ${places.street}, ${places.houseNumber})), ${FOLD_FROM}, ${FOLD_TO})`;
@@ -53,10 +58,12 @@ export function createDbPlaceRepository(db: Db = getDb()): PlaceRepository {
         const [minLon, minLat, maxLon, maxLat] = bbox;
         where.push(sql`ST_Intersects(${places.location}, ST_MakeEnvelope(${minLon}, ${minLat}, ${maxLon}, ${maxLat}, 4326))`);
       }
-      return db
-        .select()
-        .from(places)
-        .where(where.length ? and(...where) : undefined);
+      const filter = where.length ? and(...where) : undefined;
+      if (!near) return db.select().from(places).where(filter);
+      // The bbox predicate above uses the GiST index; the geography distance is evaluated only for the rows it keeps.
+      const distance = sql<number>`ST_Distance(${places.location}::geography, ST_SetSRID(ST_MakePoint(${near[0]}, ${near[1]}), 4326)::geography)`;
+      const rows = await db.select({ place: places, distance }).from(places).where(filter).orderBy(distance, places.id);
+      return rows.map(({ place, distance: meters }) => ({ ...place, distance: Number(meters) }));
     },
 
     async findPlace(id) {

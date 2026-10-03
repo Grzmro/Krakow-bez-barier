@@ -67,6 +67,17 @@ describe("mockListPlaces", () => {
     // THEN only that place is returned
     expect(ids(result)).toEqual(["toaleta-planty-przyklad"]);
   });
+
+  it("orders by distance from `near`, nearest first", () => {
+    // GIVEN the Planty toilet's own coordinates as the point
+    const toilet = mockListPlaces({ bbox: [19.9405, 50.065, 19.9415, 50.066] }).items[0];
+
+    // WHEN listing near it
+    const result = mockListPlaces({ near: toilet.location.coordinates });
+
+    // THEN it comes first
+    expect(ids(result)[0]).toBe("toaleta-planty-przyklad");
+  });
 });
 
 describe("withPlacesMocks", () => {

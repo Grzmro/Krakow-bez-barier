@@ -165,6 +165,22 @@ paths:
           maxItems: 4
         style: form
         explode: false
+      - name: near
+        in: query
+        description: 'Orders the list by distance from this point, `lon,lat` (WGS84), nearest first, instead of by name; `cursor`
+          then pages through that order. Pair it with `bbox` to bound the search. Send a coarse point (snapped to a grid), never the exact device position: the server
+          does not need it and the client computes the distances it shows. A `cursor` from the name order, or from another
+          `near`, is a 400.
+
+          '
+        schema:
+          type: array
+          items:
+            type: number
+          minItems: 2
+          maxItems: 2
+        style: form
+        explode: false
       - name: includeUnknown
         in: query
         description: Also return places with no data for the requested features.
@@ -193,7 +209,7 @@ paths:
           default: 25
       - name: cursor
         in: query
-        description: Opaque cursor from `nextCursor`.
+        description: Opaque cursor from `nextCursor`; valid only with the same `near` (or without it) as the request that returned it.
         schema:
           type: string
       responses:

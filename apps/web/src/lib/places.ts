@@ -4,7 +4,6 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { GetPlaceQuery, ListPlacesQuery } from "@krakow-bez-barier/contracts";
 import { useLocale } from "@/i18n/client";
 import { api } from "./api";
-import { collectPages } from "./nearby";
 
 async function listPlaces(query: ListPlacesQuery) {
   const { data, error } = await api.GET("/places", { params: { query } });
@@ -12,15 +11,12 @@ async function listPlaces(query: ListPlacesQuery) {
   return data;
 }
 
-/**
- * `GET /places`. Keeps the previous list while a new profile or query loads, so nothing flickers. With
- * `allPages`, follows `nextCursor` (up to a cap) — only for a bounded `bbox`.
- */
-export function usePlaces(query: ListPlacesQuery, { allPages = false }: { allPages?: boolean } = {}) {
+/** `GET /places`. Keeps the previous list while a new profile or query loads, so nothing flickers. */
+export function usePlaces(query: ListPlacesQuery) {
   const locale = useLocale();
   return useQuery({
-    queryKey: ["places", locale, query, allPages],
-    queryFn: () => (allPages ? collectPages((cursor) => listPlaces({ ...query, cursor })) : listPlaces(query)),
+    queryKey: ["places", locale, query],
+    queryFn: () => listPlaces(query),
     placeholderData: keepPreviousData,
   });
 }

@@ -11,7 +11,7 @@ import { useMessages } from "@/i18n/client";
 import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
 import type { DevicePosition } from "@/lib/native/geolocation";
-import { byDistance, searchArea, toLonLat } from "@/lib/nearby";
+import { byDistance, searchArea, searchCentre, toLonLat } from "@/lib/nearby";
 import { usePlaces } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
@@ -81,25 +81,24 @@ export function HomeScreen() {
 
   const area = position ? searchArea(position) : undefined;
   const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown, area };
-  const places = usePlaces(
-    {
-      bbox: area,
-      q: query.q || undefined,
-      category: category === ALL ? undefined : [category],
-      feature: features.length ? features : undefined,
-      includeUnknown: features.length ? showUnknown : undefined,
-      limit: 100,
-      ...profileQuery(settings),
-    },
-    { allPages: Boolean(area) },
-  );
+  const places = usePlaces({
+    bbox: area,
+    near: position ? searchCentre(position) : undefined,
+    q: query.q || undefined,
+    category: category === ALL ? undefined : [category],
+    feature: features.length ? features : undefined,
+    includeUnknown: features.length ? showUnknown : undefined,
+    limit: 100,
+    ...profileQuery(settings),
+  });
   const origin = useMemo(() => (position ? toLonLat(position) : null), [position]);
   const items = useMemo(() => byDistance(places.data?.items ?? [], origin ?? config.cityCenter), [places.data, origin]);
   const counts = useMemo(() => countByStatus(items), [items]);
   const shown = useMemo(() => filterByVerdict(items, { status: statusFilter, hideFailing }), [items, statusFilter, hideFailing]);
   const mapPlaces = useMemo(() => shown.map(({ place }) => place), [shown]);
   const total = places.data?.total;
-  const truncatedNote = origin && places.data?.nextCursor && total !== undefined ? tn.truncated(items.length, total) : null;
+  // Near me, the API returns only the nearest page of the area.
+  const cutNote = origin && places.data?.nextCursor && total !== undefined ? tn.nearestOnly(places.data.items.length, total) : null;
   const verdicts = Boolean(profile && items.some(({ place }) => place.verdict));
   const settled = query.q === q.trim() && !places.isPlaceholderData;
   const suggestions = useMemo(
@@ -112,7 +111,7 @@ export function HomeScreen() {
   const pending = places.isPlaceholderData || total === undefined;
   const listAnnouncement =
     total === undefined ? null : verdicts && profile ? tp.announce(profile, shown.length, items.length, counts) : t.list.announce(total);
-  const nearbyAnnouncement = [tn.announce, listAnnouncement, truncatedNote].filter(Boolean).join(". ");
+  const nearbyAnnouncement = [tn.announce, listAnnouncement, cutNote].filter(Boolean).join(". ");
   const announcement = listAnnouncement && origin ? nearbyAnnouncement : listAnnouncement;
   useEffect(() => {
     if (!pending && announcement) announce(announcement);
@@ -286,7 +285,7 @@ export function HomeScreen() {
           <h2 className="mb-2 text-caption font-semibold text-muted-foreground">
             {resultsLabel}
           </h2>
-          {truncatedNote ? <p className="mb-2 text-body-sm text-muted-foreground">{truncatedNote}</p> : null}
+          {cutNote ? <p className="mb-2 text-body-sm text-muted-foreground">{cutNote}</p> : null}
           {places.isError ? (
             <div className="grid justify-items-start gap-3">
               <p className="text-body">{t.list.error}</p>
