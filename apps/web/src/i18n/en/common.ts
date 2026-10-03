@@ -25,8 +25,6 @@ export const common: Messages["common"] = {
     business: "For businesses: widget and API",
     businessShort: "For businesses",
     businessSub: "Accessibility card on your website",
-    moderator: "Moderator panel",
-    moderatorSub: "Report queue",
     city: "City dashboard",
     citySub: "Barriers, reports, repair priorities",
     privacy: "Privacy",

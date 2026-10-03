@@ -27,8 +27,6 @@ export const common = {
     business: "Dla firm: widget i API",
     businessShort: "Dla firm",
     businessSub: "Karta dostępności na Twojej stronie",
-    moderator: "Panel moderatora",
-    moderatorSub: "Kolejka zgłoszeń",
     city: "Panel dla miasta",
     citySub: "Bariery, zgłoszenia, priorytety napraw",
     privacy: "Prywatność",
