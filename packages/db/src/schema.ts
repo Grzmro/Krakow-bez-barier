@@ -3,6 +3,8 @@ import type {
   Category,
   FactStatus,
   FactValue,
+  OutageEquipment,
+  OutageVote,
   Reliability,
   ReportStatus,
   SourceKind,
@@ -184,3 +186,31 @@ export const moderationLog = pgTable("moderation_log", {
   moderator: text("moderator").notNull(),
   createdAt: timestamptz("created_at").notNull().defaultNow(),
 });
+
+// A temporary outage of a place's equipment, reported by visitors. Its state (reported, confirmed, resolved, expired)
+// is derived from the votes and the time when read, so nothing has to expire it. Anonymous like reports (R7).
+export const outages = pgTable(
+  "outages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    placeId: uuid("place_id")
+      .notNull()
+      .references(() => places.id),
+    equipment: text("equipment").$type<OutageEquipment>().notNull(),
+    createdAt: timestamptz("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("outages_place_idx").on(t.placeId, t.equipment, t.createdAt)],
+);
+
+export const outageVotes = pgTable(
+  "outage_votes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    outageId: uuid("outage_id")
+      .notNull()
+      .references(() => outages.id),
+    vote: text("vote").$type<OutageVote>().notNull(),
+    createdAt: timestamptz("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("outage_votes_outage_idx").on(t.outageId)],
+);

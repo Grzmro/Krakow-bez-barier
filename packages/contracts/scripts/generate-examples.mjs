@@ -2,7 +2,7 @@
 // operationId, so clients can mock the API from the same examples the spec documents. JSON examples
 // are also emitted as `responseExamples`, each checked against its response schema by `satisfies`.
 // Also extracts the report validation rules (ReportCreate `x-value-ranges`, comment maxLength) into
-// report-rules.ts.
+// report-rules.ts, and the outage thresholds (reportOutage `x-outage-rules`) into outage-rules.ts.
 // The whole parsed document goes to src/generated/openapi.ts for server-side request/response validation.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -97,6 +97,19 @@ export const reportRules: ReportRules = ${JSON.stringify(reportRules, null, 2)};
 `,
 );
 console.log(`report rules: ${Object.keys(reportRules.valueRanges).length} ranges → ${rulesOut}`);
+
+const outageRules = spec.paths?.["/places/{id}/outages"]?.post?.["x-outage-rules"];
+if (!outageRules) throw new Error("POST /places/{id}/outages has no x-outage-rules");
+const outageOut = join(root, "src", "generated", "outage-rules.ts");
+writeFileSync(
+  outageOut,
+  `// Generated from openapi.yaml (reportOutage x-outage-rules) by scripts/generate-examples.mjs. Do not edit.
+import type { OutageRules } from "../outage-rules";
+
+export const outageRules: OutageRules = ${JSON.stringify(outageRules, null, 2)};
+`,
+);
+console.log(`outage rules → ${outageOut}`);
 
 const documentOut = join(root, "src", "generated", "openapi.ts");
 writeFileSync(
