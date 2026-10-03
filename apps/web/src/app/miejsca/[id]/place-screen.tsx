@@ -38,6 +38,7 @@ import { FactRow, ReliabilityBadge, SampleTag, VerdictBlock } from "@/components
 import { NeedGroups } from "@/components/profile/need-groups";
 import { canReportOutage, isActiveOutage, isOutageEquipment } from "@/domain/outages";
 import { useLocale, useMessages } from "@/i18n/client";
+import { copyText } from "@/lib/copy-text";
 import { usePlace } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
@@ -223,14 +224,9 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
 
   const share = async () => {
     const url = new URL(routes.place(place.id), window.location.origin).toString();
-    try {
-      await navigator.clipboard.writeText(url);
-      toast(t.shared, { description: url });
-      announce(t.shared);
-    } catch {
-      toast(t.shareFailed, { description: url });
-      announce(t.shareFailed);
-    }
+    const message = (await copyText(url)) ? t.shared : t.shareFailed;
+    toast(message, { description: url });
+    announce(message);
   };
 
   return (
