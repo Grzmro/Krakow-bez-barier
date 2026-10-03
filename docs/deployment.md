@@ -66,7 +66,9 @@ database tasks on GitHub Actions. Steps marked **owner** need repository admin r
    so previews never write to the production database.
 5. **First ingest (owner).** Actions → *Ingest* → Run workflow, *area* left empty. It migrates, then
    loads OpenStreetMap for the whole city (about 4,600 OSM objects, see *City-wide data* below;
-   expect 5–15 minutes, the job allows 30). Typing `demo` as *area* loads only the Stare Miasto
+   expect 5–15 minutes, the job allows 30). Whole-city Overpass has never been tried (it was
+   unreachable while we measured), so this first run is its first real test: check the run time
+   and whether Overpass or the Geofabrik fallback was used in the Actions log. Typing `demo` as *area* loads only the Stare Miasto
    box. The cron then runs daily at 03:17 UTC for the whole city. MSIP/ZDMK/ZTP sources are skipped
    until their licences are confirmed (`docs/data-sources.md`).
 6. **Check.** `scripts/smoke-deploy.sh https://<project>.vercel.app` must print "All checks passed"
@@ -109,7 +111,15 @@ extract is used, so the job's `timeout-minutes` is 30.
 first page near the Rynek 0.19 s, with a profile 0.13 s, with a feature filter 0.12 s, one
 category (restaurants) 0.06 s, "W mojej okolicy" in Nowa Huta 0.014 s, text search 0.018 s. The
 list API resolves every candidate's facts before paging (`docs/architecture.md`); at this size it
-stays far under the 1 s budget, and Vercel and Neon in the same region add little to it.
+stays far under the 1 s budget, and Vercel and Neon in the same region add little to it. A page of
+100 places is about 54 KB of JSON. Without a position the home list and map hold the 100 places
+nearest the Rynek and say so; the rest of the city shows through search, a category, a filter or
+"W mojej okolicy" until the map loads places for its viewport (KBB-88).
+
+**`GET /city/stats`** (the `/miasto` panel) loads every place outside the bulk categories with its
+active facts and aggregates them in JS. On these 4,305 places, calling `getCityStats` directly
+against local Postgres: 0.21 s cold, 0.07–0.09 s warm (6 runs), a 2.7 KB answer. No
+precomputation is needed at city scale.
 
 **Refresh.** The daily cron re-reads the whole city; unchanged facts only get a new `fetchedAt`.
 To refresh by hand: Actions → *Ingest* → Run workflow, or from a laptop with the production

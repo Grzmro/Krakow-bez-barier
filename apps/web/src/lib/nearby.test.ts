@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { byDistance, searchArea, searchCentre, toLonLat } from "./nearby";
+import { config } from "./config";
+import { byDistance, listCentre, searchArea, searchCentre, toLonLat } from "./nearby";
 
 const WAWEL = { latitude: 50.0541, longitude: 19.9354 };
 
@@ -48,5 +49,25 @@ describe("byDistance", () => {
     expect(result.map(({ place }) => place.id)).toEqual(["wawel", "rynek"]);
     expect(result[0].distance).toBe(20);
     expect(result[1].distance).toBeGreaterThan(700);
+  });
+});
+
+describe("listCentre", () => {
+  it("is the initial map view (the Rynek) without a position", () => {
+    // GIVEN a visitor who has not shared their location
+    // WHEN the point the home list orders from is computed
+    const centre = listCentre(null);
+
+    // THEN it is the city centre the map opens on, not an unordered page of the whole city
+    expect(centre).toEqual(config.cityCenter);
+  });
+
+  it("is the snapped search centre with a position", () => {
+    // GIVEN a device at Wawel
+    // WHEN the point the home list orders from is computed
+    const centre = listCentre(WAWEL);
+
+    // THEN it is the coarse search centre, never the device position
+    expect(centre).toEqual(searchCentre(WAWEL));
   });
 });
