@@ -24,6 +24,8 @@ export const home: Messages["home"] = {
       listening: "Listening… speak now",
       processing: "Recognising speech…",
       notice: "Your browser recognises the speech and may send the recording to its provider's service (e.g. Google in Chrome); we store nothing.",
+      notAllowedApp:
+        "No access to the microphone. Turn it on in Settings → Apps → Kraków bez barier → Permissions → Microphone. Searching by text still works.",
       errors: {
         "not-allowed": "No access to the microphone. Allow the microphone in your browser settings and try again.",
         "no-speech": "I didn't hear anything. Press the microphone and say what you're looking for.",

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Microphone, Stop } from "@phosphor-icons/react";
 import { cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
+import { appPlatform } from "@/lib/native/platform";
 import type { useSpeechInput } from "@/lib/use-speech-input";
 
 const NOTICE_KEY = "kbb-voice-notice";
@@ -34,8 +35,9 @@ export function VoiceButton({ speech, className }: { speech: ReturnType<typeof u
     if (state === "listening") announce(t.listening);
     else if (state === "processing") announce(t.processing);
     else if (state === "error" && error) {
-      toast.error(t.errors[error]);
-      announce(t.errors[error]);
+      const message = error === "not-allowed" && appPlatform() === "android" ? t.notAllowedApp : t.errors[error];
+      toast.error(message);
+      announce(message);
     }
   }, [announce, error, state, t]);
 

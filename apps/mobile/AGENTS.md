@@ -26,5 +26,11 @@ npm run assets -w apps/mobile               # re-render icons and splash from th
 - `www/error.html` is the bundled "Brak połączenia" page, shown when the server can't be reached.
 - `/dev/native` in the web app shows the platform and asks for the position on load — handy to
   check the native bridge in the Simulator without tapping.
+- Voice search on Android: the Android WebView has no Web Speech API, so `apps/web/src/lib/native/speech-recognition.ts`
+  wraps `@capacitor-community/speech-recognition` behind the same `SpeechRecognition` surface (used when
+  `appPlatform() === "android"`). The manifest declares `RECORD_AUDIO` and the `RecognitionService` query; the
+  plugin asks at runtime. Check on a device or emulator with Google speech services: tap the microphone on the
+  home search, the system prompt appears, after "Allow" dictation fills the field; after "Deny" a toast explains
+  where to enable the microphone. iOS keeps no dictation in the app (the WKWebView has no Web Speech API).
 - Native projects (`ios/`, `android/`) are committed and owned by us (Info.plist, manifest, icons);
   `cap sync` output (`public/`, `capacitor.config.json`) is gitignored. Not part of lint/CI.
