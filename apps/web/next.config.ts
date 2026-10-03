@@ -26,6 +26,9 @@ export const publicApiRoutes = [
   { source: "/api/openapi.json", headers: corsRead },
 ];
 
+/** The demo is shared by link only: keep it out of search engines. */
+export const noIndex = [{ key: "X-Robots-Tag", value: "noindex, nofollow" }];
+
 const nextConfig: NextConfig = {
   transpilePackages: ["@krakow-bez-barier/contracts", "@krakow-bez-barier/db", "@krakow-bez-barier/ui"],
   // Versions the service worker cache: each build registers /sw.js?build=<id> and drops older caches.
@@ -33,6 +36,7 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       ...publicApiRoutes,
+      { source: "/:path*", headers: noIndex },
       {
         // Browsers must always revalidate the service worker so a deploy reaches installed apps.
         source: "/sw.js",
