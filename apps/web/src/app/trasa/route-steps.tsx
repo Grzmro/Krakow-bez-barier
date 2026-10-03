@@ -23,6 +23,11 @@ export const STATUS_TEXT: Record<Status, string> = {
   unknown: "text-status-unknown",
 };
 
+/** A segment's state label; an unknown segment with some facts says it is only partly unknown. */
+export function segmentStatusLabel(m: Messages, segment: RouteSegment) {
+  return segment.state === "unknown" && segment.facts.length ? m.route.partlyUnknown : m.common.status[segment.state];
+}
+
 /** The "Krok po kroku" list: the text version of the map, one expandable item per segment. */
 export function StepList({
   route,
@@ -88,7 +93,8 @@ function SegmentItem({
   const status = segment.state;
   const last = index === total - 1;
   const detailsId = `odcinek-${segment.id}`;
-  const line = [segment.name, `${m.common.status[status]}${segment.note ? `: ${segment.note}` : ""}`].filter(Boolean).join(" · ");
+  const label = segmentStatusLabel(m, segment);
+  const line = [segment.name, `${label}${segment.note ? `: ${segment.note}` : ""}`].filter(Boolean).join(" · ");
   return (
     <li className="relative flex gap-3" aria-current={current ? "step" : undefined}>
       <div className="flex w-9 shrink-0 flex-col items-center pt-3">
@@ -108,7 +114,7 @@ function SegmentItem({
           type="button"
           aria-expanded={open}
           aria-controls={detailsId}
-          aria-label={`${t.segmentAria(index + 1, total, segment.instruction, segment.lengthMeters, m.common.status[status], segment.note ?? "")}${current ? ` ${t.nav.current}.` : ""}`}
+          aria-label={`${t.segmentAria(index + 1, total, segment.instruction, segment.lengthMeters, label, segment.note ?? "")}${current ? ` ${t.nav.current}.` : ""}`}
           onClick={onToggle}
           className={cn(
             "flex min-h-14 w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-muted",

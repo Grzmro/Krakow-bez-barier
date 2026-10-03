@@ -41,6 +41,8 @@ export const route: Messages["route"] = {
   profileOff: "Without a profile we check stairs and surface. Turn on a profile to check kerbs and incline.",
   loading: "Finding a route…",
   noKnown: "No known barriers on this route",
+  noKnownGaps: (m: number) => `No known barriers, but ${m < 1000 ? `${Math.round(m)} m` : km(m)} without data`,
+  partlyUnknown: "Partly unknown",
   unknownOn: (n: number, m: number) =>
     `no data on ${n} ${plural(n, "segment", "segments")}${n ? ` (${Math.round(m)} m)` : ""}`,
   conflictOn: (n: number) => `conflicting data on ${n} ${plural(n, "segment", "segments")}`,

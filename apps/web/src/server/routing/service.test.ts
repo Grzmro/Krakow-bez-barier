@@ -63,15 +63,17 @@ describe("createRoute — Dworzec Główny → Rynek Główny (recorded openrout
     expect(route.segments[0].geometry.coordinates[0]).toEqual(route.geometry.coordinates[0]);
   });
 
-  it("wheelchair profile: the route stays within the profile's limits and needs incline data to pass", async () => {
+  it("wheelchair profile: the route stays within the profile's limits and needs incline and kerb data to pass", async () => {
     // GIVEN the wheelchair profile with its preset thresholds
     // WHEN the avoid-stairs route is requested
     const route = await createRoute(request({ avoidStairs: true, profile: "wheelchair" }), { provider: recorded, now });
 
     // THEN incline is judged too (an elevation-model estimate) and Floriańska, without surface data, is unknown
-    expect(route).toMatchObject({ kind: "avoid_stairs", knownBarrierCount: 0, unknownMeters: 678 });
-    // AND a met segment says it has no kerb data: kerbs come only from our facts
-    expect(route.segments[0]).toMatchObject({ state: "met", note: "płyty chodnikowe, płasko (do 1%), brak danych o krawężnikach" });
+    expect(route).toMatchObject({ kind: "avoid_stairs", knownBarrierCount: 0 });
+    // AND a segment without kerb data is unknown, never met: kerbs come only from our facts, and none are given here
+    expect(route.segments[0]).toMatchObject({ state: "unknown", note: "płyty chodnikowe, płasko (do 1%), brak danych o krawężnikach" });
+    expect(route.segments.every((s) => s.state === "unknown")).toBe(true);
+    expect(route.unknownMeters).toBe(route.segments.reduce((sum, s) => sum + s.lengthMeters, 0));
     expect(route.segments[0].facts.find((f) => f.attribute === "incline_pct")).toMatchObject({
       value: { kind: "number", number: 1, unit: "pct" },
       reliability: "inferred",
@@ -94,8 +96,8 @@ describe("createRoute — Dworzec Główny → Rynek Główny (recorded openrout
     const route = await createRoute(request({ avoidStairs: true, profile: "wheelchair" }), { provider: recorded, now, locale: "en" });
 
     // THEN the same route comes back with English instructions and notes
-    expect(route).toMatchObject({ kind: "avoid_stairs", knownBarrierCount: 0, unknownMeters: 678 });
-    expect(route.segments[0]).toMatchObject({ instruction: "Head south", state: "met", note: "paving slabs, flat (up to 1%), no kerb data" });
+    expect(route).toMatchObject({ kind: "avoid_stairs", knownBarrierCount: 0 });
+    expect(route.segments[0]).toMatchObject({ instruction: "Head south", state: "unknown", note: "paving slabs, flat (up to 1%), no kerb data" });
     expect(route.segments.find((s) => s.name === "Floriańska")).toMatchObject({ state: "unknown", note: "no surface data" });
   });
 
@@ -120,6 +122,19 @@ describe("createRoute — Dworzec Główny → Rynek Główny (recorded openrout
     const everyone = await createRoute(request({ avoidStairs: true }), { provider: recorded, facts, now });
     expect(everyone.segments[0].state).toBe("met");
     expect(everyone.segments[0].facts.some((f) => f.attribute === "kerb_height_cm")).toBe(true);
+  });
+
+  it("passes a segment with a profile only once a kerb within the threshold is known", async () => {
+    // GIVEN a confirmed 1 cm kerb from the city on the first segment
+    const route0 = await createRoute(request({ avoidStairs: true }), { provider: recorded, now });
+    const facts = nearbySource(async () => [kerbAt(route0.segments[0].geometry.coordinates[1] as LonLat, 1)]);
+
+    // WHEN the wheelchair route is requested (max kerb 2 cm)
+    const route = await createRoute(request({ avoidStairs: true, profile: "wheelchair" }), { provider: recorded, facts, now });
+
+    // THEN that segment meets the profile, while the next one, without kerb data, stays unknown
+    expect(route.segments[0]).toMatchObject({ state: "met", note: "płyty chodnikowe, płasko (do 1%)" });
+    expect(route.segments[2]).toMatchObject({ state: "unknown", note: "utwardzona, płasko (do 1%), brak danych o krawężnikach" });
   });
 
   it("shows sources that disagree about a kerb as a conflict, never as met", async () => {

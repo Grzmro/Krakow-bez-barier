@@ -9,7 +9,7 @@ import { SampleTag } from "@/components/kbb";
 import { formatDate } from "@/lib/place-facts";
 import { concerns, provenance, type Concern } from "@/lib/navigation";
 import type { Guidance } from "@/lib/use-guidance";
-import { StepList, STATUS_TEXT } from "./route-steps";
+import { segmentStatusLabel, StepList, STATUS_TEXT } from "./route-steps";
 
 /** Guidance in the route panel: the step being walked, what's next, barriers and gaps ahead with their sources, the whole list. */
 export function RouteNavigation({
@@ -144,7 +144,7 @@ function useStepText(route: Route | undefined, progress: Guidance["progress"]) {
   const step = progress?.step;
   const segment = route && step !== undefined ? route.segments[step] : undefined;
   if (!route || !segment || step === undefined) return null;
-  const state = `${m.common.status[segment.state]}${segment.note ? `: ${segment.note}` : ""}`;
+  const state = `${segmentStatusLabel(m, segment)}${segment.note ? `: ${segment.note}` : ""}`;
   // Distance at the step's start, so the sentence (and the announcement) changes only with the step.
   return `${m.route.nav.stepOf(step + 1, route.segments.length)}: ${segment.instruction}, ${m.route.meters(segment.lengthMeters)}. ${state}.`;
 }
@@ -160,7 +160,7 @@ function ConcernItem({ label, concern }: { label: string; concern: Concern }) {
       <p className="text-body-sm">
         <strong>{label}:</strong>{" "}
         <span className={cn("font-semibold", STATUS_TEXT[segment.state])}>
-          {m.common.status[segment.state]}
+          {segmentStatusLabel(m, segment)}
           {segment.note ? ` — ${segment.note}` : ""}
         </span>{" "}
         <span className="text-muted-foreground">

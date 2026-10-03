@@ -23,7 +23,7 @@
         - radio "Senior"
         - text: Senior
       - paragraph: Bez profilu sprawdzamy schody i nawierzchnię. Włącz profil, by ocenić krawężniki i nachylenie.
-      - paragraph: Trasa nie zawiera znanych barier
+      - paragraph: /Brak znanych barier, ale \d+ m bez danych/
       - paragraph: /brak danych na 5 odcinkach \(\d+ m\)/
       - paragraph: Odcinki w skali długości. Szczegóły w „Krok po kroku”.
       - button /Najkrótsza · \d+ min Nie spełnia · schody/
@@ -32,7 +32,7 @@
         - listitem:
           - 'button /Odcinek 1 z \d+\. Kieruj się na południe, \d+ metry\. Spełnia: płyty chodnikowe\./': "/Kieruj się na południe Spełnia: płyty chodnikowe \\d+ m/"
         - listitem:
-          - 'button /Odcinek 2 z \d+\. Skręć w prawo, \d+ metrów\. Brak danych: brak danych o nawierzchni na części odcinka\./': "/Skręć w prawo Brak danych: brak danych o nawierzchni na części odcinka \\d+ m/"
+          - 'button /Odcinek 2 z \d+\. Skręć w prawo, \d+ metrów\. Częściowo nie wiemy: brak danych o nawierzchni na części odcinka\./': "/Skręć w prawo Częściowo nie wiemy: brak danych o nawierzchni na części odcinka \\d+ m/"
         - listitem:
           - 'button /Odcinek 3 z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: utwardzona\./': "/Skręć w lewo Spełnia: utwardzona \\d+ m/"
         - listitem:
@@ -42,21 +42,21 @@
         - listitem:
           - 'button /Odcinek 6 z \d+\. Skręć łagodnie w lewo, 3 metry\. Spełnia: płyty chodnikowe\./': "Skręć łagodnie w lewo Spełnia: płyty chodnikowe 3 m"
         - listitem:
-          - 'button /Odcinek 7 z \d+\. Skręć w lewo, 3 metry\. Brak danych: brak danych o nawierzchni\./': "Skręć w lewo Brak danych: brak danych o nawierzchni 3 m"
+          - 'button /Odcinek 7 z \d+\. Skręć w lewo, 3 metry\. Częściowo nie wiemy: brak danych o nawierzchni\./': "Skręć w lewo Częściowo nie wiemy: brak danych o nawierzchni 3 m"
         - listitem:
-          - 'button /Odcinek 8 z \d+\. Skręć w prawo, \d+ metry\. Brak danych: brak danych o nawierzchni\./': "/Skręć w prawo Brak danych: brak danych o nawierzchni \\d+ m/"
+          - 'button /Odcinek 8 z \d+\. Skręć w prawo, \d+ metry\. Częściowo nie wiemy: brak danych o nawierzchni\./': "/Skręć w prawo Częściowo nie wiemy: brak danych o nawierzchni \\d+ m/"
         - listitem:
-          - 'button /Odcinek 9 z \d+\. Skręć w prawo, 8 metrów\. Brak danych: brak danych o nawierzchni na części odcinka\./': "Skręć w prawo Brak danych: brak danych o nawierzchni na części odcinka 8 m"
-        - listitem:
-          - 'button /Odcinek \d+ z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w lewo Spełnia: płyty chodnikowe \\d+ m/"
-        - listitem:
-          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w prawo Spełnia: płyty chodnikowe \\d+ m/"
+          - 'button /Odcinek 9 z \d+\. Skręć w prawo, 8 metrów\. Częściowo nie wiemy: brak danych o nawierzchni na części odcinka\./': "Skręć w prawo Częściowo nie wiemy: brak danych o nawierzchni na części odcinka 8 m"
         - listitem:
           - 'button /Odcinek \d+ z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w lewo Spełnia: płyty chodnikowe \\d+ m/"
         - listitem:
           - 'button /Odcinek \d+ z \d+\. Skręć w prawo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w prawo Spełnia: płyty chodnikowe \\d+ m/"
         - listitem:
-          - 'button /Odcinek \d+ z \d+\. Skręć w lewo, 4 metry\. Brak danych: brak danych o nawierzchni\./': "Skręć w lewo Brak danych: brak danych o nawierzchni 4 m"
+          - 'button /Odcinek \d+ z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w lewo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w prawo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w lewo, 4 metry\. Częściowo nie wiemy: brak danych o nawierzchni\./': "Skręć w lewo Częściowo nie wiemy: brak danych o nawierzchni 4 m"
         - listitem:
           - 'button /Odcinek \d+ z \d+\. Skręć w prawo na Kurniki, \d+ metrów\. Spełnia: asfalt\./': "/Skręć w prawo na Kurniki Kurniki · Spełnia: asfalt \\d+ m/"
         - listitem:
