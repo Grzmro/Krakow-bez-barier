@@ -109,6 +109,8 @@ example data (`NEXT_PUBLIC_API_MOCK=true`, no DB needed). It reuses a dev server
 worktree's port — one started without `NEXT_PUBLIC_API_MOCK=true` serves real data and those specs fail, so
 stop it first. `places-real-data.prod.spec.ts` needs a seeded DB and skips itself only when `DATABASE_URL`
 is unset (root `.env` is loaded). It only reads, but point `DATABASE_URL` at a throwaway DB for e2e anyway.
+`place-pending-reports.prod.spec.ts` writes (sends and moderates reports) and runs only with
+`E2E_DB_WRITES=1` plus `MODERATOR_TOKENS` — never against the shared DB.
 
 The native apps load the running web app from `CAP_SERVER_URL` (`apps/mobile/.env`, default
 `http://localhost:3000` from `.env.example`; phone on LAN: `http://<mac-ip>:3000`; Android emulator:

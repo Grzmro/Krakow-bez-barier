@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AccessibilityAttribute, ReportCreate } from "@krakow-bez-barier/contracts";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
 import { api } from "./api";
@@ -15,15 +16,16 @@ const nextKey = () => `mine-${++seq}`;
 
 /**
  * The visitor's own reports and confirmations for one place. A report is held back for UNDO_MS so "Cofnij" really
- * withdraws it (there is no delete endpoint); it is sent at once if the card unmounts first.
+ * withdraws it (there is no delete endpoint); it is sent at once if the card unmounts first. Once sent, the card is
+ * refetched so the report comes back from the API (`pendingReports`) — and stays after a reload, for every visitor.
  */
-// TODO(KBB-49): entries live in memory only — read `ResolvedAttribute.pendingReports` once the places API serves it.
 export function usePlaceReports(placeId: string) {
   const [entries, setEntries] = useState<PendingEntry[]>([]);
   const queued = useRef(new Map<string, { timer: ReturnType<typeof setTimeout>; send: () => void }>());
   const confirming = useRef(new Set<string>());
   const announce = useAnnounce();
   const t = useMessages().place;
+  const queryClient = useQueryClient();
 
   const remove = useCallback((key: string) => setEntries((all) => all.filter((e) => e.key !== key)), []);
 
@@ -33,15 +35,18 @@ export function usePlaceReports(placeId: string) {
       try {
         const { data } = await api.POST("/reports", { body });
         if (!data) throw new Error("createReport failed");
-        setEntries((all) => all.map((e) => (e.key === key ? { ...e, sending: false, createdAt: data.createdAt } : e)));
+        setEntries((all) =>
+          all.map((e) => (e.key === key ? { ...e, sending: false, reportId: data.id, createdAt: data.createdAt } : e)),
+        );
         announce(t.report.sent);
+        void queryClient.invalidateQueries({ queryKey: ["place"], predicate: (q) => q.queryKey.includes(placeId) });
       } catch {
         remove(key);
         toast.error(t.report.failed);
         announce(t.report.failed);
       }
     },
-    [announce, remove, t],
+    [announce, placeId, queryClient, remove, t],
   );
 
   const submitReport = useCallback(
@@ -50,7 +55,7 @@ export function usePlaceReports(placeId: string) {
       const full: ReportCreate = { ...body, placeId };
       setEntries((all) => [
         ...all,
-        { key, kind: "report", attribute: body.attribute, valueText, createdAt: new Date().toISOString(), sending: true },
+        { key, kind: "report", mine: true, attribute: body.attribute, valueText, createdAt: new Date().toISOString(), sending: true },
       ]);
       const timer = setTimeout(() => void send(key, full), UNDO_MS);
       queued.current.set(key, { timer, send: () => void send(key, full) });
@@ -89,7 +94,7 @@ export function usePlaceReports(placeId: string) {
         if (!data) throw new Error("createConfirmation failed");
         setEntries((all) => [
           ...all,
-          { key: nextKey(), kind: "confirmation", attribute, valueText, createdAt: data.createdAt, sending: false },
+          { key: nextKey(), kind: "confirmation", mine: true, attribute, valueText, createdAt: data.createdAt, sending: false },
         ]);
         toast(t.confirmed);
         announce(t.confirmed);

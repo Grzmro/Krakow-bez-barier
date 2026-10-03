@@ -18,6 +18,7 @@ import { FEATURE_ATTRIBUTES, featureState } from "@/domain/features";
 import { matchProfile } from "@/domain/matcher";
 import { thresholdsFor } from "@/domain/profiles";
 import { isStale, resolveAttribute } from "@/domain/resolver";
+import { pendingReportsByAttribute, type ReportsStore } from "@/server/reports";
 import {
   createDbPlaceRepository,
   normalizeText,
@@ -255,5 +256,17 @@ export async function getPlace(id: string, query: GetPlaceQuery = {}, deps: Plac
     sources,
     updatedAt: place.updatedAt.toISOString(),
     isSample: isSample(place, records),
+  };
+}
+
+/**
+ * Lists the reports awaiting moderation beside each attribute (`ResolvedAttribute.pendingReports`). They never change
+ * the value, state, status or verdict; accepted and rejected reports drop out (an accepted one is a fact by then).
+ */
+export async function withPendingReports(place: Place, store: ReportsStore): Promise<Place> {
+  const pending = await pendingReportsByAttribute(store, place.id);
+  return {
+    ...place,
+    attributes: place.attributes.map((attribute) => ({ ...attribute, pendingReports: pending.get(attribute.attribute) ?? [] })),
   };
 }

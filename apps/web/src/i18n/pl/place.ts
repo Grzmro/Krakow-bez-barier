@@ -40,6 +40,7 @@ export const place = {
   editOsmHint: "Popraw dane u źródła — trafią do nas przy następnym pobraniu.",
   mine: {
     report: "Twoje zgłoszenie",
+    otherReport: "Zgłoszenie użytkownika",
     confirmation: "Twoje potwierdzenie",
     sending: "wysyłanie…",
     pendingNote: "Czeka na weryfikację — nie zmienia danych powyżej.",
