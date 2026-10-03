@@ -47,8 +47,11 @@ sourced facts exist (city dataset + OSM).
 
 ### Coverage after our own OSM ingest
 
-The same bbox, as stored by `npm run ingest` (OSM adapter, wider category set since KBB-52; local run of
-2026-10-03 17:40 UTC from the Geofabrik extract of 2026-10-02, after Overpass failed):
+The same bbox, as stored by `npm run ingest` (OSM adapter with the category set from
+`packages/contracts/src/categories.ts`, KBB-32; local run of 2026-10-03 17:40 UTC from the Geofabrik
+extract of 2026-10-02, after Overpass failed). It stores 960 places, not the 649 read above, because
+the category list is different (e.g. `fast_food`, `bar`, `pub`, historic `monument`/`memorial`; no
+`library`) and places without a name are skipped, except toilets, which are kept as "Toaleta publiczna":
 
 | Measure | Places |
 |---|---|
@@ -60,12 +63,27 @@ The same bbox, as stored by `npm run ingest` (OSM adapter, wider category set si
 
 The OSM mapper reads `step_count`, `door:width`, `entrance:width` and `ramp:wheelchair`
 and `elevator` (`apps/ingest/src/adapters/osm-map.ts`), so the zeros are the data, not a missing mapping. To
-reproduce on a database after ingest (read-only):
+reproduce every figure in the table on a database after ingest (read-only):
 
 ```sql
+-- OSM places stored (960)
+SELECT count(*) FROM places WHERE external_ref LIKE 'osm:%';
+
+-- places per attribute (130 wheelchair_overall, 7 toilet_accessible, 9 changing_table;
+-- step_count, door_width_cm, ramp, lift are absent)
 SELECT attribute, count(DISTINCT place_id)
 FROM facts WHERE status = 'active' AND source_id = 'osm'
 GROUP BY attribute ORDER BY 2 DESC;
+
+-- yes / limited / no split (64 / 20 / 46)
+SELECT value->>'text', count(*)
+FROM facts WHERE status = 'active' AND source_id = 'osm' AND attribute = 'wheelchair_overall'
+GROUP BY 1;
+
+-- with an observation date from check_date (42)
+SELECT count(*)
+FROM facts WHERE status = 'active' AND source_id = 'osm' AND attribute = 'wheelchair_overall'
+  AND observed_at IS NOT NULL;
 ```
 
 City-wide we have only a preliminary count (2,674 of 30,573 Kraków POIs, 8.7%, with `wheelchair=*`

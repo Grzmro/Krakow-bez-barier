@@ -91,7 +91,7 @@ Materiał do oceny („Wykaz funkcji już dostępnych i elementów wymagających
 | „W mojej okolicy”: pozycja ustalana na urządzeniu, nie trafia na serwer; lista sortowana i mapa wyśrodkowana wg pozycji | US-6.6 | #23, #47 |
 | Układ desktop: panel boczny z listą i mapa na całą szerokość | US-6.1 | #56 |
 | Klawiatura, widoczny fokus, „Przejdź do treści”, ogłaszanie zmian | US-8.1, US-8.2 | #9, #20 |
-| Audyt axe (WCAG 2.2 A/AA) i snapshot ARIA w każdym teście e2e ekranu | US-8.1–8.3 | #10 |
+| Audyt axe (WCAG 2.2 A/AA) i snapshot ARIA w teście e2e każdego ekranu (e2e uruchamiane lokalnie, jeszcze nie w CI) | US-8.1–8.3 | #10 |
 | Deklaracja dostępności i strona „Prywatność” | US-8.5, US-8.2 (prywatność) | #17, #45 |
 | Wersja angielska: przełącznik PL/EN w menu, cały interfejs i opisy werdyktów | US-8.6 | #52 |
 | Scenariusz demo nagrywany automatycznie (Playwright) i sprawdzany audytem dostępności | — | #45 |
@@ -101,7 +101,7 @@ Materiał do oceny („Wykaz funkcji już dostępnych i elementów wymagających
 | Funkcja | US | PR |
 |---|---|---|
 | `POST /routes` przez openrouteservice (profil wózka, „Unikaj schodów”, zapas: trasa bez schodów → najkrótsza z barierami) | E7 | #51 |
-| Ekran `/trasa`: odcinki z nawierzchnią, schodami i nachyleniem ze źródłem i datą, „brak danych” i „sprzeczne” na odcinkach, „Krok po kroku” jako tekstowa wersja mapy, „Prowadź” z karty miejsca | E7 | #51 |
+| Ekran `/trasa`: odcinki z nawierzchnią, schodami i nachyleniem ze źródłem i datą, „brak danych” i „sprzeczne” na odcinkach, „Krok po kroku” jako tekstowa wersja mapy, „Prowadź” z karty miejsca (start: Dworzec Główny, stały w prototypie; można zamienić start i cel; „Ruszamy” pokazuje tylko komunikat „w kolejnej wersji”) | E7 | #51 |
 
 ### Wdrożenie u partnerów i kanały (E9, R8)
 
@@ -119,14 +119,18 @@ Materiał do oceny („Wykaz funkcji już dostępnych i elementów wymagających
 |---|---|
 | Publiczny link do demo (wdrożenie według `docs/deployment.md`) | KBB-21 |
 | Film demo (max 3 min, napisy PL) | KBB-31 |
+| Karta miejsca na desktopie w dwóch kolumnach z tabelą porównania źródeł | KBB-67 (PR #59) |
+| Ogólna informacja OSM `wheelchair=*` jako wiersz karty | KBB-72 (PR #61) |
+| Profil „Senior” w przełączniku profili | KBB-58 (PR #60) |
 
 ## Wymaga dalszych prac
 
 | Element | Dlaczego | Zadanie |
 |---|---|---|
-| Ogólna informacja OSM `wheelchair=*` jako wiersz karty | liczy się w werdykcie profilu i podsumowaniu na liście, ale nie ma własnego wiersza na karcie; miejsce z samym `wheelchair=*` ma w wierszach karty „Brak danych” | — |
-| Profil „Senior” w przełączniku profili | potrzeby są już konfiguracją (#46), brak wartości w enumie profilu | US-2.8 |
-| Ładowanie źródeł miejskich | licencje MSIP / ZDMK / ZTP do potwierdzenia z miastem | — |
+| Ogólna informacja OSM `wheelchair=*` jako wiersz karty | w `main` liczy się w werdykcie profilu i podsumowaniu na liście, ale nie ma własnego wiersza na karcie; miejsce z samym `wheelchair=*` ma w wierszach karty „Brak danych” | KBB-72 (PR #61) |
+| Profil „Senior” w przełączniku profili | potrzeby są już konfiguracją (#46), w `main` brak wartości w enumie profilu | KBB-58 (PR #60), US-2.8 |
+| Ładowanie źródeł miejskich | licencje MSIP / ZDMK / ZTP do potwierdzenia z miastem | KBB-20 |
+| Start trasy z własnej pozycji lub dowolnego adresu; nawigacja „Ruszamy” | w prototypie start jest stały (Dworzec Główny, `apps/web/src/lib/config.ts`), a „Ruszamy” pokazuje komunikat „w kolejnej wersji” | — |
 | Panel właściciela obiektu (US-9.3), zdjęcia w zgłoszeniach (US-4.6), wycofanie zgłoszenia linkiem (US-8.4), link do edycji w OSM (US-4.7) | wartość dodana, nie zaczęte | — |
 | Retencja zgłoszeń 24 mies. (deklarowana na stronie „Prywatność”) | brak automatycznego usuwania w kodzie | — |
 | Testy z użytkownikami czytników ekranu, zewnętrzny audyt WCAG 2.2 AA, audyt licencji zależności | wymaga ludzi i czasu poza hackathonem | — |
