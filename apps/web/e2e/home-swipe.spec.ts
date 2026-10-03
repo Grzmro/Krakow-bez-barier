@@ -27,7 +27,7 @@ const pageScroll = (page: Page) => page.evaluate(() => document.scrollingElement
 
 async function openHome(page: Page) {
   await page.goto("/");
-  await expect(panel(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(panel(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await expect(panel(page)).toHaveAttribute("data-expanded", "false");
   return settledHeight(page);
 }

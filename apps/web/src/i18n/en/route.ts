@@ -55,6 +55,7 @@ export const route: Messages["route"] = {
     `kerb up to ${kerbCm} cm, acceptable incline${smooth ? ", smooth surface" : ""}`,
   limitsNoProfile: "step-free",
   segments: "Route segments",
+  stow: { hide: "Hide route details", show: "Show details" },
   segmentsHint: "Segments to scale. Details in “Step by step”.",
   steps: "Step by step",
   stepsAria: "Route segments, text version of the map",

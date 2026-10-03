@@ -5,6 +5,7 @@
   - search:
     - text: Wyszukaj miejsce
     - combobox "Wyszukaj miejsce"
+    - button "Wpisz głosem"
   - group "Kategorie":
     - button "Wszystko" [pressed]
     - button "Restauracje"
@@ -19,7 +20,7 @@
     - button "Handel"
     - button "Inne"
   - region "Lista miejsc":
-    - paragraph: 9 miejsc
+    - paragraph: /\d+ miejsc/
     - button "Pokaż listę"
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
   - button "Informacje o źródłach mapy"

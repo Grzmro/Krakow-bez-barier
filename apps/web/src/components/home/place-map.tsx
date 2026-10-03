@@ -22,7 +22,7 @@ import {
   type MapItem,
 } from "@/lib/map-clusters";
 import { MapControls } from "../map/map-controls";
-import { insidePadding, mapPadding, paddedCentre, type Padding } from "./map-padding";
+import { insidePadding, mapPadding, paddedCentre, type Padding } from "../map/map-padding";
 import { clusterSize, PlaceCluster } from "./place-cluster";
 import { PlacePin } from "./place-pin";
 

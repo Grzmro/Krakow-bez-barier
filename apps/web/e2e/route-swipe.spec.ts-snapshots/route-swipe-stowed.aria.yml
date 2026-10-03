@@ -1,0 +1,20 @@
+- main:
+  - heading "Trasa" [level=1]
+  - link "Wstecz":
+    - /url: /
+  - text: Start
+  - combobox "Start": Dworzec Główny
+  - paragraph: "Cel: Rynek Główny"
+  - button "Zamień start i cel":
+    - img
+  - group "Rodzaj trasy":
+    - button "Unikaj schodów" [pressed]
+    - button "Najkrótsza"
+  - region "Odcinki trasy":
+    - paragraph: /\d+ min · \d+,\d+ km/
+    - button "Pokaż szczegóły"
+  - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
+  - button "Informacje o źródłach mapy"
+  - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors, openrouteservice"
+  - button "Przybliż"
+  - button "Oddal"

@@ -19,6 +19,7 @@ export interface BottomPanelProps {
   collapsedHeight?: string;
   expandedHeight?: string;
   headerRight?: ReactNode;
+  /** Pinned under the scrolling content; not rendered while the panel is stowed to its bar. */
   footer?: ReactNode;
   children: ReactNode;
   className?: string;
@@ -195,7 +196,7 @@ export function BottomPanel({
         >
           {children}
         </div>
-        {footer}
+        {isStowed ? null : footer}
       </section>
       {/* Resolves the state heights (%, calc, env) in the panel's container, without the panel's transition. */}
       <div ref={probeRef} aria-hidden className={cn("pointer-events-none invisible absolute bottom-0 left-0 w-px transition-none", headerClassName)} />

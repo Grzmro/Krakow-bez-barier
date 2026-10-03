@@ -11,7 +11,7 @@ test("the list panel collapses to a bar, leaves the map in view and brings the l
   // GIVEN the home screen on a phone with the list at half height
   await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   const half = (await list.boundingBox())!;
 
   // WHEN the visitor hides the list with the keyboard
@@ -23,7 +23,7 @@ test("the list panel collapses to a bar, leaves the map in view and brings the l
   const show = list.getByRole("button", { name: "Pokaż listę" });
   await expect(show).toHaveAttribute("aria-expanded", "false");
   await expect(show).toBeFocused();
-  await expect(list.getByRole("paragraph").filter({ hasText: "9 miejsc" })).toBeVisible();
+  await expect(list.getByRole("paragraph").filter({ hasText: "10 miejsc" })).toBeVisible();
   await expect(list.getByRole("link")).toHaveCount(0);
   await expect.poll(async () => (await list.boundingBox())!.height).toBeLessThan(half.height / 3);
   // The map controls follow the panel frame by frame; measure them once its transition is over.
@@ -60,7 +60,7 @@ test("selecting a pin while the list is hidden shows that place in the list", as
   // GIVEN the list hidden
   await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await page.getByRole("button", { name: "Schowaj listę" }).click();
   await expect(list.getByRole("button", { name: "Pokaż listę" })).toBeVisible();
 

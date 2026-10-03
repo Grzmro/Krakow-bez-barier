@@ -6,6 +6,7 @@ import type { FeatureFilter } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, LabeledSwitch, StatusIcon, Switch, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
 import { CaretLeft, MagnifyingGlass, SlidersHorizontal } from "@phosphor-icons/react";
 import { BottomPanel } from "@/components/kbb";
+import { CONTROLS_ABOVE_PANEL, STOWED_HEIGHT, usePanelInset } from "@/components/map/use-panel-inset";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
 import { ThresholdsDrawer } from "@/components/profile/thresholds-drawer";
 import { useMessages } from "@/i18n/client";
@@ -44,12 +45,7 @@ const CHIP_ROW = "no-scrollbar overflow-x-auto py-1.5 pr-10 [mask-image:linear-g
 // Desktop: the map has the right column to itself.
 const MAP_PADDING = { top: 150, bottom: 64 };
 const MAP_PADDING_DESKTOP = { top: 48, bottom: 48 };
-// Waits for the panel to stop moving (a swipe, the height transition) before the map's padding follows it.
-const INSET_SETTLE_MS = 120;
-// The attribution and zoom buttons ride just above the panel (never above its half height: see `followPanel`).
-const CONTROLS_ABOVE_PANEL = "bottom-[calc(var(--panel-inset,0px)+0.75rem)] lg:bottom-9";
 const STOWED_KEY = "kbb-list-stowed";
-const STOWED_HEIGHT = "calc(4.5rem + env(safe-area-inset-bottom))";
 // Set on <main> as --list-collapsed: half the screen, but on a short phone (browser toolbars) down to 40%,
 // so ~20rem stays for the map and its overlays. The map's padding and controls stop at the same value.
 const COLLAPSED_HEIGHT = "var(--list-collapsed)";
@@ -97,28 +93,7 @@ export function HomeScreen() {
   const stowed = stowedFlag && !desktop;
   const mainRef = useRef<HTMLElement>(null);
   const collapsedRef = useRef<HTMLDivElement>(null);
-  const [panelInset, setPanelInset] = useState(0);
-  const insetTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
-  const insetKnown = useRef(false);
-  useEffect(() => () => clearTimeout(insetTimer.current), []);
-
-  // Every frame of a swipe or transition: the map controls follow the panel at once (CSS variable, no render);
-  // the map's padding follows once the panel has settled.
-  function followPanel(height: number) {
-    const main = mainRef.current;
-    const probe = collapsedRef.current;
-    if (!main || !probe) return;
-    // The probe is not rendered on desktop, where the panel is a column beside the map, not over it.
-    const collapsed = probe.getClientRects().length ? probe.getBoundingClientRect().height : 0;
-    const inset = Math.round(Math.min(height, collapsed));
-    main.style.setProperty("--panel-inset", `${inset}px`);
-    clearTimeout(insetTimer.current);
-    // The first height is taken at once: the map fits the places to it as soon as it loads.
-    if (!insetKnown.current) {
-      insetKnown.current = true;
-      setPanelInset(inset);
-    } else insetTimer.current = setTimeout(() => setPanelInset(inset), INSET_SETTLE_MS);
-  }
+  const { inset: panelInset, follow: followPanel } = usePanelInset(mainRef, collapsedRef);
 
   const area = position ? searchArea(position) : undefined;
   const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown, area };
