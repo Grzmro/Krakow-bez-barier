@@ -113,7 +113,6 @@ export function HomeScreen() {
       : null;
   const verdicts = Boolean(profile && items.some(({ place }) => place.verdict));
   const verdictCount = items.filter(({ place }) => place.verdict).length;
-  // Real open data rarely describes entrances and doors, so a profile often finds no met place: say why, never pass the unknown.
   const missing = useMemo(() => (verdicts && counts.met === 0 ? missingNeeds(items).slice(0, 3) : []), [verdicts, counts.met, items]);
   const settled = query.q === q.trim() && !places.isPlaceholderData;
   const suggestions = useMemo(
