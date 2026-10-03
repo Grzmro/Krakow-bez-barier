@@ -1,0 +1,232 @@
+- main:
+  - article "Muzeum Inżynierii i Techniki":
+    - text: Brak zdjęcia Dane przykładowe
+    - heading "Muzeum Inżynierii i Techniki" [level=1]
+    - paragraph: /Muzeum · ul\. św\. Wawrzyńca \d+, Kraków/
+    - paragraph: "Jak dojść do wejścia: Brak wskazówki, jak dojść do wejścia."
+    - link "Prowadź":
+      - /url: /trasa?do=muzeum-inzynierii-i-techniki
+      - img
+      - text: ""
+    - button "Udostępnij":
+      - img
+      - text: ""
+    - link "Skąd wiemy?":
+      - /url: "#skad-wiemy"
+      - img
+      - text: ""
+    - region "Fakty":
+      - heading "Fakty" [level=2]
+      - paragraph: Rozwiń cechę, by zobaczyć źródło i datę.
+      - list:
+        - listitem:
+          - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Wejście — stopnie: Brak danych. Wiarygodność: Brak danych."': Wejście — stopnie Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Wysokość stopnia: Brak danych. Wiarygodność: Brak danych."': Wysokość stopnia Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Podjazd: Brak danych. Wiarygodność: Brak danych."': Podjazd Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+          - button "Zgłoś awarię podjazdu":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Winda: Jest. Wiarygodność: Niezweryfikowane." [expanded]': Winda Jest Niezweryfikowane
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+          - button "Potwierdzam, byłem tu":
+            - img
+            - text: ""
+          - button "Zgłoś awarię windy":
+            - img
+            - text: ""
+          - list:
+            - listitem:
+              - text: "/Źródło: BIP Miasta Krakowa: dostępność architektoniczna Pozyskano \\d+\\.\\d+\\.\\d+ · odczytane automatycznie · stan na \\d+\\.\\d+\\.\\d+ wg źródła „Komunikację pomiędzy piętrami zapewnia winda\\.”/"
+              - link "Strona źródła":
+                - /url: https://www.bip.krakow.pl/?mmi=19180
+        - listitem:
+          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Toaleta dostosowana: Jest. Wiarygodność: Niezweryfikowane."': Toaleta dostosowana Jest Niezweryfikowane
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+          - button "Potwierdzam, byłem tu":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+    - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
+    - button "Uzupełnij":
+      - img
+      - text: ""
+    - region "Najbliższe odjazdy":
+      - heading "Najbliższe odjazdy" [level=2]
+      - paragraph: /Przystanki do \d+ m od miejsca i odjazdy w ciągu godziny\. Czy pojazd przyjmie wózek, mówi przewoźnik w danych na żywo\./
+      - paragraph: /Nagranie danych przewoźnika z \d+\.\d+\.\d+, \d+:\d+ — to nie są odjazdy na żywo\./
+      - list:
+        - listitem "Plac Wolnica":
+          - heading "Plac Wolnica" [level=3]
+          - paragraph: /\d+ m stąd/
+          - list:
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Pleszów
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Kurdwanów P+R
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Mały Płaszów P+R
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Salwator
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: Tramwaj 8
+              - paragraph: kierunek Borek Fałęcki
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: Tramwaj 8
+              - paragraph: kierunek Cichy Kącik
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+        - listitem "św. Wawrzyńca":
+          - heading "św. Wawrzyńca" [level=3]
+          - paragraph: /\d+ m stąd/
+          - list:
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Czerwone Maki P+R
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Wzg. Krzesławickie
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: Tramwaj 3
+              - paragraph: kierunek Nowy Bieżanów P+R
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Kurdwanów P+R
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: Tramwaj 3
+              - paragraph: kierunek Krowodrza G. P+R
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Czerwone Maki P+R
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+        - listitem "Stradom":
+          - heading "Stradom" [level=3]
+          - paragraph: /\d+ m stąd/
+          - list:
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Pleszów
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Salwator
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: Tramwaj 8
+              - paragraph: kierunek Cichy Kącik
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Cmentarz Rakowicki
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Pleszów
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Salwator
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+      - paragraph: "„Niezweryfikowane”: przewoźnik oznacza każdy tramwaj jako dostępny dla wózka, także wysokopodłogowe, więc nie traktujemy tego jako potwierdzenia. „Brak danych”: dane na żywo nic nie mówią o pojeździe — to nie znaczy, że jest dostępny."
+      - paragraph: "/Źródło: ZTP Kraków: GTFS i GTFS-Realtime · dane z \\d+\\.\\d+\\.\\d+, \\d+:\\d+ · licencja: Do sprawdzenia · Zarząd Transportu Publicznego w Krakowie/"
+    - region "Skąd wiemy?":
+      - heading "Skąd wiemy?" [level=2]
+      - paragraph: Źródła danych o tym miejscu, ich licencje i stan odświeżenia.
+      - list:
+        - listitem:
+          - paragraph: "BIP Miasta Krakowa: dostępność architektoniczna"
+          - paragraph: "Dane urzędowe · Licencja: Ponowne wykorzystywanie informacji sektora publicznego GMK, pkt III — także do celów komercyjnych"
+          - paragraph: /Działa · Ostatnie udane pobranie \d+\.\d+\.\d+/
+          - paragraph: "Źródło: Biuletyn Informacji Publicznej Miasta Krakowa (www.bip.krakow.pl). Informacja przetworzona."
+          - link "www.bip.krakow.pl":
+            - /url: https://www.bip.krakow.pl
+      - paragraph: /1 źródło · najnowsze \d+\.\d+\.\d+/
+      - link "O danych":
+        - /url: /o-danych
+        - img
+        - text: ""

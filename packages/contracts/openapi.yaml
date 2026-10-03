@@ -436,6 +436,9 @@ paths:
                 sukiennice:
                   $ref: '#/components/examples/PlaceSukiennice'
                   summary: Home-screen demo place (search "Sukiennice")
+                fromCityPage:
+                  $ref: '#/components/examples/PlaceFromCityPage'
+                  summary: Facts read from a BIP MK "Dostępność architektoniczna" page, each with its sentence and the page link
         '404':
           $ref: '#/components/responses/NotFound'
         '429':
@@ -2244,6 +2247,13 @@ components:
               type:
               - string
               - 'null'
+              description: What the source says, e.g. the sentence a fact was read from (in „…” when quoted verbatim).
+            url:
+              type:
+              - string
+              - 'null'
+              format: uri
+              description: The page the fact was read from, e.g. a BIP document.
             confirmations:
               type: integer
               minimum: 0
@@ -4137,6 +4147,105 @@ components:
           statusNote: null
           isSample: false
         updatedAt: '2026-10-03T03:00:00Z'
+        isSample: true
+    PlaceFromCityPage:
+      value:
+        id: muzeum-inzynierii-i-techniki
+        name: Muzeum Inżynierii i Techniki
+        category: museum
+        location:
+          type: Point
+          coordinates:
+          - 19.9473
+          - 50.0495
+        address:
+          street: ul. św. Wawrzyńca
+          houseNumber: '15'
+          postalCode: 31-060
+          city: Kraków
+        contact: null
+        entranceHint: null
+        attributes:
+        - attribute: lift
+          state: known
+          status: unverified
+          value:
+            kind: boolean
+            boolean: true
+          facts:
+          - id: fact_bip_mit_lift
+            attribute: lift
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: bip-mk
+              name: 'BIP Miasta Krakowa: dostępność architektoniczna'
+              kind: official_open_data
+              recordRef: bip-mk:page/19180/zajezdnia@2026-03-19
+            fetchedAt: '2026-10-04T03:00:00Z'
+            observedAt: '2026-03-19T00:00:00Z'
+            confirmedAt: null
+            reliability: extracted
+            evidence:
+              photoUrl: null
+              comment: „Komunikację pomiędzy piętrami zapewnia winda.”
+              url: https://www.bip.krakow.pl/?mmi=19180
+              confirmations: 0
+            status: active
+            stale: false
+        - attribute: toilet_accessible
+          state: known
+          status: unverified
+          value:
+            kind: boolean
+            boolean: true
+          facts:
+          - id: fact_bip_mit_toilet
+            attribute: toilet_accessible
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: bip-mk
+              name: 'BIP Miasta Krakowa: dostępność architektoniczna'
+              kind: official_open_data
+              recordRef: bip-mk:page/19180/zajezdnia@2026-03-19
+            fetchedAt: '2026-10-04T03:00:00Z'
+            observedAt: '2026-03-19T00:00:00Z'
+            confirmedAt: null
+            reliability: extracted
+            evidence:
+              photoUrl: null
+              comment: „Do toalety dla osób ze specjalnymi potrzebami wraz z przewijakiem należy przejść przez drzwi do toalety dla kobiet.”
+              url: https://www.bip.krakow.pl/?mmi=19180
+              confirmations: 0
+            status: active
+            stale: false
+        verdict:
+          state: unknown
+          unconfirmed: true
+          reasons:
+          - 'Wejście: nie wiemy'
+          blockers: []
+          unknowns:
+          - step_count
+        sources:
+        - id: bip-mk
+          name: 'BIP Miasta Krakowa: dostępność architektoniczna'
+          kind: official_open_data
+          license: Ponowne wykorzystywanie informacji sektora publicznego GMK, pkt III — także do celów komercyjnych
+          attribution: 'Źródło: Biuletyn Informacji Publicznej Miasta Krakowa (www.bip.krakow.pl). Informacja przetworzona.'
+          url: https://www.bip.krakow.pl
+          refreshInterval: daily
+          refreshStatus: ok
+          lastSuccessAt: '2026-10-04T03:00:00Z'
+          lastAttemptAt: '2026-10-04T03:00:00Z'
+          statusNote: null
+          isSample: false
+        updatedAt: '2026-10-04T03:00:00Z'
         isSample: true
     PlaceSukiennice:
       value:

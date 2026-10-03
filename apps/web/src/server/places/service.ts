@@ -83,7 +83,12 @@ export function toFact(record: FactRecord, now: Date): AccessibilityFact {
     reliability: record.reliability,
     evidence:
       evidence || record.confirmations > 0
-        ? { photoUrl: evidence?.photoUrl ?? null, comment: evidence?.comment ?? null, confirmations: record.confirmations }
+        ? {
+            photoUrl: evidence?.photoUrl ?? null,
+            comment: evidence?.comment ?? null,
+            ...(evidence?.url ? { url: evidence.url } : {}),
+            confirmations: record.confirmations,
+          }
         : null,
     status: record.status,
     stale: false,

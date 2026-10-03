@@ -64,6 +64,11 @@ export function drizzleStore(db: Db): IngestStore {
       .limit(1);
     if (byFact) return { id: byFact.id, owned: false };
 
+    if (place.sameAs) {
+      const [same] = await tx.select({ id: places.id }).from(places).where(eq(places.externalRef, place.sameAs));
+      if (same) return { id: same.id, owned: false };
+    }
+
     const { x, y } = place.location;
     const radius = place.category === "toilet" ? NEARBY_TOILET_METRES : NEARBY_METRES;
     const prefix = `${place.externalRef.split(":")[0]}:`;

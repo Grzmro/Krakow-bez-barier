@@ -155,6 +155,22 @@ describe.skipIf(!url)("drizzleStore (needs TEST_DATABASE_URL with migrations app
     expect(await db.select().from(places).where(eq(places.externalRef, "other:node/2"))).toHaveLength(0);
   });
 
+  it("attaches a record to the place it names in `sameAs`, whatever its name and distance", async () => {
+    // GIVEN a page about the venue under another name, 500 m off, pointing at its OSM element
+    const described: MappedPlace = place("yes", "page:doc/7@2026-03-19", {
+      externalRef: "page:doc/7",
+      name: "Kawiarnia przy Rynku – siedziba",
+      location: { x: 19.947, y: 50.05 },
+      sameAs: "store-test:node/1",
+    });
+    // WHEN applying it
+    await store.applyPlace(meta, described, at(5));
+    // THEN its fact lands on that place and no new place is created
+    expect(await db.select().from(places).where(eq(places.externalRef, "page:doc/7"))).toHaveLength(0);
+    expect((await activeFacts()).map((f) => f.sourceRecordRef)).toContain("page:doc/7@2026-03-19");
+    await db.delete(facts).where(eq(facts.sourceRecordRef, "page:doc/7@2026-03-19"));
+  });
+
   it("keeps two OSM elements of the same source apart even when they are close", async () => {
     // GIVEN a second OSM element 5 m away with the same name and category
     const twin: MappedPlace = place("no", "store-test:node/9", {

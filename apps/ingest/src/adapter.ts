@@ -38,6 +38,8 @@ export type MappedPlace = {
   location: { x: number; y: number };
   street: string | null;
   houseNumber: string | null;
+  /** External ref of a place from another source that this record describes (e.g. `osm:way/1`); its facts attach there when it exists. */
+  sameAs?: string;
   facts: MappedFact[];
 };
 

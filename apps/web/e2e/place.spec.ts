@@ -191,3 +191,30 @@ test("with a profile on, the card shows its verdict and the Blokuje / Pasuje / N
   await expect(page.getByRole("heading", { level: 2, name: "Fakty" })).toBeVisible();
   await expect(page.getByRole("region", { name: /Twój profil/ })).toHaveCount(0);
 });
+
+test("a fact read from a city page shows the sentence it came from and links the page", async ({
+  page,
+  expectAccessible,
+  evidence,
+}) => {
+  // GIVEN a museum whose lift comes from its BIP MK "Dostępność architektoniczna" page
+  await page.goto("/miejsca/muzeum-inzynierii-i-techniki");
+  await expect(page.getByRole("heading", { level: 1, name: "Muzeum Inżynierii i Techniki" })).toBeVisible();
+
+  // WHEN a keyboard user opens the lift fact
+  const lift = page.getByRole("button", { name: /^Winda/ });
+  await lift.focus();
+  await page.keyboard.press("Enter");
+
+  // THEN the provenance names the source, its own date, the quoted sentence and a link to the page
+  await expect(lift).toHaveAttribute("aria-expanded", "true");
+  const panel = page.locator(`#${await lift.getAttribute("aria-controls")}`);
+  await expect(panel).toContainText("Źródło: BIP Miasta Krakowa: dostępność architektoniczna");
+  await expect(panel).toContainText("odczytane automatycznie · stan na 19.03.2026 wg źródła");
+  await expect(panel).toContainText("„Komunikację pomiędzy piętrami zapewnia winda.”");
+  await expect(panel.getByRole("link", { name: "Strona źródła" })).toHaveAttribute("href", "https://www.bip.krakow.pl/?mmi=19180");
+  await expect(page.locator("main")).toMatchAriaSnapshot({ name: "place-city-page.aria.yml" });
+
+  await expectAccessible();
+  await evidence("place-city-page");
+});

@@ -46,6 +46,8 @@ const point4326 = customType<{ data: LonLat; driverData: string }>({
 export type FactEvidence = {
   photoUrl?: string | null;
   comment?: string | null;
+  /** The page the fact was read from, e.g. a BIP document. */
+  url?: string | null;
   /** Number of anonymous "still true" confirmations. */
   confirmations?: number;
 };

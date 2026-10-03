@@ -166,6 +166,8 @@ export const place = {
   lastConfirmed: (date: string) => `ostatnio potwierdzone ${date}`,
   confirmations: (n: number) => `${n}/2 potwierdzeń`,
   communityConfirmed: "potwierdzone przez społeczność",
+  sourceAsOf: (date: string) => `stan na ${date} wg źródła`,
+  sourcePage: "Strona źródła",
   // Fallback only: labels come from GET /categories.
   category: {
     restaurant: "Restauracja",

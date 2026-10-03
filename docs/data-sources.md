@@ -15,6 +15,7 @@ see the status column.
 | Id | Source | Used for | Licence | Licence status | Ingested |
 |---|---|---|---|---|---|
 | `osm` | OpenStreetMap via Overpass | places, `wheelchair=*` and related tags | ODbL 1.0 | Confirmed | yes |
+| `bip-mk` | BIP MK "Dostępność architektoniczna" pages of city units (cultural institutions first) | lift, ramp, accessible toilet, changing table, disabled parking, level entrance, door width — read from the text | GMK rules for reuse of public-sector information, pt III (commercial use allowed) | Confirmed | yes |
 | `msip-toilets` | MSIP "Toalety publiczne" (`WT_WC_2023`) | city public toilets, accessibility fields | Not stated in the service; MSIP regulation limits reuse to data classified "OPEN DATA" | **To confirm** | only after confirmation |
 | `zdmk-parking-ozn` | ZDMK "Miejsca postojowe OZN" (ArcGIS Online) | marked parking spaces for disabled drivers | No licence in the ArcGIS item | **To confirm** | only after confirmation |
 | `ztp-stops` | ZTP "Przystanki Komunikacji Miejskiej w Krakowie" (ArcGIS Online) | stop inventory: benches, platform surface | No licence in the ArcGIS item | **To confirm** | only after confirmation |
@@ -43,6 +44,20 @@ see the status column.
 
 Share-alike: our derived database of OSM facts is a derivative database under ODbL — see
 `docs/deployment.md` (Licences).
+
+### `bip-mk` — BIP MK "Dostępność architektoniczna"
+
+| | |
+|---|---|
+| Origin | Biuletyn Informacji Publicznej Miasta Krakowa: every city unit (MJO) has a "Dostępność architektoniczna" page, linked from its "Deklaracja dostępności" (`#a11y-architektura-url`). Free text written by the unit about its own building(s) |
+| Endpoint | `https://www.bip.krakow.pl/?mmi=<id>&metka=1` per page (`metka=1` adds the creation / publication / update dates). The pages and the places on them are city config (`apps/ingest/src/cities/data/krakow-bip-pages.ts`): 19 pages, 23 places of cultural institutions. A page about several buildings lists one place per building with the sections (`from`/`to` headings) that describe it |
+| What we read | Sentence by sentence (`bip-mk-extract.ts`): `lift`, `ramp` (only to the entrance or grounds), `toilet_accessible`, `changing_table`, `disabled_parking`, `entrance_level`, `door_width_cm` (one width in cm). Plans, contact lines, headings, evacuation and transit sentences are ignored; an attribute stated both ways in one place's text is skipped (`ambiguous` in the run log), never guessed |
+| Licence | "Zasady udostępniania informacji publicznych … w celu ich ponownego wykorzystywania" (https://www.bip.krakow.pl/?dok_id=48482), pt III: free use for commercial and non-commercial purposes, including changes. Conditions (pt II): name the source and the time the information was created and obtained, say it was processed, and include the GMK liability disclaimer — all in the source's attribution on `/o-danych` and in each fact (page link, page update date, fetch date) |
+| Freshness | `observedAt` = the page's "Data aktualizacji". Pages not updated for 12 months are shown as possibly outdated, like any fact |
+| Update frequency | Daily with the ingest cron; pages are fetched one after another, 1 s apart, with the ingest `User-Agent` |
+| Verification | Reliability `extracted`. Each fact carries the sentence it was read from as `evidence.comment` („…”) and the page as `evidence.url`; the place card shows both. Record ref `bip-mk:page/<mmi>/<place>@<update date>`. Facts attach to the OSM place named in the config (`osmRef` → `sameAs`); without it in the database a new place is created at the OSM object's coordinates (no paid geocoder) |
+| When unavailable | A page that fails is logged and left out, its places keep their facts; the run fails only when no page could be read |
+| Coverage caveat | No unit states a door width for its entrance, so no place meets the wheelchair preset on BIP data alone; Muzeum Krakowa (a PDF) and Teatr Variete (one line) have no usable text |
 
 ### `msip-toilets` — MSIP "Toalety publiczne"
 

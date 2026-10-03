@@ -32,7 +32,7 @@ const hostel = placeRecord({ name: "Hostel z windą", category: "hotel" });
 const facts = [
   factRecord(palac, "toilet_accessible", bool(true)),
   factRecord(palac, "toilet_accessible", bool(false), { source: city, reliability: "confirmed" }),
-  factRecord(palac, "lift", bool(true), { source: city, reliability: "confirmed", confirmations: 2, evidence: { comment: "winda od podwórza" } }),
+  factRecord(palac, "lift", bool(true), { source: city, reliability: "confirmed", confirmations: 2, evidence: { comment: "winda od podwórza", url: "https://www.bip.krakow.pl/?mmi=1" } }),
   factRecord(teatr, "step_count", num(0, "count"), { source: ziwDown, reliability: "confirmed" }),
   factRecord(hotel, "step_count", num(0, "count"), { source: city, reliability: "confirmed" }),
   factRecord(hotel, "threshold_cm", num(1), { source: city, reliability: "confirmed" }),
@@ -123,13 +123,13 @@ describe("GET /api/v1/places/{id}", () => {
     // WHEN the place is read
     const { body } = await get(palac.id);
 
-    // THEN the fact names its source, record, fetch date, reliability and confirmation count
+    // THEN the fact names its source, record, fetch date, reliability, the page it was read from and the confirmation count
     const [lift] = attribute(body, "lift")?.facts ?? [];
     expect(lift).toMatchObject({
       source: { id: "msip", name: "MSIP", kind: "official_open_data", recordRef: "node/1" },
       fetchedAt: "2026-10-01T00:00:00.000Z",
       reliability: "confirmed",
-      evidence: { comment: "winda od podwórza", confirmations: 2, photoUrl: null },
+      evidence: { comment: "winda od podwórza", url: "https://www.bip.krakow.pl/?mmi=1", confirmations: 2, photoUrl: null },
       stale: false,
     });
   });
