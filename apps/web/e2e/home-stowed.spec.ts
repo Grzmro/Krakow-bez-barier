@@ -55,6 +55,8 @@ test("the list panel collapses to a bar, leaves the map in view and brings the l
 });
 
 test("selecting a pin while the list is hidden shows that place in the list", async ({ page }) => {
+  // Each cluster zoom waits for the full-screen software-GL map to settle (as in map-touch.spec.ts).
+  test.setTimeout(30_000);
   // GIVEN the list hidden
   await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
@@ -64,7 +66,7 @@ test("selecting a pin while the list is hidden shows that place in the list", as
 
   // WHEN they zoom into the clusters and tap a pin (dispatched on the pin itself, which may sit under the chips)
   await expandClusters(page);
-  // The pin nearest the map's centre: it stays in view when the list comes back and the map gets shorter.
+  // The pin nearest the map's centre; if the returning list covers it, the map eases it back into view.
   const id = await pins(page).evaluateAll((els) => {
     const map = document.querySelector(".maplibregl-map")!.getBoundingClientRect();
     const distance = (el: Element) => {
