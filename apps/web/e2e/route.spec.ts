@@ -64,7 +64,7 @@ test("with the wheelchair profile the route keeps its limits and Floriańska sho
   await evidence("route-wheelchair");
 });
 
-test("a route the provider can't answer shows a readable error and the destination's entrance facts", async ({
+test("a route without a routing key says so, offers the example route, and still shows the destination's entrance facts", async ({
   page,
   expectAccessible,
   evidence,
@@ -73,14 +73,15 @@ test("a route the provider can't answer shows a readable error and the destinati
   await page.goto("/miejsca/kawiarnia-przyklad");
   await expect(page.getByRole("heading", { level: 1, name: "Kawiarnia Przykład" })).toBeVisible();
 
-  // WHEN the visitor asks for a route to it (no recorded answer and no key: the routing provider is "down")
+  // WHEN the visitor asks for a route to it (no recorded answer and no ORS key on this server)
   await page.getByRole("link", { name: "Prowadź" }).click();
 
-  // THEN the route screen says routing is unavailable, offers a retry, and still shows the entrance facts
+  // THEN the route screen says this route can't be planned in demo mode, offers the example route (not a pointless retry), and still shows the entrance facts
   await expect(page).toHaveURL(/\/trasa\?do=kawiarnia-przyklad$/);
   const main = page.locator("main");
-  await expect(main).toContainText("Wyznaczanie tras jest chwilowo niedostępne");
-  await expect(page.getByRole("button", { name: "Spróbuj ponownie" })).toBeVisible();
+  await expect(main).toContainText("Tej trasy nie wyznaczymy w trybie demonstracyjnym");
+  await expect(page.getByRole("link", { name: "Pokaż przykładową trasę" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Spróbuj ponownie" })).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 2, name: /Cel: wejście · Kawiarnia Przykład/ })).toBeVisible();
   await expect(main).toMatchAriaSnapshot({ name: "route-unavailable.aria.yml" });
   await expectAccessible();
@@ -91,4 +92,12 @@ test("a route the provider can't answer shows a readable error and the destinati
 
   // THEN the rest of the app works: the card is there
   await expect(page.getByRole("heading", { level: 1, name: "Kawiarnia Przykład" })).toBeVisible();
+
+  // WHEN they ask for the example route instead
+  await page.getByRole("link", { name: "Prowadź" }).click();
+  await page.getByRole("link", { name: "Pokaż przykładową trasę" }).click();
+
+  // THEN the recorded Dworzec Główny → Rynek route opens
+  await expect(page).toHaveURL(/\/trasa$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
 });

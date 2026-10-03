@@ -75,8 +75,18 @@ function summary(t: RouteMessages, route: Route, limits: string) {
   return `${t.hasBarriers(barrierList(route))}. ${gaps(t, route)}.`;
 }
 
+function routeReason(error: unknown) {
+  return error instanceof RouteError ? error.reason : "unavailable";
+}
+
+function routeErrorText(t: Messages["route"], error: unknown): string {
+  const reason = routeReason(error);
+  return reason === "no_route" ? t.error.noRoute : reason === "not_configured" ? t.error.notConfigured : t.error.unavailable;
+}
+
 export function RouteScreen({ to }: { to?: string }) {
   const t = useMessages().route;
+  const errorText = (error: unknown) => routeErrorText(t, error);
   const announce = useAnnounce();
   const { settings, setProfile } = useProfile();
   const profile = settings.profile;
@@ -103,7 +113,7 @@ export function RouteScreen({ to }: { to?: string }) {
     if (route) announce(summary(t, route, limits));
   }, [announce, route, limits, t]);
   useEffect(() => {
-    if (current.error) announce(current.error instanceof RouteError && current.error.reason === "no_route" ? t.error.noRoute : t.error.unavailable);
+    if (current.error) announce(routeErrorText(t, current.error));
   }, [announce, current.error, t]);
 
   const switchKind = (next: RouteKind) => {
@@ -214,12 +224,16 @@ export function RouteScreen({ to }: { to?: string }) {
             <div className="mt-4 flex gap-3 rounded-[20px] bg-status-conflict-bg p-4">
               <CloudSlash weight="bold" className="mt-0.5 size-6 shrink-0 text-status-conflict" aria-hidden />
               <div className="grid justify-items-start gap-3">
-                <p className="text-body font-semibold">
-                  {current.error instanceof RouteError && current.error.reason === "no_route" ? t.error.noRoute : t.error.unavailable}
-                </p>
-                <Button variant="outline" size="sm" onClick={() => current.refetch()}>
-                  {t.error.retry}
-                </Button>
+                <p className="text-body font-semibold">{errorText(current.error)}</p>
+                {routeReason(current.error) === "not_configured" ? (
+                  <Link href={routes.route()} className={buttonVariants({ variant: "outline", size: "sm" })}>
+                    {t.error.showExample}
+                  </Link>
+                ) : (
+                  <Button variant="outline" size="sm" onClick={() => current.refetch()}>
+                    {t.error.retry}
+                  </Button>
+                )}
               </div>
             </div>
           ) : route ? (

@@ -34,7 +34,7 @@ export const DEMO_ROUTES = [
 
 /**
  * Answers from recorded responses instead of calling openrouteservice: for tests (no network) and the example-data
- * mode. A request that wasn't recorded fails as an unavailable provider.
+ * mode. A request that wasn't recorded fails as a missing configuration (no ORS key).
  */
 export function createRecordedProvider(recorded: RecordedRoute[] = DEMO_ROUTES): RoutingProvider {
   return {
@@ -42,7 +42,7 @@ export function createRecordedProvider(recorded: RecordedRoute[] = DEMO_ROUTES):
     async route(request) {
       const wanted = canonical(orsRequest(request));
       const match = recorded.find((r) => canonical(r.request) === wanted);
-      if (!match) throw new RoutingError("unavailable", "no recorded route for this request");
+      if (!match) throw new RoutingError("not_configured", "no recorded route for this request; set ORS_API_KEY for live routes");
       if (match.status !== 200) throw errorFor(match.status, match.response);
       return { ...parseOrsResponse(match.response), fetchedAt: new Date(match.recordedAt) };
     },

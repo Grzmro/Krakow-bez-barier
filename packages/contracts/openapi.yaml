@@ -778,7 +778,7 @@ paths:
         incline limits. When no such route exists, the best alternative comes back with `fallback: true` and its barriers
         listed: with `profile` the stair-free walking route (`kind: avoid_stairs`) if there is one, otherwise the
         shortest route. Routing runs on the server only (the provider key never reaches the browser); when the provider is
-        unavailable the answer is a `502` problem.
+        unavailable the answer is a `502` problem; a server without an openrouteservice key answers `502` with the type `.../problems/routing-not-configured` for every route but the recorded demo one.
 
         '
       tags:
@@ -1218,6 +1218,12 @@ components:
               value:
                 type: https://krakow-bez-barier.example/problems/upstream-unavailable
                 title: Routing provider unavailable
+                status: 502
+            notConfigured:
+              summary: No routing key on this server; only the recorded demo route has an answer
+              value:
+                type: https://krakow-bez-barier.example/problems/routing-not-configured
+                title: Routing not configured
                 status: 502
     ServerError:
       description: Unexpected server error.

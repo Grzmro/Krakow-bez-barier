@@ -59,6 +59,8 @@ export const route: Messages["route"] = {
     unavailable: "Route planning is temporarily unavailable. The rest of the app works — check places in the list.",
     noRoute: "We couldn't find a route between these points.",
     noPlace: "We couldn't find the destination. The link may be out of date.",
+    notConfigured: "We can't plan this route in demo mode (no openrouteservice key). The example route Dworzec Główny → Rynek Główny works with the default profile settings.",
+    showExample: "Show the example route",
     retry: "Try again",
   },
   back: "Back",
