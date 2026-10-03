@@ -2,10 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLocale } from "@/i18n/client";
+import { appPlatform } from "./native/platform";
+import { NativeSpeechRecognition } from "./native/speech-recognition";
 import { speechLang, speechRecognitionFor, startSpeech, type SpeechError, type SpeechState, type SpeechWindow } from "./speech-input";
 
 const noSubscribe = () => () => {};
-const recognizer = () => speechRecognitionFor(window as unknown as SpeechWindow);
+// The Android WebView has no Web Speech API, so the native app uses the Android recognizer.
+const recognizer = () =>
+  appPlatform() === "android" ? NativeSpeechRecognition : speechRecognitionFor(window as unknown as SpeechWindow);
 const detect = () => recognizer() !== null;
 
 /** Dictation into a text field with the browser's Web Speech API, in the app's language. */

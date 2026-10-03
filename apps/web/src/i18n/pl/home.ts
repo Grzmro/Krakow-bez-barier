@@ -26,6 +26,8 @@ export const home = {
       listening: "Słucham… mów teraz",
       processing: "Rozpoznaję mowę…",
       notice: "Mowę rozpoznaje Twoja przeglądarka — może wysłać nagranie do usługi swojego dostawcy (np. Google w Chrome); my nic nie zapisujemy.",
+      notAllowedApp:
+        "Brak dostępu do mikrofonu. Włącz go w Ustawienia → Aplikacje → Kraków bez barier → Uprawnienia → Mikrofon. Wyszukiwanie tekstem nadal działa.",
       errors: {
         "not-allowed": "Brak dostępu do mikrofonu. Zezwól na mikrofon w ustawieniach przeglądarki i spróbuj ponownie.",
         "no-speech": "Nic nie usłyszałem. Naciśnij mikrofon i powiedz, czego szukasz.",
