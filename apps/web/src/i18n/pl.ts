@@ -8,5 +8,6 @@ import { nearby } from "./pl/nearby";
 import { pages } from "./pl/pages";
 import { place } from "./pl/place";
 import { profile } from "./pl/profile";
+import { pwa } from "./pl/pwa";
 
-export const pl = { common, home, place, profile, pages, moderator, nearby, dev } as const;
+export const pl = { common, home, place, profile, pages, moderator, nearby, dev, pwa } as const;

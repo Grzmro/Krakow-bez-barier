@@ -98,6 +98,7 @@ npm run build                  # production build
 npm run test:e2e               # Playwright smoke (apps/web/e2e); own port per worktree (PORT overrides)
 npm run mobile:ios             # Capacitor: sync + build + run in the iOS Simulator (Xcode; web app must be running)
 npm run mobile:android         # Capacitor: sync + debug APK (needs JAVA_HOME = JDK 21, ANDROID_HOME = Android SDK)
+                               # *.prod.spec.ts (PWA offline) run against `next start` of the last build — `npm run build` first
 ```
 
 The native apps load the running web app from `CAP_SERVER_URL` (`apps/mobile/.env`, default

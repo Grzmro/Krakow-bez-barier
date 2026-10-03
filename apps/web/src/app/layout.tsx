@@ -3,7 +3,9 @@ import { Inter, Manrope } from "next/font/google";
 import { LiveRegionProvider, Providers, Toaster } from "@krakow-bez-barier/ui";
 import { SampleBanner } from "@/components/kbb";
 import { AppHeader } from "@/components/layout/app-header";
+import { PwaStatus } from "@/components/pwa/pwa-status";
 import { pl } from "@/i18n/pl";
+import { brandColors } from "@/lib/pwa/brand-colors";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin", "latin-ext"] });
@@ -12,6 +14,13 @@ const manrope = Manrope({ variable: "--font-manrope", subsets: ["latin", "latin-
 export const metadata: Metadata = {
   title: pl.common.app.name,
   description: pl.common.app.description,
+  applicationName: pl.common.app.name,
+  appleWebApp: { capable: true, title: pl.pwa.shortName, statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
+};
+
+export const viewport: Viewport = {
+  themeColor: brandColors.primary,
 };
 
 // "cover" lets the native app draw under the iPhone notch; globals.css pads by the safe areas.
@@ -32,6 +41,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Providers>
           <LiveRegionProvider>
             <AppHeader />
+            <PwaStatus />
             {children}
             <Toaster />
           </LiveRegionProvider>

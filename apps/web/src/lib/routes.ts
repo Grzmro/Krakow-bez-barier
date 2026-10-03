@@ -7,4 +7,5 @@ export const routes = {
   moderator: "/moderator",
   devComponents: "/dev/components",
   devNative: "/dev/native",
+  offline: "/offline",
 } as const;
