@@ -192,6 +192,92 @@ paths:
                     items: []
                     nextCursor: null
                     total: 0
+                oldTown:
+                  summary: Old Town places that only the home screen lists (all sample data)
+                  value:
+                    items:
+                    - id: sukiennice
+                      name: Sukiennice
+                      category: museum
+                      location:
+                        type: Point
+                        coordinates:
+                        - 19.9373
+                        - 50.0617
+                      address:
+                        street: Rynek Główny
+                        houseNumber: '1-3'
+                        postalCode: 31-042
+                        city: Kraków
+                      summary:
+                      - attribute: step_count
+                        state: known
+                        status: confirmed
+                        label: 'Wejście bez stopni'
+                      - attribute: lift
+                        state: known
+                        status: confirmed
+                        label: 'Winda'
+                      - attribute: toilet_accessible
+                        state: unknown
+                        status: no_data
+                        label: 'Toaleta: brak danych'
+                      verdict: null
+                      isSample: true
+                    - id: bistro-przyklad
+                      name: Bistro Przykład
+                      category: restaurant
+                      location:
+                        type: Point
+                        coordinates:
+                        - 19.9378
+                        - 50.0585
+                      address:
+                        street: ul. Grodzka
+                        houseNumber: '20'
+                        postalCode: 31-006
+                        city: Kraków
+                      summary:
+                      - attribute: step_count
+                        state: known
+                        status: unverified
+                        label: 'Wejście bez stopni'
+                      - attribute: toilet_accessible
+                        state: unknown
+                        status: no_data
+                        label: 'Toaleta: brak danych'
+                      verdict: null
+                      isSample: true
+                    - id: toaleta-planty-przyklad
+                      name: Toaleta publiczna Planty (przykład)
+                      category: toilet
+                      location:
+                        type: Point
+                        coordinates:
+                        - 19.941
+                        - 50.0655
+                      address:
+                        street: ul. Basztowa
+                        houseNumber: '1'
+                        postalCode: 31-134
+                        city: Kraków
+                      summary:
+                      - attribute: toilet_accessible
+                        state: known
+                        status: confirmed
+                        label: 'Toaleta dostosowana'
+                      - attribute: changing_table
+                        state: known
+                        status: unverified
+                        label: 'Przewijak'
+                      - attribute: bench
+                        state: known
+                        status: unverified
+                        label: 'Ławki obok'
+                      verdict: null
+                      isSample: true
+                    nextCursor: null
+                    total: 3
         '400':
           $ref: '#/components/responses/BadRequest'
         '429':
@@ -250,6 +336,9 @@ paths:
                 barrier:
                   $ref: '#/components/examples/PlaceBarrier'
                   summary: Known barrier (two steps, no ramp, narrow door)
+                sukiennice:
+                  $ref: '#/components/examples/PlaceSukiennice'
+                  summary: Home-screen demo place (search "Sukiennice")
         '404':
           $ref: '#/components/responses/NotFound'
         '429':
@@ -2388,6 +2477,100 @@ components:
             state: barrier
             unconfirmed: false
             reason: drzwi 70 cm
+        sources:
+        - id: osm
+          name: OpenStreetMap
+          kind: community
+          license: ODbL 1.0
+          attribution: © OpenStreetMap contributors
+          url: https://www.openstreetmap.org
+          refreshInterval: daily
+          refreshStatus: ok
+          lastSuccessAt: '2026-10-03T03:00:00Z'
+          lastAttemptAt: '2026-10-03T03:00:00Z'
+          statusNote: null
+          isSample: false
+        updatedAt: '2026-10-03T03:00:00Z'
+        isSample: true
+    PlaceSukiennice:
+      value:
+        id: sukiennice
+        name: Sukiennice
+        category: museum
+        location:
+          type: Point
+          coordinates:
+          - 19.9373
+          - 50.0617
+        address:
+          street: Rynek Główny
+          houseNumber: 1-3
+          postalCode: 31-042
+          city: Kraków
+        contact:
+          phone: null
+          website: https://mnk.pl
+          email: null
+        entranceHint: Wejście do Galerii od strony wschodniej, winda przy kasach.
+        attributes:
+        - attribute: step_count
+          state: known
+          status: confirmed
+          value:
+            kind: number
+            number: 0
+            unit: count
+          facts:
+          - id: fact_osm_sukiennice_steps
+            attribute: step_count
+            value:
+              kind: number
+              number: 0
+              unit: count
+            unit: count
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: null
+            fetchedAt: '2026-10-03T03:00:00Z'
+            observedAt: null
+            confirmedAt: '2026-09-12T10:00:00Z'
+            reliability: confirmed
+            evidence: null
+            status: active
+            stale: false
+        - attribute: lift
+          state: known
+          status: confirmed
+          value:
+            kind: boolean
+            boolean: true
+          facts:
+          - id: fact_osm_sukiennice_lift
+            attribute: lift
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: null
+            fetchedAt: '2026-10-03T03:00:00Z'
+            observedAt: null
+            confirmedAt: '2026-09-12T10:00:00Z'
+            reliability: confirmed
+            evidence: null
+            status: active
+            stale: false
+        - attribute: toilet_accessible
+          state: unknown
+          status: no_data
+          value: null
+          facts: []
+        verdict: null
         sources:
         - id: osm
           name: OpenStreetMap

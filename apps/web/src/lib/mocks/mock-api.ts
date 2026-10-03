@@ -6,11 +6,12 @@ import {
   type PlaceList,
   type PlaceSummary,
 } from "@krakow-bez-barier/contracts";
+import { matchFeature } from "@/lib/place-features";
 import { DEFAULT_THRESHOLDS, type Thresholds } from "@/lib/profile/thresholds";
 import { mockVerdict } from "./mock-verdict";
 
 // TODO(KBB-28): in-browser stand-in for the places API, built only from the spec's `examples`.
-// Supports `q`, `category` and the profile parameters; feature filters and bbox are not mocked.
+// Supports `q`, `category`, `feature` + `includeUnknown`, `bbox` and the profile parameters.
 
 function uniqueById<T extends { id: string }>(items: T[]): T[] {
   const seen = new Set<string>();
@@ -25,10 +26,24 @@ function toSummary(place: Place): PlaceSummary {
   return { id, name, category, location, address, summary, verdict: null, isSample };
 }
 
+// List examples first: their chips carry the human-written labels the list shows.
 const SUMMARIES: PlaceSummary[] = uniqueById([
-  ...responseExamples.listPlaces[200].withUnknown.items,
+  ...Object.values<PlaceList>(responseExamples.listPlaces[200]).flatMap((list) => list.items),
   ...PLACES.map(toSummary),
 ]);
+
+function inBbox(summary: PlaceSummary, bbox?: number[]) {
+  if (bbox?.length !== 4) return true;
+  const [minLon, minLat, maxLon, maxLat] = bbox;
+  const [lon, lat] = summary.location.coordinates;
+  return lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat;
+}
+
+/** Feature filters hide places that don't have every feature by known data, unless `includeUnknown`. */
+function hasFeatures(summary: PlaceSummary, query: ListPlacesQuery) {
+  if (!query.feature?.length || query.includeUnknown) return true;
+  return query.feature.every((feature) => matchFeature(summary.summary, feature) === "known");
+}
 
 const normalize = (text: string) =>
   text
@@ -62,6 +77,7 @@ export function mockListPlaces(query: ListPlacesQuery = {}): PlaceList {
   const thresholds = thresholdsOf(query);
   const items = SUMMARIES.filter((s) => (query.q ? matchesText(s, query.q) : true))
     .filter((s) => (query.category?.length ? query.category.includes(s.category) : true))
+    .filter((s) => inBbox(s, query.bbox) && hasFeatures(s, query))
     .map((s) => ({ ...s, verdict: thresholds ? mockVerdict(factsOf(s), thresholds) : null }));
   return { items, nextCursor: null, total: items.length };
 }

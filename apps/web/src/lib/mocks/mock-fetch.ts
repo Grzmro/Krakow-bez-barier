@@ -1,4 +1,4 @@
-import type { Category, GetPlaceQuery, Problem, Profile } from "@krakow-bez-barier/contracts";
+import type { Category, FeatureFilter, GetPlaceQuery, Problem, Profile } from "@krakow-bez-barier/contracts";
 import { mockGetPlace, mockListPlaces } from "./mock-api";
 
 // TODO(KBB-28): profile-aware `/places` mocks while the API isn't implemented. Everything else
@@ -38,11 +38,15 @@ export const withPlacesMocks = (fallback: Fetch): Fetch => async (input) => {
   const params = url.searchParams;
 
   if (input.method === "GET" && path === "/places") {
-    const category = params.get("category");
+    const list = (key: string) => params.get(key)?.split(",").filter(Boolean);
+    const bbox = list("bbox")?.map(Number);
     return json(
       mockListPlaces({
         q: params.get("q") ?? undefined,
-        category: category ? (category.split(",") as Category[]) : undefined,
+        category: list("category") as Category[] | undefined,
+        feature: list("feature") as FeatureFilter[] | undefined,
+        includeUnknown: params.has("includeUnknown") ? params.get("includeUnknown") === "true" : undefined,
+        bbox: bbox?.length === 4 ? bbox : undefined,
         ...profileParams(params),
       }),
     );
