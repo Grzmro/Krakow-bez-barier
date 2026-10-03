@@ -1,5 +1,6 @@
 import type { Place, PlaceList } from "@krakow-bez-barier/contracts";
 import { pl } from "../src/i18n/pl";
+import { config } from "../src/lib/config";
 import { CARD_ATTRIBUTES } from "../src/lib/place-facts";
 import { expect, test } from "./fixtures";
 import { clusters, pins } from "./map";
@@ -81,3 +82,35 @@ test("list, map and card show seeded places from the real API with their sources
   await page.keyboard.press("Escape");
   await expect(drawer).toBeHidden();
 });
+
+test("without a position the list starts with the places nearest the Rynek, not the city's first names", async ({ page }) => {
+  // GIVEN a database with places across the city
+  test.skip(!process.env.DATABASE_URL, "DATABASE_URL is unset — no database to read real places from (npm run db:setup)");
+  const firstPage = page.waitForResponse((r) => new URL(r.url()).pathname === "/api/v1/places");
+
+  // WHEN the visitor opens the home screen without sharing their location
+  await page.goto("/");
+
+  // THEN the list asks for the places nearest the map's starting point and lists them nearest first
+  const response = await firstPage;
+  const near = new URL(response.url()).searchParams.getAll("near").map(Number);
+  expect(near).toEqual(config.cityCenter);
+  const list = page.getByRole("region", { name: "Lista miejsc" });
+  const rows = list.getByRole("listitem");
+  await expect(rows.first()).toContainText(/od Rynku/);
+  const distances = (await rows.allTextContents()).slice(0, 5).map(fromRynek);
+  expect(distances).toEqual([...distances].sort((a, b) => a - b));
+
+  // AND when only the first page of the city is listed, the list says the rest is left out
+  const body = (await response.json()) as { items: unknown[]; total: number; nextCursor?: string | null };
+  const note = list.getByText(/najbliższych Rynku z \d+ miejsc/);
+  if (body.nextCursor) await expect(note).toContainText(`Pokazano ${body.items.length} najbliższych Rynku z ${body.total} miejsc`);
+  else await expect(note).toBeHidden();
+});
+
+function fromRynek(row: string): number {
+  const match = /([\d,]+) (m|km) od Rynku/.exec(row);
+  if (!match) throw new Error(`no distance in "${row}"`);
+  const value = Number(match[1].replace(",", "."));
+  return match[2] === "km" ? value * 1000 : value;
+}

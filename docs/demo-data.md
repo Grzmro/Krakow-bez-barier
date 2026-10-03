@@ -8,8 +8,12 @@ reports) is sample data and is labeled "PRZYKŁAD" in the UI.
 
 **Stare Miasto + Kazimierz + Stradom**, bbox `50.045,19.925 – 50.060,19.960` (S,W – N,E). It has the
 densest OSM coverage, the Planty/Dietla public toilets (the only place where city data and OSM
-overlap), and is where tourists actually walk. Wawel and Podgórze are one step outside it; extend
-the bbox only if a demo place needs it.
+overlap), and is where tourists actually walk. Wawel and Podgórze are one step outside it.
+
+Since KBB-84 the ingest covers **the whole city** (`krakow.bbox` in `apps/ingest/src/cities/krakow.ts`);
+this box is the named area `areas.demo`, ingested alone with `--area demo` (or `INGEST_AREA=demo`).
+The demo places below are all inside it, so the figures in this file are for this box. City-wide
+figures: `docs/deployment.md` → *City-wide data*.
 
 ## Sources
 

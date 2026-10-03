@@ -1,4 +1,5 @@
 import type { DevicePosition } from "@/lib/native/geolocation";
+import { config } from "@/lib/config";
 import { distanceMeters } from "@/lib/place-features";
 
 /** Grid the search area snaps to (0.01° ≈ 1.1 km north–south, ≈ 0.7 km east–west in Kraków). */
@@ -25,6 +26,11 @@ export function searchArea({ latitude, longitude }: Pick<DevicePosition, "latitu
 export function searchCentre(position: Pick<DevicePosition, "latitude" | "longitude">): [number, number] {
   const [minLon, minLat, maxLon, maxLat] = searchArea(position);
   return [fixed((minLon + maxLon) / 2), fixed((minLat + maxLat) / 2)];
+}
+
+/** The `near` point the home list orders from: the search centre near me, otherwise the initial map view (the Rynek). */
+export function listCentre(position: Pick<DevicePosition, "latitude" | "longitude"> | null): [number, number] {
+  return position ? searchCentre(position) : config.cityCenter;
 }
 
 /** `[lon, lat]` of a device position, the order the API and the map use. */

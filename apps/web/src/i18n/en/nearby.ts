@@ -22,6 +22,8 @@ export const nearby: Messages["nearby"] = {
     emptyHint: "You're searching only near you (within about 2 km).",
     nearestOnly: (shown: number, total: number) =>
       `Showing the ${shown} nearest of ${total} places nearby. Narrow the search with a name, category or filter to see the rest.`,
+    nearestRynekOnly: (shown: number, total: number) =>
+      `Showing the ${shown} nearest the Main Square of ${total} places. Narrow the search with a name, category or filter, or use “Near me”.`,
   },
   devPage: {
     title: "Native features",

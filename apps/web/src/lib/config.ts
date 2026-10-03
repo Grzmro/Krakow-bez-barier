@@ -4,7 +4,7 @@ export const config = {
   mapStyleUrl: process.env.NEXT_PUBLIC_MAP_STYLE_URL || "https://tiles.openfreemap.org/styles/liberty",
   /** Copied from maplibre-gl by `scripts/copy-maplibre-worker.mjs` (predev/prebuild). */
   mapWorkerUrl: "/vendor/maplibre/maplibre-gl-worker.mjs",
-  /** Reference point for distances and the initial map view — Rynek Główny, `[lon, lat]`. */
+  /** Reference point for distances, the initial map view and the places listed first — Rynek Główny, `[lon, lat]`. */
   cityCenter: [19.9373, 50.0614] as [number, number],
   initialZoom: 15,
   /** Default start and end of the route screen, `[lon, lat]`: the station's main exit and the Rynek. */

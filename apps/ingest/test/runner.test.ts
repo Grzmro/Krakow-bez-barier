@@ -61,6 +61,35 @@ describe("runIngest", () => {
     expect(calls.source).toEqual([{ ok: true, note: null }]);
   });
 
+  it("writes a city-wide source a few records at a time and counts every one of them", async () => {
+    // GIVEN 50 records and a store whose writes take a while
+    const adapter: SourceAdapter<number> = {
+      meta,
+      fetch: async () => Array.from({ length: 50 }, (_, i) => i),
+      map: (n) => ({ place: place(n), skipped: n % 10 === 0 ? ["x=y"] : [] }),
+    };
+    const { store, calls } = memoryStore();
+    let inFlight = 0;
+    let peak = 0;
+    const slow: IngestStore = {
+      ...store,
+      applyPlace: async (...args) => {
+        peak = Math.max(peak, ++inFlight);
+        await new Promise((resolve) => setTimeout(resolve, 2));
+        inFlight -= 1;
+        return store.applyPlace(...args);
+      },
+    };
+
+    // WHEN running it with four writers
+    const summary = await runIngest({ adapter: adapter as SourceAdapter<never>, city: krakow, store: slow, userAgent: "test", concurrency: 4 });
+
+    // THEN at most four writes overlap, every record is written once and the counts are exact
+    expect(peak).toBe(4);
+    expect(new Set(calls.applied).size).toBe(50);
+    expect(summary).toMatchObject({ status: "ok", recordsSeen: 50, recordsWritten: 50, recordsSkipped: 5 });
+  });
+
   it("carries the note of records fetched from a fallback copy into the run and the source status", async () => {
     // GIVEN an adapter that answers from a fallback copy with a note
     const adapter: SourceAdapter<number> = {

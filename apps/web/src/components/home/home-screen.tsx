@@ -11,7 +11,7 @@ import { useMessages } from "@/i18n/client";
 import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
 import type { DevicePosition } from "@/lib/native/geolocation";
-import { byDistance, searchArea, searchCentre, toLonLat } from "@/lib/nearby";
+import { byDistance, listCentre, searchArea, toLonLat } from "@/lib/nearby";
 import { usePlaces } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
@@ -83,7 +83,8 @@ export function HomeScreen() {
   const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown, area };
   const places = usePlaces({
     bbox: area,
-    near: position ? searchCentre(position) : undefined,
+    // TODO(KBB-88): load places for the map viewport; until then the map shows the 100 nearest the Rynek.
+    near: listCentre(position),
     q: query.q || undefined,
     category: category === ALL ? undefined : [category],
     feature: features.length ? features : undefined,
@@ -97,8 +98,11 @@ export function HomeScreen() {
   const shown = useMemo(() => filterByVerdict(items, { status: statusFilter, hideFailing }), [items, statusFilter, hideFailing]);
   const mapPlaces = useMemo(() => shown.map(({ place }) => place), [shown]);
   const total = places.data?.total;
-  // Near me, the API returns only the nearest page of the area.
-  const cutNote = origin && places.data?.nextCursor && total !== undefined ? tn.nearestOnly(places.data.items.length, total) : null;
+  // The API returns only the nearest page: near me of the area, otherwise of the whole city around the Rynek.
+  const cutNote =
+    places.data?.nextCursor && total !== undefined
+      ? (origin ? tn.nearestOnly : tn.nearestRynekOnly)(places.data.items.length, total)
+      : null;
   const verdicts = Boolean(profile && items.some(({ place }) => place.verdict));
   const settled = query.q === q.trim() && !places.isPlaceholderData;
   const suggestions = useMemo(
@@ -111,8 +115,7 @@ export function HomeScreen() {
   const pending = places.isPlaceholderData || total === undefined;
   const listAnnouncement =
     total === undefined ? null : verdicts && profile ? tp.announce(profile, shown.length, items.length, counts) : t.list.announce(total);
-  const nearbyAnnouncement = [tn.announce, listAnnouncement, cutNote].filter(Boolean).join(". ");
-  const announcement = listAnnouncement && origin ? nearbyAnnouncement : listAnnouncement;
+  const announcement = listAnnouncement && [origin ? tn.announce : null, listAnnouncement, cutNote].filter(Boolean).join(". ");
   useEffect(() => {
     if (!pending && announcement) announce(announcement);
   }, [announce, pending, announcement, queryKey]);

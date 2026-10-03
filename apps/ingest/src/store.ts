@@ -44,14 +44,14 @@ export function namesMatch(a: string, b: string): boolean {
 export function drizzleStore(db: Db): IngestStore {
   type Found = { id: string; owned: boolean };
 
-  async function findPlace(meta: SourceMeta, place: MappedPlace): Promise<Found | null> {
-    const [byRef] = await db
+  async function findPlace(tx: Pick<Db, "select">, meta: SourceMeta, place: MappedPlace): Promise<Found | null> {
+    const [byRef] = await tx
       .select({ id: places.id })
       .from(places)
       .where(eq(places.externalRef, place.externalRef));
     if (byRef) return { id: byRef.id, owned: true };
 
-    const [byFact] = await db
+    const [byFact] = await tx
       .select({ id: facts.placeId })
       .from(facts)
       .where(
@@ -67,7 +67,7 @@ export function drizzleStore(db: Db): IngestStore {
     const { x, y } = place.location;
     const radius = place.category === "toilet" ? NEARBY_TOILET_METRES : NEARBY_METRES;
     const prefix = `${place.externalRef.split(":")[0]}:`;
-    const nearby = await db
+    const nearby = await tx
       .select({ id: places.id, name: places.name, externalRef: places.externalRef })
       .from(places)
       .where(
@@ -184,7 +184,7 @@ export function drizzleStore(db: Db): IngestStore {
 
     async applyPlace(meta, place, fetchedAt) {
       return db.transaction(async (tx) => {
-        const found = await findPlace(meta, place);
+        const found = await findPlace(tx, meta, place);
         let placeId = found?.id ?? null;
         if (!placeId) {
           const location: LonLat = place.location;

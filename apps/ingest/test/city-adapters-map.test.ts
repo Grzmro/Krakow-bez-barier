@@ -221,7 +221,7 @@ describe("city sources registration", () => {
 
   it("queries a layer for the city bbox in WGS84", () => {
     // GIVEN a layer URL and the demo bbox WHEN building the query
-    const url = new URL(buildLayerQuery("https://example.org/arcgis/rest/services/X/FeatureServer/0/", krakow.bbox));
+    const url = new URL(buildLayerQuery("https://example.org/arcgis/rest/services/X/FeatureServer/0/", krakow.areas!.demo));
     // THEN it is an envelope query with WGS84 in and out
     expect(url.pathname).toBe("/arcgis/rest/services/X/FeatureServer/0/query");
     expect(Object.fromEntries(url.searchParams)).toMatchObject({
