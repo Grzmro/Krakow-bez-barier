@@ -189,6 +189,9 @@ export function BottomPanel({
   );
 }
 
+/** Movement (px) of a finger on the list before it is decided whether the drag scrolls the list or resizes the panel. */
+const DECIDE_DISTANCE = DRAG_SLOP / 2;
+
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 type Drag = {
@@ -318,25 +321,29 @@ function usePanelSwipe({
     // The top row hides and shows with the layout (desktop side panel), which resizes the panel.
     const resize = new ResizeObserver(syncTop);
     resize.observe(panel);
-    let rowTouch = false;
+    // The finger (touch identifier) that went down on the top row.
+    let rowTouch: number | null = null;
     let list: ListTouch | null = null;
 
     function onTouchStart(event: TouchEvent) {
+      // A new touch is a new press: a click it produces is not the tail of an earlier swipe.
+      swallowUntil.current = 0;
       const api = latest.current;
       const touch = event.touches[0];
       if (event.touches.length !== 1 || !touch || !api.enabled()) {
         if (list?.mode === "panel") api.release(null);
-        rowTouch = false;
         list = null;
+        // A second finger doesn't end a row drag (pointer events keep driving it), so its moves stay cancelled.
+        if (rowTouch !== null && !Array.from(event.touches).some((t) => t.identifier === rowTouch)) rowTouch = null;
         return;
       }
       const target = event.target as Node;
-      rowTouch = Boolean(rowRef.current?.contains(target));
+      rowTouch = rowRef.current?.contains(target) ? touch.identifier : null;
       list = scrollerRef.current?.contains(target) ? { id: touch.identifier, x: touch.clientX, y: touch.clientY, mode: "undecided" } : null;
     }
 
     function onTouchMove(event: TouchEvent) {
-      if (rowTouch) {
+      if (rowTouch !== null) {
         if (event.cancelable) event.preventDefault();
         return;
       }
@@ -347,10 +354,11 @@ function usePanelSwipe({
       if (list.mode === "undecided") {
         const dx = touch.clientX - list.x;
         const dy = touch.clientY - list.y;
-        if (dx === 0 && dy === 0) return;
+        // One jittery frame must not pick the direction for the whole gesture.
+        if (Math.max(Math.abs(dx), Math.abs(dy)) < DECIDE_DISTANCE) return;
         const at = api.order.indexOf(api.current);
         const takeOver =
-          Math.abs(dy) > Math.abs(dx) && (dy > 0 ? scroller!.scrollTop <= 0 && at > 0 : at < api.order.length - 1);
+          Math.abs(dy) >= Math.abs(dx) && (dy > 0 ? scroller!.scrollTop <= 0 && at > 0 : at < api.order.length - 1);
         if (!takeOver || !event.cancelable) {
           list.mode = "native";
           return;
@@ -363,7 +371,7 @@ function usePanelSwipe({
     }
 
     function onTouchEnd(event: TouchEvent) {
-      rowTouch = false;
+      if (event.touches.length === 0) rowTouch = null;
       const current = list;
       list = null;
       if (current?.mode !== "panel") return;
