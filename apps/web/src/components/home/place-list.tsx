@@ -18,7 +18,7 @@ import { Button, cn } from "@krakow-bez-barier/ui";
 import { SampleTag, StatusBadge } from "@/components/kbb";
 import { NeedGroups } from "@/components/profile/need-groups";
 import { pl } from "@/i18n/pl";
-import { filterGapStatus, summaryLine } from "@/lib/place-features";
+import { filterGapStatus, matchFeature, summaryLine } from "@/lib/place-features";
 import { routes } from "@/lib/routes";
 
 const t = pl.home;
@@ -64,7 +64,14 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
   const [open, setOpen] = useState(false);
   const I = CATEGORY_ICON[place.category];
   const verdict = place.verdict;
-  const gap = !verdict && features.length ? filterGapStatus(place.summary, features) : null;
+  const gap = features.length ? filterGapStatus(place.summary, features) : null;
+  const gapFilters =
+    verdict && gap
+      ? features
+          .filter((feature) => matchFeature(place.summary, feature) !== "known")
+          .map((feature) => t.filters[feature])
+          .join(", ")
+      : undefined;
   const detailsId = `need-groups-${place.id}`;
   return (
     <li
@@ -86,12 +93,15 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
         </span>
         <span className="min-w-0 flex-1">
           {verdict ? (
-            <StatusBadge
-              status={verdict.state}
-              reason={verdict.state === "met" ? undefined : verdict.reasons[0]}
-              unconfirmed={verdict.state === "met" && verdict.unconfirmed}
-              className="mb-1.5 max-w-full"
-            />
+            <span className="mb-1.5 flex flex-wrap items-center gap-1.5">
+              <StatusBadge
+                status={verdict.state}
+                reason={verdict.state === "met" ? undefined : verdict.reasons[0]}
+                unconfirmed={verdict.state === "met" && verdict.unconfirmed}
+                className="max-w-full"
+              />
+              {gap ? <StatusBadge status={gap} size="sm" reason={gapFilters} className="max-w-full" /> : null}
+            </span>
           ) : gap ? (
             <StatusBadge status={gap} size="sm" className="mb-1.5 max-w-full" />
           ) : null}

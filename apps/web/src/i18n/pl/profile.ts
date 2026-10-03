@@ -78,5 +78,7 @@ export const profile = {
     hideDetails: "Ukryj szczegóły",
     hideDetailsAria: (place: string) => `Ukryj szczegóły: ${place}`,
     showAll: "Pokaż wszystkie wyniki",
+    filteredEmpty: "Żadne miejsce nie pasuje do wybranego wyniku",
+    filteredEmptyHint: "Wyniki wyszukiwania są, ale ukrywa je filtr wyniku profilu.",
   },
 } as const;

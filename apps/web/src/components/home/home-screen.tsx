@@ -95,11 +95,9 @@ export function HomeScreen() {
   }, [announce, pending, announcement, queryKey]);
 
   function changeProfile(next: typeof profile) {
+    if (next !== profile) setStatusFilter(null);
+    if (!next) setHideFailing(false);
     setProfile(next);
-    if (!next) {
-      setStatusFilter(null);
-      setHideFailing(false);
-    }
   }
 
   function toggleStatus(status: Status) {
@@ -247,15 +245,12 @@ export function HomeScreen() {
               <span className="grid size-16 place-items-center rounded-full bg-primary-container text-primary">
                 <MagnifyingGlass weight="bold" className="size-8" aria-hidden />
               </span>
-              <p className="text-title font-semibold">{t.list.empty}</p>
-              <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button variant="outline" onClick={searchWider}>
-                  {t.list.searchWider}
-                </Button>
-                {statusFilter || hideFailing ? (
+              {items.length ? (
+                <>
+                  <p className="text-title font-semibold">{tp.list.filteredEmpty}</p>
+                  <p className="text-body-sm text-muted-foreground">{tp.list.filteredEmptyHint}</p>
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     onClick={() => {
                       setStatusFilter(null);
                       setHideFailing(false);
@@ -263,13 +258,23 @@ export function HomeScreen() {
                   >
                     {tp.list.showAll}
                   </Button>
-                ) : null}
-                {features.length && !showUnknown ? (
-                  <Button variant="ghost" onClick={() => setShowUnknown(true)}>
-                    {t.showUnknown}
-                  </Button>
-                ) : null}
-              </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-title font-semibold">{t.list.empty}</p>
+                  <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button variant="outline" onClick={searchWider}>
+                      {t.list.searchWider}
+                    </Button>
+                    {features.length && !showUnknown ? (
+                      <Button variant="ghost" onClick={() => setShowUnknown(true)}>
+                        {t.showUnknown}
+                      </Button>
+                    ) : null}
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <ul className="space-y-2.5">

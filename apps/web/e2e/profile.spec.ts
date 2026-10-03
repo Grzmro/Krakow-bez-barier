@@ -40,6 +40,8 @@ test("wheelchair profile on the home screen shows verdicts on the list and map, 
   await expect(row(page, "Hotel Przykład")).toContainText("Spełnia · niepotwierdzone");
   await expect(row(page, "Restauracja Przykład")).toContainText("Nie spełnia · 2 stopnie");
   await expect(row(page, "Kawiarnia Przykład")).toContainText("Brak danych");
+  await expect(row(page, "Kawiarnia Przykład")).toContainText("Brak danych · Toaleta dostosowana");
+  await expect(row(page, "Hotel Przykład")).not.toContainText("Toaleta dostosowana");
   await expect(liveRegion(page)).toHaveText("Profil: wózek. 5 miejsc: 1 spełnia, 1 nie spełnia, 3 brak danych, 0 sprzeczne.");
 
   // AND the map pins carry the same verdicts as the list
@@ -85,6 +87,24 @@ test("counters filter by verdict and announce the result", async ({ page, eviden
   // THEN the barrier place disappears and the count is announced
   await expect(row(page, "Restauracja Przykład")).toHaveCount(0);
   await expect(liveRegion(page)).toHaveText("Profil: wózek. Pokazano 4 z 5 miejsc: 1 spełnia, 1 nie spełnia, 3 brak danych, 0 sprzeczne.");
+
+  // WHEN a counter with no places is pressed
+  await page.getByRole("switch", { name: "Ukryj niespełniające" }).uncheck();
+  await counters.getByRole("button", { name: "0 sprzeczne" }).click();
+
+  // THEN the empty state blames the verdict filter, not the search, and offers only to show everything
+  await expect(list(page)).toContainText("Żadne miejsce nie pasuje do wybranego wyniku");
+  await expect(page.getByRole("button", { name: "Szukaj w całym Krakowie" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Pokaż wszystkie wyniki" }).click();
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("5 miejsc");
+
+  // WHEN a counter is pressed and the profile is switched to another one
+  await counters.getByRole("button", { name: "1 spełnia" }).click();
+  await page.getByRole("radio", { name: "Wózek dziecięcy" }).check();
+
+  // THEN the counter is released, because the verdicts behind it have changed
+  await expect(counters.getByRole("button", { pressed: true })).toHaveCount(0);
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("5 miejsc");
 });
 
 test("thresholds change verdicts, persist in the browser and reset to defaults", async ({ page, expectAccessible, evidence }) => {

@@ -66,11 +66,11 @@
             - listitem: Winda Spełnia · niepotwierdzone
             - listitem: Toaleta dostosowana Spełnia
         - listitem:
-          - link /Brak danych · wejście Bistro Przykład ul\. Grodzka \d+, Kraków Dane przykładowe \d+ m od Rynku/:
+          - link /Brak danych · wejście Brak danych · Toaleta dostosowana Bistro Przykład ul\. Grodzka \d+, Kraków Dane przykładowe \d+ m od Rynku/:
             - /url: /miejsca/bistro-przyklad
           - button "Dlaczego? Bistro Przykład"
         - listitem:
-          - link /Brak danych · wejście Kawiarnia Przykład ul\. Floriańska \d+, Kraków Dane przykładowe \d+ m od Rynku/:
+          - link /Brak danych · wejście Brak danych · Toaleta dostosowana Kawiarnia Przykład ul\. Floriańska \d+, Kraków Dane przykładowe \d+ m od Rynku/:
             - /url: /miejsca/kawiarnia-przyklad
           - button "Dlaczego? Kawiarnia Przykład"
         - listitem:
@@ -78,6 +78,6 @@
             - /url: /miejsca/toaleta-planty-przyklad
           - button "Dlaczego? Toaleta publiczna Planty (przykład)"
         - listitem:
-          - link /Nie spełnia · 2 stopnie Restauracja Przykład ul\. Szewska 8, Kraków Dane przykładowe \d+ m od Rynku/:
+          - link /Nie spełnia · 2 stopnie Brak danych · Toaleta dostosowana Restauracja Przykład ul\. Szewska 8, Kraków Dane przykładowe \d+ m od Rynku/:
             - /url: /miejsca/restauracja-przyklad
           - button "Dlaczego? Restauracja Przykład"
