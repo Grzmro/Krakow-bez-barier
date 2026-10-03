@@ -74,7 +74,7 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
         </span>
         <span className="min-w-0 flex-1">
           {verdict ? (
-            <span className="mb-1.5 flex flex-wrap items-center gap-1.5">
+            <span data-verdict={verdict.state} className="mb-1.5 flex flex-wrap items-center gap-1.5">
               <StatusBadge
                 status={verdict.state}
                 reason={verdict.state === "met" ? undefined : verdict.reasons[0]}

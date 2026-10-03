@@ -5,20 +5,26 @@
   - paragraph: "/Prototyp „Kraków bez barier” \\(HackYeah \\d+\\)\\. Cel: WCAG 2\\.2 AA\\. Stan na \\d+\\.\\d+\\.\\d+\\./"
   - heading "Co działa" [level=2]
   - list:
-    - listitem: Obsługa klawiaturą, widoczny fokus, link „Przejdź do treści”.
-    - listitem: Statusy jako tekst, ikona i kształt, nie tylko kolor.
-    - listitem: /Cele dotykowe min\. \d+ px, kontrast tekstu min\. \d+,\d+:1\./
+    - listitem: "Cały główny scenariusz działa samą klawiaturą: wyszukanie, profil, karta miejsca i zgłoszenie. Fokus jest widoczny i wraca na miejsce po zamknięciu okna."
+    - listitem: Linki „Przejdź do treści” i „Przejdź do listy” pozwalają ominąć mapę.
+    - listitem: Wszystko z mapy jest też na liście miejsc — z tymi samymi wynikami i statusami.
+    - listitem: Statusy jako tekst, ikona i kształt, nie tylko kolor. Brak danych nigdy nie wygląda jak „spełnia”.
+    - listitem: /Kontrast tekstu min\. \d+,\d+:1, cele dotykowe min\. \d+ px\./
+    - listitem: /Powiększenie \d+% i ekran szerokości \d+ px bez przewijania w poziomie\./
+    - listitem: Liczba wyników po wyszukaniu i zmianie filtra jest ogłaszana czytnikom ekranu.
     - listitem: Ograniczony ruch przy ustawieniu „zmniejsz ruch”.
-    - listitem: Automatyczne testy axe (WCAG 2.2 A/AA) każdego ekranu.
+    - listitem: Automatyczne testy axe (WCAG 2.2 A/AA) każdego ekranu przed każdą zmianą w aplikacji.
   - heading "Znane ograniczenia" [level=2]
   - list:
-    - listitem: "Wyszukiwanie miejsc i mapa są w budowie: lista miejsc jako tekstowy odpowiednik mapy i ogłaszanie liczby wyników po zmianie filtra jeszcze nie działają."
+    - listitem: Nie testowaliśmy jeszcze ręcznie z czytnikami ekranu (VoiceOver, TalkBack, NVDA) ani z ich użytkownikami.
+    - listitem: Testy automatyczne wykrywają tylko część problemów — pełnego audytu WCAG 2.2 AA jeszcze nie było.
+    - listitem: Pinezki na mapie są ukryte przed czytnikami ekranu i nie da się do nich przejść klawiszem Tab — te same miejsca są na liście.
+    - listitem: Nie sprawdzaliśmy trybu wysokiego kontrastu systemu.
     - listitem: Część danych jest przykładowa; oznaczamy ją „PRZYKŁAD”.
     - listitem: Brak wersji angielskiej.
-    - listitem: Nie testowaliśmy jeszcze z użytkownikami czytników ekranu.
   - heading "Plan usunięcia ograniczeń" [level=2]
   - list:
-    - listitem: "Przed pilotażem: audyt WCAG 2.2 AA i testy z czytnikami ekranu (VoiceOver, NVDA)."
-    - listitem: "W pilotażu: testy z osobami na wózkach i rodzicami z wózkami."
-    - listitem: "Po pilotażu: wersja angielska."
+    - listitem: "Przed pilotażem: ręczne testy głównego scenariusza z VoiceOver, TalkBack i NVDA oraz audyt WCAG 2.2 AA."
+    - listitem: "W pilotażu: testy z osobami na wózkach i rodzicami z wózkami dziecięcymi."
+    - listitem: "Po pilotażu: tryb wysokiego kontrastu i wersja angielska."
   - paragraph: Uwagi o dostępności zgłoś zespołowi projektu — poprawimy je przed pilotażem.

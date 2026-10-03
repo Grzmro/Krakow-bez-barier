@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentProps } from "react";
+import { useRef, type ComponentProps } from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 import { cn } from "../cn";
 
@@ -13,7 +13,16 @@ function VaulDrawer({ autoFocus = true, ...props }: ComponentProps<typeof Drawer
   return <DrawerPrimitive.Root data-slot="drawer" autoFocus={autoFocus} {...props} />;
 }
 
-function VaulDrawerContent({ className, children, ...props }: ComponentProps<typeof DrawerPrimitive.Content>) {
+// Most sheets open from state, not a Trigger, so Radix has nothing to return focus to on close:
+// remember whatever was focused when the sheet opened and refocus it.
+function VaulDrawerContent({
+  className,
+  children,
+  onOpenAutoFocus,
+  onCloseAutoFocus,
+  ...props
+}: ComponentProps<typeof DrawerPrimitive.Content>) {
+  const opener = useRef<HTMLElement | null>(null);
   return (
     <DrawerPrimitive.Portal>
       {/* Black, not the ink token: ink is near-white in dark mode. */}
@@ -23,6 +32,16 @@ function VaulDrawerContent({ className, children, ...props }: ComponentProps<typ
           "fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[92dvh] w-full max-w-xl flex-col rounded-t-(--radius-sheet) bg-card pb-[env(safe-area-inset-bottom)] text-card-foreground shadow-sheet outline-none",
           className,
         )}
+        onOpenAutoFocus={(e) => {
+          opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          onOpenAutoFocus?.(e);
+        }}
+        onCloseAutoFocus={(e) => {
+          onCloseAutoFocus?.(e);
+          if (e.defaultPrevented || !opener.current?.isConnected) return;
+          e.preventDefault();
+          opener.current.focus();
+        }}
         {...props}
       >
         <div aria-hidden className="mx-auto mt-2.5 h-1 w-9 shrink-0 rounded-full bg-border-strong/70" />
