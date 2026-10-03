@@ -19,7 +19,7 @@ const nextKey = () => `mine-${++seq}`;
  * The visitor's own reports and confirmations for one place. A report is held back for UNDO_MS so "Cofnij" really
  * withdraws it (there is no delete endpoint); it is sent at once if the card unmounts first.
  */
-// TODO(KBB-28): entries live in memory only — read `ResolvedAttribute.pendingReports` once the places API serves it.
+// TODO(KBB-49): entries live in memory only — read `ResolvedAttribute.pendingReports` once the places API serves it.
 export function usePlaceReports(placeId: string) {
   const [entries, setEntries] = useState<PendingEntry[]>([]);
   const queued = useRef(new Map<string, { timer: ReturnType<typeof setTimeout>; send: () => void }>());

@@ -1,5 +1,6 @@
 import type { Problem } from "@krakow-bez-barier/contracts";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { getOperation } from "./openapi";
 import { HttpError } from "./problem";
 import { createRateLimiter } from "./rate-limit";
 import { defineRoute, respond, type ApiRequest } from "./route";
@@ -201,5 +202,25 @@ describe("defineRoute — responses and errors", () => {
     expect(second.status).toBe(429);
     expect(second.headers.get("retry-after")).toBe("60");
     expect(await second.json()).toMatchObject({ status: 429, title: "Too many requests" });
+  });
+
+  it("refuses a rate limit on an operation that documents no 429", () => {
+    // GIVEN an operation whose spec lists no 429 (every operation documents one today, so the compiled one is narrowed)
+    const op = getOperation("getHealth");
+    const documented = op.statuses;
+    op.statuses = documented.filter((status) => status !== "429");
+
+    try {
+      // WHEN a limiter is attached to it
+      const define = () =>
+        defineRoute("getHealth", async () => respond(200, {} as never), {
+          rateLimit: createRateLimiter({ limit: 1, windowMs: 1000 }),
+        });
+
+      // THEN it fails at definition time, not in production
+      expect(define).toThrow(/no 429/);
+    } finally {
+      op.statuses = documented;
+    }
   });
 });

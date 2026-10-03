@@ -171,6 +171,11 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
         if (decision === "accepted") {
           const fact = buildFact(toRecord(updated));
           await tx.insert(sources).values(COMMUNITY_MODERATED_SOURCE).onConflictDoNothing();
+          // Two reports for one place and attribute accepted at once would both insert an active fact and break the
+          // unique index; this serialises them so the second supersedes the first.
+          await tx.execute(
+            sql`select pg_advisory_xact_lock(hashtext(${`${COMMUNITY_MODERATED_SOURCE.id}|${fact.sourceRecordRef}|${fact.attribute}`}))`,
+          );
           // Facts are never overwritten: the source's earlier fact for this place and attribute is superseded.
           await tx
             .update(facts)

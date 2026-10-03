@@ -524,8 +524,9 @@ paths:
     get:
       operationId: listModerationReports
       summary: List reports for moderation
-      description: 'Moderator queue, oldest first, each report with its decision history. Requires a moderator bearer
-        token; after 5 failed attempts a client is locked out for 15 minutes (`429`).
+      description: 'Reports for moderators, oldest first, each with its decision history. Without `status` every report
+        is listed, decided ones included; filter by `status=new` or `status=needs_info` for the open queue. Requires a
+        moderator bearer token; after 5 failed attempts a client is locked out for 15 minutes (`429`).
 
         '
       tags:

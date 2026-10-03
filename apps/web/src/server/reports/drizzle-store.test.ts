@@ -64,4 +64,28 @@ describe.skipIf(!url)("Drizzle reports store (database)", () => {
     // OSM still says the lift works, so the card shows a conflict rather than one value.
     expect(item?.currentValue).toBeNull();
   });
+
+  it("accepts reports for one place and attribute at the same time", async () => {
+    // GIVEN a place with several pending reports about its lift
+    const { db } = handle!;
+    const store = createDrizzleReportsStore(db);
+    const ref = `test:${randomUUID()}`;
+    const [place] = await db
+      .insert(places)
+      .values({ externalRef: ref, name: "Race place", category: "museum", location: { x: 19.94, y: 50.06 } })
+      .returning();
+    const pending = await Promise.all(
+      Array.from({ length: 6 }, (_, i) =>
+        createReport(store, { placeId: ref, attribute: "lift", value: { kind: "boolean", boolean: i % 2 === 0 } }),
+      ),
+    );
+
+    // WHEN moderators accept them all concurrently
+    await Promise.all(pending.map((r, i) => decideReport(store, { reportId: r.id, decision: "accepted" }, `mod${i}`)));
+
+    // THEN every decision succeeds and exactly one moderated fact stays active, the others superseded
+    const all = await db.select().from(facts).where(eq(facts.placeId, place.id));
+    expect(all.filter((f) => f.status === "active")).toHaveLength(1);
+    expect(all.filter((f) => f.status === "superseded")).toHaveLength(5);
+  });
 });

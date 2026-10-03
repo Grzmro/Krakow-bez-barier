@@ -52,6 +52,18 @@ describe("moderation sign-in", () => {
     expect(locked.headers.get("retry-after")).toBeTruthy();
   });
 
+  it("signs in before validating, so an anonymous caller learns nothing about the request shape", async () => {
+    // GIVEN a malformed decision without a token
+    const headers = { "x-forwarded-for": `198.51.100.${++client}` };
+
+    // WHEN it is sent
+    const res = await decide({ reportId: 42, decision: "maybe" }, headers as never);
+
+    // THEN the answer is 401 without field errors
+    expect(res.status).toBe(401);
+    expect(await res.json()).not.toHaveProperty("errors");
+  });
+
   it("ignores tokens shorter than 16 characters", async () => {
     // WHEN the configured short token is used
     const res = await list("", auth("abc"));

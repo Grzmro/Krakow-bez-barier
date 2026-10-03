@@ -64,8 +64,12 @@ export function createRateLimiter({ limit, windowMs, now = Date.now }: RateLimit
   };
 }
 
-/** Client key for rate limiting: the first `x-forwarded-for` hop (set by the hosting proxy), else one shared bucket. */
+/**
+ * Client key for rate limits, lockouts and one-confirmation-per-client: the address the hosting proxy saw. Trusts the
+ * proxy in front of the app (Vercel) — `x-vercel-forwarded-for`, else the last `x-forwarded-for` hop, which the nearest
+ * proxy appends; the leftmost hops are whatever the client sent. Without a proxy every request shares one bucket.
+ */
 export function clientKey(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || request.headers.get("x-real-ip") || "anonymous";
+  const lastHop = (header: string) => request.headers.get(header)?.split(",").at(-1)?.trim();
+  return lastHop("x-vercel-forwarded-for") || lastHop("x-forwarded-for") || request.headers.get("x-real-ip") || "anonymous";
 }
