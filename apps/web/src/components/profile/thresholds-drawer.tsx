@@ -15,7 +15,6 @@ import { THRESHOLD_FLAGS, THRESHOLD_LIMITS, type Thresholds } from "@/lib/profil
 import { useProfile } from "@/lib/profile/use-profile";
 import { ProfileSwitch } from "./profile-switch";
 
-
 type NumberKey = keyof typeof THRESHOLD_LIMITS;
 
 function Stepper({ label, value, limits, onChange }: { label: string; value: number; limits: (typeof THRESHOLD_LIMITS)[NumberKey]; onChange: (v: number) => void }) {

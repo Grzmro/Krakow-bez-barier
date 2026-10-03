@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { pl } from "@/i18n/pl";
+import { getMessages } from "@/i18n/server";
 import { RouteScreen } from "./route-screen";
 
-export const metadata: Metadata = {
-  title: `${pl.route.pageTitle} · ${pl.common.app.name}`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await getMessages();
+  return { title: `${m.route.pageTitle} · ${m.common.app.name}` };
+}
 
 // From Dworzec Główny to Rynek Główny, or to the place in `?do=<id>` (the "Prowadź" button on its card).
 export default async function RoutePage({ searchParams }: PageProps<"/trasa">) {

@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import type { Route, RouteRequest } from "@krakow-bez-barier/contracts";
+import { useLocale } from "@/i18n/client";
 import { api } from "./api";
 import type { ProfileSettings } from "./profile/thresholds";
 
@@ -37,8 +38,9 @@ export function routeRequest(
 
 /** `POST /routes`; routes are cached for the session, each one costs provider quota. */
 export function useRoute(body: RouteRequest | null) {
+  const locale = useLocale();
   return useQuery({
-    queryKey: ["route", body],
+    queryKey: ["route", locale, body],
     queryFn: async () => {
       const { data, response } = await api.POST("/routes", { body: body! });
       if (data) return data;

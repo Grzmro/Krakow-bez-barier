@@ -1,3 +1,5 @@
+import type { Locale } from "@/i18n/locale";
+
 export type LonLat = [number, number];
 
 /** Hard limits a wheelchair-type route must respect; the provider avoids ways that break them. */
@@ -14,6 +16,8 @@ export type ProviderRequest = {
   mode: "foot" | "wheelchair";
   avoidSteps: boolean;
   restrictions?: RouteRestrictions;
+  /** Language of the turn instructions. */
+  locale: Locale;
 };
 
 /** Range over route coordinates `[from, to]` (indexes into `coordinates`) with one data value. */

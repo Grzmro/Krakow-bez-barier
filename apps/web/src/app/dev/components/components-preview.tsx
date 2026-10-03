@@ -26,7 +26,6 @@ import {
 } from "@/components/kbb";
 import { useMessages } from "@/i18n/client";
 
-
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
     <section aria-labelledby={id} className="space-y-3">

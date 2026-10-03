@@ -6,7 +6,7 @@ import { ArrowSquareOut, CheckCircle, ClockCountdown, CloudSlash, Question, type
 import type { Source } from "@krakow-bez-barier/contracts";
 import { Button, cn, useAnnounce } from "@krakow-bez-barier/ui";
 import { SampleTag } from "@/components/kbb";
-import { useMessages } from "@/i18n/client";
+import { useLocale, useMessages } from "@/i18n/client";
 import type { Messages } from "@/i18n/messages";
 import { api, isMockApi } from "@/lib/api";
 
@@ -52,7 +52,8 @@ export function SourcesList() {
   const t = useMessages().pages.aboutData;
   const refreshIntervalLabels: Partial<Record<string, string>> = t.refreshInterval;
   const announce = useAnnounce();
-  const query = useQuery({ queryKey: ["sources"], queryFn: fetchSources });
+  const locale = useLocale();
+  const query = useQuery({ queryKey: ["sources", locale], queryFn: fetchSources });
 
   useEffect(() => {
     if (query.isSuccess) announce(t.loaded(query.data.length));

@@ -18,6 +18,8 @@ export const common: Messages["common"] = {
   menu: {
     title: "Menu",
     description: "More pages and settings",
+    route: "Plan a route",
+    routeSub: "Main Station → Main Square, step-free",
     aboutData: "About the data",
     aboutDataSub: "Sources, licences, reliability",
     business: "For businesses: widget and API",
@@ -56,6 +58,7 @@ export const common: Messages["common"] = {
     disabled_parking: "Disabled parking",
     wheelchair_overall: "Overall accessibility (OSM)",
     levels: "Storeys",
+    stairs: "Stairs on the route",
   },
   unconfirmed: "unconfirmed",
   reliability: {

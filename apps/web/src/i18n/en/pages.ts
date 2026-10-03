@@ -33,6 +33,10 @@ export const pages: Messages["pages"] = {
       yearly: "yearly",
       realtime: "real time",
     },
+    statusNote: {
+      simulatedOutage: "Simulated source outage (test switch). We show the last known data as outdated.",
+      overdue: "The source didn't refresh on time. The data may be outdated.",
+    },
     verificationByKind: {
       official_open_data: "venue manager or the city",
       community: "community, user confirmations",
@@ -64,7 +68,7 @@ export const pages: Messages["pages"] = {
       ["How long", "We keep reports for 24 months, after which only the approved value and its date remain."],
       [
         "Settings",
-        "Your profile, thresholds and language are saved only in your browser. You can remove them by clearing the site data.",
+        "Your profile and thresholds are saved only in your browser. The language is saved in the kbb-lang cookie (only “pl” or “en”); your browser sends it to the server so the page comes in that language. Clearing the site data removes all of them.",
       ],
       ["Trackers", "We don't use ads, tracking analytics or third-party pixels."],
     ],

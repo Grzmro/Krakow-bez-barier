@@ -42,7 +42,6 @@ import { usePlaceReports } from "@/lib/use-place-reports";
 import { routes } from "@/lib/routes";
 import { ReportDrawer, type ReportMode, type ReportSubmission } from "./report-drawer";
 
-
 const FACT_ICON: Partial<Record<AccessibilityAttribute, Icon>> = {
   step_count: Stairs,
   step_height_cm: Stairs,
@@ -60,8 +59,9 @@ const FACT_ICON: Partial<Record<AccessibilityAttribute, Icon>> = {
 
 export function PlaceScreen({ id }: { id: string }) {
   const t = useMessages().place;
+  const locale = useLocale();
   const query = useQuery({
-    queryKey: ["place", id],
+    queryKey: ["place", locale, id],
     queryFn: async () => {
       const { data, response } = await api.GET("/places/{id}", { params: { path: { id } } });
       if (response.status === 404) return null;

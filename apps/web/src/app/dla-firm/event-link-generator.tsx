@@ -10,7 +10,6 @@ import { routes } from "@/lib/routes";
 import { useOrigin } from "@/lib/use-origin";
 import { CodeBlock } from "./code-block";
 
-
 const PLACES_SHOWN = 50;
 
 const fieldClass =

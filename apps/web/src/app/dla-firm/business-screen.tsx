@@ -10,7 +10,6 @@ import { useWidgetCard } from "@/lib/use-widget-card";
 import { CodeBlock } from "./code-block";
 import { EventLinkGenerator } from "./event-link-generator";
 
-
 const DEMO_PLACE_ID = "hotel-przyklad";
 const IFRAME_HEIGHT = 640;
 

@@ -12,7 +12,6 @@ import { useCategoryLookup } from "@/lib/categories";
 import { filterGapStatus, matchFeature, summaryLine } from "@/lib/place-features";
 import { routes } from "@/lib/routes";
 
-
 function chipFallback(chip: PlaceSummary["summary"][number], t: Messages["common"]) {
   const name = t.attribute[chip.attribute];
   if (chip.state === "unknown") return `${name}: ${t.status.unknown.toLowerCase()}`;

@@ -14,7 +14,6 @@ import { usePlace } from "@/lib/places";
 import { routes } from "@/lib/routes";
 import { useOrigin } from "@/lib/use-origin";
 
-
 const SECTION_ICON: Record<EventSectionId, Icon> = { entrance: DoorOpen, toilet: Toilet, parking: Car };
 
 export function EventScreen({ placeId, details }: { placeId: string; details: EventDetails }) {

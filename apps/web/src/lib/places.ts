@@ -2,6 +2,7 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { GetPlaceQuery, ListPlacesQuery } from "@krakow-bez-barier/contracts";
+import { useLocale } from "@/i18n/client";
 import { api } from "./api";
 import { collectPages } from "./nearby";
 
@@ -16,8 +17,9 @@ async function listPlaces(query: ListPlacesQuery) {
  * `allPages`, follows `nextCursor` (up to a cap) — only for a bounded `bbox`.
  */
 export function usePlaces(query: ListPlacesQuery, { allPages = false }: { allPages?: boolean } = {}) {
+  const locale = useLocale();
   return useQuery({
-    queryKey: ["places", query, allPages],
+    queryKey: ["places", locale, query, allPages],
     queryFn: () => (allPages ? collectPages((cursor) => listPlaces({ ...query, cursor })) : listPlaces(query)),
     placeholderData: keepPreviousData,
   });
@@ -28,8 +30,9 @@ export function usePlaces(query: ListPlacesQuery, { allPages = false }: { allPag
  * Pass `enabled: false` to defer loading until it's needed.
  */
 export function usePlace(id: string, query: GetPlaceQuery, { enabled = true }: { enabled?: boolean } = {}) {
+  const locale = useLocale();
   return useQuery({
-    queryKey: ["place", id, query],
+    queryKey: ["place", locale, id, query],
     queryFn: async () => {
       const { data, error, response } = await api.GET("/places/{id}", {
         params: { path: { id }, query },

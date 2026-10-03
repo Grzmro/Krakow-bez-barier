@@ -34,7 +34,8 @@ self.addEventListener("message", (event) => {
     event.waitUntil(Promise.all([cacheMissing(urls), warmPage(event.data.page)]));
   }
   // Client-side (RSC) navigations bypass the cache; the page asks for its HTML to be stored instead.
-  if (event.data?.type === "kbb:warm-page") event.waitUntil(warmPage(event.data.url));
+  // `force`: the stored copy is in another language (the language was just switched), refetch it now.
+  if (event.data?.type === "kbb:warm-page") event.waitUntil(warmPage(event.data.url, event.data.force === true));
 });
 
 self.addEventListener("fetch", (event) => {
@@ -104,7 +105,7 @@ async function stamped(response) {
   return new Response(await response.blob(), { status: response.status, statusText: response.statusText, headers });
 }
 
-async function warmPage(path) {
+async function warmPage(path, force = false) {
   if (typeof path !== "string") return;
   const url = new URL(path, self.location.origin);
   if (!isHandled(url) || url.searchParams.has("_rsc")) return;
@@ -112,7 +113,7 @@ async function warmPage(path) {
   // A full page load stored it a moment ago — don't fetch it twice.
   const cached = await cache.match(url.href);
   const cachedAt = Date.parse(cached?.headers.get(CACHED_AT) ?? "");
-  if (Date.now() - cachedAt < 30_000) return;
+  if (!force && Date.now() - cachedAt < 30_000) return;
   try {
     const response = await fetch(url.href);
     if (isStorable(response)) await cache.put(url.href, await stamped(response));

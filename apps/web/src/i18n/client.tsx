@@ -2,7 +2,6 @@
 
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, defaultLocale, type Locale } from "./locale";
 import { messagesFor, type Messages } from "./messages";
 
@@ -27,21 +26,23 @@ export const useLocale = () => useContext(LocaleContext).locale;
 export const useMessages = (): Messages => messagesFor(useLocale());
 
 /**
- * Switches the language: Client Components at once, Server Components after a refresh, and API data
- * (chip labels, verdict reasons) is refetched in the new language. Remembered in a cookie.
+ * Switches the language: Client Components at once, Server Components after a refresh. API data (chip labels,
+ * verdict reasons) is cached per language — every localized query key holds the locale. Remembered in a cookie.
  */
 export function useSetLocale() {
   const { setLocale } = useContext(LocaleContext);
   const router = useRouter();
-  const queryClient = useQueryClient();
   return useCallback(
     (locale: Locale) => {
       document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
       document.documentElement.lang = locale;
       setLocale(locale);
       router.refresh();
-      void queryClient.invalidateQueries();
+      // Pages stored for offline use are keyed by URL only; store the shell and this page again in the new language.
+      for (const url of ["/", "/offline", location.pathname + location.search]) {
+        navigator.serviceWorker?.controller?.postMessage({ type: "kbb:warm-page", url, force: true });
+      }
     },
-    [setLocale, router, queryClient],
+    [setLocale, router],
   );
 }

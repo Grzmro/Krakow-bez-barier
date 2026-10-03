@@ -92,3 +92,32 @@ test("an info page renders in English on the server", async ({ page, expectAcces
   await expect(page.getByRole("link", { name: "Back to the home page" })).toBeVisible();
   await expectAccessible();
 });
+
+test("the route screen, opened from the menu, is English end to end", async ({ page, expectAccessible, evidence }) => {
+  // GIVEN a visitor who switched to English
+  await page.goto("/");
+  await chooseLanguage(page, "Menu", "English");
+
+  // WHEN they open "Plan a route" from the menu
+  await page.getByRole("button", { name: "Menu" }).click();
+  await page.getByRole("link", { name: /Plan a route/ }).click();
+
+  // THEN the route summary, the turn instructions and the segment notes are English
+  await expect(page).toHaveURL(/\/trasa$/);
+  await expect(page).toHaveTitle("Route · Kraków bez barier");
+  const main = page.locator("main");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
+  await expect(main).toContainText("No known barriers on this route");
+  await expect(main).toContainText("no data on 5 segments (336 m)");
+  const step = page.getByRole("button", { name: /^Segment 2 of 33\. Turn right, 257 metres\. No data/ });
+  await step.focus();
+  await page.keyboard.press("Enter");
+  const details = page.locator(`#${await step.getAttribute("aria-controls")}`);
+  await expect(details).toContainText("Path surface: paving slabs");
+  await expect(details).toContainText(/OpenStreetMap \(przez openrouteservice\) · 03\/10\/2026 · community/);
+  await expect(step).toContainText("no surface data on part of the segment");
+  await expect(main).not.toContainText(/brak danych|Skręć|Odcinek/);
+  await settle(page);
+  await expectAccessible();
+  await evidence("language-route-en");
+});

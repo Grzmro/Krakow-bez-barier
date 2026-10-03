@@ -8,7 +8,9 @@ import { Button, buttonVariants, cn, StatusIcon, toast, Toggle, ToggleGroup, use
 import { BottomPanel, FactRow, StatusBadge } from "@/components/kbb";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
 import { RouteMap } from "@/components/route/route-map";
-import { pl } from "@/i18n/pl";
+import { useLocale, useMessages } from "@/i18n/client";
+import type { Locale } from "@/i18n/locale";
+import type { Messages } from "@/i18n/messages";
 import { config } from "@/lib/config";
 import { factViews, formatDate, formatValue, joinValue } from "@/lib/place-facts";
 import { usePlace } from "@/lib/places";
@@ -17,10 +19,7 @@ import { useProfile } from "@/lib/profile/use-profile";
 import { routes } from "@/lib/routes";
 import { RouteError, routeRequest, useRoute, type RouteKind } from "@/lib/use-route";
 
-const t = pl.route;
-
 const KINDS: RouteKind[] = ["avoid_stairs", "shortest"];
-const KIND_LABEL: Record<RouteKind, string> = { avoid_stairs: t.avoidStairs, shortest: t.shortest };
 const MAP_PADDING = { top: 190, bottom: 80 };
 
 // Entrance facts from the destination's card: what the route ends at.
@@ -47,11 +46,13 @@ const STATUS_TEXT: Record<Status, string> = {
   unknown: "text-status-unknown",
 };
 
+type RouteMessages = Messages["route"];
+
 const barrierList = (route: Route) =>
   [...new Set(route.segments.filter((s) => s.state === "barrier").map((s) => s.note).filter(Boolean))].join(", ");
 
 /** What the alternative misses when it shows no known barrier: the request's own limits. */
-const limitsOf = (settings: ProfileSettings) => {
+const limitsOf = (t: RouteMessages, settings: ProfileSettings) => {
   const profile = settings.profile;
   if (!profile) return t.limitsNoProfile;
   const { maxThresholdCm, requireSmoothSurface } = settings.thresholds[profile];
@@ -59,22 +60,23 @@ const limitsOf = (settings: ProfileSettings) => {
 };
 
 /** Segments without data and with conflicting data: neither counts as passable. */
-function gaps(route: Route) {
+function gaps(t: RouteMessages, route: Route) {
   const conflicts = route.segments.filter((s) => s.state === "conflict").length;
   return [t.unknownOn(route.unknownSegmentCount, route.unknownMeters), conflicts ? t.conflictOn(conflicts) : null].filter(Boolean).join(", ");
 }
 
-function alternativeLine(route: Route, limits: string) {
+function alternativeLine(t: RouteMessages, route: Route, limits: string) {
   return route.knownBarrierCount ? `${t.alternative} ${barrierList(route)}` : `${t.alternativeUnmet} ${limits}`;
 }
 
-function summary(route: Route, limits: string) {
-  if (route.fallback) return `${t.noneOk}. ${alternativeLine(route, limits)}. ${gaps(route)}.`;
-  if (route.knownBarrierCount === 0) return `${t.noKnown}, ${gaps(route)}.`;
-  return `${t.hasBarriers(barrierList(route))}. ${gaps(route)}.`;
+function summary(t: RouteMessages, route: Route, limits: string) {
+  if (route.fallback) return `${t.noneOk}. ${alternativeLine(t, route, limits)}. ${gaps(t, route)}.`;
+  if (route.knownBarrierCount === 0) return `${t.noKnown}, ${gaps(t, route)}.`;
+  return `${t.hasBarriers(barrierList(route))}. ${gaps(t, route)}.`;
 }
 
 export function RouteScreen({ to }: { to?: string }) {
+  const t = useMessages().route;
   const announce = useAnnounce();
   const { settings, setProfile } = useProfile();
   const profile = settings.profile;
@@ -95,14 +97,14 @@ export function RouteScreen({ to }: { to?: string }) {
   const current = kind === "avoid_stairs" ? avoid : shortest;
   const other = kind === "avoid_stairs" ? shortest : avoid;
   const route = current.data;
-  const limits = limitsOf(settings);
+  const limits = limitsOf(t, settings);
 
   useEffect(() => {
-    if (route) announce(summary(route, limits));
-  }, [announce, route, limits]);
+    if (route) announce(summary(t, route, limits));
+  }, [announce, route, limits, t]);
   useEffect(() => {
     if (current.error) announce(current.error instanceof RouteError && current.error.reason === "no_route" ? t.error.noRoute : t.error.unavailable);
-  }, [announce, current.error]);
+  }, [announce, current.error, t]);
 
   const switchKind = (next: RouteKind) => {
     setKind(next);
@@ -166,7 +168,7 @@ export function RouteScreen({ to }: { to?: string }) {
         >
           {KINDS.map((k) => (
             <Toggle key={k} value={k} className="shadow-soft">
-              {KIND_LABEL[k]}
+              {k === "avoid_stairs" ? t.avoidStairs : t.shortest}
             </Toggle>
           ))}
         </ToggleGroup>
@@ -255,9 +257,10 @@ function RouteDetails({
   noProfile: boolean;
   limits: string;
 }) {
+  const t = useMessages().route;
   const clean = route.knownBarrierCount === 0;
   const conflicted = route.segments.some((s) => s.state === "conflict");
-  const unknown = gaps(route);
+  const unknown = gaps(t, route);
   const total = route.segments.length;
   const background = route.fallback || !clean ? "bg-status-barrier-bg" : conflicted ? "bg-status-conflict-bg" : "bg-status-met-bg";
 
@@ -319,7 +322,7 @@ function RouteDetails({
         >
           <span className="min-w-0 flex-1">
             <span className="block text-body font-semibold">
-              {KIND_LABEL[other.kind]} <span className="font-normal text-muted-foreground">· {t.minutes(other.durationMinutes)}</span>
+              {other.kind === "avoid_stairs" ? t.avoidStairs : t.shortest} <span className="font-normal text-muted-foreground">· {t.minutes(other.durationMinutes)}</span>
             </span>
             <span className="mt-1.5 block">
               {other.knownBarrierCount ? (
@@ -359,8 +362,8 @@ function RouteDetails({
   );
 }
 
-function factLine(fact: AccessibilityFact) {
-  return `${pl.common.attribute[fact.attribute]}: ${joinValue(formatValue(fact.attribute, fact.value))}`;
+function factLine(m: Messages, fact: AccessibilityFact, locale: Locale) {
+  return `${m.common.attribute[fact.attribute]}: ${joinValue(formatValue(fact.attribute, fact.value, locale))}`;
 }
 
 function SegmentItem({
@@ -376,10 +379,13 @@ function SegmentItem({
   open: boolean;
   onToggle: () => void;
 }) {
+  const m = useMessages();
+  const t = m.route;
+  const locale = useLocale();
   const status = segment.state;
   const last = index === total - 1;
   const detailsId = `odcinek-${segment.id}`;
-  const line = [segment.name, `${pl.common.status[status]}${segment.note ? `: ${segment.note}` : ""}`].filter(Boolean).join(" · ");
+  const line = [segment.name, `${m.common.status[status]}${segment.note ? `: ${segment.note}` : ""}`].filter(Boolean).join(" · ");
   return (
     <li className="relative flex gap-3">
       <div className="flex w-9 shrink-0 flex-col items-center pt-3">
@@ -398,7 +404,7 @@ function SegmentItem({
           type="button"
           aria-expanded={open}
           aria-controls={detailsId}
-          aria-label={t.segmentAria(index + 1, total, segment.instruction, segment.lengthMeters, pl.common.status[status], segment.note ?? "")}
+          aria-label={t.segmentAria(index + 1, total, segment.instruction, segment.lengthMeters, m.common.status[status], segment.note ?? "")}
           onClick={onToggle}
           className={cn(
             "flex min-h-14 w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-muted",
@@ -417,9 +423,9 @@ function SegmentItem({
             <ul className="space-y-1.5">
               {segment.facts.map((fact) => (
                 <li key={fact.id} className="text-caption">
-                  <span className="font-semibold text-foreground">{factLine(fact)}</span>
+                  <span className="font-semibold text-foreground">{factLine(m, fact, locale)}</span>
                   <span className="block text-muted-foreground">
-                    {t.sourceLine(fact.source.name, formatDate(fact.fetchedAt))} · {pl.place.level[fact.reliability]}
+                    {t.sourceLine(fact.source.name, formatDate(fact.fetchedAt, locale))} · {m.place.level[fact.reliability]}
                   </span>
                 </li>
               ))}
@@ -434,7 +440,8 @@ function SegmentItem({
 }
 
 function Destination({ place }: { place: Place }) {
-  const facts = factViews(place).filter((f) => ENTRANCE.has(f.attribute));
+  const t = useMessages().route;
+  const facts = factViews(place, useLocale()).filter((f) => ENTRANCE.has(f.attribute));
   return (
     <section aria-labelledby="route-destination" className="mt-6">
       <h2 id="route-destination" className="text-title font-semibold">

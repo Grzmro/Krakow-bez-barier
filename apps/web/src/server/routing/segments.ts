@@ -1,11 +1,10 @@
 import type { AccessibilityAttribute, AccessibilityFact, Route, RouteSegment } from "@krakow-bez-barier/contracts";
-import { pl } from "@/i18n/pl";
+import type { Locale } from "@/i18n/locale";
+import { messagesFor, type Messages } from "@/i18n/messages";
 import { SMOOTH_SURFACES } from "../domain/matcher";
 import { resolveAttribute } from "../domain/resolver";
 import type { NeedVerdict, ResolvedAttribute } from "../domain/types";
 import type { ExtraRange, LonLat, ProviderRoute } from "./provider";
-
-const t = pl.route.note;
 
 /** Limits a segment is checked against when a profile is on. */
 export type RouteThresholds = { maxKerbCm: number; maxInclinePct: number; smoothSurface: boolean };
@@ -23,6 +22,8 @@ export type BuildRouteInput = {
   /** When the provider computed the route — the date of every fact it reports. */
   fetchedAt: Date;
   now: Date;
+  /** Language of the segment notes; default Polish. */
+  locale?: Locale;
 };
 
 // OSM-derived data reported by openrouteservice: the source of the facts it gives us.
@@ -152,12 +153,13 @@ const numberOf = (a: ResolvedAttribute | undefined) => (a?.state === "known" && 
 const textOf = (a: ResolvedAttribute | undefined) => (a?.state === "known" && a.value?.kind === "text" ? a.value.text : null);
 const booleanOf = (a: ResolvedAttribute | undefined) => (a?.state === "known" && a.value?.kind === "boolean" ? a.value.boolean : null);
 
-function surfaceLabel(surface: string) {
-  return pl.place.surface[surface] ?? surface;
+function surfaceLabel(m: Messages, surface: string) {
+  return m.place.surface[surface] ?? surface;
 }
 
 /** The segment's state and its short reason; unknown and conflicting data never pass. */
-function judge(attributes: Map<AccessibilityAttribute, ResolvedAttribute>, data: SegmentData, th: RouteThresholds | null) {
+function judge(attributes: Map<AccessibilityAttribute, ResolvedAttribute>, data: SegmentData, th: RouteThresholds | null, m: Messages) {
+  const t = m.route.note;
   const barriers: string[] = [];
   if (booleanOf(attributes.get("stairs")) === true) barriers.push(t.stairs);
   const kerb = numberOf(attributes.get("kerb_height_cm"));
@@ -165,12 +167,12 @@ function judge(attributes: Map<AccessibilityAttribute, ResolvedAttribute>, data:
   const surface = textOf(attributes.get("surface"));
   if (th && kerb !== null && kerb > th.maxKerbCm) barriers.push(t.kerb(kerb));
   if (th && incline !== null && incline > th.maxInclinePct) barriers.push(t.incline(incline));
-  if (th?.smoothSurface && surface !== null && !SMOOTH_SURFACES.has(surface)) barriers.push(t.rough(surfaceLabel(surface)));
+  if (th?.smoothSurface && surface !== null && !SMOOTH_SURFACES.has(surface)) barriers.push(t.rough(surfaceLabel(m, surface)));
   if (barriers.length) return { state: "barrier" as NeedVerdict, note: barriers.join(t.separator) };
 
   const conflicts = [...attributes.values()].filter((a) => a.state === "conflict");
   if (conflicts.length) {
-    return { state: "conflict" as NeedVerdict, note: t.conflict(conflicts.map((a) => pl.common.attribute[a.attribute].toLowerCase()).join(t.separator)) };
+    return { state: "conflict" as NeedVerdict, note: t.conflict(conflicts.map((a) => m.common.attribute[a.attribute].toLowerCase()).join(t.separator)) };
   }
 
   const missing: string[] = [];
@@ -183,7 +185,7 @@ function judge(attributes: Map<AccessibilityAttribute, ResolvedAttribute>, data:
 
   // Kerbs come only from our facts (the provider reports none), so a met segment says when it has no kerb data.
   const notes = [
-    surface ? surfaceLabel(surface) : null,
+    surface ? surfaceLabel(m, surface) : null,
     th && incline !== null ? (incline <= 1 ? t.inclineLow : t.incline(incline)) : null,
     th && kerb === null ? t.noKerb : null,
   ];
@@ -198,6 +200,7 @@ function judge(attributes: Map<AccessibilityAttribute, ResolvedAttribute>, data:
  */
 export function buildRoute(input: BuildRouteInput): Route {
   const { route, thresholds, now } = input;
+  const messages = messagesFor(input.locale);
   const fetchedAt = input.fetchedAt.toISOString();
   const project = projector(route.coordinates[0]);
 
@@ -222,7 +225,7 @@ export function buildRoute(input: BuildRouteInput): Route {
     const attributes = new Map(
       [...new Set(facts.map((f) => f.attribute))].map((attribute) => [attribute, resolveAttribute(attribute, facts, now)]),
     );
-    const { state, note } = judge(attributes, data, thresholds);
+    const { state, note } = judge(attributes, data, thresholds, messages);
     return {
       id,
       name: step.name,

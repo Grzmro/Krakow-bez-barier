@@ -38,6 +38,11 @@ export const pages = {
       yearly: "co rok",
       realtime: "na bieżąco",
     } satisfies Record<string, string>,
+    // Notes the sources API writes itself (not from the source's own data).
+    statusNote: {
+      simulatedOutage: "Symulowana awaria źródła (przełącznik testowy). Pokazujemy ostatnie znane dane jako nieaktualne.",
+      overdue: "Źródło nie odświeżało się o czasie. Dane mogą być nieaktualne.",
+    },
     verificationByKind: {
       official_open_data: "zarządca lub miasto",
       community: "społeczność, potwierdzenia użytkowników",
@@ -69,7 +74,7 @@ export const pages = {
       ["Jak długo", "Zgłoszenia przechowujemy 24 miesiące, potem zostaje tylko zatwierdzona wartość i data."],
       [
         "Ustawienia",
-        "Profil, progi i język zapisujemy tylko w Twojej przeglądarce. Możesz je usunąć, czyszcząc dane strony.",
+        "Profil i progi zapisujemy tylko w Twojej przeglądarce. Język zapisujemy w ciasteczku kbb-lang (tylko „pl” albo „en”); przeglądarka wysyła je do serwera, żeby pokazać stronę w tym języku. Wszystko usuniesz, czyszcząc dane strony.",
       ],
       ["Trackery", "Nie używamy reklam, analityki śledzącej ani pikseli zewnętrznych."],
     ] as [string, string][],

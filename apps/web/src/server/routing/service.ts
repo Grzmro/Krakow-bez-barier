@@ -1,4 +1,5 @@
 import type { Profile, Route, RouteRequest } from "@krakow-bez-barier/contracts";
+import { defaultLocale, type Locale } from "@/i18n/locale";
 import { PROFILE_PRESETS } from "../domain/profiles";
 import { createOrsProvider } from "./ors";
 import { RoutingError, type LonLat, type ProviderRequest, type ProviderRoute, type RoutingProvider } from "./provider";
@@ -34,6 +35,8 @@ export type RouteDeps = {
   /** Omitted: only the provider's data. */
   facts?: RouteFactsSource;
   now?: Date;
+  /** Language of the turn instructions and segment notes; default Polish. */
+  locale?: Locale;
 };
 
 /** openrouteservice with `ORS_API_KEY`; without it, the recorded demo answers (Dworzec Główny → Rynek Główny). */
@@ -64,7 +67,8 @@ export async function createRoute(request: RouteRequest, deps: RouteDeps = {}): 
   const facts = deps.facts;
   const now = deps.now ?? new Date();
   const thresholds = routeThresholds(request);
-  const ends = { from: point(request.from), to: point(request.to) };
+  const locale = deps.locale ?? defaultLocale;
+  const ends = { from: point(request.from), to: point(request.to), locale };
 
   const shortest: ProviderRequest = { ...ends, mode: "foot", avoidSteps: false };
   const stepFree: ProviderRequest = { ...ends, mode: "foot", avoidSteps: true };
@@ -106,5 +110,6 @@ export async function createRoute(request: RouteRequest, deps: RouteDeps = {}): 
     attribution: provider.attribution,
     fetchedAt: route.fetchedAt ?? now,
     now,
+    locale,
   });
 }

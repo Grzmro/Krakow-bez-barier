@@ -1,3 +1,4 @@
+import { localeOf } from "@/i18n/locale";
 import { isMockApi } from "@/lib/api";
 import { isDbConfigured } from "@/server/db";
 import { createRateLimiter, defineRoute, respond } from "@/server/http";
@@ -14,9 +15,10 @@ const withOurFacts = () => isDbConfigured() && !isMockApi;
 
 export const POST = defineRoute(
   "createRoute",
-  async ({ body }) => {
+  async ({ body, request }) => {
     try {
-      return respond(200, await createRoute(body, { facts: withOurFacts() ? createDbRouteFacts() : undefined }));
+      const facts = withOurFacts() ? createDbRouteFacts() : undefined;
+      return respond(200, await createRoute(body, { facts, locale: localeOf(request) }));
     } catch (error) {
       if (!(error instanceof RoutingError)) throw error;
       console.error(`[routes] ${error.kind}: ${error.message}`);

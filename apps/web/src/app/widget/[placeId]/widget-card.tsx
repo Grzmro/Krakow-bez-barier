@@ -8,7 +8,6 @@ import { routes } from "@/lib/routes";
 import { useWidgetCard } from "@/lib/use-widget-card";
 import { widgetFactView } from "@/lib/widget-facts";
 
-
 export function WidgetCard({ placeId }: { placeId: string }) {
   const m = useMessages();
   const t = m.business.widget;

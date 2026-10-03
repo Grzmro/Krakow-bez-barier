@@ -79,6 +79,17 @@ describe("createRoute — Dworzec Główny → Rynek Główny (recorded openrout
     expect(route.segments.find((s) => s.name === "Floriańska")).toMatchObject({ state: "unknown", note: "brak danych o nawierzchni" });
   });
 
+  it("in English: turn instructions and segment notes come in the requested language", async () => {
+    // GIVEN the wheelchair profile and an English UI
+    // WHEN the avoid-stairs route is requested in English
+    const route = await createRoute(request({ avoidStairs: true, profile: "wheelchair" }), { provider: recorded, now, locale: "en" });
+
+    // THEN the same route comes back with English instructions and notes
+    expect(route).toMatchObject({ kind: "avoid_stairs", knownBarrierCount: 0, unknownMeters: 678 });
+    expect(route.segments[0]).toMatchObject({ instruction: "Head south", state: "met", note: "paving slabs, flat (up to 1%), no kerb data" });
+    expect(route.segments.find((s) => s.name === "Floriańska")).toMatchObject({ state: "unknown", note: "no surface data" });
+  });
+
   it("puts our kerb facts on the nearest segment and blocks it above the profile's threshold", async () => {
     // GIVEN a confirmed 6 cm kerb at the start of the route and a 1 cm kerb further on, both from the city
     const route0 = await createRoute(request({ avoidStairs: true }), { provider: recorded, now });

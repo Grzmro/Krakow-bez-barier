@@ -2,6 +2,10 @@ import avoidSteps from "./fixtures/dworzec-rynek-avoid-steps.json";
 import shortest from "./fixtures/dworzec-rynek-shortest.json";
 import stroller from "./fixtures/dworzec-rynek-stroller.json";
 import wheelchair from "./fixtures/dworzec-rynek-wheelchair.json";
+import avoidStepsEn from "./fixtures/dworzec-rynek-avoid-steps-en.json";
+import shortestEn from "./fixtures/dworzec-rynek-shortest-en.json";
+import strollerEn from "./fixtures/dworzec-rynek-stroller-en.json";
+import wheelchairEn from "./fixtures/dworzec-rynek-wheelchair-en.json";
 import { ORS_ATTRIBUTION, errorFor, orsRequest, parseOrsResponse, type OrsRequest } from "./ors";
 import { RoutingError, type RoutingProvider } from "./provider";
 
@@ -16,8 +20,17 @@ const canonical = (value: unknown): string =>
       : v,
   );
 
-/** Dworzec Główny → Rynek Główny, the demo route, recorded for each request the app makes for it. */
-export const DEMO_ROUTES = [shortest, avoidSteps, wheelchair, stroller] as RecordedRoute[];
+/** Dworzec Główny → Rynek Główny, the demo route, recorded for each request the app makes for it (per language). */
+export const DEMO_ROUTES = [
+  shortest,
+  avoidSteps,
+  wheelchair,
+  stroller,
+  shortestEn,
+  avoidStepsEn,
+  wheelchairEn,
+  strollerEn,
+] as RecordedRoute[];
 
 /**
  * Answers from recorded responses instead of calling openrouteservice: for tests (no network) and the example-data

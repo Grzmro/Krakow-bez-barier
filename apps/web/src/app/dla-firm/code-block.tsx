@@ -4,7 +4,6 @@ import { Copy } from "@phosphor-icons/react";
 import { Button, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
 
-
 /** Read-only code or link with a copy button; the copy result is shown and announced. */
 export function CodeBlock({
   code,

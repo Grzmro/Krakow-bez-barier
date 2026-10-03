@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { useMessages } from "@/i18n/client";
 import { PROFILES } from "@/lib/profile/thresholds";
 
-
 type Option = Profile | "off";
 
 const ICON: Record<Option, Icon> = { off: PersonSimpleWalk, wheelchair: Wheelchair, stroller: BabyCarriage };
