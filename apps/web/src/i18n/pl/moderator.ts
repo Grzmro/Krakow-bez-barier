@@ -1,1 +1,69 @@
-export const moderator = {} as const;
+import type { components } from "@krakow-bez-barier/contracts";
+
+type ReportStatus = components["schemas"]["ReportStatus"];
+type ModerationDecisionKind = components["schemas"]["ModerationDecisionKind"];
+
+// Moderator panel (/moderator): sign-in, report queue, decisions and history.
+export const moderator = {
+  title: "Panel moderatora",
+  signIn: {
+    heading: "Logowanie moderatora",
+    lead: "Wklej token moderatora od administratora. Możesz użyć menedżera haseł — bez zagadek i przepisywania kodów.",
+    token: "Token moderatora",
+    show: "Pokaż token",
+    submit: "Zaloguj",
+    checking: "Sprawdzam…",
+    required: "Wpisz token moderatora.",
+    invalid: "Ten token nie pasuje albo moderacja nie jest włączona na serwerze. Sprawdź, czy skopiowano go w całości.",
+    lockedOut: (minutes: number) =>
+      `Za dużo nieudanych prób. Spróbuj ponownie za ${minutes} min — to ochrona przed zgadywaniem tokenu.`,
+    failed: "Nie udało się połączyć z serwerem. Spróbuj ponownie.",
+    signedIn: "Zalogowano. Kolejka zgłoszeń jest poniżej.",
+    sessionNote: "Token zostaje tylko w tej karcie przeglądarki i znika po jej zamknięciu.",
+    mockNote: "Tryb przykładowy: zadziała dowolny token, a decyzje nie trafiają na serwer.",
+  },
+  signOut: "Wyloguj",
+  signedOut: "Wylogowano.",
+  sessionExpired: "Sesja moderatora wygasła. Zaloguj się ponownie.",
+  loading: "Wczytuję kolejkę zgłoszeń…",
+  loaded: (count: number) => `Kolejka zgłoszeń: ${count} do decyzji.`,
+  loadFailed: "Nie udało się wczytać kolejki zgłoszeń.",
+  retry: "Spróbuj ponownie",
+  queue: "Kolejka zgłoszeń",
+  queueCount: (count: number) => `Kolejka zgłoszeń (${count})`,
+  empty: "Kolejka jest pusta — wszystkie zgłoszenia mają decyzję.",
+  preview: "Co się zmieni na karcie",
+  before: "Teraz",
+  after: "Po zatwierdzeniu",
+  afterSource: "Źródło: Społeczność, zweryfikowane przez moderatora",
+  noData: "Brak danych",
+  reportedOn: (date: string) => `Zgłoszone ${date}`,
+  comment: "Komentarz zgłaszającego",
+  note: "Notatka do decyzji (opcjonalnie)",
+  noteHint: "Przy „Do wyjaśnienia” napisz, czego brakuje. Notatka trafia do historii zmian.",
+  approve: "Zatwierdź",
+  reject: "Odrzuć",
+  clarify: "Do wyjaśnienia",
+  deciding: "Zapisuję decyzję…",
+  decided: {
+    accepted: "Zatwierdzone. Karta pokazuje nową wartość ze źródłem „Społeczność, zweryfikowane przez moderatora”.",
+    rejected: "Odrzucone. Zgłoszenie znika z widoku publicznego.",
+    needs_info: "Oznaczone „Do wyjaśnienia”. Zgłoszenie zostaje w kolejce.",
+  } satisfies Record<ModerationDecisionKind, string>,
+  alreadyDecided: "Ktoś już podjął decyzję w tej sprawie. Odświeżyłem kolejkę.",
+  decideFailed: "Nie udało się zapisać decyzji. Spróbuj ponownie.",
+  history: "Historia zmian",
+  historyEmpty: "Jeszcze nie ma decyzji.",
+  historyEntry: (moderatorName: string, date: string) => `${moderatorName} · ${date}`,
+  status: {
+    new: "Oczekuje",
+    needs_info: "Do wyjaśnienia",
+    accepted: "Zatwierdzone",
+    rejected: "Odrzucone",
+  } satisfies Record<ReportStatus, string>,
+  decision: {
+    accepted: "Zatwierdzone",
+    rejected: "Odrzucone",
+    needs_info: "Do wyjaśnienia",
+  } satisfies Record<ModerationDecisionKind, string>,
+} as const;

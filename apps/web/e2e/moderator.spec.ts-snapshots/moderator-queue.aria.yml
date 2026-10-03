@@ -1,0 +1,32 @@
+- main:
+  - link "Wróć na stronę główną":
+    - /url: /
+  - heading "Panel moderatora" [level=1]
+  - text: Dane przykładowe
+  - button "Wyloguj"
+  - heading "Kolejka zgłoszeń (2)" [level=2]
+  - list:
+    - listitem:
+      - button /Podziemia Rynku Winda → Nie ma · \d+\.\d+\.\d+ Oczekuje/
+    - listitem:
+      - button /Hotel Przykład Szerokość drzwi → \d+ cm · \d+\.\d+\.\d+ Do wyjaśnienia/
+  - heading "Co się zmieni na karcie" [level=2]
+  - heading "Podziemia Rynku · Winda" [level=3]
+  - paragraph: /Zgłoszone \d+\.\d+\.\d+/
+  - term: Teraz
+  - definition: Jest
+  - term: Po zatwierdzeniu
+  - definition: Nie ma Potwierdzone
+  - paragraph: "Źródło: Społeczność, zweryfikowane przez moderatora"
+  - figure "Komentarz zgłaszającego":
+    - text: ""
+    - blockquote: „Winda nie działa od tygodnia.”
+  - text: Notatka do decyzji (opcjonalnie)
+  - textbox "Notatka do decyzji (opcjonalnie)"
+  - paragraph: Przy „Do wyjaśnienia” napisz, czego brakuje. Notatka trafia do historii zmian.
+  - button "Zatwierdź"
+  - button "Odrzuć"
+  - button "Do wyjaśnienia"
+  - heading "Historia zmian" [level=2]
+  - list:
+    - listitem: /Hotel Przykład · Szerokość drzwi → \d+ cm anna · \d+\.\d+\.\d+, \d+:\d+ „Które wejście, główne czy boczne\?” Do wyjaśnienia/
