@@ -32,6 +32,7 @@
         - img
         - text: ""
       - heading "Krok po kroku" [level=2]
+      - button "Czytaj na głos"
       - list "Odcinki trasy, tekstowa wersja mapy":
         - listitem:
           - 'button /Odcinek 1 z \d+\. Kieruj się na zachód, \d+ metrów\. Spełnia: asfalt\./': "/Kieruj się na zachód Spełnia: asfalt \\d+ m/"

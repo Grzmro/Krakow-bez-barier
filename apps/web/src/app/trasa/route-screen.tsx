@@ -9,6 +9,7 @@ import { BottomPanel, StatusBadge } from "@/components/kbb";
 import { BackButton } from "@/components/layout/back-button";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
 import { PlaceEntrance } from "@/components/route/place-entrance";
+import { ReadAloud } from "@/components/route/read-aloud";
 import { RouteMap } from "@/components/route/route-map";
 import { SaveRoute } from "@/components/route/save-route";
 import { StartPicker, type StartOption, type StartPick } from "@/components/route/start-picker";
@@ -585,6 +586,7 @@ function RouteDetails({
       <SaveRoute route={route} input={saveInput} />
 
       <h2 className="mt-7 mb-1 text-title font-semibold">{t.steps}</h2>
+      <ReadAloud route={route} />
       <StepList route={route} selected={selected} onSelect={onSelect} stepRefs={stepRefs} />
 
       {route.attribution ? (

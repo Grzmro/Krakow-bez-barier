@@ -68,6 +68,19 @@ export const route = {
   meters: (m: number) => `${Math.round(m)} m`,
   nobody: "Nikt jeszcze nie sprawdził tego odcinka.",
   sourceLine: (name: string, date: string) => `${name} · ${date}`,
+  // "Czytaj na głos" (read-aloud of the step list).
+  speech: {
+    play: "Czytaj na głos",
+    pause: "Pauza",
+    resume: "Wznów czytanie",
+    stop: "Zatrzymaj czytanie",
+    step: (i: number, n: number, instruction: string, m: number) =>
+      `Krok ${i} z ${n}. ${instruction}, ${Math.round(m)} ${plural(Math.round(m), "metr", "metry", "metrów")}.`,
+    state: (status: string, note: string) => `${status}${note ? `: ${note}` : ""}.`,
+    surface: (value: string) => `Nawierzchnia: ${value}.`,
+    noSurface: "Nawierzchnia: brak danych.",
+    nobody: "Nikt jeszcze nie sprawdził tego odcinka.",
+  },
   destination: {
     title: "Cel: wejście",
     hint: "Fakty z karty miejsca.",

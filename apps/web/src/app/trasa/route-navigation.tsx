@@ -8,8 +8,9 @@ import { useLocale, useMessages } from "@/i18n/client";
 import { SampleTag } from "@/components/kbb";
 import { formatDate } from "@/lib/place-facts";
 import { concerns, provenance, type Concern } from "@/lib/navigation";
+import { segmentStatusLabel } from "@/lib/route-speech";
 import type { Guidance } from "@/lib/use-guidance";
-import { segmentStatusLabel, StepList, STATUS_TEXT } from "./route-steps";
+import { StepList, STATUS_TEXT } from "./route-steps";
 
 /** Guidance in the route panel: the step being walked, what's next, barriers and gaps ahead with their sources, the whole list. */
 export function RouteNavigation({

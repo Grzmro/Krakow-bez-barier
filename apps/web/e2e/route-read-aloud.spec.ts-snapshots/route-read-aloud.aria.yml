@@ -28,9 +28,16 @@
       - paragraph: /brak danych na 5 odcinkach \(\d+ m\)/
       - paragraph: Odcinki w skali długości. Szczegóły w „Krok po kroku”.
       - button /Najkrótsza · \d+ min Nie spełnia · schody/
-      - button "Zapisz na telefonie"
+      - button "Zapisz na telefonie":
+        - img
+        - text: ""
       - heading "Krok po kroku" [level=2]
-      - button "Czytaj na głos"
+      - button "Pauza":
+        - img
+        - text: ""
+      - button "Zatrzymaj czytanie":
+        - img
+        - text: ""
       - list "Odcinki trasy, tekstowa wersja mapy":
         - listitem:
           - 'button /Odcinek 1 z \d+\. Kieruj się na południe, \d+ metry\. Spełnia: płyty chodnikowe\./': "/Kieruj się na południe Spełnia: płyty chodnikowe \\d+ m/"
