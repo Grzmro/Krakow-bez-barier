@@ -15,17 +15,25 @@ let seq = 0;
 const nextKey = () => `mine-${++seq}`;
 
 /**
- * The visitor's own reports and confirmations for one place. A report is held back for UNDO_MS so "Cofnij" really
+ * The visitor's own reports and confirmations for one place; `servedIds` are the report ids the place card lists. A report is held back for UNDO_MS so "Cofnij" really
  * withdraws it (there is no delete endpoint); it is sent at once if the card unmounts first. Once sent, the card is
  * refetched so the report comes back from the API (`pendingReports`) — and stays after a reload, for every visitor.
  */
-export function usePlaceReports(placeId: string) {
+export function usePlaceReports(placeId: string, servedIds: string[]) {
   const [entries, setEntries] = useState<PendingEntry[]>([]);
   const queued = useRef(new Map<string, { timer: ReturnType<typeof setTimeout>; send: () => void }>());
   const confirming = useRef(new Set<string>());
   const announce = useAnnounce();
   const t = useMessages().place;
   const queryClient = useQueryClient();
+
+  const servedKey = servedIds.join(",");
+  const [seenKey, setSeenKey] = useState(servedKey);
+  if (seenKey !== servedKey) {
+    setSeenKey(servedKey);
+    const listed = new Set(servedIds);
+    setEntries((all) => all.map((e) => (e.reportId && listed.has(e.reportId) ? { ...e, served: true } : e)));
+  }
 
   const remove = useCallback((key: string) => setEntries((all) => all.filter((e) => e.key !== key)), []);
 

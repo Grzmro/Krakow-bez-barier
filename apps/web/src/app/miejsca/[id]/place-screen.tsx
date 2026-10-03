@@ -37,7 +37,7 @@ import { useLocale, useMessages } from "@/i18n/client";
 import { api } from "@/lib/api";
 import { useCategoryLookup } from "@/lib/categories";
 import { CARD_ATTRIBUTES, factViews, failedSources, formatDate, latestSourceDate, osmEditUrl } from "@/lib/place-facts";
-import { pendingEntries, withPending, type PendingEntry } from "@/lib/reports";
+import { pendingEntries, servedReportIds, withPending, type PendingEntry } from "@/lib/reports";
 import { usePlaceReports } from "@/lib/use-place-reports";
 import { routes } from "@/lib/routes";
 import { ReportDrawer, type ReportMode, type ReportSubmission } from "./report-drawer";
@@ -109,7 +109,7 @@ function PlaceCard({ place }: { place: Place }) {
   const focusContact = useRef(false);
   const contactRef = useRef<HTMLDivElement>(null);
   const announce = useAnnounce();
-  const reports = usePlaceReports(place.id);
+  const reports = usePlaceReports(place.id, servedReportIds(place));
   const notRightButtons = useRef(new Map<AccessibilityAttribute, HTMLButtonElement>());
   const [openFacts, setOpenFacts] = useState<Partial<Record<AccessibilityAttribute, boolean>>>({});
   const [drawer, setDrawer] = useState<{ open: boolean; mode: ReportMode; attribute: AccessibilityAttribute; key: number }>({

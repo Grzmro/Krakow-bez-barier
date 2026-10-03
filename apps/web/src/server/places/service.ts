@@ -262,11 +262,22 @@ export async function getPlace(id: string, query: GetPlaceQuery = {}, deps: Plac
 /**
  * Lists the reports awaiting moderation beside each attribute (`ResolvedAttribute.pendingReports`). They never change
  * the value, state, status or verdict; accepted and rejected reports drop out (an accepted one is a fact by then).
+ * Comments are withheld: free text nobody has moderated yet is not published. If the reports can't be read, the card
+ * is served without them — the resolved facts don't depend on the reports table.
  */
 export async function withPendingReports(place: Place, store: ReportsStore): Promise<Place> {
-  const pending = await pendingReportsByAttribute(store, place.id);
+  let pending: Awaited<ReturnType<typeof pendingReportsByAttribute>>;
+  try {
+    pending = await pendingReportsByAttribute(store, place.id);
+  } catch (error) {
+    console.error(`[places] pending reports for ${place.id} could not be read`, error);
+    return place;
+  }
   return {
     ...place,
-    attributes: place.attributes.map((attribute) => ({ ...attribute, pendingReports: pending.get(attribute.attribute) ?? [] })),
+    attributes: place.attributes.map((attribute) => ({
+      ...attribute,
+      pendingReports: (pending.get(attribute.attribute) ?? []).map((report) => ({ ...report, comment: null })),
+    })),
   };
 }

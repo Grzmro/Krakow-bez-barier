@@ -74,11 +74,21 @@ test("a sent report shows on the card for every visitor until a moderator decide
   await expect(page.getByRole("heading", { level: 1, name: PLACE })).toBeVisible();
   await expect(toiletRow()).not.toContainText("Zgłoszenie użytkownika");
 
-  // WHEN another report is sent and a moderator accepts it
+  // WHEN another report is sent, the card refetches it, and a moderator accepts it
+  const cardRead = () =>
+    page.waitForResponse((r) => r.request().method() === "GET" && r.url().includes(`/api/v1/places/${id}`));
+  const listed = cardRead();
   await sendReport();
+  await listed;
   await expect.poll(pendingIds).toHaveLength(before.length + 1);
   const [second] = (await pendingIds()).filter((r) => !before.includes(r));
   await moderate(second, "accepted");
+
+  // THEN the visitor's own pending entry drops out on the next refetch, without a reload
+  const refetched = cardRead();
+  await page.evaluate(() => window.dispatchEvent(new Event("visibilitychange")));
+  await refetched;
+  await expect(toiletRow()).not.toContainText("Twoje zgłoszenie");
   await page.reload();
 
   // THEN the card shows a fact from "Społeczność, zweryfikowane przez moderatora", not a pending report

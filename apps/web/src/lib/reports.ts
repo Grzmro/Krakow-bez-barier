@@ -51,6 +51,8 @@ export interface PendingEntry {
   mine: boolean;
   /** The report's id once the server has it. */
   reportId?: string;
+  /** The places API has listed this report; once it stops listing it, a moderator has decided and the entry goes. */
+  served?: boolean;
   attribute: AccessibilityAttribute;
   /** Reported value as text; for a confirmation, the value confirmed. */
   valueText?: string;
@@ -59,10 +61,16 @@ export interface PendingEntry {
   sending: boolean;
 }
 
+/** Ids of the reports the places API lists as pending for this place. */
+export function servedReportIds(place: Place): string[] {
+  return place.attributes.flatMap(({ pendingReports = [] }) => pendingReports.map((r) => r.id));
+}
+
 /**
  * Every report the API lists as pending (`ResolvedAttribute.pendingReports`), followed by this visitor's entries the
- * API doesn't list yet — still in the undo window, or a confirmation. Reports sent from this session read as "mine".
- * Comments are left out: free text nobody has moderated yet is not shown to other visitors.
+ * API doesn't list yet — still in the undo window, sent but not refetched, or a confirmation. A sent report the API
+ * listed before and no longer does has been decided by a moderator, so it is dropped. Reports sent from this session
+ * read as "mine". Comments are left out: free text nobody has moderated yet is not shown to other visitors.
  */
 export function pendingEntries(place: Place, local: PendingEntry[], locale: Locale): PendingEntry[] {
   const own = new Set(local.flatMap((e) => (e.reportId ? [e.reportId] : [])));
@@ -81,13 +89,13 @@ export function pendingEntries(place: Place, local: PendingEntry[], locale: Loca
     ),
   );
   const servedIds = new Set(served.map((e) => e.reportId));
-  return [...served, ...local.filter((e) => !e.reportId || !servedIds.has(e.reportId))];
+  return [...served, ...local.filter((e) => !e.reportId || (!e.served && !servedIds.has(e.reportId)))];
 }
 
 export type FactWithPending = FactView & { pending: PendingEntry[] };
 
 /**
- * Attaches the visitor's pending entries to the card rows. The row's value, reliability and sources stay exactly as the
+ * Attaches the pending entries — reports the API serves for every visitor and this visitor's own ones — to the card rows. The row's value, reliability and sources stay exactly as the
  * API resolved them — an unmoderated report never changes what the card (or any verdict) says.
  */
 export function withPending(views: FactView[], pending: PendingEntry[]): FactWithPending[] {

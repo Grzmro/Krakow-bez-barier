@@ -84,6 +84,16 @@ describe("pendingEntries", () => {
     // THEN the visitor still sees their report
     expect(pendingEntries(place, [sent], "pl")).toEqual([sent]);
   });
+
+  it("drops a sent report once the API stops listing it, because a moderator has decided", async () => {
+    // GIVEN a report the API listed before and no longer lists (rejected, or accepted and now a fact)
+    const place = await demoPlace("palac-krzysztofory");
+    const decided = { ...report("lift", "Nie ma"), reportId: "r-decided", served: true };
+
+    // WHEN the card's pending entries are built
+    // THEN it is no longer shown as pending
+    expect(pendingEntries(place, [decided], "pl")).toEqual([]);
+  });
 });
 
 describe("reportInput", () => {

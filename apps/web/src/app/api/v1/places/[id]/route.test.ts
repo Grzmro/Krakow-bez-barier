@@ -162,15 +162,32 @@ describe("GET /api/v1/places/{id}", () => {
     // WHEN the place is read
     const { body } = await get(palac.id);
 
-    // THEN both lift reports sit beside the confirmed lift, which still says yes; attributes without reports list none
+    // THEN both lift reports sit beside the confirmed lift, which still says yes, without the unmoderated comment;
+    // attributes without reports list none
     const lift = attribute(body, "lift");
     expect(lift).toMatchObject({ state: "known", status: "confirmed", value: { boolean: true } });
     expect(lift?.pendingReports).toEqual([
-      { id: first.id, value: bool(false), comment: "winda wyłączona", status: "new", createdAt: first.createdAt.toISOString() },
+      { id: first.id, value: bool(false), comment: null, status: "new", createdAt: first.createdAt.toISOString() },
       expect.objectContaining({ id: second.id, status: "needs_info" }),
     ]);
     expect(attribute(body, "toilet_accessible")).toMatchObject({ state: "conflict", pendingReports: [expect.objectContaining({ value: bool(true) })] });
     expect(attribute(body, "ramp")?.pendingReports).toEqual([]);
+  });
+
+  it("still serves the place card when the reports can't be read", async () => {
+    // GIVEN the reports table fails
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    reports.store.listPending = () => Promise.reject(new Error("relation does not exist"));
+
+    // WHEN the place is read
+    const { status, body } = await get(palac.id);
+
+    // THEN the resolved facts come back without pending reports and the failure is logged
+    expect(status).toBe(200);
+    expect(attribute(body, "lift")).toMatchObject({ state: "known", value: { boolean: true } });
+    expect(attribute(body, "lift")?.pendingReports).toBeUndefined();
+    expect(error).toHaveBeenCalled();
+    error.mockRestore();
   });
 
   it("drops a report once a moderator rejects or accepts it", async () => {
