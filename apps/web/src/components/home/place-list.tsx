@@ -2,6 +2,7 @@
 
 import { forwardRef, useState } from "react";
 import Link from "next/link";
+import { CaretDown } from "@phosphor-icons/react";
 import type { FeatureFilter, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { Button, cn } from "@krakow-bez-barier/ui";
 import { SampleTag, StatusBadge } from "@/components/kbb";
@@ -99,19 +100,24 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
         </span>
       </Link>
       {verdict?.needs?.length ? (
-        <div className="px-3 pb-2">
+        <div className="border-t border-border/60 px-3 py-2">
           <Button
-            variant="link"
+            variant="outline"
             size="sm"
-            className="h-10 px-1"
-            aria-label={open ? tp.hideDetailsAria(place.name) : tp.detailsAria(place.name)}
+            className="h-9 gap-1 pr-3 pl-3.5"
+            aria-label={open ? tp.hideDetailsAria(place.name) : tp.detailsAria(place.name, verdict.state)}
             aria-expanded={open}
             aria-controls={detailsId}
             onClick={() => setOpen((v) => !v)}
           >
             {open ? tp.hideDetails : tp.details}
+            <CaretDown aria-hidden weight="bold" className={cn("transition-transform duration-150", open && "rotate-180")} />
           </Button>
-          <div id={detailsId} hidden={!open} className="pt-1 pb-2">
+          <div
+            id={detailsId}
+            hidden={!open}
+            className="mt-2 rounded-2xl bg-muted p-3 ring-1 ring-border/60"
+          >
             {open ? <NeedGroups verdict={verdict} headingLevel={3} /> : null}
           </div>
         </div>

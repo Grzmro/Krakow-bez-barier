@@ -49,7 +49,15 @@ test("wheelchair profile on the home screen shows verdicts on the list and map, 
   await expect.poll(() => verdictsOnMap(page)).toEqual({ met: 1, barrier: 1, unknown: 3 });
 
   // AND "Dlaczego?" explains the verdict under the row
-  await row(page, "Hotel Przykład").getByRole("button", { name: "Dlaczego? Hotel Przykład" }).click();
+  const why = row(page, "Hotel Przykład").getByRole("button", { name: "Dlaczego Hotel Przykład spełnia?" });
+  await expect(row(page, "Restauracja Przykład").getByRole("button", { name: "Dlaczego Restauracja Przykład nie spełnia?" })).toBeVisible();
+  await expect(row(page, "Bistro Przykład").getByRole("button", { name: "Dlaczego Bistro Przykład ma brak danych?" })).toBeVisible();
+  await expect(why).toHaveAttribute("aria-expanded", "false");
+  await why.click();
+
+  // AND the button shows its open state and the row link was not followed
+  await expect(page).toHaveURL(/\/$/);
+  await expect(row(page, "Hotel Przykład").getByRole("button", { name: "Ukryj uzasadnienie: Hotel Przykład" })).toHaveAttribute("aria-expanded", "true");
   await expect(row(page, "Hotel Przykład").getByRole("heading", { name: "Pasuje (4)" })).toBeVisible();
 
   // AND nothing on the page asks about a disability
@@ -324,13 +332,18 @@ test("profile, counters and details work from the keyboard", async ({ page }) =>
   await expect(met).toHaveAttribute("aria-pressed", "true");
 
   // AND open "Dlaczego?" for the row
-  const why = page.getByRole("button", { name: "Dlaczego? Hotel Przykład" });
+  const why = page.getByRole("button", { name: "Dlaczego Hotel Przykład spełnia?" });
   for (let i = 0; i < 20 && !(await why.evaluate((el) => el === document.activeElement)); i++) {
     await page.keyboard.press("Tab");
   }
   await expect(why).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(row(page, "Hotel Przykład").getByRole("heading", { name: "Pasuje (4)" })).toBeVisible();
+
+  // AND Space closes it again, staying on the home screen
+  await page.keyboard.press("Space");
+  await expect(row(page, "Hotel Przykład").getByRole("heading", { name: "Pasuje (4)" })).toBeHidden();
+  await expect(page).toHaveURL(/\/$/);
 });
 
 test("the old /profil page is gone", async ({ page }) => {

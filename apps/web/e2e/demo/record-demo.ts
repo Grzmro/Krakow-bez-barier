@@ -204,7 +204,7 @@ test("record the demo walkthrough", async ({ browser, baseURL, request }) => {
   await pause(page, 4);
   await caption(page, "2 · Miejsce", "Werdykt dla jej progów jest słowem, nie kolorem — a „Dlaczego?” mówi, czego brakuje.");
   await tap(page, list.getByRole("button", { name: "Rozwiń arkusz" }));
-  await tap(page, row.getByRole("button", { name: `Dlaczego? ${facts.name}` }));
+  await tap(page, row.getByRole("button", { name: new RegExp(`^Dlaczego ${facts.name} `) }));
   await pause(page, 7);
 
   // 3. Concrete facts with source, date and reliability

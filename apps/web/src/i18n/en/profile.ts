@@ -77,9 +77,10 @@ export const profile: Messages["profile"] = {
   },
   list: {
     details: "Why?",
-    detailsAria: (place: string) => `Why? ${place}`,
-    hideDetails: "Hide details",
-    hideDetailsAria: (place: string) => `Hide details: ${place}`,
+    detailsAria: (place: string, state: "met" | "barrier" | "unknown" | "conflict") =>
+      `Why ${{ met: `does ${place} meet`, barrier: `does ${place} not meet`, unknown: `does ${place} have no data`, conflict: `does ${place} have conflicting data` }[state]}?`,
+    hideDetails: "Hide",
+    hideDetailsAria: (place: string) => `Hide the explanation: ${place}`,
     showAll: "Show all results",
     filteredEmpty: "No place matches the selected result",
     filteredEmptyHint: "There are search results, but the profile result filter hides them.",
