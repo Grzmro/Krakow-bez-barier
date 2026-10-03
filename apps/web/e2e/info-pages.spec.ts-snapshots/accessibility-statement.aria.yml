@@ -2,29 +2,93 @@
   - link "Wróć na stronę główną":
     - /url: /
   - heading "Deklaracja dostępności" [level=1]
-  - paragraph: "/Prototyp „Kraków bez barier” \\(HackYeah \\d+\\)\\. Cel: WCAG 2\\.2 AA\\. Stan na \\d+\\.\\d+\\.\\d+\\./"
+  - navigation "Spis treści":
+    - group: Spis treści
+  - paragraph: /Prototyp „Kraków bez barier” \(HackYeah \d+\) ma spełniać WCAG 2\.2 na poziomie AA\. Główny scenariusz sprawdziliśmy automatycznie i samą klawiaturą, ale nie przeprowadziliśmy jeszcze pełnego audytu ani testów z czytnikami ekranu\./
+  - paragraph:
+    - text: "Ostatnia aktualizacja:"
+    - time: /3 października \d+/
+  - heading "Stan zgodności" [level=2]
+  - term: Cel
+  - definition: WCAG 2.2, poziom AA
+  - term: Stan dziś
+  - definition: Zgodność częściowa — nie potwierdzona audytem
+  - paragraph: Ekrany głównego scenariusza (strona główna, karta miejsca, strony informacyjne) przechodzą automatyczne testy axe (reguły WCAG 2.2 A i AA) bez naruszeń, na danych przykładowych. Takie testy wykrywają tylko część problemów, więc nie twierdzimy, że aplikacja jest w pełni zgodna. Poniżej opisujemy, co działa, co jest ograniczone i czego jeszcze nie sprawdziliśmy.
   - heading "Co działa" [level=2]
+  - paragraph: Każdy punkt ma sprawdzający go test automatyczny, chyba że napisano inaczej.
   - list:
-    - listitem: "Cały główny scenariusz działa samą klawiaturą: wyszukanie, profil, karta miejsca i zgłoszenie. Fokus jest widoczny i wraca na miejsce po zamknięciu okna."
-    - listitem: Linki „Przejdź do treści” i „Przejdź do listy” pozwalają ominąć mapę.
-    - listitem: Wszystko z mapy jest też na liście miejsc — z tymi samymi wynikami i statusami.
-    - listitem: Statusy jako tekst, ikona i kształt, nie tylko kolor. Brak danych nigdy nie wygląda jak „spełnia”.
-    - listitem: /Kontrast tekstu min\. \d+,\d+:1, cele dotykowe min\. \d+ px\./
-    - listitem: /Powiększenie \d+% i ekran szerokości \d+ px bez przewijania w poziomie\./
-    - listitem: Liczba wyników po wyszukaniu i zmianie filtra jest ogłaszana czytnikom ekranu.
-    - listitem: Ograniczony ruch przy ustawieniu „zmniejsz ruch”.
-    - listitem: Automatyczne testy axe (WCAG 2.2 A/AA) każdego ekranu przed każdą zmianą w aplikacji.
-  - heading "Znane ograniczenia" [level=2]
+    - listitem:
+      - heading "Klawiatura" [level=3]
+      - text: Zrobione
+      - paragraph: "Cały główny scenariusz działa samą klawiaturą: wyszukanie miejsca, profil, karta miejsca i zgłoszenie. Po zamknięciu okna fokus wraca na przycisk, który je otworzył."
+    - listitem:
+      - heading "Czytnik ekranu — struktura" [level=3]
+      - text: Zrobione
+      - paragraph: Strony informacyjne mają jeden nagłówek główny i nagłówki w logicznej kolejności, a linki „Przejdź do treści” i „Przejdź do listy” pozwalają ominąć mapę. Liczba wyników po wyszukaniu i zmianie filtra jest ogłaszana. To sprawdzenia automatyczne — z czytnikami nie testowaliśmy (patrz niżej).
+    - listitem:
+      - heading "Kontrast" [level=3]
+      - text: Zrobione
+      - paragraph: /Główne pary kolorów w palecie mają test kontrastu \(tekst co najmniej \d+,\d+:1, elementy interfejsu co najmniej 3:1\), a axe sprawdza kontrast na ekranach głównego scenariusza\./
+    - listitem:
+      - heading "Mapa jako tekst" [level=3]
+      - text: Zrobione
+      - paragraph: Każde miejsce z mapy jest też na liście, z tym samym werdyktem i statusem — test sprawdza, że żadnej pinezki nie brakuje na liście, dla przykładowych miejsc z włączonym profilem. Mapę można też przybliżać przyciskami.
+    - listitem:
+      - heading "Powiększenie i wąski ekran" [level=3]
+      - text: Zrobione
+      - paragraph: /Główne ekrany mieszczą się bez przewijania w poziomie w oknie \d+ px \(jak \d+% na ekranie \d+ px\) i \d+ px \(jak \d+%\)\. To emulacja szerokości okna, nie powiększenie w przeglądarce\./
+    - listitem:
+      - heading "Status nie tylko kolorem" [level=3]
+      - text: Zrobione
+      - paragraph: Werdykty i statusy mają tekst, ikonę i kształt. Brak danych jest neutralny i nigdy nie wygląda jak „Spełnia”.
+    - listitem:
+      - heading "Ograniczony ruch" [level=3]
+      - text: Zrobione
+      - paragraph: Przy ustawieniu systemowym „zmniejsz ruch” animacje i przejścia interfejsu są skrócone. Nie dotyczy to płynnego przesuwania mapy. Tego ustawienia nie sprawdzamy testem.
+  - heading "Znane ograniczenia i plan poprawy" [level=2]
+  - paragraph: Status mówi, na jakim etapie jest poprawa. Nie podajemy terminów, których nie możemy dotrzymać.
   - list:
-    - listitem: Nie testowaliśmy jeszcze ręcznie z czytnikami ekranu (VoiceOver, TalkBack, NVDA) ani z ich użytkownikami.
-    - listitem: Testy automatyczne wykrywają tylko część problemów — pełnego audytu WCAG 2.2 AA jeszcze nie było.
-    - listitem: Pinezki na mapie są ukryte przed czytnikami ekranu i nie da się do nich przejść klawiszem Tab — te same miejsca są na liście.
-    - listitem: Nie sprawdzaliśmy trybu wysokiego kontrastu systemu.
-    - listitem: Część danych jest przykładowa; oznaczamy ją „PRZYKŁAD”.
-    - listitem: Nazw miejsc i wartości z danych źródłowych nie tłumaczymy na angielski.
-  - heading "Plan usunięcia ograniczeń" [level=2]
+    - listitem:
+      - heading "Gesty mapy na telefonie" [level=3]
+      - text: W toku
+      - paragraph: Przesuwanie i powiększanie mapy gestami bywa niestabilne. Zamiast gestów działają przyciski przybliżania i oddalania oraz lista miejsc. Poprawiamy to.
+    - listitem:
+      - heading "Pinezki na mapie" [level=3]
+      - text: Planowane
+      - paragraph: Pinezki są ukryte przed czytnikami ekranu i nie da się do nich dojść klawiszem Tab — te same miejsca są na liście. Planujemy połączyć mapę z listą i ocenić dostępność pinezek w audycie.
+    - listitem:
+      - heading "Kontrola na komputerze" [level=3]
+      - text: Planowane
+      - paragraph: Testy dostępności uruchamiamy głównie w widoku telefonu; na komputerze sprawdzamy tylko wybrane ekrany. Planujemy rozszerzyć testy na cały główny scenariusz i skontrolować jego nagranie.
+    - listitem:
+      - heading "Testy z czytnikami i użytkownikami" [level=3]
+      - text: Planowane
+      - paragraph: Planujemy ręczne testy głównego scenariusza z VoiceOver, TalkBack i NVDA oraz pełny audyt WCAG 2.2 AA, a przy pilotażu testy z osobami na wózkach i rodzicami z wózkami dziecięcymi.
+    - listitem:
+      - heading "Tryb wysokiego kontrastu" [level=3]
+      - text: Planowane
+      - paragraph: Nie sprawdzaliśmy trybu wysokiego kontrastu systemu. Planujemy to po testach z czytnikami.
+    - listitem:
+      - heading "Kanał zgłoszeń dostępności" [level=3]
+      - text: Planowane
+      - paragraph: Nie mamy jeszcze osobnego adresu do zgłaszania barier w samej aplikacji. Planujemy go opublikować.
+    - listitem:
+      - heading "Dane przykładowe i tłumaczenie danych" [level=3]
+      - text: Poza zakresem
+      - paragraph: Część danych to przykład i jest oznaczona „PRZYKŁAD”. Nazw miejsc i wartości z danych źródłowych nie tłumaczymy na angielski.
+  - heading "Czego nie sprawdziliśmy" [level=2]
+  - paragraph: Tych rzeczy nikt jeszcze nie zweryfikował, więc nie twierdzimy, że działają.
   - list:
-    - listitem: "Przed pilotażem: ręczne testy głównego scenariusza z VoiceOver, TalkBack i NVDA oraz audyt WCAG 2.2 AA."
-    - listitem: "W pilotażu: testy z osobami na wózkach i rodzicami z wózkami dziecięcymi."
-    - listitem: "Po pilotażu: tryb wysokiego kontrastu."
-  - paragraph: Uwagi o dostępności zgłoś zespołowi projektu — poprawimy je przed pilotażem.
+    - listitem: "Niesprawdzone Ręczny przebieg z czytnikami ekranu: VoiceOver (iOS i macOS), TalkBack i NVDA."
+    - listitem: Niesprawdzone Przeglądarki inne niż Chromium (Firefox, Safari). Testy automatyczne uruchamiamy tylko w Chromium.
+    - listitem: Niesprawdzone Natywna aplikacja na iOS lub Androida — nie istnieje; sprawdzamy tylko stronę w przeglądarce.
+    - listitem: /Niesprawdzone Powiększenie \d+% i \d+% w przeglądarce na komputerze\. Sprawdzamy tylko wąskie okno\./
+    - listitem: Niesprawdzone Tryb wysokiego kontrastu systemu.
+    - listitem: Niesprawdzone Testy z użytkownikami z niepełnosprawnościami i pełny audyt WCAG 2.2 AA.
+  - heading "Zgłoś barierę" [level=2]
+  - paragraph: /Jeśli aplikacja jest dla Ciebie niedostępna, napisz do zespołu projektu — osobiście podczas HackYeah \d+ albo kanałem, z którego pochodzi link do strony\. Opisz, co chciałeś zrobić, na jakim urządzeniu i z jakim czytnikiem lub ustawieniem\./
+  - paragraph: Osobnego adresu do takich zgłoszeń jeszcze nie ma (patrz plan powyżej).
+  - paragraph: Błąd w danych o miejscu zgłosisz w karcie miejsca, przez „To się nie zgadza” albo „Uzupełnij dane”. Zgłoszenia nie mają e-maila ani adresu IP.
+  - heading "Procedura odwoławcza" [level=2]
+  - paragraph: /Prototyp nie jest jeszcze serwisem podmiotu publicznego\. Gdyby wdrożył go podmiot publiczny, np\. miasto, obowiązywałaby go ustawa z 4 kwietnia \d+ r\. o dostępności cyfrowej stron internetowych i aplikacji mobilnych podmiotów publicznych\./
+  - paragraph: Według tej ustawy możesz zażądać zapewnienia dostępności albo alternatywnego sposobu dostępu. Jeśli odpowiedź Cię nie zadowoli lub jej nie dostaniesz, możesz złożyć skargę do Rzecznika Praw Obywatelskich. To informacja o przepisach, nie deklaracja zgodności z nimi.

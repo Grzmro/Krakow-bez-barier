@@ -81,34 +81,133 @@ export const pages = {
   },
   a11y: {
     title: "Deklaracja dostępności",
-    lead: "Prototyp „Kraków bez barier” (HackYeah 2026). Cel: WCAG 2.2 AA. Stan na 3.10.2026.",
-    works: "Co działa",
-    worksList: [
-      "Cały główny scenariusz działa samą klawiaturą: wyszukanie, profil, karta miejsca i zgłoszenie. Fokus jest widoczny i wraca na miejsce po zamknięciu okna.",
-      "Linki „Przejdź do treści” i „Przejdź do listy” pozwalają ominąć mapę.",
-      "Wszystko z mapy jest też na liście miejsc — z tymi samymi wynikami i statusami.",
-      "Statusy jako tekst, ikona i kształt, nie tylko kolor. Brak danych nigdy nie wygląda jak „spełnia”.",
-      "Kontrast tekstu min. 4,5:1, cele dotykowe min. 48 px.",
-      "Powiększenie 200% i ekran szerokości 320 px bez przewijania w poziomie.",
-      "Liczba wyników po wyszukaniu i zmianie filtra jest ogłaszana czytnikom ekranu.",
-      "Ograniczony ruch przy ustawieniu „zmniejsz ruch”.",
-      "Automatyczne testy axe (WCAG 2.2 A/AA) każdego ekranu przed każdą zmianą w aplikacji.",
-    ],
-    limits: "Znane ograniczenia",
-    limitsList: [
-      "Nie testowaliśmy jeszcze ręcznie z czytnikami ekranu (VoiceOver, TalkBack, NVDA) ani z ich użytkownikami.",
-      "Testy automatyczne wykrywają tylko część problemów — pełnego audytu WCAG 2.2 AA jeszcze nie było.",
-      "Pinezki na mapie są ukryte przed czytnikami ekranu i nie da się do nich przejść klawiszem Tab — te same miejsca są na liście.",
-      "Nie sprawdzaliśmy trybu wysokiego kontrastu systemu.",
-      "Część danych jest przykładowa; oznaczamy ją „PRZYKŁAD”.",
-      "Nazw miejsc i wartości z danych źródłowych nie tłumaczymy na angielski.",
-    ],
-    plan: "Plan usunięcia ograniczeń",
-    planList: [
-      "Przed pilotażem: ręczne testy głównego scenariusza z VoiceOver, TalkBack i NVDA oraz audyt WCAG 2.2 AA.",
-      "W pilotażu: testy z osobami na wózkach i rodzicami z wózkami dziecięcymi.",
-      "Po pilotażu: tryb wysokiego kontrastu.",
-    ],
-    contact: "Uwagi o dostępności zgłoś zespołowi projektu — poprawimy je przed pilotażem.",
+    lead: "Prototyp „Kraków bez barier” (HackYeah 2026) ma spełniać WCAG 2.2 na poziomie AA. Główny scenariusz sprawdziliśmy automatycznie i samą klawiaturą, ale nie przeprowadziliśmy jeszcze pełnego audytu ani testów z czytnikami ekranu.",
+    updatedLabel: "Ostatnia aktualizacja",
+    updated: "3 października 2026",
+    updatedIso: "2026-10-03",
+    tocTitle: "Spis treści",
+    statusLabel: {
+      done: "Zrobione",
+      inProgress: "W toku",
+      planned: "Planowane",
+      notPlanned: "Poza zakresem",
+    },
+    conformity: {
+      id: "zgodnosc",
+      title: "Stan zgodności",
+      targetLabel: "Cel",
+      target: "WCAG 2.2, poziom AA",
+      stateLabel: "Stan dziś",
+      state: "Zgodność częściowa — nie potwierdzona audytem",
+      body: "Ekrany głównego scenariusza (strona główna, karta miejsca, strony informacyjne) przechodzą automatyczne testy axe (reguły WCAG 2.2 A i AA) bez naruszeń, na danych przykładowych. Takie testy wykrywają tylko część problemów, więc nie twierdzimy, że aplikacja jest w pełni zgodna. Poniżej opisujemy, co działa, co jest ograniczone i czego jeszcze nie sprawdziliśmy.",
+    },
+    works: {
+      id: "dziala",
+      title: "Co działa",
+      intro: "Każdy punkt ma sprawdzający go test automatyczny, chyba że napisano inaczej.",
+      items: [
+        [
+          "Klawiatura",
+          "Cały główny scenariusz działa samą klawiaturą: wyszukanie miejsca, profil, karta miejsca i zgłoszenie. Po zamknięciu okna fokus wraca na przycisk, który je otworzył.",
+        ],
+        [
+          "Czytnik ekranu — struktura",
+          "Strony informacyjne mają jeden nagłówek główny i nagłówki w logicznej kolejności, a linki „Przejdź do treści” i „Przejdź do listy” pozwalają ominąć mapę. Liczba wyników po wyszukaniu i zmianie filtra jest ogłaszana. To sprawdzenia automatyczne — z czytnikami nie testowaliśmy (patrz niżej).",
+        ],
+        [
+          "Kontrast",
+          "Główne pary kolorów w palecie mają test kontrastu (tekst co najmniej 4,5:1, elementy interfejsu co najmniej 3:1), a axe sprawdza kontrast na ekranach głównego scenariusza.",
+        ],
+        [
+          "Mapa jako tekst",
+          "Każde miejsce z mapy jest też na liście, z tym samym werdyktem i statusem — test sprawdza, że żadnej pinezki nie brakuje na liście, dla przykładowych miejsc z włączonym profilem. Mapę można też przybliżać przyciskami.",
+        ],
+        [
+          "Powiększenie i wąski ekran",
+          "Główne ekrany mieszczą się bez przewijania w poziomie w oknie 640 px (jak 200% na ekranie 1280 px) i 320 px (jak 400%). To emulacja szerokości okna, nie powiększenie w przeglądarce.",
+        ],
+        [
+          "Status nie tylko kolorem",
+          "Werdykty i statusy mają tekst, ikonę i kształt. Brak danych jest neutralny i nigdy nie wygląda jak „Spełnia”.",
+        ],
+        [
+          "Ograniczony ruch",
+          "Przy ustawieniu systemowym „zmniejsz ruch” animacje i przejścia interfejsu są skrócone. Nie dotyczy to płynnego przesuwania mapy. Tego ustawienia nie sprawdzamy testem.",
+        ],
+      ],
+    },
+    limits: {
+      id: "ograniczenia",
+      title: "Znane ograniczenia i plan poprawy",
+      intro: "Status mówi, na jakim etapie jest poprawa. Nie podajemy terminów, których nie możemy dotrzymać.",
+      items: [
+        [
+          "inProgress",
+          "Gesty mapy na telefonie",
+          "Przesuwanie i powiększanie mapy gestami bywa niestabilne. Zamiast gestów działają przyciski przybliżania i oddalania oraz lista miejsc. Poprawiamy to.",
+        ],
+        [
+          "planned",
+          "Pinezki na mapie",
+          "Pinezki są ukryte przed czytnikami ekranu i nie da się do nich dojść klawiszem Tab — te same miejsca są na liście. Planujemy połączyć mapę z listą i ocenić dostępność pinezek w audycie.",
+        ],
+        [
+          "planned",
+          "Kontrola na komputerze",
+          "Testy dostępności uruchamiamy głównie w widoku telefonu; na komputerze sprawdzamy tylko wybrane ekrany. Planujemy rozszerzyć testy na cały główny scenariusz i skontrolować jego nagranie.",
+        ],
+        [
+          "planned",
+          "Testy z czytnikami i użytkownikami",
+          "Planujemy ręczne testy głównego scenariusza z VoiceOver, TalkBack i NVDA oraz pełny audyt WCAG 2.2 AA, a przy pilotażu testy z osobami na wózkach i rodzicami z wózkami dziecięcymi.",
+        ],
+        [
+          "planned",
+          "Tryb wysokiego kontrastu",
+          "Nie sprawdzaliśmy trybu wysokiego kontrastu systemu. Planujemy to po testach z czytnikami.",
+        ],
+        [
+          "planned",
+          "Kanał zgłoszeń dostępności",
+          "Nie mamy jeszcze osobnego adresu do zgłaszania barier w samej aplikacji. Planujemy go opublikować.",
+        ],
+        [
+          "notPlanned",
+          "Dane przykładowe i tłumaczenie danych",
+          "Część danych to przykład i jest oznaczona „PRZYKŁAD”. Nazw miejsc i wartości z danych źródłowych nie tłumaczymy na angielski.",
+        ],
+      ],
+    },
+    unverified: {
+      id: "niesprawdzone",
+      title: "Czego nie sprawdziliśmy",
+      badge: "Niesprawdzone",
+      intro: "Tych rzeczy nikt jeszcze nie zweryfikował, więc nie twierdzimy, że działają.",
+      items: [
+        "Ręczny przebieg z czytnikami ekranu: VoiceOver (iOS i macOS), TalkBack i NVDA.",
+        "Przeglądarki inne niż Chromium (Firefox, Safari). Testy automatyczne uruchamiamy tylko w Chromium.",
+        "Natywna aplikacja na iOS lub Androida — nie istnieje; sprawdzamy tylko stronę w przeglądarce.",
+        "Powiększenie 200% i 400% w przeglądarce na komputerze. Sprawdzamy tylko wąskie okno.",
+        "Tryb wysokiego kontrastu systemu.",
+        "Testy z użytkownikami z niepełnosprawnościami i pełny audyt WCAG 2.2 AA.",
+      ],
+    },
+    report: {
+      id: "zglaszanie",
+      title: "Zgłoś barierę",
+      body: [
+        "Jeśli aplikacja jest dla Ciebie niedostępna, napisz do zespołu projektu — osobiście podczas HackYeah 2026 albo kanałem, z którego pochodzi link do strony. Opisz, co chciałeś zrobić, na jakim urządzeniu i z jakim czytnikiem lub ustawieniem.",
+        "Osobnego adresu do takich zgłoszeń jeszcze nie ma (patrz plan powyżej).",
+        "Błąd w danych o miejscu zgłosisz w karcie miejsca, przez „To się nie zgadza” albo „Uzupełnij dane”. Zgłoszenia nie mają e-maila ani adresu IP.",
+      ],
+    },
+    appeal: {
+      id: "odwolanie",
+      title: "Procedura odwoławcza",
+      body: [
+        "Prototyp nie jest jeszcze serwisem podmiotu publicznego. Gdyby wdrożył go podmiot publiczny, np. miasto, obowiązywałaby go ustawa z 4 kwietnia 2019 r. o dostępności cyfrowej stron internetowych i aplikacji mobilnych podmiotów publicznych.",
+        "Według tej ustawy możesz zażądać zapewnienia dostępności albo alternatywnego sposobu dostępu. Jeśli odpowiedź Cię nie zadowoli lub jej nie dostaniesz, możesz złożyć skargę do Rzecznika Praw Obywatelskich. To informacja o przepisach, nie deklaracja zgodności z nimi.",
+      ],
+    },
   },
 } as const;

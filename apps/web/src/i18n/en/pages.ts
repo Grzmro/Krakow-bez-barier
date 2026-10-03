@@ -75,34 +75,133 @@ export const pages: Messages["pages"] = {
   },
   a11y: {
     title: "Accessibility statement",
-    lead: "The “Kraków bez barier” prototype (HackYeah 2026). Target: WCAG 2.2 AA. As of 3 October 2026.",
-    works: "What works",
-    worksList: [
-      "The whole main scenario works with the keyboard alone: search, profile, place card and report. Focus is visible and returns to its place after a dialog closes.",
-      "The “Skip to content” and “Skip to the list” links let you bypass the map.",
-      "Everything on the map is also in the list of places — with the same results and statuses.",
-      "Statuses are shown as text, icon and shape, not colour alone. Missing data never looks like “meets”.",
-      "Text contrast at least 4.5:1, touch targets at least 48 px.",
-      "200% zoom and a 320 px wide screen without horizontal scrolling.",
-      "The number of results after a search or a filter change is announced to screen readers.",
-      "Reduced motion when “reduce motion” is set.",
-      "Automated axe tests (WCAG 2.2 A/AA) of every screen before every change to the app.",
-    ],
-    limits: "Known limitations",
-    limitsList: [
-      "We haven't yet tested manually with screen readers (VoiceOver, TalkBack, NVDA) or with their users.",
-      "Automated tests catch only some issues — there hasn't been a full WCAG 2.2 AA audit yet.",
-      "Map pins are hidden from screen readers and can't be reached with Tab — the same places are in the list.",
-      "We haven't checked the system high-contrast mode.",
-      "Some data is sample data; we mark it “SAMPLE”.",
-      "Place names and values from source data aren't translated into English.",
-    ],
-    plan: "Plan to remove the limitations",
-    planList: [
-      "Before the pilot: manual tests of the main scenario with VoiceOver, TalkBack and NVDA, and a WCAG 2.2 AA audit.",
-      "During the pilot: tests with wheelchair users and parents with pushchairs.",
-      "After the pilot: high-contrast mode.",
-    ],
-    contact: "Report accessibility issues to the project team — we'll fix them before the pilot.",
+    lead: "The “Kraków bez barier” prototype (HackYeah 2026) aims to meet WCAG 2.2 level AA. We checked the main scenario with automated tests and with the keyboard alone, but we haven't done a full audit or tested with screen readers yet.",
+    updatedLabel: "Last updated",
+    updated: "3 October 2026",
+    updatedIso: "2026-10-03",
+    tocTitle: "Contents",
+    statusLabel: {
+      done: "Done",
+      inProgress: "In progress",
+      planned: "Planned",
+      notPlanned: "Out of scope",
+    },
+    conformity: {
+      id: "conformity",
+      title: "Conformity status",
+      targetLabel: "Target",
+      target: "WCAG 2.2, level AA",
+      stateLabel: "Status today",
+      state: "Partial conformity — not confirmed by an audit",
+      body: "The screens of the main scenario (home, place card, info pages) pass automated axe tests (WCAG 2.2 A and AA rules) with no violations, on sample data. Such tests catch only some issues, so we don't claim the app fully conforms. Below we describe what works, what is limited and what we haven't checked yet.",
+    },
+    works: {
+      id: "works",
+      title: "What works",
+      intro: "Each point is backed by an automated test unless stated otherwise.",
+      items: [
+        [
+          "Keyboard",
+          "The whole main scenario works with the keyboard alone: searching for a place, the profile, the place card and a report. After a dialog closes, focus returns to the button that opened it.",
+        ],
+        [
+          "Screen reader — structure",
+          "The info pages have one main heading and headings in logical order, and the “Skip to content” and “Skip to the list” links bypass the map. The number of results after a search or a filter change is announced. These are automated checks — we haven't tested with screen readers (see below).",
+        ],
+        [
+          "Contrast",
+          "The main colour pairs in the palette have a contrast test (text at least 4.5:1, interface elements at least 3:1), and axe checks contrast on the screens of the main scenario.",
+        ],
+        [
+          "Map as text",
+          "Every place on the map is also in the list, with the same verdict and status — a test checks that no pin is missing from the list, for sample places with a profile switched on. You can also zoom the map with buttons.",
+        ],
+        [
+          "Zoom and narrow screens",
+          "The main screens fit without horizontal scrolling in a 640 px window (like 200% on a 1280 px screen) and a 320 px window (like 400%). This emulates the window width; it isn't browser zoom.",
+        ],
+        [
+          "Status never by colour alone",
+          "Verdicts and statuses have text, an icon and a shape. Missing data is neutral and never looks like “Meets”.",
+        ],
+        [
+          "Reduced motion",
+          "With the system “reduce motion” setting, interface animations and transitions are shortened. This doesn't cover the smooth map panning. We don't test this setting.",
+        ],
+      ],
+    },
+    limits: {
+      id: "limitations",
+      title: "Known limitations and improvement plan",
+      intro: "The status shows how far each fix has got. We don't give dates we can't keep.",
+      items: [
+        [
+          "inProgress",
+          "Map gestures on a phone",
+          "Panning and zooming the map by gesture can be unstable. The zoom buttons and the list of places work instead. We're fixing it.",
+        ],
+        [
+          "planned",
+          "Map pins",
+          "Pins are hidden from screen readers and can't be reached with Tab — the same places are in the list. We plan to link the map with the list and to assess pin accessibility in the audit.",
+        ],
+        [
+          "planned",
+          "Desktop check",
+          "We mostly run accessibility tests in the phone view; on desktop we only check selected screens. We plan to extend the tests to the whole main scenario and to check its recording.",
+        ],
+        [
+          "planned",
+          "Tests with screen readers and users",
+          "We plan manual tests of the main scenario with VoiceOver, TalkBack and NVDA and a full WCAG 2.2 AA audit, and at the pilot tests with wheelchair users and parents with pushchairs.",
+        ],
+        [
+          "planned",
+          "High-contrast mode",
+          "We haven't checked the system high-contrast mode. We plan to do it after the screen reader tests.",
+        ],
+        [
+          "planned",
+          "Accessibility reporting channel",
+          "We don't have a separate address for reporting barriers in the app itself yet. We plan to publish one.",
+        ],
+        [
+          "notPlanned",
+          "Sample data and data translation",
+          "Some data is sample data and is marked “SAMPLE”. We don't translate place names and values from source data into English.",
+        ],
+      ],
+    },
+    unverified: {
+      id: "unverified",
+      title: "What we haven't checked",
+      badge: "Not checked",
+      intro: "Nobody has verified these yet, so we don't claim they work.",
+      items: [
+        "A manual run with screen readers: VoiceOver (iOS and macOS), TalkBack and NVDA.",
+        "Browsers other than Chromium (Firefox, Safari). Automated tests run only in Chromium.",
+        "A native iOS or Android app — there isn't one; we only check the website in a browser.",
+        "200% and 400% browser zoom on a desktop. We only check a narrow window.",
+        "The system high-contrast mode.",
+        "Tests with users with disabilities and a full WCAG 2.2 AA audit.",
+      ],
+    },
+    report: {
+      id: "report",
+      title: "Report a barrier",
+      body: [
+        "If the app is inaccessible to you, write to the project team — in person during HackYeah 2026 or through the channel the link came from. Describe what you wanted to do, on what device and with which screen reader or setting.",
+        "There is no separate address for such reports yet (see the plan above).",
+        "You can report an error in a place's data on the place card, with “This isn't right” or “Fill in the data”. Reports carry no e-mail or IP address.",
+      ],
+    },
+    appeal: {
+      id: "appeal",
+      title: "Appeal procedure",
+      body: [
+        "The prototype is not yet a public body's website. If a public body such as the city deployed it, the Polish Act of 4 April 2019 on the digital accessibility of websites and mobile applications of public bodies would apply.",
+        "Under that act you can request that accessibility is provided or an alternative way to access the content. If the answer doesn't satisfy you or you get none, you can file a complaint with the Polish Commissioner for Human Rights (Rzecznik Praw Obywatelskich). This is information about the law, not a declaration of conformity with it.",
+      ],
+    },
   },
 };
