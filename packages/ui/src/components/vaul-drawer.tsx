@@ -7,8 +7,10 @@ import { cn } from "../cn";
 // For modal sheets (menu, report form, threshold editor). The base-nova `drawer.tsx` is Base UI's
 // Drawer, not Vaul. Never use snap points here — the map/list sheet is the non-modal BottomPanel.
 
-function VaulDrawer(props: ComponentProps<typeof DrawerPrimitive.Root>) {
-  return <DrawerPrimitive.Root data-slot="drawer" {...props} />;
+// Vaul defaults autoFocus to false, which leaves focus on the trigger: Tab then walks the
+// aria-hidden page behind the open modal before it reaches the sheet.
+function VaulDrawer({ autoFocus = true, ...props }: ComponentProps<typeof DrawerPrimitive.Root>) {
+  return <DrawerPrimitive.Root data-slot="drawer" autoFocus={autoFocus} {...props} />;
 }
 
 function VaulDrawerContent({ className, children, ...props }: ComponentProps<typeof DrawerPrimitive.Content>) {
