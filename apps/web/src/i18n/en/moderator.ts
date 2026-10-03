@@ -18,6 +18,16 @@ export const moderator: Messages["moderator"] = {
     sessionNote: "The token stays only in this browser tab and disappears when you close it.",
     mockNote: "Sample mode: any token works, and decisions don't reach the server.",
   },
+  demoEntry: {
+    heading: "For the jury and for trying it out",
+    lead: (minutes: number) =>
+      `Enter the demo account without a token. Its decisions are real, but they are undone automatically after ${minutes} min.`,
+    button: "Enter the demo account (for the jury)",
+    entering: "Entering…",
+    unavailable: "The demo account is turned off on this server. Sign in with a moderator token.",
+    failed: "Couldn't enter the demo account. Try again.",
+    or: "Have a moderator token? Sign in with it below.",
+  },
   signOut: "Sign out",
   signedOut: "Signed out.",
   sessionExpired: "The moderator session has expired. Sign in again.",

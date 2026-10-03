@@ -1,5 +1,6 @@
 import {
   responseExamples,
+  type DemoModeratorSession,
   type ModerationDecision,
   type ModerationReport,
   type ModeratorSession,
@@ -39,7 +40,12 @@ type Fetch = (input: Request) => Promise<Response>;
 export function withModerationMocks(fallback: Fetch, reports: ModerationReport[] = seedModerationQueue()): Fetch {
   return async (input) => {
     const url = new URL(input.url, "http://mock.local");
-    if (url.pathname.replace(/^.*\/api\/v1/, "") !== "/moderation/reports") return fallback(input);
+    const path = url.pathname.replace(/^.*\/api\/v1/, "");
+    if (path === "/moderation/demo-session" && input.method === "POST") {
+      const expiresAt = new Date(Date.now() + 12 * 3_600_000).toISOString();
+      return json({ token: MOCK_DEMO_TOKEN, expiresAt, moderator: session(MOCK_DEMO_TOKEN) } satisfies DemoModeratorSession, 201);
+    }
+    if (path !== "/moderation/reports") return fallback(input);
 
     const token = /^Bearer\s+(\S.*)$/i.exec(input.headers.get("authorization") ?? "")?.[1]?.trim();
     if (!token) return problem(401, "Unauthorized", "A valid moderator token is required.");

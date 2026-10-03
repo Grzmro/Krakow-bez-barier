@@ -73,8 +73,11 @@ Bez zagadek CAPTCHA, zgodnie z WCAG 3.3.8 (dostępne uwierzytelnianie):
 - Konto demonstracyjne dla jury: osobny token `MODERATOR_DEMO_TOKEN` (ta sama blokada po 5 próbach), w
   panelu oznaczone „Konto demonstracyjne”. Jego zatwierdzenia trafiają do osobnego źródła „Konto
   demonstracyjne moderatora (zmiana tymczasowa)”, a po 30 minutach wszystkie jego decyzje i fakty są
-  cofane — dane miejsc nie zmieniają się na stałe. Token trafia do formularza HackTribe, więc wprost: konto
-  demo widzi całą prawdziwą kolejkę moderacji, z komentarzami i zdjęciami innych mieszkańców (dane kontaktowe
+  cofane — dane miejsc nie zmieniają się na stałe. Jury wchodzi przyciskiem „Wejdź na konto demonstracyjne
+  (dla jury)” na `/moderator`: serwer wydaje 12-godzinną sesję podpisaną kluczem z `MODERATOR_DEMO_TOKEN`
+  (HMAC), która loguje wyłącznie jako konto demo — ani ten token, ani tokeny moderatorów nie trafiają do
+  przeglądarki; zmiana `MODERATOR_DEMO_TOKEN` unieważnia wszystkie sesje, a pusty wyłącza przycisk. Konto demo
+  jest więc publiczne. Wprost: widzi całą prawdziwą kolejkę moderacji, z komentarzami i zdjęciami innych mieszkańców (dane kontaktowe
   są ukryte), a przez te 30 minut jego decyzje działają też wobec prawdziwych osób — odrzucenie ukrywa zgłoszenie
   na karcie miejsca, a zatwierdzenie zamyka je dla prawdziwych moderatorów (HTTP 409), dopóki decyzja nie
   zostanie cofnięta.
