@@ -4,7 +4,8 @@ import { CARD_ATTRIBUTES } from "../src/lib/place-facts";
 import { expect, test } from "./fixtures";
 
 // Runs against `next start` of the real-API build (project chromium-prod, E2E_PROD=1) and the database in
-// DATABASE_URL (`npm run db:setup` seeds it). Without a database the places API fails and the spec skips itself.
+// DATABASE_URL (`npm run db:setup` seeds it; playwright.config.ts loads the root .env). It skips itself only when
+// DATABASE_URL is unset (CI); with a database configured any failing answer fails the test.
 // Read-only on purpose: it opens the report form but never sends it, so it can run against a shared database.
 
 const onCard = (attribute: string) => (CARD_ATTRIBUTES as readonly string[]).includes(attribute);
@@ -17,8 +18,9 @@ test("list, map and card show seeded places from the real API with their sources
   evidence,
 }) => {
   // GIVEN the places API answers from a database with a place that has a known fact the card lists
+  test.skip(!process.env.DATABASE_URL, "DATABASE_URL is unset — no database to read real places from (npm run db:setup)");
   const response = await request.get("/api/v1/places?limit=100");
-  test.skip(!response.ok(), `GET /api/v1/places answered ${response.status()} — no seeded database (npm run db:setup)`);
+  expect(response.ok(), `GET /api/v1/places answered ${response.status()}`).toBe(true);
   const places = (await response.json()) as PlaceList;
   const summary = places.items.find((item) => item.summary.some((chip) => onCard(chip.attribute) && chip.state !== "unknown"));
   test.skip(!summary, "the database has no place with a known card fact");

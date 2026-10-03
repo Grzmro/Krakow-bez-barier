@@ -105,8 +105,10 @@ npm run routes:record -w apps/web   # re-record the openrouteservice fixtures (O
 ```
 
 The web app uses the real API (`DATABASE_URL`) by default. `test:e2e` runs the dev-server specs on the
-example data (`NEXT_PUBLIC_API_MOCK=true`, no DB needed); `places-real-data.prod.spec.ts` needs a seeded DB
-and skips itself without one. It only reads, but point `DATABASE_URL` at a throwaway DB for e2e anyway.
+example data (`NEXT_PUBLIC_API_MOCK=true`, no DB needed). It reuses a dev server already running on the
+worktree's port — one started without `NEXT_PUBLIC_API_MOCK=true` serves real data and those specs fail, so
+stop it first. `places-real-data.prod.spec.ts` needs a seeded DB and skips itself only when `DATABASE_URL`
+is unset (root `.env` is loaded). It only reads, but point `DATABASE_URL` at a throwaway DB for e2e anyway.
 
 The native apps load the running web app from `CAP_SERVER_URL` (`apps/mobile/.env`, default
 `http://localhost:3000` from `.env.example`; phone on LAN: `http://<mac-ip>:3000`; Android emulator:
