@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   CaretRight,
   Database,
@@ -10,6 +11,7 @@ import {
   PersonArmsSpread,
   ShieldCheck,
   SlidersHorizontal,
+  Storefront,
   type Icon,
 } from "@phosphor-icons/react";
 import {
@@ -22,7 +24,7 @@ import {
   VaulDrawerTrigger,
 } from "@krakow-bez-barier/ui";
 import { pl } from "@/i18n/pl";
-import { routes } from "@/lib/routes";
+import { isWidgetRoute, routes } from "@/lib/routes";
 import { NearMe } from "./near-me";
 
 const t = pl.common;
@@ -31,6 +33,7 @@ const MENU: { href: string; icon: Icon; title: string; sub: string }[] = [
   // TODO(KBB-41): drop once the profile lives on the home screen.
   { href: routes.profile, icon: SlidersHorizontal, title: t.menu.profile, sub: t.menu.profileSub },
   { href: routes.aboutData, icon: Database, title: t.menu.aboutData, sub: t.menu.aboutDataSub },
+  { href: routes.business, icon: Storefront, title: t.menu.business, sub: t.menu.businessSub },
   { href: routes.moderator, icon: Gavel, title: t.menu.moderator, sub: t.menu.moderatorSub },
   { href: routes.privacy, icon: ShieldCheck, title: t.menu.privacy, sub: t.menu.privacySub },
   { href: routes.accessibility, icon: PersonArmsSpread, title: t.menu.a11y, sub: t.menu.a11ySub },
@@ -38,6 +41,8 @@ const MENU: { href: string; icon: Icon; title: string; sub: string }[] = [
 
 export function AppHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
+  if (isWidgetRoute(pathname)) return null;
   return (
     <header className="sticky top-[env(safe-area-inset-top)] z-30 border-b border-border bg-background">
       <VaulDrawer open={menuOpen} onOpenChange={setMenuOpen}>

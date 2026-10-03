@@ -1,5 +1,6 @@
 // All Polish UI copy, split per area so parallel work doesn't conflict. Add strings to the area
 // file (`pl/<area>.ts`); only touch this index when adding a new area.
+import { business } from "./pl/business";
 import { common } from "./pl/common";
 import { dev } from "./pl/dev";
 import { home } from "./pl/home";
@@ -10,4 +11,4 @@ import { place } from "./pl/place";
 import { profile } from "./pl/profile";
 import { pwa } from "./pl/pwa";
 
-export const pl = { common, home, place, profile, pages, moderator, nearby, dev, pwa } as const;
+export const pl = { common, home, place, profile, pages, moderator, nearby, business, dev, pwa } as const;

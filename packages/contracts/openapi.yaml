@@ -764,18 +764,42 @@ paths:
                   value:
                     placeId: hotel-przyklad
                     name: Hotel Przykład
-                    verdict:
-                      state: unknown
-                      unconfirmed: false
-                      reasons:
-                      - Brak danych o przewijaku
+                    verdict: null
                     facts:
+                    - attribute: step_count
+                      state: known
+                      value:
+                        kind: number
+                        number: 0
+                        unit: count
+                      reliability: confirmed
+                      status: confirmed
+                      sourceName: Dane obiektu
+                      fetchedAt: '2026-09-12T08:00:00Z'
                     - attribute: door_width_cm
                       state: known
                       value:
                         kind: number
                         number: 90
                         unit: cm
+                      reliability: confirmed
+                      status: confirmed
+                      sourceName: Dane obiektu
+                      fetchedAt: '2026-09-12T08:00:00Z'
+                    - attribute: lift
+                      state: known
+                      value:
+                        kind: boolean
+                        boolean: true
+                      reliability: community
+                      status: unverified
+                      sourceName: OpenStreetMap
+                      fetchedAt: '2026-10-03T03:00:00Z'
+                    - attribute: toilet_accessible
+                      state: known
+                      value:
+                        kind: boolean
+                        boolean: true
                       reliability: confirmed
                       status: confirmed
                       sourceName: Dane obiektu

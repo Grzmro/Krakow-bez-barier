@@ -36,9 +36,12 @@ export type GetPlaceQuery = NonNullable<operations["getPlace"]["parameters"]["qu
 export type ReportCreate = Schemas["ReportCreate"];
 export type Confirmation = Schemas["Confirmation"];
 
-/** Typed client for the v1 API. Defaults to same-origin `/api/v1`. */
+/** Base path of the v1 API on the app's own origin. */
+export const API_BASE_PATH = "/api/v1";
+
+/** Typed client for the v1 API. Defaults to same-origin `API_BASE_PATH`. */
 export function createApiClient(options: ClientOptions = {}) {
-  return createClient<paths>({ baseUrl: "/api/v1", ...options });
+  return createClient<paths>({ baseUrl: API_BASE_PATH, ...options });
 }
 
 export { checkReportNumber, reportRules, type RangeCheck, type ReportRules, type ValueRange } from "./report-rules";

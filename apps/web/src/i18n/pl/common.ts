@@ -24,6 +24,8 @@ export const common = {
     profileSub: "Wózek, wózek dziecięcy, progi",
     aboutData: "O danych",
     aboutDataSub: "Źródła, licencje, wiarygodność",
+    business: "Dla firm: widget i API",
+    businessSub: "Karta dostępności na Twojej stronie",
     moderator: "Panel moderatora",
     moderatorSub: "Kolejka zgłoszeń",
     privacy: "Prywatność",

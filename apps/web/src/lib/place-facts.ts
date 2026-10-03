@@ -29,7 +29,7 @@ export const CARD_ATTRIBUTES = [
   "changing_table",
 ] as const satisfies readonly AccessibilityAttribute[];
 
-const RELIABILITY: Record<ReliabilityStatus, Reliability> = {
+export const RELIABILITY: Record<ReliabilityStatus, Reliability> = {
   confirmed: "confirmed",
   unverified: "unverified",
   outdated: "outdated",
@@ -77,7 +77,7 @@ export function formatValue(attribute: AccessibilityAttribute, value: FactValue)
   }
 }
 
-function joinValue(v: { value: string; unit?: string }) {
+export function joinValue(v: { value: string; unit?: string }) {
   return v.unit ? `${v.value} ${v.unit}` : v.value;
 }
 

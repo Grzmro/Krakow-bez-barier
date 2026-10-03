@@ -1,0 +1,31 @@
+- main:
+  - article "Hotel Przykład":
+    - paragraph: Dostępność
+    - heading "Hotel Przykład" [level=1]
+    - text: Dane przykładowe
+    - paragraph: Bez zbiorczej oceny — sprawdź cechy ważne dla Ciebie.
+    - list "Cechy dostępności":
+      - listitem:
+        - paragraph: "Wejście — stopnie: Bez stopni"
+        - text: Potwierdzone
+        - paragraph: /Dane obiektu · \d+\.\d+\.\d+/
+      - listitem:
+        - paragraph: "/Szerokość drzwi: \\d+ cm/"
+        - text: Potwierdzone
+        - paragraph: /Dane obiektu · \d+\.\d+\.\d+/
+      - listitem:
+        - paragraph: "Winda: Jest"
+        - text: Niezweryfikowane
+        - paragraph: /OpenStreetMap · \d+\.\d+\.\d+/
+      - listitem:
+        - paragraph: "Toaleta dostosowana: Jest"
+        - text: Potwierdzone
+        - paragraph: /Dane obiektu · \d+\.\d+\.\d+/
+      - listitem:
+        - paragraph: "Przewijak: Brak danych"
+        - text: Brak danych
+        - paragraph: Nikt jeszcze nie sprawdził.
+    - link "Pełna karta (otwiera się w nowej karcie)":
+      - /url: /miejsca/hotel-przyklad
+    - paragraph: Kraków bez barier
+    - paragraph: © OpenStreetMap contributors

@@ -6,6 +6,11 @@ export const routes = {
   privacy: "/prywatnosc",
   accessibility: "/deklaracja-dostepnosci",
   moderator: "/moderator",
+  business: "/dla-firm",
+  widget: (placeId: string) => `/widget/${encodeURIComponent(placeId)}`,
   devComponents: "/dev/components",
   devNative: "/dev/native",
 } as const;
+
+/** The embeddable widget renders inside venue websites, without the app's chrome. */
+export const isWidgetRoute = (pathname: string) => pathname.startsWith(routes.widget(""));
