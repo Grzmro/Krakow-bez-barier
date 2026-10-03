@@ -1,11 +1,9 @@
-import type { operations, Profile } from "@krakow-bez-barier/contracts";
-
-type PlaceQuery = NonNullable<operations["getPlace"]["parameters"]["query"]>;
+import type { GetPlaceQuery, Profile } from "@krakow-bez-barier/contracts";
 
 /** A profile's thresholds — exactly the query parameters the API takes next to `profile`. */
 export type Thresholds = Required<
   Pick<
-    PlaceQuery,
+    GetPlaceQuery,
     | "maxThresholdCm"
     | "minDoorWidthCm"
     | "requireStepFree"

@@ -18,12 +18,15 @@ export function ProfileSwitch({
   value,
   onChange,
   allowOff = true,
+  size = "default",
   className,
 }: {
   value: Profile | null;
   onChange: (profile: Profile | null) => void;
   /** Show the "for everyone" segment; the threshold editor hides it. */
   allowOff?: boolean;
+  /** `sm` is the compact variant used inside the thresholds drawer. */
+  size?: "default" | "sm";
   className?: string;
 }) {
   const name = useId();
@@ -40,7 +43,8 @@ export function ProfileSwitch({
             <label
               key={option}
               className={cn(
-                "relative flex h-12 min-w-0 flex-1 cursor-pointer items-center justify-center gap-1 rounded-full px-2 text-[14px] font-semibold text-muted-foreground transition-[background-color,color,box-shadow] duration-200 hover:text-foreground has-checked:bg-primary has-checked:text-primary-foreground has-checked:shadow-soft has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
+                "relative flex min-w-0 flex-1 cursor-pointer items-center justify-center gap-1 rounded-full px-2 font-semibold text-muted-foreground transition-[background-color,color,box-shadow] duration-200 hover:text-foreground has-checked:bg-primary has-checked:text-primary-foreground has-checked:shadow-soft has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
+                size === "sm" ? "h-10 text-[13px]" : "h-12 text-[14px]",
               )}
             >
               <input

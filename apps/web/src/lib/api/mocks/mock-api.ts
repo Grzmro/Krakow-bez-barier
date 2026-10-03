@@ -1,13 +1,10 @@
-import type { operations, Place, PlaceList, PlaceSummary } from "@krakow-bez-barier/contracts";
+import type { GetPlaceQuery, ListPlacesQuery, Place, PlaceList, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { responseExamples } from "@krakow-bez-barier/contracts/examples";
 import { DEFAULT_THRESHOLDS, type Thresholds } from "@/lib/profile/thresholds";
 import { mockVerdict } from "./mock-verdict";
 
 // TODO(KBB-28): in-browser stand-in for the places API, built only from the spec's `examples`.
 // Supports `q`, `category` and the profile parameters; feature filters and bbox are not mocked.
-
-export type ListPlacesQuery = NonNullable<operations["listPlaces"]["parameters"]["query"]>;
-export type GetPlaceQuery = NonNullable<operations["getPlace"]["parameters"]["query"]>;
 
 function uniqueById<T extends { id: string }>(items: T[]): T[] {
   const seen = new Set<string>();

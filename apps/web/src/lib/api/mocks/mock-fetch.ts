@@ -1,5 +1,5 @@
-import type { Category, Problem, Profile } from "@krakow-bez-barier/contracts";
-import { mockGetPlace, mockListPlaces, type GetPlaceQuery } from "./mock-api";
+import type { Category, GetPlaceQuery, Problem, Profile } from "@krakow-bez-barier/contracts";
+import { mockGetPlace, mockListPlaces } from "./mock-api";
 
 // TODO(KBB-28): `fetch` for the openapi-fetch client while the API isn't implemented. Add a route
 // here (from the spec's examples) when a screen needs another endpoint.

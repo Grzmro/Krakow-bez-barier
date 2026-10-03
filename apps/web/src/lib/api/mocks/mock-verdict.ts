@@ -51,7 +51,7 @@ function entrance(place: PlaceFacts, th: Thresholds): NeedResult {
   const count = numberOf(steps.attribute);
   if (count === null) return unresolved("entrance", "step_count", "unknown");
 
-  if (count === 0) {
+  if (count === 0 || (!th.requireStepFree && count <= 1)) {
     const threshold = resolve(place, "threshold_cm");
     if (threshold.kind === "unresolved") return unresolved("entrance", "threshold_cm", threshold.state);
     const cm = numberOf(threshold.attribute);
@@ -62,13 +62,13 @@ function entrance(place: PlaceFacts, th: Thresholds): NeedResult {
       : result("entrance", "threshold_cm", "barrier", t.threshold(cm));
   }
 
-  if (!th.requireStepFree && count <= 1) return result("entrance", "step_count", "met", null, isUnconfirmed(steps.attribute));
   const ramp = resolve(place, "ramp");
-  if (ramp.kind === "known" && booleanOf(ramp.attribute) === true) {
-    return result("entrance", "ramp", "met", null, isUnconfirmed(ramp.attribute));
-  }
-  if (ramp.kind === "known" || th.requireStepFree) return result("entrance", "step_count", "barrier", t.steps(count));
-  return unresolved("entrance", "ramp", ramp.state);
+  if (ramp.kind === "unresolved") return unresolved("entrance", "ramp", ramp.state);
+  const hasRamp = booleanOf(ramp.attribute);
+  if (hasRamp === null) return unresolved("entrance", "ramp", "unknown");
+  return hasRamp
+    ? result("entrance", "ramp", "met", null, isUnconfirmed(ramp.attribute))
+    : result("entrance", "step_count", "barrier", t.steps(count));
 }
 
 function door(place: PlaceFacts, th: Thresholds): NeedResult {
@@ -101,7 +101,10 @@ function surface(place: PlaceFacts): NeedResult {
     : result("surface", "surface", "barrier", t.surface);
 }
 
-/** Checks each need of the profile; barrier beats conflict beats unknown, and only all-met is met. */
+/**
+ * Checks each need of the profile; barrier beats conflict beats unknown, and only all-met is met.
+ * A conflict on any attribute of the place, needed or not, also rules out met.
+ */
 export function mockVerdict(place: PlaceFacts, th: Thresholds): Verdict {
   const needs: NeedResult[] = [entrance(place, th), door(place, th)];
   if (th.requireLift) needs.push(facility(place, "lift", "lift"));
@@ -110,11 +113,20 @@ export function mockVerdict(place: PlaceFacts, th: Thresholds): Verdict {
   if (th.requireChangingTable) needs.push(facility(place, "changing_table", "changing_table"));
 
   const has = (state: NeedVerdict) => needs.some((n) => n.state === state);
-  const state: NeedVerdict = has("barrier") ? "barrier" : has("conflict") ? "conflict" : has("unknown") ? "unknown" : "met";
+  const conflictElsewhere = place.attributes.some((a) => a.state === "conflict");
+  const state: NeedVerdict = has("barrier")
+    ? "barrier"
+    : has("conflict") || conflictElsewhere
+      ? "conflict"
+      : has("unknown")
+        ? "unknown"
+        : "met";
+  const reasons = needs.filter((n) => n.state !== "met" && n.reason).map((n) => n.reason as string);
+  if (state === "conflict" && !has("conflict")) reasons.push(t.conflictElsewhere);
   return {
     state,
     unconfirmed: state === "met" && needs.some((n) => n.unconfirmed),
-    reasons: needs.filter((n) => n.state !== "met" && n.reason).map((n) => n.reason as string),
+    reasons,
     blockers: needs.filter((n) => n.state === "barrier").map((n) => n.attribute),
     unknowns: needs.filter((n) => n.state === "unknown").map((n) => n.attribute),
     needs,

@@ -27,7 +27,9 @@ test("wheelchair profile shows verdicts, announces counts and keeps the search",
   // AND hiding failing places announces the new count
   await page.getByRole("switch", { name: "Ukryj niespełniające" }).check();
   await expect(row(page, "Restauracja Przykład")).toHaveCount(0);
-  await expect(liveRegion(page)).toContainText("2 miejsca");
+  await expect(liveRegion(page)).toHaveText(
+    "Profil: wózek. 2 miejsca (ukryto niespełniające: 1): 1 spełnia, 0 nie spełnia, 1 brak danych, 0 sprzeczne.",
+  );
 
   // AND the card groups explain the verdict
   await row(page, "Hotel Przykład").getByRole("button", { name: "Dlaczego?" }).click();

@@ -80,7 +80,7 @@ export function ThresholdsDrawer({ open, onOpenChange }: { open: boolean; onOpen
         <div className="overflow-y-auto px-4 pt-4 pb-5">
           <VaulDrawerTitle className="font-heading text-h2 font-bold">{t.title}</VaulDrawerTitle>
           <VaulDrawerDescription className="mt-1 text-body-sm text-muted-foreground">{t.proposal}</VaulDrawerDescription>
-          <ProfileSwitch value={profile} onChange={(next) => next && setProfile(next)} allowOff={false} className="mt-4" />
+          <ProfileSwitch value={profile} onChange={(next) => next && setProfile(next)} allowOff={false} size="sm" className="mt-4" />
           <div className="mt-3 divide-y divide-border">
             <Stepper
               label={t.maxThresholdCm}

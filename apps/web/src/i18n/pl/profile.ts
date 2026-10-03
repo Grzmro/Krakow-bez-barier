@@ -54,10 +54,11 @@ export const profile = {
     done: "Gotowe",
   },
   hideFailing: "Ukryj niespełniające",
-  counts,
-  announce: (active: Profile | null, shown: number, byStatus: Record<Status, number>) =>
+  counter: (n: number, status: string) => `${n} ${status}`,
+  countersLabel: "Liczba miejsc według wyniku",
+  announce: (active: Profile | null, shown: number, hidden: number, byStatus: Record<Status, number>) =>
     active
-      ? `Profil: ${profileName[active].toLowerCase()}. ${places(shown)}: ${counts(byStatus)}.`
+      ? `Profil: ${profileName[active].toLowerCase()}. ${places(shown)}${hidden ? ` (ukryto niespełniające: ${hidden})` : ""}: ${counts(byStatus)}.`
       : `Profil wyłączony. Widok dla każdego, ${places(shown)}.`,
   reasons: {
     steps: (n: number) => `${n} ${plural(n, "stopień", "stopnie", "stopni")}`,
@@ -66,6 +67,7 @@ export const profile = {
     surface: "nierówna nawierzchnia",
     missing: (need: Need) => `${needName[need].toLowerCase()}: brak`,
     unresolved: (need: Need) => needName[need].toLowerCase(),
+    conflictElsewhere: "sprzeczne dane o miejscu",
   },
   groups: {
     barrier: "Blokuje",

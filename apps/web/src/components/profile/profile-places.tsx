@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { SlidersHorizontal } from "@phosphor-icons/react";
 import type { PlaceSummary } from "@krakow-bez-barier/contracts";
-import { Button, LabeledSwitch, STATUSES, useAnnounce, type Status } from "@krakow-bez-barier/ui";
+import { Button, LabeledSwitch, STATUSES, StatusIcon, useAnnounce, type Status } from "@krakow-bez-barier/ui";
 import { SampleTag, StatusBadge } from "@/components/kbb";
 import { pl } from "@/i18n/pl";
 import { usePlaces } from "@/lib/api/places";
@@ -21,6 +21,22 @@ function countByStatus(items: PlaceSummary[]): Record<Status, number> {
   const counts = Object.fromEntries(STATUSES.map((s) => [s, 0])) as Record<Status, number>;
   for (const item of items) if (item.verdict) counts[item.verdict.state] += 1;
   return counts;
+}
+
+function Counters({ counts }: { counts: Record<Status, number> }) {
+  return (
+    <ul aria-label={t.countersLabel} className="flex min-w-0 items-center gap-2">
+      {STATUS_ORDER.map((status) => (
+        <li key={status} className="flex h-11 min-w-0 items-center gap-1.5 rounded-full bg-card px-3 ring-1 ring-border">
+          <StatusIcon status={status} className="size-5!" />
+          <span aria-hidden className="font-num text-[17px] text-foreground">
+            {counts[status]}
+          </span>
+          <span className="sr-only">{t.counter(counts[status], pl.common.status[status])}</span>
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 function PlaceRow({ place }: { place: PlaceSummary }) {
@@ -81,18 +97,19 @@ export function ProfilePlaces() {
 
   const { data, isPending, isError, isPlaceholderData } = usePlaces({ q: q || undefined, ...profileQuery(settings) });
   const items = useMemo(() => data?.items ?? [], [data]);
-  const counts = useMemo(() => countByStatus(items), [items]);
   const active = settings.profile;
   const shown = useMemo(() => {
     if (!active) return items;
     const visible = hideFailing ? items.filter((p) => p.verdict?.state !== "barrier") : items;
     return visible.toSorted((a, b) => STATUS_ORDER.indexOf(a.verdict?.state ?? "unknown") - STATUS_ORDER.indexOf(b.verdict?.state ?? "unknown"));
   }, [items, active, hideFailing]);
+  const counts = useMemo(() => countByStatus(shown), [shown]);
+  const hidden = items.length - shown.length;
 
   useEffect(() => {
     if (!data || isPlaceholderData) return;
-    announce(t.announce(active, shown.length, counts));
-  }, [announce, data, isPlaceholderData, active, shown.length, counts]);
+    announce(t.announce(active, shown.length, hidden, counts));
+  }, [announce, data, isPlaceholderData, active, shown.length, hidden, counts]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -112,8 +129,9 @@ export function ProfilePlaces() {
       {active ? (
         <>
           <div className="flex items-center gap-2">
-            <p className="min-w-0 flex-1 text-caption font-semibold text-muted-foreground">{t.counts(counts)}</p>
-            <Button variant="outline" size="icon" aria-label={t.settings} onClick={() => setDrawerOpen(true)}>
+            {/* TODO(KBB-23): counters become status-filter toggles on the home screen. */}
+            <Counters counts={counts} />
+            <Button variant="outline" size="icon" aria-label={t.settings} onClick={() => setDrawerOpen(true)} className="ml-auto size-11 shrink-0">
               <SlidersHorizontal weight="bold" />
             </Button>
           </div>

@@ -84,13 +84,57 @@ describe("mockVerdict", () => {
   });
 
   it("accepts one step for the stroller preset but not for the wheelchair preset", () => {
-    // GIVEN one step and no ramp data
-    const place = { attributes: [known("step_count", num(1)), known("door_width_cm", num(90))] };
+    // GIVEN one step with a low threshold, and no ramp
+    const place = {
+      attributes: [known("step_count", num(1)), known("threshold_cm", num(2)), known("ramp", bool(false)), known("door_width_cm", num(90))],
+    };
     const noFacilities = { requireLift: false, requireAccessibleToilet: false, requireChangingTable: false };
     // WHEN checked against both presets without facility needs
     // THEN the stroller preset accepts it and the wheelchair preset blocks it
     expect(mockVerdict(place, { ...stroller, ...noFacilities }).state).toBe("met");
     expect(mockVerdict(place, { ...wheelchair, ...noFacilities }).state).toBe("barrier");
+  });
+
+  it("never rates one step better than a step-free entrance when the threshold is unknown", () => {
+    // GIVEN a step-free and a one-step entrance, both without threshold data
+    const noFacilities = { ...stroller, requireLift: false, requireChangingTable: false };
+    const stepFree = { attributes: [known("step_count", num(0)), known("door_width_cm", num(90))] };
+    const oneStep = { attributes: [known("step_count", num(1)), known("door_width_cm", num(90))] };
+    // WHEN checked against the stroller preset
+    // THEN both are unknown on the threshold, neither is met
+    for (const place of [stepFree, oneStep]) {
+      const verdict = mockVerdict(place, noFacilities);
+      expect(verdict.state).toBe("unknown");
+      expect(verdict.unknowns).toEqual(["threshold_cm"]);
+    }
+  });
+
+  it("treats steps with unknown ramp data as unknown, and a confirmed missing ramp as a barrier", () => {
+    // GIVEN two steps, once without ramp data and once with no ramp
+    const entranceOnly = { ...wheelchair, requireLift: false, requireAccessibleToilet: false };
+    const noRampData = { attributes: [known("step_count", num(2)), known("door_width_cm", num(90))] };
+    const noRamp = { attributes: [...noRampData.attributes, known("ramp", bool(false))] };
+    // WHEN checked against the wheelchair preset
+    const unknownRamp = mockVerdict(noRampData, entranceOnly);
+    // THEN missing ramp data is unknown, a known lack of ramp blocks
+    expect(unknownRamp.state).toBe("unknown");
+    expect(unknownRamp.unknowns).toEqual(["ramp"]);
+    expect(mockVerdict(noRamp, entranceOnly)).toMatchObject({ state: "barrier", reasons: ["2 stopnie"] });
+  });
+
+  it("never returns met when an attribute the profile doesn't need is in conflict", () => {
+    // GIVEN a place that meets every wheelchair need but has conflicting surface data
+    const place = {
+      attributes: [
+        ...fullyAccessible.attributes,
+        { attribute: "surface" as const, state: "conflict" as const, status: "conflict" as const, value: null, facts: [] },
+      ],
+    };
+    // WHEN checked against the wheelchair preset, which doesn't require a smooth surface
+    const verdict = mockVerdict(place, wheelchair);
+    // THEN the verdict is conflict with a reason, not met
+    expect(verdict.state).toBe("conflict");
+    expect(verdict.reasons).toEqual(["sprzeczne dane o miejscu"]);
   });
 
   it("marks met as unconfirmed when it rests on unverified data", () => {
