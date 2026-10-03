@@ -1,0 +1,4 @@
+- search:
+  - text: Wyszukaj miejsce
+  - combobox "Wyszukaj miejsce"
+  - button "Wpisz głosem" [pressed]

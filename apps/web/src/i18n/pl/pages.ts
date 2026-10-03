@@ -91,6 +91,10 @@ export const pages = {
         "Ustawienia",
         "Profil i progi zapisujemy tylko w Twojej przeglądarce. Język zapisujemy w ciasteczku kbb-lang (tylko „pl” albo „en”); przeglądarka wysyła je do serwera, żeby pokazać stronę w tym języku. Wszystko usuniesz, czyszcząc dane strony.",
       ],
+      [
+        "Wyszukiwanie głosem",
+        "Mowę zamienia na tekst Twoja przeglądarka (Web Speech API), nie nasz serwer. Przeglądarka może wysłać nagranie do usługi rozpoznawania mowy swojego dostawcy (np. Google w Chrome, Apple w Safari) na jego zasadach. My nie dostajemy ani nie zapisujemy nagrania — tylko tekst, który trafia do pola wyszukiwania. W przeglądarce zapisujemy jedynie, że informację o tym już widziałeś.",
+      ],
       ["Trackery", "Nie używamy reklam, analityki śledzącej ani pikseli zewnętrznych."],
     ] as [string, string][],
   },

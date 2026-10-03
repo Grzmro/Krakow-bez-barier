@@ -15,6 +15,18 @@ export const home = {
     placeholder: "Dokąd?",
     suggestions: "Podpowiedzi",
     clear: "Wyczyść wyszukiwanie",
+    voice: {
+      start: "Wpisz głosem",
+      listening: "Słucham… mów teraz",
+      processing: "Rozpoznaję mowę…",
+      notice: "Mowę rozpoznaje Twoja przeglądarka — może wysłać nagranie do usługi swojego dostawcy (np. Google w Chrome); my nic nie zapisujemy.",
+      errors: {
+        "not-allowed": "Brak dostępu do mikrofonu. Zezwól na mikrofon w ustawieniach przeglądarki i spróbuj ponownie.",
+        "no-speech": "Nic nie usłyszałem. Naciśnij mikrofon i powiedz, czego szukasz.",
+        network: "Rozpoznawanie mowy wymaga internetu. Sprawdź połączenie albo wpisz zapytanie.",
+        other: "Nie udało się rozpoznać mowy. Spróbuj ponownie albo wpisz zapytanie.",
+      },
+    },
   },
   categoriesLabel: "Kategorie",
   categoryAll: "Wszystko",
