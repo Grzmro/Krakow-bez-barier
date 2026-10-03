@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import type { FeatureFilter } from "@krakow-bez-barier/contracts";
-import { Button, cn, LabeledSwitch, StatusIcon, Switch, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
+import { Button, buttonVariants, cn, LabeledSwitch, StatusIcon, Switch, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
 import { CaretLeft, MagnifyingGlass, SlidersHorizontal } from "@phosphor-icons/react";
 import { BottomPanel } from "@/components/kbb";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
@@ -12,6 +12,7 @@ import { useMessages } from "@/i18n/client";
 import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
 import { routes } from "@/lib/routes";
+import { routeTarget } from "@/lib/route-intent";
 import { byDistance, listCentre, searchArea, toLonLat, type NearbyOrigin } from "@/lib/nearby";
 import { listedCount } from "@/lib/list-count";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
@@ -152,6 +153,11 @@ export function HomeScreen() {
   const verdictCount = items.filter(({ place }) => place.verdict).length;
   const missing = useMemo(() => (verdicts && counts.met === 0 ? missingNeeds(items).slice(0, 3) : []), [verdicts, counts.met, items]);
   const settled = query.q === q.trim() && !places.isPlaceholderData;
+  const routeTo = useMemo(
+    () =>
+      settled && !places.isError ? routeTarget(q, shown.map(({ place }) => place)) : null,
+    [settled, places.isError, q, shown],
+  );
   const suggestions = useMemo(
     () => (settled && query.q ? [...new Set(items.map(({ place }) => place.name))] : []),
     [items, settled, query.q],
@@ -459,6 +465,14 @@ export function HomeScreen() {
             {resultsLabel}
           </h2>
           {cutNote ? <p className="mb-2 text-body-sm text-muted-foreground">{cutNote}</p> : null}
+          {routeTo ? (
+            <div role="group" aria-label={t.search.route.button} className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl bg-primary-container px-4 py-3">
+              <p className="min-w-0 flex-1 text-body-sm font-semibold">{t.search.route.prompt(routeTo.name)}</p>
+              <Link href={routes.route(routeTo.id)} aria-label={t.search.route.aria(routeTo.name)} className={buttonVariants()}>
+                {t.search.route.button}
+              </Link>
+            </div>
+          ) : null}
           {places.isError ? (
             <div className="grid justify-items-start gap-3">
               <p className="text-body">{t.list.error}</p>

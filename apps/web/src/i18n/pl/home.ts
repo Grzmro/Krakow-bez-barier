@@ -16,6 +16,11 @@ export const home = {
     placeholder: "Dokąd?",
     suggestions: "Podpowiedzi",
     clear: "Wyczyść wyszukiwanie",
+    route: {
+      prompt: (name: string) => `Chcesz dojść do: ${name}?`,
+      button: "Wyznacz trasę",
+      aria: (name: string) => `Wyznacz trasę do: ${name}`,
+    },
     voice: {
       start: "Wpisz głosem",
       listening: "Słucham… mów teraz",
