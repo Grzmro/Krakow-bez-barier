@@ -40,7 +40,7 @@ export const route = {
   shortest: "Najkrótsza",
   minutes: (n: number) => `${n} min`,
   distance: km,
-  headingAria: (minutes: number, meters: number) => `Trasa: ${minutes} minut, ${km(meters)}`,
+  headingAria: (minutes: number, meters: number) => `Trasa: ${minutes} ${plural(minutes, "minuta", "minuty", "minut")}, ${km(meters)}`,
   profileOn: (p: Profile) =>
     `Ocena według progów profilu: ${profileName[p]} (nachylenie, nawierzchnia; krawężniki tam, gdzie mamy o nich dane).`,
   profileOff: "Bez profilu sprawdzamy schody i nawierzchnię. Włącz profil, by ocenić krawężniki i nachylenie.",

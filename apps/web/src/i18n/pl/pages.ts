@@ -7,6 +7,11 @@ type SourceRefreshStatus = components["schemas"]["SourceRefreshStatus"];
 // Info pages: O danych, Prywatność, Deklaracja dostępności.
 export const pages = {
   back: "Wróć na stronę główną",
+  notFound: {
+    title: "Nie ma takiej strony",
+    body: "Adres jest nieprawidłowy albo strona została usunięta. Wróć na stronę główną i wyszukaj miejsce.",
+    home: "Strona główna",
+  },
   aboutData: {
     title: "O danych",
     lead: "Każda cecha ma źródło, datę i status wiarygodności. Nie liczymy jednej oceny miejsca.",

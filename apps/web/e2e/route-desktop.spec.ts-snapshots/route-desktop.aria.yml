@@ -11,7 +11,7 @@
     - button "Najkrótsza"
   - region "Odcinki trasy":
     - group "Odcinki trasy":
-      - 'heading /Trasa: \d+ minut, \d+,\d+ km/ [level=1]'
+      - 'heading /Trasa: \d+ minut[ay]?, \d+,\d+ km/ [level=1]'
       - group "Profil potrzeb":
         - text: ""
         - radio "Profil wyłączony, widok dla każdego" [checked]

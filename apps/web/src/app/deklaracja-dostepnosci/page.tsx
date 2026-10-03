@@ -52,7 +52,7 @@ export default async function AccessibilityStatementPage() {
           </div>
         </nav>
 
-        <div className="min-w-0 max-w-[42rem]">
+        <div className="min-w-0 max-w-[42rem] [overflow-wrap:anywhere]">
           <p className="mt-2 text-body text-foreground/85 lg:mt-0">{t.lead}</p>
           <p className="mt-3 flex items-center gap-2 text-caption text-muted-foreground">
             <CalendarBlank weight="bold" className="size-4 shrink-0" aria-hidden />

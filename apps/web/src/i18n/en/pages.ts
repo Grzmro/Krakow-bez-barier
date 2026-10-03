@@ -2,6 +2,11 @@ import type { Messages } from "../messages";
 
 export const pages: Messages["pages"] = {
   back: "Back to the home page",
+  notFound: {
+    title: "Page not found",
+    body: "The address is wrong or the page has been removed. Go back to the home page and search for a place.",
+    home: "Home page",
+  },
   aboutData: {
     title: "About the data",
     lead: "Every feature has a source, a date and a reliability status. We don't compute a single score for a place.",

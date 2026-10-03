@@ -8,7 +8,7 @@ export const nearby = {
   locating: "Ustalam pozycję…",
   found: (latitude: string, longitude: string, accuracy: number) =>
     `Jesteś tutaj: ${latitude}° N, ${longitude}° E (dokładność ±${accuracy} m)`,
-  privacy: "Pozycja zostaje na Twoim urządzeniu — nie wysyłamy jej na serwer.",
+  privacy: "Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km.",
   errors: {
     denied: "Brak zgody na lokalizację.",
     off: "Usługi lokalizacji są wyłączone.",

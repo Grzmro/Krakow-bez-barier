@@ -239,14 +239,26 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
 
   const startRow = (
     <div className="flex h-12 items-center gap-3 pr-12 pl-3">
-      <StartPicker id={startFieldId} label={swapped ? t.to : t.from} current={startOption} onPick={pickStart} />
+      <StartPicker
+        id={startFieldId}
+        label={swapped ? t.to : t.from}
+        current={startOption}
+        onPick={pickStart}
+        asDestination={swapped}
+      />
     </div>
   );
   const endRow = (
     <p className="flex h-12 items-center gap-3 px-3">
-      <span aria-hidden className="grid size-7 shrink-0 place-items-center">
-        <span className="size-3.5 rounded-full bg-primary ring-4 ring-primary/20" />
-      </span>
+      {swapped ? (
+        <span aria-hidden className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-ink-foreground">
+          <MapPin weight="bold" className="size-4" />
+        </span>
+      ) : (
+        <span aria-hidden className="grid size-7 shrink-0 place-items-center">
+          <span className="size-3.5 rounded-full bg-primary ring-4 ring-primary/20" />
+        </span>
+      )}
       <span className="sr-only">{swapped ? t.from : t.to}: </span>
       <span className="truncate pr-12 text-body font-semibold">{endName}</span>
     </p>
