@@ -162,6 +162,14 @@ describe("extractFacts on declaration wording", () => {
     ["Nie ma oznaczeń kontrastowych na stopniach schodów przed wejściem do budynku z podjazdem.", "ramp", undefined],
     ["W budynku nie ma tłumacza PJM na miejscu oraz windy.", "lift", undefined],
     ["Toaleta dla osób niepełnosprawnych: brak.", "toilet_accessible", undefined],
+    ["Brak miejsc parkingowych dla osób niepełnosprawnych przed budynkiem i toaleta dla osób niepełnosprawnych jest na parterze.", "toilet_accessible", undefined],
+    ["W budynku nie ma windy i toaleta dla osób niepełnosprawnych znajduje się na parterze.", "toilet_accessible", undefined],
+    ["Brak windy i podjazd do wejścia znajduje się od strony podwórza.", "ramp", undefined],
+    ["W budynku nie znajduje się winda.", "lift", undefined],
+    ["Winda jest obecnie nieczynna.", "lift", undefined],
+    ["Toaleta dla osób niepełnosprawnych jest niedostępna.", "toilet_accessible", undefined],
+    ["Budynek jest pozbawiony windy.", "lift", undefined],
+    ["Podjazd do budynku: tak. Winda: nie.", "lift", undefined],
   ])("reads only what a negation clearly states: %s", (sentence, attribute, expected) => {
     // GIVEN a sentence where a negation is near the thing but may not deny it
     // WHEN extracting

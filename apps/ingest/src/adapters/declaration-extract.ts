@@ -156,7 +156,9 @@ const missing = (thing: string) => pl(denied(thing));
  * miejscu oraz windy", "Toaleta: brak") is unclear: it gives no value rather than "there is one". Denying an
  * obstacle ("brak progów", "nie ma przeszkód", "brak barier") is not such a negation.
  */
-const SOME_NEGATION = pl(String.raw`\<(?:${NO_WORD})\>(?!\s+(?:\w+\s+)?(?:przeszk|barier|prog|różnic))`);
+const SOME_NEGATION = pl(
+  String.raw`\<(?:${NO_WORD}|nie|pozbawion\w*)\>(?!\s+(?:\w+\s+)?(?:przeszk|barier|prog|różnic))|\<(?:niedostępn|nieczynn|wyłączon)\w*`,
+);
 
 /** Plans, wishes, requests and what the building "does not allow" describe something that is not there. */
 const NOT_YET = pl(String.raw`planuj|planowan|w planach|\<budow[ayię]\>|zostanie|zostaną|\<będzie\>|\<będą\>|prośb|wniosk|modernizac|nie pozwala`);
@@ -177,30 +179,30 @@ const RULES: Rule[] = [
   {
     attribute: "lift",
     about: pl(String.raw`\<wind(a|y|ę|zie|ą|ach|ami|om)\>|\<dźwig|\<podnośnik|\<platform\w*(?=.*(niepełnospr|pionow|przyschodow|schod|wózk|poziom|piętr))`),
-    absent: pl(String.raw`${denied("(wind[yę]|dźwig|podnośnik|platform)")}|nie jest wyposażon\w* w wind`),
+    absent: pl(String.raw`${denied(String.raw`(wind(y|ę)?\>|dźwig(u|ów)\>|podnośnik(a|ów)\>|platform(y)?\>)`)}|nie jest wyposażon\w* w wind`),
   },
   {
     attribute: "ramp",
     // Only a ramp to the entrance or the grounds counts: the matcher reads `ramp` as the way in.
     about: pl(String.raw`(pochylni|\<ramp(a|y|ę|ą|ami)\>|\<podjazd(y|em|u|ami)?\>(?!\s+(wind|wózk))(?!.*samochod))(?=.*${ENTRANCE})|${ENTRANCE}.*(pochylni|\<ramp(a|y|ę|ą|ami)\>|\<podjazd(y|em|u|ami)?\>(?!\s+(wind|wózk))(?!.*samochod))`),
-    absent: missing(String.raw`(pochylni|ramp|podjazd)`),
+    absent: missing(String.raw`(pochylni\>|ramp(y)?\>|podjazd(u|ów)\>)`),
   },
   {
     attribute: "toilet_accessible",
     about: pl(String.raw`(toalet|\<wc\>|łazien)\w*(?=.*${DISABLED})|${DISABLED}.*(toalet|\<wc\>|łazien)|dostępn\w* toalet|toalet\w* dostępn`),
-    absent: pl(String.raw`${denied(String.raw`(toalet|\<wc\>|łazien)`)}|toalet\w*.*\<nie (jest|są) (\S+ )?(przystosowan|dostosowan)`),
+    absent: pl(String.raw`${denied(String.raw`(toalet(y)?\>|wc\>|łazien(ki|ek)\>)`)}|toalet\w*.*\<nie (jest|są) (\S+ )?(przystosowan|dostosowan)`),
   },
   {
     attribute: "changing_table",
     about: pl(String.raw`przewijak`),
-    absent: missing("przewijak"),
+    absent: missing(String.raw`przewijak(a|ów)\>`),
   },
   {
     attribute: "disabled_parking",
     about: pl(
       String.raw`kopert[aęy]\>|(parking|postoj|parkowan)\w*(?=.*\<dla (os[óo]b|pojazd|samochod|kierow)\w*[^.]{0,40}?(niepełnospr|specjalnymi potrzebami|inwalid))`,
     ),
-    absent: missing(String.raw`(\S+ )?(miejsc\w* (parkingow|postojow)|parking|kopert)`),
+    absent: missing(String.raw`(\S+ )?(miejsc\w* (parkingow|postojow)|parking(u|ów)\>|kopert(y)?\>)`),
   },
   {
     attribute: "entrance_level",
