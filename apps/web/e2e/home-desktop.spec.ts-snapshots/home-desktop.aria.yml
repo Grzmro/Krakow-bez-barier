@@ -28,8 +28,11 @@
         - text: Wózek
         - radio "Wózek dziecięcy"
         - text: Dziecięcy
+        - radio "Senior"
+        - text: Senior
       - button "W mojej okolicy"
       - text: Pokaż miejsca od najbliższych
+      - button "Albo wybierz dzielnicę"
       - paragraph: Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.
       - group "Filtry cech":
         - button "Bez schodów"

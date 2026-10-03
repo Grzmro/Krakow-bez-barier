@@ -68,3 +68,6 @@ copy and interactions; requirements in `docs/requirements.md` win where they dif
 - Run only the specs of the screens you changed (`npm run test:e2e -- e2e/<screen>.spec.ts`) and pass the
   same list to `scripts/merge-pr.sh` (`E2E_SPECS`; it adds the spec files you changed). Changed a shared component (`components/`,
   `packages/ui`)? Add the specs of the screens that use it. Never the full suite by default.
+- Specs run on a phone (Pixel 7) except `e2e/*-desktop.spec.ts`, which the `desktop` project runs at
+  1440×900 (the demo laptop). A screen with a desktop layout gets its desktop checks there; name
+  evidence `desktop-<screen>` so the desktop screenshots sit together.

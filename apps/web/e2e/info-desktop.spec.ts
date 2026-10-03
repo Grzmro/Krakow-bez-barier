@@ -1,8 +1,7 @@
+import { horizontalOverflow } from "./a11y";
 import { expect, test } from "./fixtures";
-import type { Page } from "@playwright/test";
 
-// The default project emulates a phone; these specs look at the header and the info pages as a laptop or monitor does.
-test.use({ isMobile: false, hasTouch: false });
+// The header and the info pages as a laptop or monitor shows them (the desktop project).
 
 const WIDTHS = [1280, 1440, 1920];
 const PAGES = [
@@ -18,9 +17,6 @@ const PAGES = [
 ];
 const EVENT = "/wydarzenie/palac-krzysztofory?nazwa=Koncert+jesienny&data=2026-10-10";
 const NAV = "Nawigacja główna";
-
-const horizontalOverflow = (page: Page) =>
-  page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
 
 test("the header shows the main navigation directly and hides the hamburger", async ({
   page,

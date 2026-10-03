@@ -46,6 +46,11 @@
       - paragraph: Rozwiń cechę, by zobaczyć źródło i datę.
       - list:
         - listitem:
+          - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
           - 'button "Wejście — stopnie: Bez stopni. Wiarygodność: Potwierdzone."': Wejście — stopnie Bez stopni Potwierdzone
           - button "To się nie zgadza":
             - img
@@ -66,6 +71,9 @@
         - listitem:
           - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych Brak danych
           - button "Uzupełnij":
+            - img
+            - text: ""
+          - button "Zgłoś awarię windy":
             - img
             - text: ""
         - listitem:
@@ -105,6 +113,47 @@
     - button "Zapytaj obiekt":
       - img
       - text: ""
+    - region "Najbliższe odjazdy":
+      - heading "Najbliższe odjazdy" [level=2]
+      - paragraph: /Przystanki do \d+ m od miejsca i odjazdy w ciągu godziny\. Czy pojazd przyjmie wózek, mówi przewoźnik w danych na żywo\./
+      - paragraph: /Nagranie danych przewoźnika z \d+\.\d+\.\d+, \d+:\d+ — to nie są odjazdy na żywo\./
+      - list:
+        - listitem "Plac Wszystkich Świętych":
+          - heading "Plac Wszystkich Świętych" [level=3]
+          - paragraph: /\d+ m stąd/
+          - list:
+            - listitem:
+              - text: Tramwaj 1
+              - paragraph: kierunek Wzg. Krzesławickie
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: Tramwaj 8
+              - paragraph: kierunek Cichy Kącik
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: Tramwaj 1
+              - paragraph: kierunek Salwator
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: Tramwaj 8
+              - paragraph: kierunek Borek Fałęcki
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Nowy Bieżanów P+R
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+            - listitem:
+              - text: /Tramwaj \d+/
+              - paragraph: kierunek Czerwone Maki P+R
+              - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
+              - text: Niezweryfikowane
+      - paragraph: "„Niezweryfikowane”: przewoźnik oznacza każdy tramwaj jako dostępny dla wózka, także wysokopodłogowe, więc nie traktujemy tego jako potwierdzenia. „Brak danych”: dane na żywo nic nie mówią o pojeździe — to nie znaczy, że jest dostępny."
+      - paragraph: "/Źródło: ZTP Kraków: GTFS i GTFS-Realtime · dane z \\d+\\.\\d+\\.\\d+, \\d+:\\d+ · licencja: Do sprawdzenia · Zarząd Transportu Publicznego w Krakowie/"
     - region "Skąd wiemy?":
       - heading "Skąd wiemy?" [level=2]
       - paragraph: Źródła danych o tym miejscu, ich licencje i stan odświeżenia.
@@ -132,6 +181,6 @@
       - paragraph: Popraw dane u źródła — trafią do nas przy następnym pobraniu.
     - region "Mapa z położeniem miejsca. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Adres jest podany w tekście powyżej."
     - button "Informacje o źródłach mapy"
-    - paragraph: Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors
+    - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
     - button "Przybliż"
     - button "Oddal"

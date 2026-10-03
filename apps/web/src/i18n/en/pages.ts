@@ -95,8 +95,8 @@ export const pages: Messages["pages"] = {
     title: "Accessibility statement",
     lead: "The “Kraków bez barier” prototype (HackYeah 2026) aims to meet WCAG 2.2 level AA. We checked the main scenario with automated tests and with the keyboard alone, but we haven't done a full audit or tested with screen readers yet.",
     updatedLabel: "Last updated",
-    updated: "3 October 2026",
-    updatedIso: "2026-10-03",
+    updated: "4 October 2026",
+    updatedIso: "2026-10-04",
     tocTitle: "Contents",
     statusLabel: {
       done: "Done",
@@ -111,7 +111,7 @@ export const pages: Messages["pages"] = {
       target: "WCAG 2.2, level AA",
       stateLabel: "Status today",
       state: "Partial conformity — not confirmed by an audit",
-      body: "The screens of the main scenario (home, place card, info pages) pass automated axe tests (WCAG 2.2 A and AA rules) with no violations, on sample data. Such tests catch only some issues, so we don't claim the app fully conforms. Below we describe what works, what is limited and what we haven't checked yet.",
+      body: "The screens of the main scenario (home, place card, info pages) pass automated axe tests (WCAG 2.2 A and AA rules) with no violations, on sample data, in the phone view and on a desktop (a 1440×900 window). Such tests catch only some issues, so we don't claim the app fully conforms. Below we describe what works, what is limited and what we haven't checked yet.",
     },
     works: {
       id: "works",
@@ -120,7 +120,7 @@ export const pages: Messages["pages"] = {
       items: [
         [
           "Keyboard",
-          "The whole main scenario works with the keyboard alone: searching for a place, the profile, the place card and a report. After a dialog closes, focus returns to the button that opened it.",
+          "The whole main scenario works with the keyboard alone, on a phone and on a desktop: searching for a place, the profile, the place card and a report. After a dialog closes, focus returns to the button that opened it.",
         ],
         [
           "Screen reader — structure",
@@ -136,7 +136,7 @@ export const pages: Messages["pages"] = {
         ],
         [
           "Zoom and narrow screens",
-          "The main screens fit without horizontal scrolling in a 640 px window (like 200% on a 1280 px screen) and a 320 px window (like 400%). This emulates the window width; it isn't browser zoom.",
+          "The main screens fit without horizontal scrolling in a 640 px window (like 200% on a 1280 px screen) and a 320 px window (like 400%), and on a 1440×900 desktop also at 200% and 400% browser zoom. At 400% the map is a narrow strip above the list — every place is in the list then. We emulate the zoom in Chromium (a narrower window at a higher pixel density).",
         ],
         [
           "Status never by colour alone",
@@ -164,9 +164,9 @@ export const pages: Messages["pages"] = {
           "Pins are hidden from screen readers and can't be reached with Tab — the same places are in the list. We plan to link the map with the list and to assess pin accessibility in the audit.",
         ],
         [
-          "planned",
+          "inProgress",
           "Desktop check",
-          "We mostly run accessibility tests in the phone view; on desktop we only check selected screens. We plan to extend the tests to the whole main scenario and to check its recording.",
+          "On a desktop (a 1440×900 window) the main scenario passes axe, a keyboard-only run, the map-as-text check and 200% and 400% zoom without horizontal scrolling. We haven't checked a screen reader (VoiceOver, NVDA) or the demo recording on a desktop yet — that's the next step.",
         ],
         [
           "planned",
@@ -199,7 +199,7 @@ export const pages: Messages["pages"] = {
         "A manual run with screen readers: VoiceOver (iOS and macOS), TalkBack and NVDA.",
         "Browsers other than Chromium (Firefox, Safari). Automated tests run only in Chromium.",
         "A native iOS or Android app — there isn't one; we only check the website in a browser.",
-        "200% and 400% browser zoom on a desktop. We only check a narrow window.",
+        "Zooming by hand in a browser (Ctrl +) — the test emulates it in Chromium.",
         "The system high-contrast mode.",
         "Tests with users with disabilities and a full WCAG 2.2 AA audit.",
       ],

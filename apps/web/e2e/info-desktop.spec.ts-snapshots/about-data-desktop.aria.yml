@@ -44,4 +44,4 @@
     - listitem: /Nieaktualne ostatnie potwierdzenie starsze niż \d+ miesięcy/
     - listitem: Sprzeczne dwa źródła podają różne wartości; pokazujemy oba
     - listitem: Brak danych nikt jeszcze nie sprawdził; nigdy nie liczymy tego jako „spełnia”
-  - paragraph: Mapa: OpenFreeMap, © OpenMapTiles. Dane mapy © OpenStreetMap contributors, licencja ODbL.
+  - paragraph: "Mapa: OpenFreeMap, © OpenMapTiles. Dane mapy © OpenStreetMap contributors, licencja ODbL."

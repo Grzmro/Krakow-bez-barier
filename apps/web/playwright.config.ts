@@ -29,6 +29,10 @@ const runProdSpecs = process.env.E2E_PROD === "1" || !!process.env.E2E_PROD_BASE
 const startProdServer = runProdSpecs && !process.env.E2E_PROD_BASE_URL;
 
 const device = { ...devices["Pixel 7"], browserName: "chromium" as const };
+// The demo video and the jury's live demo run on a laptop; *-desktop.spec.ts run there, every other spec on the phone.
+const desktop = { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, browserName: "chromium" as const };
+const DESKTOP_SPECS = /-desktop\.spec\.ts$/;
+const PROD_SPECS = /\.prod\.spec\.ts$/;
 // Routes come from the recorded openrouteservice answers, never the live API (the root .env may hold a key); transit
 // departures from the recorded ZTP feeds (a production build serves none until the licence is confirmed).
 const env = { ORS_API_KEY: "", TRANSIT_FEED: "recorded" };
@@ -73,8 +77,9 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
-    { name: "chromium", testIgnore: /\.prod\.spec\.ts$/, use: device },
-    ...(runProdSpecs ? [{ name: "chromium-prod", testMatch: /\.prod\.spec\.ts$/, use: { ...device, baseURL: prodURL } }] : []),
+    { name: "chromium", testIgnore: [PROD_SPECS, DESKTOP_SPECS], use: device },
+    { name: "desktop", testMatch: DESKTOP_SPECS, use: desktop },
+    ...(runProdSpecs ? [{ name: "chromium-prod", testMatch: PROD_SPECS, use: { ...device, baseURL: prodURL } }] : []),
   ],
   webServer: servers,
 });
