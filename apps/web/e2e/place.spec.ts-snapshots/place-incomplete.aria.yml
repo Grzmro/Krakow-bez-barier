@@ -19,27 +19,27 @@
       - paragraph: Pokazujemy konkretne dane, bez zbiorczej oceny. Rozwiń cechę, aby zobaczyć źródło i datę.
       - list:
         - listitem:
-          - button "Wejście — stopnie Brak danych Brak danych"
+          - 'button "Wejście — stopnie: Brak danych. Wiarygodność: Brak danych."': Wejście — stopnie Brak danych Brak danych
         - listitem:
-          - button "Wysokość stopnia Brak danych Brak danych"
+          - 'button "Wysokość stopnia: Brak danych. Wiarygodność: Brak danych."': Wysokość stopnia Brak danych Brak danych
         - listitem:
-          - button "Próg Brak danych Brak danych"
+          - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych Brak danych
         - listitem:
-          - button "Szerokość drzwi Brak danych Brak danych"
+          - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych Brak danych
         - listitem:
-          - button "Podjazd Brak danych Brak danych"
+          - 'button "Podjazd: Brak danych. Wiarygodność: Brak danych."': Podjazd Brak danych Brak danych
         - listitem:
-          - button "Winda Brak danych Brak danych"
+          - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych Brak danych
         - listitem:
-          - button "Nawierzchnia dojścia Brak danych Brak danych"
+          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
         - listitem:
-          - button "Toaleta dostosowana Brak danych Brak danych"
+          - 'button "Toaleta dostosowana: Brak danych. Wiarygodność: Brak danych."': Toaleta dostosowana Brak danych Brak danych
         - listitem:
-          - button "Miejsca odpoczynku Brak danych Brak danych"
+          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych Brak danych
         - listitem:
-          - button "Parking dla osób z niepełnosprawnościami Brak danych Brak danych"
+          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych Brak danych
         - listitem:
-          - button "Przewijak Brak danych Brak danych"
+          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych Brak danych
     - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
     - button "Uzupełnij":
       - img

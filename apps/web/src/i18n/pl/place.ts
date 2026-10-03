@@ -34,7 +34,6 @@ export const place = {
   fillSoon: "Formularz uzupełniania danych jest w przygotowaniu.",
   facts: "Fakty",
   factsHint: "Pokazujemy konkretne dane, bez zbiorczej oceny. Rozwiń cechę, aby zobaczyć źródło i datę.",
-  aboutData: "O danych",
   sourcesCount: (n: number, latest?: string) =>
     `${n} ${plural(n, "źródło", "źródła", "źródeł")}${latest ? ` · najnowsze ${latest}` : ""}`,
   outage: {

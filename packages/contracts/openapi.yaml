@@ -1887,18 +1887,18 @@ components:
         isSample: true
     PlaceSourceUnavailable:
       value:
-        id: palac-krzysztofory
-        name: Pałac Krzysztofory
+        id: podziemia-rynku
+        name: Podziemia Rynku
         category: museum
         location:
           type: Point
           coordinates:
-          - 19.9381
-          - 50.0623
+          - 19.9373
+          - 50.0616
         address:
           street: Rynek Główny
-          houseNumber: '35'
-          postalCode: 31-010
+          houseNumber: '1'
+          postalCode: 31-011
           city: Kraków
         contact: null
         entranceHint: null
@@ -1910,7 +1910,7 @@ components:
             kind: boolean
             boolean: true
           facts:
-          - id: fact_ziw_krzysztofory_toilet
+          - id: fact_ziw_podziemia_toilet
             attribute: toilet_accessible
             value:
               kind: boolean
@@ -1920,7 +1920,7 @@ components:
               id: ziw
               name: Zintegrowany Informator Wojewódzki (ZIW)
               kind: official_open_data
-              recordRef: ziw-77
+              recordRef: null
             fetchedAt: '2023-11-14T03:00:00Z'
             observedAt: null
             confirmedAt: null

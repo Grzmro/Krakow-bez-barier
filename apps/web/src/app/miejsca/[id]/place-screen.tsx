@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -33,7 +33,7 @@ import {
   type Icon,
 } from "@phosphor-icons/react";
 import type { AccessibilityAttribute, Category, Place } from "@krakow-bez-barier/contracts";
-import { Button, buttonVariants, cn, toast } from "@krakow-bez-barier/ui";
+import { Button, buttonVariants, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { FactRow, SampleTag } from "@/components/kbb";
 import { pl } from "@/i18n/pl";
 import { api } from "@/lib/api";
@@ -116,6 +116,9 @@ export function PlaceScreen({ id }: { id: string }) {
 
 function PlaceCard({ place }: { place: Place }) {
   const [contactOpen, setContactOpen] = useState(false);
+  const focusContact = useRef(false);
+  const contactRef = useRef<HTMLDivElement>(null);
+  const announce = useAnnounce();
   const facts = factViews(place);
   const failed = failedSources(place);
   const conflicts = facts.filter((f) => f.conflict);
@@ -131,13 +134,27 @@ function PlaceCard({ place }: { place: Place }) {
     .filter(Boolean)
     .join(", ");
 
+  useEffect(() => {
+    if (!contactOpen || !focusContact.current) return;
+    focusContact.current = false;
+    contactRef.current?.focus();
+  }, [contactOpen]);
+
+  // The hint's button disappears once the contact is open, so focus follows to the details.
+  const openContactFromHint = () => {
+    focusContact.current = true;
+    setContactOpen(true);
+  };
+
   const share = async () => {
     const url = new URL(routes.place(place.id), window.location.origin).toString();
     try {
       await navigator.clipboard.writeText(url);
       toast(t.shared, { description: url });
+      announce(t.shared);
     } catch {
       toast(t.shareFailed, { description: url });
+      announce(t.shareFailed);
     }
   };
 
@@ -191,7 +208,13 @@ function PlaceCard({ place }: { place: Place }) {
         </a>
       </div>
       {hasContact ? (
-        <div id="place-contact" hidden={!contactOpen} className="mt-3 space-y-2 rounded-2xl bg-muted p-3 text-body-sm">
+        <div
+          id="place-contact"
+          ref={contactRef}
+          tabIndex={-1}
+          hidden={!contactOpen}
+          className="mt-3 space-y-2 rounded-2xl bg-muted p-3 text-body-sm"
+        >
           {contact?.phone ? (
             <p className="flex items-center gap-2">
               <Phone weight="fill" className="size-4 text-primary" aria-hidden />
@@ -199,6 +222,7 @@ function PlaceCard({ place }: { place: Place }) {
               <a href={`tel:${contact.phone.replace(/\s/g, "")}`} className="font-semibold tabular-nums underline">
                 {contact.phone}
               </a>
+              {place.isSample ? <SampleTag className="ml-auto" /> : null}
             </p>
           ) : null}
           {contact?.website ? (
@@ -287,7 +311,7 @@ function PlaceCard({ place }: { place: Place }) {
               {t.fill}
             </Button>
             {hasContact && !contactOpen ? (
-              <Button variant="outline" size="sm" aria-controls="place-contact" aria-expanded={false} onClick={() => setContactOpen(true)}>
+              <Button variant="outline" size="sm" aria-controls="place-contact" aria-expanded={false} onClick={openContactFromHint}>
                 <Phone weight="bold" />
                 {t.contact}
               </Button>
@@ -347,7 +371,7 @@ function PlaceCard({ place }: { place: Place }) {
           </p>
           <Link href={routes.aboutData} className={cn(buttonVariants({ variant: "link", size: "sm" }), "h-10 px-0")}>
             <Info weight="bold" />
-            {t.aboutData}
+            {pl.common.menu.aboutData}
           </Link>
         </div>
       </section>

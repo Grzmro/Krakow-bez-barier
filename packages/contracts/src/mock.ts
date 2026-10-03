@@ -13,7 +13,10 @@ export type SpecExamples = {
 export type MockChoice = {
   /** Response status to return, e.g. "500". Defaults to the operation's first 2xx response. */
   status?: string;
-  /** Named example to return. Defaults to the one whose `id` matches the last path parameter, then `default`, then the first. */
+  /**
+   * Named example to return. Defaults to the one whose `id` matches the last path parameter; when the examples carry ids
+   * and none matches, the operation's documented 404 (if any). Otherwise `default`, then the first.
+   */
   example?: string;
 };
 
@@ -47,6 +50,13 @@ function pickExample(examples: Record<string, unknown>, params: string[], wanted
   return "default" in examples ? examples.default : Object.values(examples)[0];
 }
 
+function isUnknownId(examples: Record<string, unknown>, params: string[]): boolean {
+  const id = params.at(-1);
+  if (id === undefined) return false;
+  const ids = Object.values(examples).map((v) => (v as { id?: unknown } | null)?.id);
+  return ids.some((v) => typeof v === "string") && !ids.includes(id);
+}
+
 function problem(status: number, title: string, detail: string) {
   return new Response(JSON.stringify({ type: "about:blank", title, status, detail }), {
     status,
@@ -75,7 +85,12 @@ export function createMockFetch(options: MockFetchOptions = {}) {
       const match = route.method === input.method ? route.pattern.exec(path) : null;
       if (!match) continue;
       const choice = options.choose?.[route.operationId as OperationId];
-      const status = choice?.status ?? Object.keys(route.responses).find((s) => s.startsWith("2"));
+      const success = Object.keys(route.responses).find((s) => s.startsWith("2"));
+      const notFound =
+        !choice && route.method === "GET" && success && route.responses["404"]
+          ? isUnknownId(route.responses[success]!.examples, match.slice(1))
+          : false;
+      const status = choice?.status ?? (notFound ? "404" : success);
       const response = status ? route.responses[status] : undefined;
       if (!status || !response) {
         return problem(501, "No mock", `${route.operationId} has no response ${status ?? "2xx"} in the spec`);

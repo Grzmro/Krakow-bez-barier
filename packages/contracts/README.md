@@ -7,7 +7,8 @@ Spec-first API contract (OpenAPI 3.1). `openapi.yaml` is the single source of tr
 - Import types and the typed `openapi-fetch` client from `@krakow-bez-barier/contracts` (`createApiClient()`).
 - `createMockFetch()` answers requests with the spec's response `examples` (generated to `src/generated/examples.ts`):
   `createApiClient({ fetch: createMockFetch({ choose: { getPlace: { example: "conflicting" } } }) })`. By default it returns
-  the first 2xx response and the example whose `id` matches the path parameter, else `default`, else the first. In the web
+  the first 2xx response and the example whose `id` matches the path parameter (the documented 404 if the examples have ids
+  and none matches), else `default`, else the first. In the web
   app use `api` from `apps/web/src/lib/api.ts`, which switches on `NEXT_PUBLIC_API_MOCK`.
 
 Rules: see `.claude/rules/contracts.md`. Change the spec first, then regenerate, then implement.

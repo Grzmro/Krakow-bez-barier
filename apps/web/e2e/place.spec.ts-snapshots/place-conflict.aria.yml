@@ -24,23 +24,23 @@
       - paragraph: Pokazujemy konkretne dane, bez zbiorczej oceny. Rozwiń cechę, aby zobaczyć źródło i datę.
       - list:
         - listitem:
-          - button "Wejście — stopnie Bez stopni Potwierdzone"
+          - 'button "Wejście — stopnie: Bez stopni. Wiarygodność: Potwierdzone."': Wejście — stopnie Bez stopni Potwierdzone
         - listitem:
-          - button "Próg Brak danych Brak danych"
+          - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych Brak danych
         - listitem:
-          - button "Szerokość drzwi Brak danych Brak danych"
+          - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych Brak danych
         - listitem:
-          - button "Winda Brak danych Brak danych"
+          - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych Brak danych
         - listitem:
-          - button "Nawierzchnia dojścia Brak danych Brak danych"
+          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
         - listitem:
-          - button "Toaleta dostosowana Jest / Nie ma Sprzeczne"
+          - 'button "Toaleta dostosowana: Jest / Nie ma. Wiarygodność: Sprzeczne."': Toaleta dostosowana Jest / Nie ma Sprzeczne
         - listitem:
-          - button "Miejsca odpoczynku Brak danych Brak danych"
+          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych Brak danych
         - listitem:
-          - button "Parking dla osób z niepełnosprawnościami Brak danych Brak danych"
+          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych Brak danych
         - listitem:
-          - button "Przewijak Brak danych Brak danych"
+          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych Brak danych
     - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
     - button "Uzupełnij":
       - img
