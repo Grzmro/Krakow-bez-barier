@@ -31,13 +31,15 @@ export interface PlaceRowProps {
   place: PlaceSummary;
   /** Meters from the reference point. */
   distance: number;
+  /** The distance is from the user's position ("od Ciebie"), not from Rynek. */
+  fromUser?: boolean;
   features: FeatureFilter[];
   selected: boolean;
   onHighlight: (id: string) => void;
 }
 
 export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function PlaceRow(
-  { place, distance, features, selected, onHighlight },
+  { place, distance, fromUser = false, features, selected, onHighlight },
   ref,
 ) {
   const [open, setOpen] = useState(false);
@@ -95,7 +97,7 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
         <span className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
           {place.isSample ? <SampleTag /> : <span />}
           <span className="text-caption font-medium text-muted-foreground tabular-nums">
-            {t.list.distance(distance)}
+            {t.list.distance(distance, fromUser)}
           </span>
         </span>
       </Link>

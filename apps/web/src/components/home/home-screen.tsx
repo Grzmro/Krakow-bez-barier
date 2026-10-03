@@ -10,17 +10,20 @@ import { ThresholdsDrawer } from "@/components/profile/thresholds-drawer";
 import { pl } from "@/i18n/pl";
 import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
-import { distanceMeters } from "@/lib/place-features";
+import type { DevicePosition } from "@/lib/native/geolocation";
+import { byDistance, searchArea, toLonLat } from "@/lib/nearby";
 import { usePlaces } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { countByStatus, filterByVerdict, STATUS_ORDER } from "@/lib/profile/verdict-list";
 import { PlaceMap } from "./place-map";
+import { NearbyToggle } from "./nearby-toggle";
 import { PlaceRow } from "./place-list";
 import { SearchBox } from "./search-box";
 
 const t = pl.home;
 const tp = pl.profile;
+const tn = pl.nearby.home;
 
 const ALL = "all";
 const FEATURES: FeatureFilter[] = ["step_free", "lift", "toilet_accessible", "bench", "disabled_parking", "changing_table"];
@@ -57,11 +60,15 @@ export function HomeScreen() {
   const [showUnknown, setShowUnknown] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Stays in this component: only the coarse `searchArea` goes to the API (see docs/architecture.md).
+  const [position, setPosition] = useState<DevicePosition | null>(null);
   const rowRefs = useRef(new Map<string, HTMLAnchorElement>());
   const listRef = useRef<HTMLDivElement>(null);
 
-  const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown };
+  const area = position ? searchArea(position) : undefined;
+  const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown, area };
   const places = usePlaces({
+    bbox: area,
     q: query.q || undefined,
     category: category === ALL ? undefined : [category],
     feature: features.length ? features : undefined,
@@ -69,13 +76,8 @@ export function HomeScreen() {
     limit: 100,
     ...profileQuery(settings),
   });
-  const items = useMemo(
-    () =>
-      (places.data?.items ?? [])
-        .map((place) => ({ place, distance: distanceMeters(config.cityCenter, place.location.coordinates) }))
-        .sort((a, b) => a.distance - b.distance),
-    [places.data],
-  );
+  const origin = useMemo(() => (position ? toLonLat(position) : null), [position]);
+  const items = useMemo(() => byDistance(places.data?.items ?? [], origin ?? config.cityCenter), [places.data, origin]);
   const counts = useMemo(() => countByStatus(items), [items]);
   const shown = useMemo(() => filterByVerdict(items, { status: statusFilter, hideFailing }), [items, statusFilter, hideFailing]);
   const mapPlaces = useMemo(() => shown.map(({ place }) => place), [shown]);
@@ -89,8 +91,9 @@ export function HomeScreen() {
 
   const queryKey = JSON.stringify(query);
   const pending = places.isPlaceholderData || total === undefined;
-  const announcement =
+  const listAnnouncement =
     total === undefined ? null : verdicts && profile ? tp.announce(profile, shown.length, items.length, counts) : t.list.announce(total);
+  const announcement = listAnnouncement && origin ? `${tn.announce}. ${listAnnouncement}` : listAnnouncement;
   useEffect(() => {
     if (!pending && announcement) announce(announcement);
   }, [announce, pending, announcement, queryKey]);
@@ -119,6 +122,7 @@ export function HomeScreen() {
   }
 
   function searchWider() {
+    setPosition(null);
     setQ("");
     setCategory(ALL);
     setFeatures([]);
@@ -176,7 +180,7 @@ export function HomeScreen() {
       </div>
 
       <div className="absolute inset-x-0 top-0 bottom-[calc(50%-24px)]">
-        <PlaceMap places={mapPlaces} selectedId={selectedId} onSelect={selectFromMap} padding={MAP_PADDING} />
+        <PlaceMap places={mapPlaces} selectedId={selectedId} onSelect={selectFromMap} padding={MAP_PADDING} you={origin} />
       </div>
 
       <BottomPanel
@@ -188,6 +192,7 @@ export function HomeScreen() {
       >
         <div className="space-y-2 px-4 pt-1 pb-2">
           <ProfileSwitch value={profile} onChange={changeProfile} />
+          <NearbyToggle active={Boolean(position)} onChange={setPosition} />
           {profile ? (
             <>
               <div className="flex items-center gap-2">
@@ -285,6 +290,7 @@ export function HomeScreen() {
               {shown.map(({ place, distance }) => (
                 <PlaceRow
                   distance={distance}
+                  fromUser={Boolean(origin)}
                   key={place.id}
                   ref={(node) => {
                     if (node) rowRefs.current.set(place.id, node);

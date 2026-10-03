@@ -13,6 +13,13 @@ export const nearby = {
     unavailable: "Nie udało się ustalić pozycji. Sprawdź, czy usługi lokalizacji są włączone, i spróbuj ponownie.",
     unsupported: "To urządzenie nie udostępnia lokalizacji.",
   } satisfies Record<LocateFailure, string>,
+  home: {
+    sortOff: "Pokaż miejsca od najbliższych",
+    sortOn: "Od najbliższych, odległość od Ciebie",
+    privacy: "Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar (ok. 2 km), którego nie zapisujemy.",
+    announce: "W Twojej okolicy, od najbliższych",
+    you: "Ty",
+  },
   devPage: {
     title: "Funkcje natywne",
     lead: "Diagnostyka aplikacji mobilnej: na której platformie działa strona i czy lokalizacja działa. Pozycja jest ustalana od razu po wejściu.",

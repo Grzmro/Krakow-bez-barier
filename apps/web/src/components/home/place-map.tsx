@@ -27,6 +27,20 @@ function pinElement(place: PlaceSummary) {
   return { element, root };
 }
 
+function youElement() {
+  const element = document.createElement("div");
+  element.setAttribute("aria-hidden", "true");
+  element.dataset.you = "true";
+  element.className = "pointer-events-none flex flex-col items-center gap-1";
+  const label = document.createElement("span");
+  label.className = "rounded-full bg-ink px-2 py-0.5 text-caption font-semibold text-ink-foreground shadow-soft";
+  label.textContent = pl.nearby.home.you;
+  const dot = document.createElement("span");
+  dot.className = "size-5 rounded-full bg-primary ring-4 ring-card shadow-float";
+  element.append(label, dot);
+  return element;
+}
+
 function removeMarkers(markers: Map<string, { marker: Marker; root: Root }>) {
   const roots = [...markers.values()].map(({ marker, root }) => {
     marker.remove();
@@ -43,6 +57,8 @@ export interface PlaceMapProps {
   onSelect: (id: string) => void;
   /** Space covered by overlays (search on top, map controls at the bottom), in px. */
   padding: { top: number; bottom: number };
+  /** The user's position (`[lon, lat]`): shown as "Ty" and the map centres on it instead of fitting the places. */
+  you?: [number, number] | null;
   className?: string;
 }
 
@@ -50,13 +66,15 @@ export interface PlaceMapProps {
  * MapLibre map with neutral pins, or verdict pins when a profile is on. Pins are mouse shortcuts only
  * and hidden from assistive tech: the list next to the map holds the same places.
  */
-export function PlaceMap({ places, selectedId, onSelect, padding, className }: PlaceMapProps) {
+export function PlaceMap({ places, selectedId, onSelect, padding, you = null, className }: PlaceMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const markersRef = useRef(new Map<string, { marker: Marker; root: Root }>());
   const fittedRef = useRef<string | null>(null);
   const onSelectRef = useRef(onSelect);
+  const [youLon, youLat] = you ?? [];
+  const centered = Boolean(you);
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
@@ -108,6 +126,10 @@ export function PlaceMap({ places, selectedId, onSelect, padding, className }: P
         const [lon, lat] = place.location.coordinates;
         markers.set(place.id, { marker: new Marker({ element }).setLngLat([lon, lat]).addTo(map), root });
       }
+      if (centered) {
+        fittedRef.current = null;
+        return;
+      }
       const key = places.map((place) => place.id).toSorted().join(",");
       if (!places.length || key === fittedRef.current) return;
       fittedRef.current = key;
@@ -122,7 +144,27 @@ export function PlaceMap({ places, selectedId, onSelect, padding, className }: P
     return () => {
       cancelled = true;
     };
-  }, [map, places, padding.top, padding.bottom]);
+  }, [map, places, padding.top, padding.bottom, centered]);
+
+  useEffect(() => {
+    if (!map || youLon === undefined || youLat === undefined) return;
+    let marker: Marker | null = null;
+    let cancelled = false;
+    import("maplibre-gl").then(({ Marker }) => {
+      if (cancelled) return;
+      marker = new Marker({ element: youElement(), anchor: "bottom" }).setLngLat([youLon, youLat]).addTo(map);
+      map.easeTo({
+        center: [youLon, youLat],
+        zoom: Math.max(map.getZoom(), config.initialZoom),
+        padding: { top: padding.top, bottom: padding.bottom, left: 0, right: 0 },
+        duration: 400,
+      });
+    });
+    return () => {
+      cancelled = true;
+      marker?.remove();
+    };
+  }, [map, youLon, youLat, padding.top, padding.bottom]);
 
   useEffect(() => {
     for (const [id, { marker }] of markersRef.current) {
