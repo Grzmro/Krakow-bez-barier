@@ -4,8 +4,8 @@
 > [features.md](features.md)). Liczby oznaczone „szacunek” to nasze wyliczenia; resztę podajemy ze źródłem.
 >
 > **Przed wysłaniem uzupełnić (PLACEHOLDER):** `[ID zespołu]`, `[link do demo]`, `[link do filmu MP4]`,
-> `[link do repozytorium]` (sprawdzić, czy repozytorium jest publiczne), `[link do PDF]`,
-> `[MODERATOR_DEMO_TOKEN]` (sekcja „Instructions on how to open project”).
+> `[link do repozytorium]` (sprawdzić, czy repozytorium jest publiczne), `[link do PDF]`; na Vercelu ustawić
+> `MODERATOR_DEMO_TOKEN`, bez którego przycisk konta demo się nie pokaże (sekcja „Instructions on how to open project”).
 
 ## ID zespołu
 
@@ -107,20 +107,21 @@ Pełne materiały w repozytorium: `docs/submission/features.md` (wykaz funkcji),
 
 ## Instructions on how to open project
 
-Tekst do pola „Instructions on how to open project”. Token konta demo to wartość `MODERATOR_DEMO_TOKEN`
-z Vercela (16+ znaków, np. `openssl rand -hex 12`) — wpisujemy ją tylko w formularz, nigdy do repozytorium.
+Tekst do pola „Instructions on how to open project”. Przycisk konta demo pokazuje się tylko, gdy na Vercelu jest
+ustawione `MODERATOR_DEMO_TOKEN` (16+ znaków, np. `openssl rand -hex 12`); samego tokenu nie podajemy jury ani
+nie wpisujemy do repozytorium — serwer wydaje sesję demo po kliknięciu.
 
 > Aplikacja działa w przeglądarce bez logowania: **[link do demo — PLACEHOLDER]**.
-> Panel moderatora dla jury: **[link do demo]/moderator** → w pole „Token moderatora” wklej
-> **[MODERATOR_DEMO_TOKEN — PLACEHOLDER]** → „Zaloguj”. To konto demonstracyjne (tak je oznaczamy w panelu):
+> Panel moderatora dla jury: **[link do demo]/moderator** → kliknij przycisk „Wejdź na konto demonstracyjne
+> (dla jury)” — bez tokenu i hasła. To konto demonstracyjne (tak je oznaczamy w panelu):
 > decyzje działają naprawdę — zatwierdzone zgłoszenie od razu zmienia kartę miejsca (link „Zobacz na karcie”
 > w historii), ze źródłem „Konto demonstracyjne moderatora (zmiana tymczasowa)” — a po 30 minutach cofamy je
 > automatycznie, żeby nie zmieniać danych na stałe. Przez ten czas całe miejsce ma oznaczenie „PRZYKŁAD” (na karcie,
 > liście, stronie wydarzenia i w widżecie), bo źródło demonstracyjne traktujemy jak dane przykładowe. Ścieżka: otwórz
 > dowolne miejsce → „To się nie zgadza” albo „Uzupełnij” → wyślij zgłoszenie → panel moderatora → w kolejce wybierz
 > swoje zgłoszenie (najnowsze jest na końcu listy; kolejka zawiera też prawdziwe zgłoszenia innych osób) →
-> „Zatwierdź” → „Zobacz na karcie”.
-> Po 5 błędnych tokenach panel blokuje się na 15 minut.
+> „Zatwierdź” → „Zobacz na karcie”. Sesja konta demo trwa 12 godzin; „Wyloguj” i ponowne kliknięcie przycisku
+> otwiera nową.
 
 ## Linki
 

@@ -907,6 +907,42 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /moderation/demo-session:
+    post:
+      operationId: createDemoModeratorSession
+      summary: Sign in to the demo moderator account with one click
+      description: 'For the jury: issues a session of the public demo account, so nobody has to paste a token. The
+        session is a short-lived token signed by the server; it signs in only as the demo account (decisions undone
+        after `revertsAfterMinutes`, accepted reports attributed to the demo source), never as a real moderator, and
+        neither `MODERATOR_DEMO_TOKEN` nor any moderator token is sent to the browser. Use it as the bearer token of
+        the moderation and city endpoints. `404` when the server has no demo account configured. Limited to 20 sessions
+        per client per 15 minutes (`429`).
+
+        '
+      tags:
+      - moderation
+      responses:
+        '201':
+          description: A new demo-account session.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DemoModeratorSession'
+              examples:
+                session:
+                  value:
+                    token: kbb-demo.1791158400000.Zm9vYmFyYmF6cXV4cXV1eHF1dXhxdXV4cXV1eHF1dXg
+                    expiresAt: '2026-10-04T09:20:00Z'
+                    moderator:
+                      name: Konto demonstracyjne
+                      demo: true
+                      revertsAfterMinutes: 30
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /city/stats:
     get:
       operationId: getCityStats
@@ -2447,6 +2483,22 @@ components:
       - accepted
       - rejected
       - needs_info
+    DemoModeratorSession:
+      type: object
+      description: A session of the public demo moderator account, issued by the server.
+      required:
+      - token
+      - expiresAt
+      - moderator
+      properties:
+        token:
+          type: string
+          description: Bearer token for the moderation endpoints, valid only as the demo account until `expiresAt`.
+        expiresAt:
+          type: string
+          format: date-time
+        moderator:
+          $ref: '#/components/schemas/ModeratorSession'
     ModeratorSession:
       type: object
       description: The signed-in moderator.

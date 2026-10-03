@@ -7,7 +7,7 @@ import { CheckCircle, Flask, Question, SignOut, XCircle } from "@phosphor-icons/
 import type { ModerationDecisionKind, ModerationReport, ModeratorSession } from "@krakow-bez-barier/contracts";
 import { Button, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge } from "@/components/kbb";
-import { bearer, ModeratorSignIn, StatusError, useModeratorSession } from "@/components/moderator/moderator-session";
+import { bearer, DemoSignIn, ModeratorSignIn, StatusError, useModeratorSession } from "@/components/moderator/moderator-session";
 import { InfoSection } from "@/components/layout/info-page";
 import { useLocale, useMessages } from "@/i18n/client";
 import { api, isMockApi } from "@/lib/api";
@@ -39,14 +39,20 @@ async function fetchReports(token: string): Promise<Queue> {
   return { items, moderator: moderator! };
 }
 
-export function ModeratorScreen() {
+/** `demoRevertMinutes`: set when the server has a demo account, which then gets a one-click sign-in. */
+export function ModeratorScreen({ demoRevertMinutes }: { demoRevertMinutes: number | null }) {
   const t = useMessages().moderator;
   const { token, notice, signIn, signOut } = useModeratorSession(QUERY_KEY);
 
   return token ? (
     <ModerationPanel token={token} onSignOut={signOut} />
   ) : (
-    <ModeratorSignIn notice={notice} signedInMessage={t.signIn.signedIn} onSignedIn={signIn} />
+    <>
+      {demoRevertMinutes ? (
+        <DemoSignIn revertMinutes={demoRevertMinutes} signedInMessage={t.signIn.signedIn} onSignedIn={signIn} />
+      ) : null}
+      <ModeratorSignIn notice={notice} signedInMessage={t.signIn.signedIn} onSignedIn={signIn} />
+    </>
   );
 }
 

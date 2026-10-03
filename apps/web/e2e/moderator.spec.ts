@@ -157,6 +157,27 @@ test("the demo account is clearly marked and says when its decisions are undone"
   await expectAccessible();
 });
 
+test("the jury enters the demo account with one click, no token to paste", async ({ page, expectAccessible, evidence }) => {
+  // GIVEN the sign-in screen of a server with a demo account (the example-data mode stands in for one)
+  await page.goto("/moderator");
+  const entry = page.getByRole("region", { name: "Dla jury i do wypróbowania" });
+  await expect(entry).toContainText("po 30 min cofamy je automatycznie");
+  await expect(entry).toMatchAriaSnapshot({ name: "moderator-demo-entry.aria.yml" });
+  await expectAccessible();
+  await evidence("moderator-demo-entry");
+
+  // WHEN the button is reached and pressed with the keyboard
+  const button = page.getByRole("button", { name: "Wejdź na konto demonstracyjne (dla jury)" });
+  await button.focus();
+  await page.keyboard.press("Enter");
+
+  // THEN the panel opens on the demo account, announced, without anything typed into the token field
+  await expect(page.getByRole("heading", { name: "Kolejka zgłoszeń (2)" })).toBeVisible();
+  await expect(page.getByRole("complementary", { name: "Konto demonstracyjne" })).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Kolejka zgłoszeń: 2 do decyzji." })).toBeAttached();
+  await expectAccessible();
+});
+
 test("the session survives a reload and ends with Wyloguj", async ({ page }) => {
   // GIVEN a signed-in moderator
   await page.goto("/moderator");

@@ -2,7 +2,7 @@
 
 import { useCallback, useId, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { LockKey } from "@phosphor-icons/react";
+import { Flask, LockKey } from "@phosphor-icons/react";
 import { Button, useAnnounce } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
 import { api, isMockApi } from "@/lib/api";
@@ -170,5 +170,74 @@ export function ModeratorSignIn({
       <p className="mt-3 text-caption text-muted-foreground">{t.signIn.sessionNote}</p>
       {isMockApi ? <p className="mt-1 text-caption text-muted-foreground">{t.signIn.mockNote}</p> : null}
     </form>
+  );
+}
+
+/**
+ * One-click sign-in to the demo account for the jury: the server issues a demo-only session, so no token is pasted
+ * and no real one reaches the browser. Render it only when the server has a demo account.
+ */
+export function DemoSignIn({
+  revertMinutes,
+  signedInMessage,
+  onSignedIn,
+}: {
+  /** After how many minutes the demo account's decisions are undone. */
+  revertMinutes: number;
+  signedInMessage: string;
+  onSignedIn: (token: string) => void;
+}) {
+  const t = useMessages().moderator.demoEntry;
+  const [entering, setEntering] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const announce = useAnnounce();
+  const ids = { heading: useId(), lead: useId(), error: useId() };
+
+  const enter = async () => {
+    setEntering(true);
+    setError(null);
+    try {
+      const { data, response } = await api.POST("/moderation/demo-session");
+      if (data) {
+        announce(signedInMessage);
+        onSignedIn(data.token);
+        return;
+      }
+      const message = response.status === 404 ? t.unavailable : t.failed;
+      setError(message);
+      announce(message);
+    } catch {
+      setError(t.failed);
+      announce(t.failed);
+    } finally {
+      setEntering(false);
+    }
+  };
+
+  return (
+    <section aria-labelledby={ids.heading} className="mt-4 rounded-[20px] bg-status-unknown-bg p-4 ring-1 ring-border/70">
+      <h2 id={ids.heading} className="flex items-center gap-2 font-display text-body font-bold">
+        <Flask weight="bold" className="size-5 shrink-0" aria-hidden />
+        {t.heading}
+      </h2>
+      <p id={ids.lead} className="mt-2 text-body-sm text-foreground/85">
+        {t.lead(revertMinutes)}
+      </p>
+      <Button
+        type="button"
+        className="mt-4 h-auto min-h-12 w-full py-3 whitespace-normal"
+        disabled={entering}
+        aria-describedby={error ? `${ids.error} ${ids.lead}` : ids.lead}
+        onClick={enter}
+      >
+        {entering ? t.entering : t.button}
+      </Button>
+      {error ? (
+        <p id={ids.error} className="mt-1.5 text-caption font-semibold text-status-barrier">
+          {error}
+        </p>
+      ) : null}
+      <p className="mt-3 text-caption text-muted-foreground">{t.or}</p>
+    </section>
   );
 }

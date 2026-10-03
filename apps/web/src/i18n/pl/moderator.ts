@@ -22,6 +22,17 @@ export const moderator = {
     sessionNote: "Token zostaje tylko w tej karcie przeglądarki i znika po jej zamknięciu.",
     mockNote: "Tryb przykładowy: zadziała dowolny token, a decyzje nie trafiają na serwer.",
   },
+  // One-click sign-in to the demo account (shown only when the server has one).
+  demoEntry: {
+    heading: "Dla jury i do wypróbowania",
+    lead: (minutes: number) =>
+      `Wejdź bez tokenu na konto demonstracyjne. Jego decyzje działają naprawdę, ale po ${minutes} min cofamy je automatycznie.`,
+    button: "Wejdź na konto demonstracyjne (dla jury)",
+    entering: "Wchodzę…",
+    unavailable: "Konto demonstracyjne jest wyłączone na tym serwerze. Zaloguj się tokenem moderatora.",
+    failed: "Nie udało się wejść na konto demonstracyjne. Spróbuj ponownie.",
+    or: "Masz token moderatora? Zaloguj się nim poniżej.",
+  },
   signOut: "Wyloguj",
   signedOut: "Wylogowano.",
   sessionExpired: "Sesja moderatora wygasła. Zaloguj się ponownie.",

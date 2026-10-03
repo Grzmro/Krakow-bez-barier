@@ -44,6 +44,20 @@ describe("withModerationMocks", () => {
     expect(response.status).toBe(401);
   });
 
+  it("issues a demo-account session that signs in as the demo account", async () => {
+    // GIVEN the mock queue
+    const fetch = withModerationMocks(passThrough, queue());
+
+    // WHEN the one-click demo session is taken and used to read the queue
+    const created = await fetch(new Request("http://mock.local/api/v1/moderation/demo-session", { method: "POST" }));
+    const { token } = await created.json();
+    const list = await (await fetch(new Request(QUEUE_URL, { headers: { authorization: `Bearer ${token}` } }))).json();
+
+    // THEN the queue is read as the demo account
+    expect(created.status).toBe(201);
+    expect(list.moderator).toMatchObject({ demo: true, revertsAfterMinutes: 30 });
+  });
+
   it("records a decision in the report's status and history", async () => {
     // GIVEN the mock queue with one new report
     const fetch = withModerationMocks(passThrough, queue());

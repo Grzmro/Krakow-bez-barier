@@ -6,7 +6,13 @@ export {
   revertExpiredDemoDecisions,
 } from "./demo";
 export { COMMUNITY_MODERATED_SOURCE, createDrizzleReportsStore, reportsStore } from "./drizzle-store";
-export { authenticateModerator, parseModerators, type ModeratorPrincipal } from "./moderator-auth";
+export {
+  authenticateModerator,
+  isDemoAccountEnabled,
+  issueDemoSession,
+  parseModerators,
+  type ModeratorPrincipal,
+} from "./moderator-auth";
 export {
   createConfirmation,
   createReport,
