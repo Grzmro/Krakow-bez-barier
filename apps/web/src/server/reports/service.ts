@@ -11,7 +11,7 @@ import {
   type ReportCreate,
   type ReportStatus,
 } from "@krakow-bez-barier/contracts";
-import { resolveAttribute } from "@/server/domain";
+import { isStale, resolveAttribute, type AccessibilityFact } from "@/server/domain";
 import { HttpError, type FieldError } from "@/server/http";
 import type { NewFact, QueueCursor, ReportRecord, ReportsStore } from "./store";
 
@@ -146,6 +146,22 @@ export function decodeCursor(cursor: string): QueueCursor {
   throw new HttpError(400, { detail: "Invalid cursor.", errors: [{ field: "query.cursor", message: "is not a cursor from this API" }] });
 }
 
+/** The value the card shows now for the attribute, with the source and date of the fact it comes from. */
+export function currentOf(
+  attribute: AccessibilityAttribute,
+  facts: AccessibilityFact[],
+  now: Date,
+): Pick<ModerationReport, "currentValue" | "currentSource"> {
+  const resolved = resolveAttribute(attribute, facts, now);
+  if (!resolved.value) return { currentValue: null, currentSource: null };
+  // The resolver decides on fresh facts first; all of them agree here, so the first fresh one is the value's source.
+  const shown = resolved.facts.find((f) => !isStale(f, now)) ?? resolved.facts[0];
+  return {
+    currentValue: resolved.value,
+    currentSource: { name: shown.source.name, asOf: shown.confirmedAt ?? shown.observedAt ?? shown.fetchedAt },
+  };
+}
+
 export async function listModerationQueue(
   store: ReportsStore,
   query: { status?: ReportStatus; limit: number; cursor?: string },
@@ -159,7 +175,7 @@ export async function listModerationQueue(
     items: page.map(({ report, placeName, currentFacts, history }) => ({
       ...toReport(report),
       placeName,
-      currentValue: resolveAttribute(report.attribute, currentFacts, now).value ?? null,
+      ...currentOf(report.attribute, currentFacts, now),
       history: history.map((event) => ({
         decision: event.decision,
         note: event.note,
