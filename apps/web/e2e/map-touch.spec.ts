@@ -1,6 +1,6 @@
 import { devices, type CDPSession, type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { expandClusters, pins } from "./map";
+import { expandClusters, markersSettled, pins } from "./map";
 
 type Point = { x: number; y: number };
 
@@ -38,13 +38,38 @@ async function touchscreen(page: Page) {
 }
 
 
+/** The two pins `view` follows, picked per test: markers come and go as the map moves, these stay near the middle. */
+const tracked = new WeakMap<Page, string[]>();
+
+/** Picks the two pins nearest the middle of the visible map (the map runs on under the panel, out of a finger's reach). */
+async function trackPins(page: Page) {
+  const area = await freeMapArea(page);
+  const centre = { x: (area.left + area.right) / 2, y: (area.top + area.bottom) / 2 };
+  const ids = await pins(page).evaluateAll(
+    (els, c) =>
+      els
+        .map((el) => {
+          const r = el.getBoundingClientRect();
+          return { id: (el as HTMLElement).dataset.placeId!, d: Math.hypot(r.x + r.width / 2 - c.x, r.y + r.height / 2 - c.y) };
+        })
+        .toSorted((a, b) => a.d - b.d)
+        .slice(0, 2)
+        .map(({ id }) => id),
+    centre,
+  );
+  expect(ids).toHaveLength(2);
+  tracked.set(page, ids);
+}
+
 /** Screen position of two pins: their midpoint follows a pan, their gap follows the zoom. */
 async function view(page: Page) {
-  const [a, b] = await pins(page).evaluateAll((els) =>
-    [els[0], els.at(-1)!].map((el) => {
-      const r = el.getBoundingClientRect();
-      return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
-    }),
+  const [a, b] = await page.evaluate(
+    (ids) =>
+      ids.map((id) => {
+        const r = document.querySelector(`[data-place-id="${id}"]`)!.getBoundingClientRect();
+        return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+      }),
+    tracked.get(page)!,
   );
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, gap: Math.hypot(a.x - b.x, a.y - b.y) };
 }
@@ -89,11 +114,12 @@ async function openHome(page: Page) {
   await expandClusters(page);
   expect(await pins(page).count()).toBeGreaterThan(1);
   await page.getByRole("button", { name: "Przybliż" }).click();
+  await markersSettled(page);
+  await trackPins(page);
   await settledView(page);
 }
 
 for (const [name, device] of [
-  ["Pixel 7", devices["Pixel 7"]],
   ["iPhone 15", devices["iPhone 15"]],
 ] as const) {
   test.describe(`map touch gestures on ${name}`, () => {

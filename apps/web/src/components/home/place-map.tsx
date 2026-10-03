@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import type { Icon } from "@phosphor-icons/react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
@@ -21,11 +21,13 @@ import {
   type MapItem,
 } from "@/lib/map-clusters";
 import { MapControls } from "../map/map-controls";
-import { fitPadding } from "./map-padding";
+import { insidePadding, mapPadding, paddedCentre, type Padding } from "./map-padding";
 import { clusterSize, PlaceCluster } from "./place-cluster";
 import { PlacePin } from "./place-pin";
 
-const PIN_CLASS = "group relative size-9 cursor-pointer data-[selected=true]:z-10";
+// The map fills a phone's screen; at 3x (iPhone) that canvas is ~3 Mpx redrawn every frame of a pan. 2x stays sharp.
+const MAX_PIXEL_RATIO = 2;
+const PIN_CLASS ="group relative size-9 cursor-pointer data-[selected=true]:z-10";
 
 function pinElement(place: PlaceSummary, icon: Icon, title: string) {
   const element = document.createElement("div");
@@ -94,12 +96,47 @@ function removeMarkers(markers: Markers, keys: Iterable<string> = [...markers.ke
   queueMicrotask(() => roots.forEach((root) => root.unmount()));
 }
 
+const samePadding = (a: Padding, b: Padding) => a.top === b.top && a.bottom === b.bottom && a.left === b.left && a.right === b.right;
+
+function currentPadding(map: MapLibreMap): Padding {
+  const { top = 0, bottom = 0, left = 0, right = 0 } = map.getPadding();
+  return { top, bottom, left, right };
+}
+
+/**
+ * Sets the map's padding without moving what is on screen: the point under the new padded centre
+ * becomes the map's centre. Waits for a running camera move (a fit, a pan's inertia) to end first.
+ */
+function applyPadding(map: MapLibreMap, padding: () => Padding) {
+  if (map.isMoving()) {
+    map.once("moveend", () => applyPadding(map, padding));
+    return;
+  }
+  const { clientWidth: width, clientHeight: height } = map.getContainer();
+  const next = padding();
+  if (!width || !height || samePadding(next, currentPadding(map))) return;
+  map.jumpTo({ center: map.unproject(paddedCentre(width, height, next)), padding: next });
+}
+
+/** Eases the map to `target` when it is hidden under the overlays or the panel, or off the map. */
+function revealPoint(map: MapLibreMap, target: [number, number]) {
+  const { clientWidth: width, clientHeight: height } = map.getContainer();
+  if (!width || !height || insidePadding(map.project(target), width, height, currentPadding(map))) return;
+  map.easeTo({ center: target, duration: 300 });
+}
+
 export interface PlaceMapProps {
   places: PlaceSummary[];
   selectedId: string | null;
   onSelect: (id: string) => void;
   /** Space covered by overlays (search on top, map controls at the bottom), in px. */
   padding: { top: number; bottom: number };
+  /** Height (px) of the map's bottom covered by a panel laid over it; added to the bottom padding. */
+  inset?: number;
+  /** Ease the map to the selected place whenever it is hidden under the overlays or the panel. */
+  revealSelected?: boolean;
+  /** Extra classes of the attribution and zoom buttons, e.g. to lift them above a panel. */
+  controlsClassName?: string;
   /** The user's position (`[lon, lat]`): shown as "Ty" and the map centres on it instead of fitting the places. */
   you?: [number, number] | null;
   /** Label of the `you` marker when it is a chosen point rather than the user ("Ty"). */
@@ -115,7 +152,19 @@ export interface PlaceMapProps {
  * DOM marker. Pins are mouse shortcuts only and hidden from assistive tech: the list next to the map
  * holds the same places, and the canvas's description gives the number of places in view.
  */
-export function PlaceMap({ places, selectedId, onSelect, padding, you = null, youLabel: chosenLabel, label, className }: PlaceMapProps) {
+export function PlaceMap({
+  places,
+  selectedId,
+  onSelect,
+  padding,
+  inset = 0,
+  revealSelected = false,
+  controlsClassName,
+  you = null,
+  youLabel: chosenLabel,
+  label,
+  className,
+}: PlaceMapProps) {
   const messages = useMessages();
   const t = messages.home.map;
   const statusWords = messages.common.status;
@@ -132,14 +181,23 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
   const fittedRef = useRef<string | null>(null);
   const onSelectRef = useRef(onSelect);
   const paddingRef = useRef(padding);
+  const insetRef = useRef(inset);
   const selectedIdRef = useRef(selectedId);
+  const placesRef = useRef(places);
   const [youLon, youLat] = you ?? [];
   const centered = Boolean(you);
   useEffect(() => {
     onSelectRef.current = onSelect;
     paddingRef.current = padding;
+    insetRef.current = inset;
     selectedIdRef.current = selectedId;
+    placesRef.current = places;
   });
+  // The map keeps its size; what the overlays and the panel cover is its padding, so fits and eases keep clear of them.
+  const paddingFor = useCallback(
+    (instance: MapLibreMap) => () => mapPadding(paddingRef.current, insetRef.current, instance.getContainer().clientHeight),
+    [],
+  );
 
   useEffect(() => {
     let disposed = false;
@@ -157,6 +215,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
           attributionControl: false,
           dragRotate: false,
           pitchWithRotate: false,
+          pixelRatio: Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO),
         });
         instance.touchZoomRotate.disableRotation();
         setMap(instance);
@@ -221,7 +280,6 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
               map.easeTo({
                 center: item.coordinates,
                 zoom: Math.min(expansionZoom(index, item.clusterId), map.getMaxZoom()),
-                padding: { ...fitPadding(paddingRef.current, map.getContainer().clientHeight), left: 0, right: 0 },
                 duration: 400,
               });
               announce(t.zoomedToCluster(item.count, parts));
@@ -255,8 +313,10 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
       fittedRef.current = key;
       const bounds = new LngLatBounds();
       for (const place of places) bounds.extend(place.location.coordinates as [number, number]);
+      applyPadding(map, paddingFor(map));
+      // On top of the map's padding (the overlays and the panel): room for a pin on the left, the zoom buttons on the right.
       map.fitBounds(bounds, {
-        padding: { ...fitPadding(paddingRef.current, map.getContainer().clientHeight), left: 48, right: 72 },
+        padding: { top: 0, bottom: 0, left: 48, right: 72 },
         maxZoom: 16,
         duration: 400,
       });
@@ -264,7 +324,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
     return () => {
       cancelled = true;
     };
-  }, [map, places, centered]);
+  }, [map, places, centered, paddingFor]);
 
   useEffect(() => {
     if (!map || youLon === undefined || youLat === undefined) return;
@@ -276,7 +336,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
       map.easeTo({
         center: [youLon, youLat],
         zoom: Math.max(map.getZoom(), config.initialZoom),
-        padding: { ...fitPadding(paddingRef.current, map.getContainer().clientHeight), left: 0, right: 0 },
+        padding: paddingFor(map)(),
         duration: 400,
       });
     });
@@ -284,13 +344,35 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
       cancelled = true;
       marker?.remove();
     };
-  }, [map, youLon, youLat, youLabel]);
+  }, [map, youLon, youLat, youLabel, paddingFor]);
 
-  // A padding change (the list panel being stowed) only moves the map's visible area; it never refits or recentres.
+  // The panel changed height (or the map its size): the visible area moves, the map doesn't. Only what the
+  // panel now hides is brought back into view: the selected place, or else the user's position.
   useEffect(() => {
-    if (map && centered)
-      map.easeTo({ padding: { ...fitPadding({ top: padding.top, bottom: padding.bottom }, map.getContainer().clientHeight), left: 0, right: 0 }, duration: 300 });
-  }, [map, centered, padding.top, padding.bottom]);
+    if (!map) return;
+    const sync = () => {
+      applyPadding(map, paddingFor(map));
+      const selected = revealSelected ? placesRef.current.find((place) => place.id === selectedIdRef.current) : undefined;
+      const target = selected ? (selected.location.coordinates as [number, number]) : youLon !== undefined && youLat !== undefined ? ([youLon, youLat] as [number, number]) : null;
+      if (target && !map.isMoving()) revealPoint(map, target);
+    };
+    // Out of React's commit: a camera change redraws the markers, which render React roots synchronously.
+    const frame = requestAnimationFrame(sync);
+    map.on("resize", sync);
+    return () => {
+      cancelAnimationFrame(frame);
+      map.off("resize", sync);
+    };
+  }, [map, paddingFor, revealSelected, inset, padding.top, padding.bottom, youLon, youLat]);
+
+  // A place picked in the list is eased into view when the panel or the overlays hide it.
+  useEffect(() => {
+    if (!map || !revealSelected || !selectedId) return;
+    const selected = placesRef.current.find((place) => place.id === selectedId);
+    if (!selected) return;
+    const frame = requestAnimationFrame(() => revealPoint(map, selected.location.coordinates as [number, number]));
+    return () => cancelAnimationFrame(frame);
+  }, [map, revealSelected, selectedId]);
 
   useEffect(() => {
     markSelected(markersRef.current, selectedId);
@@ -313,7 +395,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, yo
           {t.unavailable}
         </p>
       ) : null}
-      <MapControls map={map} />
+      <MapControls map={map} className={controlsClassName} />
     </div>
   );
 }

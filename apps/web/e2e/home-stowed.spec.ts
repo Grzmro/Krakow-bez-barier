@@ -26,6 +26,8 @@ test("the list panel collapses to a bar, leaves the map in view and brings the l
   await expect(list.getByRole("paragraph").filter({ hasText: "9 miejsc" })).toBeVisible();
   await expect(list.getByRole("link")).toHaveCount(0);
   await expect.poll(async () => (await list.boundingBox())!.height).toBeLessThan(half.height / 3);
+  // The map controls follow the panel frame by frame; measure them once its transition is over.
+  await expect.poll(() => list.evaluate((el) => el.getAnimations().length)).toBe(0);
   const bar = (await list.boundingBox())!;
   const viewport = page.viewportSize()!;
   expect(bar.y + bar.height).toBeGreaterThanOrEqual(viewport.height - 1);
