@@ -14,7 +14,7 @@
   "scripts": {
     "contracts:generate": "openapi-typescript openapi.yaml -o src/generated/schema.d.ts",
     "postinstall": "npm run contracts:generate",
-    "lint": "redocly lint openapi.yaml",
+    "lint": "redocly lint openapi.yaml --max-problems 0",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

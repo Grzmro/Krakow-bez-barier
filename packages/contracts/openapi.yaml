@@ -568,7 +568,7 @@ paths:
                 $ref: '#/components/schemas/Route'
               examples:
                 noStairs:
-                  summary: Avoid-stairs route with one unknown segment
+                  summary: Avoid-stairs route with unknown segments
                   value:
                     kind: avoid_stairs
                     durationMinutes: 16
@@ -583,14 +583,14 @@ paths:
                       - - 19.9373
                         - 50.0619
                     knownBarrierCount: 0
-                    unknownSegmentCount: 1
-                    unknownMeters: 140
+                    unknownSegmentCount: 2
+                    unknownMeters: 460
                     segments:
                     - id: 1
                       name: Dworzec Główny – ul. Basztowa
                       instruction: Przejdź podziemnym przejściem windą
                       lengthMeters: 320
-                      state: met
+                      state: unknown
                       facts: []
                       geometry:
                         type: LineString
@@ -1020,8 +1020,6 @@ components:
           text:
             type: string
             description: Controlled value, e.g. "flat", "cobblestone".
-      discriminator:
-        propertyName: kind
     Source:
       type: object
       required:
@@ -1626,90 +1624,6 @@ components:
         isSample:
           type: boolean
   examples:
-    SourceOsm:
-      value:
-        id: osm
-        name: OpenStreetMap
-        kind: community
-        license: ODbL 1.0
-        attribution: © OpenStreetMap contributors
-        url: https://www.openstreetmap.org
-        refreshInterval: daily
-        refreshStatus: ok
-        lastSuccessAt: '2026-10-03T03:00:00Z'
-        lastAttemptAt: '2026-10-03T03:00:00Z'
-        statusNote: null
-        isSample: false
-    SourceZiwOutage:
-      value:
-        id: ziw
-        name: Zintegrowany Informator Wojewódzki (ZIW)
-        kind: official_open_data
-        license: Do sprawdzenia
-        attribution: null
-        url: https://msim3.um.krakow.pl
-        refreshInterval: daily
-        refreshStatus: outage
-        lastSuccessAt: '2023-11-14T03:00:00Z'
-        lastAttemptAt: '2026-10-03T03:00:00Z'
-        statusNote: Źródło niedostępne (HTTP 404). Pokazujemy ostatnie znane dane jako nieaktualne.
-        isSample: false
-    PlaceSummaryConflict:
-      value:
-        id: palac-krzysztofory
-        name: Pałac Krzysztofory
-        category: museum
-        location:
-          type: Point
-          coordinates:
-          - 19.9381
-          - 50.0623
-        address:
-          street: Rynek Główny
-          houseNumber: '35'
-          postalCode: 31-010
-          city: Kraków
-        summary:
-        - attribute: step_count
-          state: known
-          status: confirmed
-          label: Wejście bez stopni
-        - attribute: toilet_accessible
-          state: conflict
-          status: conflict
-          label: 'Toaleta: sprzeczne dane'
-        - attribute: lift
-          state: unknown
-          status: no_data
-          label: 'Winda: brak danych'
-        verdict: null
-        isSample: true
-    PlaceSummaryNoData:
-      value:
-        id: kawiarnia-przyklad
-        name: Kawiarnia Przykład
-        category: restaurant
-        location:
-          type: Point
-          coordinates:
-          - 19.9445
-          - 50.0612
-        address:
-          street: ul. Floriańska
-          houseNumber: '12'
-          postalCode: 31-021
-          city: Kraków
-        summary:
-        - attribute: step_count
-          state: unknown
-          status: no_data
-          label: 'Wejście: brak danych'
-        - attribute: toilet_accessible
-          state: unknown
-          status: no_data
-          label: 'Toaleta: brak danych'
-        verdict: null
-        isSample: true
     PlaceConflict:
       value:
         id: palac-krzysztofory
@@ -1957,6 +1871,18 @@ components:
           lastAttemptAt: '2026-10-03T03:00:00Z'
           statusNote: null
           isSample: false
+        - id: decl
+          name: Deklaracja dostępności
+          kind: official_open_data
+          license: CC BY 4.0
+          attribution: Deklaracja dostępności podmiotu
+          url: null
+          refreshInterval: yearly
+          refreshStatus: ok
+          lastSuccessAt: '2022-05-10T00:00:00Z'
+          lastAttemptAt: '2022-05-10T00:00:00Z'
+          statusNote: null
+          isSample: true
         updatedAt: '2026-10-03T03:00:00Z'
         isSample: true
     PlaceSourceUnavailable:

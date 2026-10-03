@@ -57,3 +57,4 @@ Format: `YYYY-MM-DD — decision — why`.
 - 2026-10-03 — `packages/ui` is consumed as TypeScript source (`transpilePackages`), no build step — a fresh clone runs `npm install && npm run dev` without building packages first.
 - 2026-10-03 — Fast test pipeline: Vitest for logic, Playwright Chromium-only smoke (headless shell, no retries) against the production build made earlier in the same CI job; npm, Next and Playwright caches in CI.
 - 2026-10-03 — `packages/ui` components take all copy as props; `apps/web/src/components/kbb.tsx` binds the Polish strings — the package stays i18n-free, screens get one-line usage and one source of status words.
+- 2026-10-03 — API errors are RFC 9457 `application/problem+json`, lists use cursor pagination, and `FactValue` is a tagged union on `kind` — clients branch on one field, offsets break under live ingest, and problems stay machine-readable.
