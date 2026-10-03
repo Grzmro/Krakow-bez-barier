@@ -1,0 +1,58 @@
+- main:
+  - article "Kawiarnia Przykład":
+    - text: Brak zdjęcia Dane przykładowe
+    - heading "Kawiarnia Przykład" [level=1]
+    - paragraph: /Restauracja · ul\. Floriańska \d+, Kraków/
+    - paragraph: "Jak dojść do wejścia: Brak wskazówki, jak dojść do wejścia."
+    - button "Udostępnij":
+      - img
+      - text: ""
+    - button "Zapytaj obiekt":
+      - img
+      - text: ""
+    - link "Skąd wiemy?":
+      - /url: "#skad-wiemy"
+      - img
+      - text: ""
+    - region "Fakty":
+      - heading "Fakty" [level=2]
+      - paragraph: Pokazujemy konkretne dane, bez zbiorczej oceny. Rozwiń cechę, aby zobaczyć źródło i datę.
+      - list:
+        - listitem:
+          - button "Wejście — stopnie Brak danych Brak danych"
+        - listitem:
+          - button "Wysokość stopnia Brak danych Brak danych"
+        - listitem:
+          - button "Próg Brak danych Brak danych"
+        - listitem:
+          - button "Szerokość drzwi Brak danych Brak danych"
+        - listitem:
+          - button "Podjazd Brak danych Brak danych"
+        - listitem:
+          - button "Winda Brak danych Brak danych"
+        - listitem:
+          - button "Nawierzchnia dojścia Brak danych Brak danych"
+        - listitem:
+          - button "Toaleta dostosowana Brak danych Brak danych"
+        - listitem:
+          - button "Miejsca odpoczynku Brak danych Brak danych"
+        - listitem:
+          - button "Parking dla osób z niepełnosprawnościami Brak danych Brak danych"
+        - listitem:
+          - button "Przewijak Brak danych Brak danych"
+    - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
+    - button "Uzupełnij":
+      - img
+      - text: ""
+    - button "Zapytaj obiekt":
+      - img
+      - text: ""
+    - region "Skąd wiemy?":
+      - heading "Skąd wiemy?" [level=2]
+      - paragraph: Źródła danych o tym miejscu, ich licencje i stan odświeżenia.
+      - paragraph: Nie mamy jeszcze żadnego źródła dla tego miejsca.
+      - paragraph: 0 źródeł
+      - link "O danych":
+        - /url: /o-danych
+        - img
+        - text: ""
