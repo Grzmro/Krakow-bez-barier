@@ -106,7 +106,7 @@ function currentPadding(map: MapLibreMap): Padding {
 const paddingPending = new WeakSet<MapLibreMap>();
 
 /** Whether `target` is in the map's visible area, clear of its padding. */
-function inView(map: MapLibreMap, target: [number, number]) {
+function pointInView(map: MapLibreMap, target: [number, number]) {
   const { clientWidth: width, clientHeight: height } = map.getContainer();
   return insidePadding(map.project(target), width, height, currentPadding(map));
 }
@@ -136,7 +136,7 @@ function applyPadding(map: MapLibreMap, padding: () => Padding) {
 /** Eases the map to `target` when it is hidden under the overlays or the panel, or off the map. */
 function revealPoint(map: MapLibreMap, target: [number, number]) {
   const { clientWidth: width, clientHeight: height } = map.getContainer();
-  if (!width || !height || inView(map, target)) return;
+  if (!width || !height || pointInView(map, target)) return;
   map.easeTo({ center: target, duration: 300 });
 }
 
@@ -270,7 +270,12 @@ export function PlaceMap({
           Math.min(180, bounds.getEast() + padLon),
           Math.min(85, bounds.getNorth() + padLat),
         ];
-        setInView(placesInView(index, [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]));
+        // Counted in the visible part only: the map runs on under the panel and the search.
+        const { clientWidth: width, clientHeight: height } = map.getContainer();
+        const pad = currentPadding(map);
+        const sw = map.unproject([pad.left, height - pad.bottom]);
+        const ne = map.unproject([width - pad.right, pad.top]);
+        setInView(placesInView(index, [sw.lng, sw.lat, ne.lng, ne.lat]));
         const items = mapItems(index, bbox, map.getZoom());
         const keys = new Set(items.map((item) => item.key));
         removeMarkers(markers, [...markers.keys()].filter((key) => !keys.has(key)));
@@ -371,7 +376,7 @@ export function PlaceMap({
       const selected = revealSelected ? placesRef.current.find((place) => place.id === selectedIdRef.current) : undefined;
       const target = selected ? (selected.location.coordinates as [number, number]) : youLon !== undefined && youLat !== undefined ? ([youLon, youLat] as [number, number]) : null;
       // A point the visitor had already panned away from stays away.
-      const wasInView = target !== null && !map.isMoving() && inView(map, target);
+      const wasInView = target !== null && !map.isMoving() && pointInView(map, target);
       applyPadding(map, paddingFor(map));
       if (target && wasInView) revealPoint(map, target);
     };
