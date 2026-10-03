@@ -473,10 +473,24 @@
     },
     "unit": null,
     "source": "msip-toilets",
-    "recordRef": "WT_WC_2023/26",
+    "recordRef": "msip-toilets:WT_WC_2023/26",
     "observedAt": null,
     "evidence": {
      "comment": "MSIP: dostępność dla niepełnosprawnych: tak, oddzielnie; modyfikacja: pochylnia"
+    }
+   },
+   {
+    "attribute": "ramp",
+    "value": {
+     "kind": "boolean",
+     "boolean": true
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "msip-toilets:WT_WC_2023/26",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: rodzaj modyfikacji: pochylnia"
     }
    },
    {
@@ -487,7 +501,7 @@
     },
     "unit": null,
     "source": "msip-toilets",
-    "recordRef": "WT_WC_2023/26",
+    "recordRef": "msip-toilets:WT_WC_2023/26",
     "observedAt": null,
     "evidence": {
      "comment": "MSIP: obecność przewijaka: brak"
@@ -510,14 +524,28 @@
     "attribute": "wheelchair_overall",
     "value": {
      "kind": "text",
-     "text": "yes"
+     "text": "limited"
     },
     "unit": null,
     "source": "msip-toilets",
-    "recordRef": "WT_WC_2023/2",
+    "recordRef": "msip-toilets:WT_WC_2023/2",
     "observedAt": null,
     "evidence": {
      "comment": "MSIP: dostępność dla niepełnosprawnych: tak, po stronie damskiej; modyfikacja: platforma"
+    }
+   },
+   {
+    "attribute": "lift",
+    "value": {
+     "kind": "boolean",
+     "boolean": true
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "msip-toilets:WT_WC_2023/2",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: rodzaj modyfikacji: platforma"
     }
    },
    {
@@ -528,7 +556,7 @@
     },
     "unit": null,
     "source": "msip-toilets",
-    "recordRef": "WT_WC_2023/2",
+    "recordRef": "msip-toilets:WT_WC_2023/2",
     "observedAt": null,
     "evidence": {
      "comment": "MSIP: obecność przewijaka: Tak"
@@ -551,14 +579,28 @@
     "attribute": "wheelchair_overall",
     "value": {
      "kind": "text",
-     "text": "yes"
+     "text": "limited"
     },
     "unit": null,
     "source": "msip-toilets",
-    "recordRef": "WT_WC_2023/5",
+    "recordRef": "msip-toilets:WT_WC_2023/5",
     "observedAt": null,
     "evidence": {
      "comment": "MSIP: dostępność dla niepełnosprawnych: tak, po stronie damskiej; modyfikacja: platforma"
+    }
+   },
+   {
+    "attribute": "lift",
+    "value": {
+     "kind": "boolean",
+     "boolean": true
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "msip-toilets:WT_WC_2023/5",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: rodzaj modyfikacji: platforma"
     }
    },
    {
@@ -569,7 +611,7 @@
     },
     "unit": null,
     "source": "msip-toilets",
-    "recordRef": "WT_WC_2023/5",
+    "recordRef": "msip-toilets:WT_WC_2023/5",
     "observedAt": null,
     "evidence": {
      "comment": "MSIP: obecność przewijaka: brak"
@@ -608,10 +650,24 @@
     },
     "unit": null,
     "source": "msip-toilets",
-    "recordRef": "WT_WC_2023/1",
+    "recordRef": "msip-toilets:WT_WC_2023/1",
     "observedAt": null,
     "evidence": {
      "comment": "MSIP: dostępność dla niepełnosprawnych: Tak; modyfikacja: wjazd z poziomu 0"
+    }
+   },
+   {
+    "attribute": "entrance_level",
+    "value": {
+     "kind": "boolean",
+     "boolean": true
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "msip-toilets:WT_WC_2023/1",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: rodzaj modyfikacji: wjazd z poziomu 0"
     }
    },
    {
@@ -622,7 +678,7 @@
     },
     "unit": null,
     "source": "msip-toilets",
-    "recordRef": "WT_WC_2023/1",
+    "recordRef": "msip-toilets:WT_WC_2023/1",
     "observedAt": null,
     "evidence": {
      "comment": "MSIP: obecność przewijaka: Tak"
@@ -661,10 +717,24 @@
     },
     "unit": null,
     "source": "msip-toilets",
-    "recordRef": "WT_WC_2023/36",
+    "recordRef": "msip-toilets:WT_WC_2023/36",
     "observedAt": null,
     "evidence": {
      "comment": "MSIP: dostępność dla niepełnosprawnych: tak, pomiędzy toaletą damską a męską; modyfikacja: winda"
+    }
+   },
+   {
+    "attribute": "lift",
+    "value": {
+     "kind": "boolean",
+     "boolean": true
+    },
+    "unit": null,
+    "source": "msip-toilets",
+    "recordRef": "msip-toilets:WT_WC_2023/36",
+    "observedAt": null,
+    "evidence": {
+     "comment": "MSIP: rodzaj modyfikacji: winda"
     }
    },
    {
@@ -675,7 +745,7 @@
     },
     "unit": null,
     "source": "msip-toilets",
-    "recordRef": "WT_WC_2023/36",
+    "recordRef": "msip-toilets:WT_WC_2023/36",
     "observedAt": null,
     "evidence": {
      "comment": "MSIP: obecność przewijaka: brak"
