@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-// Demo cases come from the openapi.yaml examples served by the mock API (TODO(KBB-28)).
+// Demo cases come from the openapi.yaml examples served by the mock API.
 
 test("conflicting data and an unavailable source are both visible on the card", async ({
   page,

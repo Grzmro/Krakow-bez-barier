@@ -1,7 +1,7 @@
 import { pl } from "../src/i18n/pl";
 import { expect, test } from "./fixtures";
 
-// The widget card comes from the openapi.yaml example served by the mock API (TODO(KBB-29)).
+// The widget card comes from the openapi.yaml example served by the mock API.
 
 const HOTEL_SITE = "https://hotel.przyklad.test/";
 
