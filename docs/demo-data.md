@@ -45,6 +45,51 @@ door width and ramp. The demo must say this out loud rather than hide it: the pr
 showing what we know, from where, and what we don't. Toilets are the one category where concrete,
 sourced facts exist (city dataset + OSM).
 
+### Coverage after our own OSM ingest
+
+The same bbox, as stored by `npm run ingest` (OSM adapter with the category set from
+`packages/contracts/src/categories.ts`, KBB-32; local run of 2026-10-03 17:40 UTC from the Geofabrik
+extract of 2026-10-02, after Overpass failed). It stores 960 places, not the 649 read above, because
+the category list is different (e.g. `fast_food`, `bar`, `pub`, historic `monument`/`memorial`; no
+`library`) and places without a name are skipped, except toilets, which are kept as "Toaleta publiczna":
+
+| Measure | Places |
+|---|---|
+| OSM places stored | 960 |
+| with `wheelchair_overall` (`wheelchair=*`) | 130 (13.5%): 64 yes, 20 limited, 46 no |
+| ... of which with an observation date (`check_date`) | 42 |
+| with `toilet_accessible` / `changing_table` | 7 / 9 |
+| with `step_count`, `door_width_cm`, `ramp`, `lift` | 0 |
+
+The OSM mapper reads `step_count`, `door:width`, `entrance:width` and `ramp:wheelchair`
+and `elevator` (`apps/ingest/src/adapters/osm-map.ts`), so the zeros are the data, not a missing mapping. To
+reproduce every figure in the table on a database after ingest (read-only):
+
+```sql
+-- OSM places stored (960)
+SELECT count(*) FROM places WHERE external_ref LIKE 'osm:%';
+
+-- places per attribute (130 wheelchair_overall, 7 toilet_accessible, 9 changing_table;
+-- step_count, door_width_cm, ramp, lift are absent)
+SELECT attribute, count(DISTINCT place_id)
+FROM facts WHERE status = 'active' AND source_id = 'osm'
+GROUP BY attribute ORDER BY 2 DESC;
+
+-- yes / limited / no split (64 / 20 / 46)
+SELECT value->>'text', count(*)
+FROM facts WHERE status = 'active' AND source_id = 'osm' AND attribute = 'wheelchair_overall'
+GROUP BY 1;
+
+-- with an observation date from check_date (42)
+SELECT count(*)
+FROM facts WHERE status = 'active' AND source_id = 'osm' AND attribute = 'wheelchair_overall'
+  AND observed_at IS NOT NULL;
+```
+
+City-wide we have only a preliminary count (2,674 of 30,573 Kraków POIs, 8.7%, with `wheelchair=*`
+in the Geofabrik extract of 2026-10-03); the script for it is not in the repository, so the pitch
+labels it "analiza własna".
+
 ## Demo places
 
 `W` = OSM `wheelchair`. Refs are OSM element ids (`n` node, `w` way, `r` relation). Dates are the
