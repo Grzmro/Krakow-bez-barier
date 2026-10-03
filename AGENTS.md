@@ -96,10 +96,11 @@ npm run lint                   # ESLint
 npm run typecheck              # next typegen + tsc
 npm run test                   # Vitest (unit)
 npm run build                  # production build
-npm run test:e2e               # Playwright smoke (apps/web/e2e); own port per worktree (PORT overrides)
+npm run test:e2e -- e2e/route.spec.ts   # Playwright: only the specs of the screens you changed; own port per worktree (PORT overrides), 3 workers (E2E_WORKERS overrides)
 npm run mobile:ios             # Capacitor: sync + build + run in the iOS Simulator (Xcode; web app must be running)
 npm run mobile:android         # Capacitor: sync + debug APK (needs JAVA_HOME = JDK 21, ANDROID_HOME = Android SDK)
-npm run build && E2E_PROD=1 npm run test:e2e   # + *.prod.spec.ts (PWA offline, real data) against `next start`; merge-pr.sh does this
+npm run build && E2E_PROD=1 npm run test:e2e -- e2e/pwa-offline.prod.spec.ts   # a *.prod.spec.ts (PWA offline, real data) against `next start`
+E2E_SPECS="e2e/route.spec.ts" scripts/merge-pr.sh [PR]   # rebase, local gate + those specs, CI, merge (task skill step 8)
 npm run icons -w apps/web      # re-render PWA icons after changing the logo mark or brand tokens
 npm run routes:record -w apps/web   # re-record the openrouteservice fixtures (ORS_API_KEY in root .env; tests never call ORS)
 ```
@@ -122,12 +123,18 @@ Planned — add them here when the task lands: `cp .env.example .env` + `docker 
 `npm run ingest -- --source <id> --city krakow` (KBB-18).
 
 CI (`.github/workflows/ci.yml`) is deliberately tiny — lint, typecheck, unit (~30 s). Build and e2e
-run locally: `scripts/merge-pr.sh` runs the full gate on the rebased commit before merging.
+run locally: `scripts/merge-pr.sh` runs lint, typecheck, unit, build and the e2e specs of the changed
+screens on the rebased commit before merging (`E2E_SPECS`, default: spec files changed vs `origin/main`;
+a UI change with no spec selected is an error; `--print-specs` shows the selection).
 
 **Keep tests fast** — local gate within a couple of minutes, CI within ~30 s:
 - unit tests (Vitest) for logic; no network, no DB unless the test is about the DB;
 - e2e = a short smoke per screen (main path + keyboard pass), Chromium only, no `waitForTimeout`,
-  no retries — a flaky test gets fixed or deleted, not retried.
+  no retries — a flaky test gets fixed or deleted, not retried. One scenario per test: a chain of
+  scenarios outgrows the 15 s budget on a loaded machine;
+- **unit tests always, e2e only for the screens your change touches** — while working and in
+  `merge-pr.sh` alike. Never the full suite by default (parallel agents share this machine); run more
+  only deliberately, e.g. a `packages/ui` change → the specs of the screens that use the component.
 - npm blocks dependency install scripts; a new dependency that needs one goes through
   `npm approve-scripts <pkg>` (recorded in root `package.json` → `allowScripts`).
 
