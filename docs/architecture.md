@@ -38,8 +38,19 @@ shared vocabulary; a city = a city config (bbox, dataset URLs) — OSM and GTFS 
 
 ## Data sources
 
-> TODO: for each source — origin, terms of use/license, update frequency, how it's verified,
-> what happens when it's unavailable (challenge R2, R3).
+Full register with endpoints, licences and failure behaviour: [`data-sources.md`](data-sources.md).
+Deployment, licences and extension: [`deployment.md`](deployment.md).
+
+| Source | What | Licence | Update | Verified by | If unavailable |
+|---|---|---|---|---|---|
+| OpenStreetMap (Overpass) | places, `wheelchair=*` tags | ODbL 1.0, "© OpenStreetMap contributors" | cron; per object (`check_date`) | provenance ref, reliability from `check_date`, conflicts shown | last facts kept, marked stale |
+| MSIP toilets (`WT_WC_2023`) | city toilets, access fields | **to confirm** | dataset 2023, no schedule | matched to OSM by distance | last facts kept, marked stale |
+| MSIP hotels KOH | hotel names, categories | **to confirm** | import 2023-06-30 | no accessibility claim | last facts kept, marked stale |
+| openrouteservice | routing, on demand, server-side | terms to confirm | live | labelled as computed suggestion | routing error, place data still shown |
+| OpenFreeMap | base map tiles | MIT; data ODbL | live | n/a | list and text views still work |
+
+A source without a confirmed licence is not ingested. Every fact carries source, fetch time and
+reliability; a failed run keeps the previous data and marks it stale.
 
 ## Decisions
 
