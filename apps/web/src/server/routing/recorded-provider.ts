@@ -6,6 +6,10 @@ import avoidStepsEn from "./fixtures/dworzec-rynek-avoid-steps-en.json";
 import shortestEn from "./fixtures/dworzec-rynek-shortest-en.json";
 import strollerEn from "./fixtures/dworzec-rynek-stroller-en.json";
 import wheelchairEn from "./fixtures/dworzec-rynek-wheelchair-en.json";
+import kawiarniaAvoidSteps from "./fixtures/kawiarnia-rynek-avoid-steps.json";
+import kawiarniaShortest from "./fixtures/kawiarnia-rynek-shortest.json";
+import plantyAvoidSteps from "./fixtures/planty-rynek-avoid-steps.json";
+import plantyShortest from "./fixtures/planty-rynek-shortest.json";
 import { ORS_ATTRIBUTION, errorFor, orsRequest, parseOrsResponse, type OrsRequest } from "./ors";
 import { RoutingError, type RoutingProvider } from "./provider";
 
@@ -20,7 +24,11 @@ const canonical = (value: unknown): string =>
       : v,
   );
 
-/** Dworzec Główny → Rynek Główny, the demo route, recorded for each request the app makes for it (per language). */
+/**
+ * Dworzec Główny → Rynek Główny, the demo route, recorded for each request the app makes for it (per language). Plus two
+ * other starts without a profile, in Polish: the sample place Kawiarnia Przykład and a point on the Planty at
+ * 50.065, 19.942 (a "Moja lokalizacja" start in tests).
+ */
 export const DEMO_ROUTES = [
   shortest,
   avoidSteps,
@@ -30,6 +38,10 @@ export const DEMO_ROUTES = [
   avoidStepsEn,
   wheelchairEn,
   strollerEn,
+  kawiarniaShortest,
+  kawiarniaAvoidSteps,
+  plantyShortest,
+  plantyAvoidSteps,
 ] as RecordedRoute[];
 
 /**

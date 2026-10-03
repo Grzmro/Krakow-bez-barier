@@ -1,21 +1,26 @@
 "use client";
 
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
-import { ArrowsDownUp, CaretRight, CloudSlash, MapPin, NavigationArrow, Train, WarningCircle } from "@phosphor-icons/react";
+import { ArrowsDownUp, CaretRight, CircleNotch, CloudSlash, MapPin, NavigationArrow, WarningCircle, X } from "@phosphor-icons/react";
 import type { Place, Route } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, StatusIcon, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
 import { BottomPanel, FactRow, StatusBadge } from "@/components/kbb";
 import { BackButton } from "@/components/layout/back-button";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
 import { RouteMap } from "@/components/route/route-map";
+import { StartPicker, type StartOption, type StartPick } from "@/components/route/start-picker";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { Messages } from "@/i18n/messages";
 import { config } from "@/lib/config";
+import { locateDevice } from "@/lib/native/geolocation";
+import { locationSettings } from "@/lib/native/platform";
+import { locateFailureText, toLonLat } from "@/lib/nearby";
 import { factViews } from "@/lib/place-facts";
 import { usePlace } from "@/lib/places";
 import type { ProfileSettings } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
+import { parseStart, startParam, STATION, type RouteStart } from "@/lib/route-start";
 import { routes } from "@/lib/routes";
 import { scrollIntoViewWithin } from "@/lib/scroll-within";
 import { useMediaQuery } from "@/lib/use-media-query";
@@ -79,8 +84,9 @@ function routeErrorText(t: Messages["route"], error: unknown): string {
   return reason === "no_route" ? t.error.noRoute : reason === "not_configured" ? t.error.notConfigured : t.error.unavailable;
 }
 
-export function RouteScreen({ to }: { to?: string }) {
-  const t = useMessages().route;
+export function RouteScreen({ to, from }: { to?: string; from?: string }) {
+  const messages = useMessages();
+  const t = messages.route;
   const errorText = (error: unknown) => routeErrorText(t, error);
   const announce = useAnnounce();
   const { settings, setProfile } = useProfile();
@@ -94,14 +100,45 @@ export function RouteScreen({ to }: { to?: string }) {
   const desktop = useMediaQuery(DESKTOP);
   const stepRefs = useRef(new Map<number, HTMLButtonElement>());
 
+  const [chosenStart, setStart] = useState<RouteStart>(() => parseStart(from));
+  const [locating, setLocating] = useState(false);
+  const [notice, setNotice] = useState<{ message: string; help: string | null } | null>(null);
+  const locateRun = useRef(0);
+  const startFieldId = useId();
+
   const place = usePlace(to ?? "", {}, { enabled: Boolean(to) });
   const placeEnd = place.data?.location.coordinates as [number, number] | undefined;
   const end = to ? placeEnd : config.routeEnd;
   const endName = to ? (place.data?.name ?? "…") : t.places.rynek;
-  const planned = end ? (swapped ? { from: end, to: config.routeStart } : { from: config.routeStart, to: end }) : null;
+
+  // A place start from a link carries only its id; its position and name come from the API.
+  const startPlaceId = chosenStart.kind === "place" && !chosenStart.position ? chosenStart.id : "";
+  const startPlace = usePlace(startPlaceId, {}, { enabled: Boolean(startPlaceId) });
+  const startMissing = Boolean(startPlaceId) && startPlace.data === null;
+  const start = startMissing ? STATION : chosenStart;
+  const startPosition =
+    start.kind === "station"
+      ? config.routeStart
+      : start.kind === "place"
+        ? (start.position ?? (startPlace.data?.location.coordinates as [number, number] | undefined))
+        : start.position;
+  const startName =
+    start.kind === "station"
+      ? t.places.dworzec
+      : start.kind === "me"
+        ? t.start.me
+        : start.kind === "point"
+          ? t.start.point
+          : (start.name ?? startPlace.data?.name ?? "…");
+  const startOption: StartOption = {
+    value: start.kind === "place" ? `place:${start.id}` : start.kind,
+    label: startName,
+    pick: start,
+  };
+  const startNotice = startMissing ? { message: t.start.notFound, help: null } : notice;
+
+  const planned = end && startPosition ? (swapped ? { from: end, to: startPosition } : { from: startPosition, to: end }) : null;
   const ends = planned && origin ? { from: origin, to: planned.to } : planned;
-  const names = swapped ? [endName, t.places.dworzec] : [t.places.dworzec, endName];
-  if (origin) names[0] = t.nav.yourPosition;
 
   const avoid = useRoute(ends ? routeRequest(ends.from, ends.to, "avoid_stairs", settings) : null);
   const shortest = useRoute(ends ? routeRequest(ends.from, ends.to, "shortest", settings) : null);
@@ -116,6 +153,47 @@ export function RouteScreen({ to }: { to?: string }) {
   useEffect(() => {
     if (current.error) announce(routeErrorText(t, current.error));
   }, [announce, current.error, t]);
+  useEffect(() => {
+    if (startMissing) announce(t.start.notFound);
+  }, [announce, startMissing, t]);
+
+  // The start goes into the link (a place id, or a position rounded to ~100 m), so the route can be shared.
+  // Only `z` is rewritten, on the URL as it is now: the router owns the rest and may be mid-navigation.
+  const startValue = startParam(start);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.pathname !== routes.route() || (url.searchParams.get("z") ?? undefined) === startValue) return;
+    const to = url.searchParams.get("do") ?? undefined;
+    window.history.replaceState(null, "", routes.route(to, startValue));
+  }, [startValue]);
+
+  const pickStart = async (next: StartPick) => {
+    setOrigin(null);
+    setSelected(null);
+    const run = ++locateRun.current;
+    if (next.kind !== "locate") {
+      setLocating(false);
+      setNotice(null);
+      setStart(next);
+      return;
+    }
+    setLocating(true);
+    setNotice(null);
+    announce(t.start.locating);
+    const result = await locateDevice();
+    if (run !== locateRun.current) return;
+    setLocating(false);
+    if (result.ok) {
+      setStart({ kind: "me", position: toLonLat(result.position) });
+      announce(t.start.located);
+      return;
+    }
+    // No position: the route keeps its start and says why, with what to do about it.
+    const { message, help } = locateFailureText(result.reason, locationSettings(), messages.nearby);
+    const text = t.start.failed(message, startName);
+    setNotice({ message: text, help });
+    announce(help ? `${text} ${help}` : text);
+  };
 
   const switchKind = (next: RouteKind) => {
     setKind(next);
@@ -159,6 +237,21 @@ export function RouteScreen({ to }: { to?: string }) {
     setOrigin(guidance.position);
   };
 
+  const startRow = (
+    <div className="flex h-12 items-center gap-3 pr-12 pl-3">
+      <StartPicker id={startFieldId} label={swapped ? t.to : t.from} current={startOption} onPick={pickStart} />
+    </div>
+  );
+  const endRow = (
+    <p className="flex h-12 items-center gap-3 px-3">
+      <span aria-hidden className="grid size-7 shrink-0 place-items-center">
+        <span className="size-3.5 rounded-full bg-primary ring-4 ring-primary/20" />
+      </span>
+      <span className="sr-only">{swapped ? t.from : t.to}: </span>
+      <span className="truncate pr-12 text-body font-semibold">{endName}</span>
+    </p>
+  );
+
   return (
     <main
       id="main"
@@ -174,21 +267,25 @@ export function RouteScreen({ to }: { to?: string }) {
             className="mt-1 border-0 shadow-float lg:border lg:shadow-none"
           />
           <div className="relative min-w-0 flex-1 rounded-[20px] bg-card p-1 shadow-float lg:shadow-none lg:ring-1 lg:ring-border">
-            <p className="flex h-12 items-center gap-3 px-3">
-              <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-ink-foreground">
-                {origin ? <MapPin weight="bold" className="size-4" aria-hidden /> : <Train weight="bold" className="size-4" aria-hidden />}
-              </span>
-              <span className="sr-only">{t.from}: </span>
-              <span className="truncate text-body font-semibold">{names[0]}</span>
-            </p>
-            <span aria-hidden className="ml-[26px] block h-px w-[calc(100%-80px)] bg-border" />
-            <p className="flex h-12 items-center gap-3 px-3">
-              <span aria-hidden className="grid size-7 shrink-0 place-items-center">
-                <span className="size-3.5 rounded-full bg-primary ring-4 ring-primary/20" />
-              </span>
-              <span className="sr-only">{t.to}: </span>
-              <span className="truncate pr-12 text-body font-semibold">{names[1]}</span>
-            </p>
+            {origin ? (
+              <>
+                <p className="flex h-12 items-center gap-3 px-3">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-ink-foreground">
+                    <MapPin weight="bold" className="size-4" aria-hidden />
+                  </span>
+                  <span className="sr-only">{t.from}: </span>
+                  <span className="truncate pr-12 text-body font-semibold">{t.nav.yourPosition}</span>
+                </p>
+                <span aria-hidden className="ml-[26px] block h-px w-[calc(100%-80px)] bg-border" />
+                {swapped ? startRow : endRow}
+              </>
+            ) : (
+              <>
+                {swapped ? endRow : startRow}
+                <span aria-hidden className="ml-[26px] block h-px w-[calc(100%-80px)] bg-border" />
+                {swapped ? startRow : endRow}
+              </>
+            )}
             <Button
               variant="secondary"
               size="icon"
@@ -265,6 +362,30 @@ export function RouteScreen({ to }: { to?: string }) {
               <span className="text-h1 font-extrabold">{t.pageTitle}</span>
             )}
           </h1>
+          {locating ? (
+            <p className="mt-3 flex items-center gap-2 text-body-sm text-muted-foreground">
+              <CircleNotch weight="bold" className="size-4 shrink-0 animate-spin text-primary" aria-hidden />
+              {t.start.locating}
+            </p>
+          ) : startNotice ? (
+            <div className="mt-3 flex gap-3 rounded-[20px] bg-status-conflict-bg p-4">
+              <WarningCircle weight="fill" className="mt-0.5 size-5 shrink-0 text-status-conflict" aria-hidden />
+              <div className="min-w-0 flex-1">
+                <p className="text-body-sm font-semibold">{startNotice.message}</p>
+                {startNotice.help ? (
+                  <details className="mt-1 text-body-sm">
+                    <summary className="cursor-pointer font-semibold text-primary underline-offset-2 hover:underline">{t.start.help}</summary>
+                    <p className="mt-1">{startNotice.help}</p>
+                  </details>
+                ) : null}
+              </div>
+              {startMissing ? null : (
+                <Button variant="ghost" size="icon" aria-label={t.start.dismiss} onClick={() => setNotice(null)} className="-mt-2 -mr-2 size-10 shrink-0">
+                  <X weight="bold" />
+                </Button>
+              )}
+            </div>
+          ) : null}
           <ProfileSwitch value={profile} onChange={setProfile} className="mt-3" />
           <p className="mt-1.5 text-caption text-muted-foreground">{profile ? t.profileOn(profile) : t.profileOff}</p>
 
@@ -278,7 +399,11 @@ export function RouteScreen({ to }: { to?: string }) {
               <div className="grid justify-items-start gap-3">
                 <p className="text-body font-semibold">{errorText(current.error)}</p>
                 {routeReason(current.error) === "not_configured" ? (
-                  <Link href={routes.route()} className={buttonVariants({ variant: "outline", size: "sm" })}>
+                  <Link
+                    href={routes.route()}
+                    onClick={() => void pickStart(STATION)}
+                    className={buttonVariants({ variant: "outline", size: "sm" })}
+                  >
                     {t.error.showExample}
                   </Link>
                 ) : (

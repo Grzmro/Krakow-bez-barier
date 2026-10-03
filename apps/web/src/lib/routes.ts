@@ -3,8 +3,17 @@ import { eventPath } from "./event-link";
 export const routes = {
   home: "/",
   place: (id: string) => `/miejsca/${encodeURIComponent(id)}`,
-  /** Route screen; `to` is a place id, without it the route ends at Rynek Główny. */
-  route: (to?: string) => (to ? `/trasa?do=${encodeURIComponent(to)}` : "/trasa"),
+  /**
+   * Route screen; `to` is a place id, without it the route ends at Rynek Główny. `from` is the start's `?z=` value
+   * (`startParam` in lib/route-start.ts), without it the route starts at Dworzec Główny.
+   */
+  route: (to?: string, from?: string) => {
+    const query = [
+      to ? `do=${encodeURIComponent(to)}` : null,
+      from ? `z=${from.split(",").map(encodeURIComponent).join(",")}` : null,
+    ].filter(Boolean);
+    return query.length ? `/trasa?${query.join("&")}` : "/trasa";
+  },
   aboutData: "/o-danych",
   privacy: "/prywatnosc",
   accessibility: "/deklaracja-dostepnosci",

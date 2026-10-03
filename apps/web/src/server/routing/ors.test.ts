@@ -27,9 +27,14 @@ describe("orsRequest", () => {
       { ...ends, locale, mode: "wheelchair", avoidSteps: true, restrictions: { maxKerbCm: 2, maxInclinePct: 6, smoothSurface: false } },
       { ...ends, locale, mode: "wheelchair", avoidSteps: true, restrictions: { maxKerbCm: 3, maxInclinePct: 8, smoothSurface: false } },
     ]);
+    // AND the two it makes without a profile from Kawiarnia Przykład and from a point on the Planty
+    const otherStarts: ProviderRequest[] = ([[19.9445, 50.0612], [19.942, 50.065]] as [number, number][]).flatMap((from) => [
+      { ...ends, from, mode: "foot", avoidSteps: false },
+      { ...ends, from, mode: "foot", avoidSteps: true },
+    ]);
 
     // WHEN each is turned into an openrouteservice request
-    const built = requests.map(orsRequest);
+    const built = [...requests, ...otherStarts].map(orsRequest);
 
     // THEN each matches a recorded fixture, so the fixtures stay in step with the code
     expect(built).toEqual(DEMO_ROUTES.map((r) => r.request));
