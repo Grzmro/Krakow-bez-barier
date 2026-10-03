@@ -31,7 +31,10 @@ function profileParams(params: URLSearchParams): GetPlaceQuery {
 
 type Fetch = (input: Request) => Promise<Response>;
 
-/** Wraps a mock `fetch`: answers `GET /places` and `GET /places/{id}` with search and verdicts, delegates the rest. */
+/**
+ * Wraps a mock `fetch`: answers `GET /places` and `GET /places/{id}` with search and verdicts, dates new reports and
+ * confirmations now, delegates the rest.
+ */
 export const withPlacesMocks = (fallback: Fetch): Fetch => async (input) => {
   const url = new URL(input.url, "http://mock.local");
   const path = url.pathname.replace(/^.*\/api\/v1/, "");
@@ -57,6 +60,13 @@ export const withPlacesMocks = (fallback: Fetch): Fetch => async (input) => {
     const id = decodeURIComponent(place[1]);
     const body = mockGetPlace(id, profileParams(params));
     return body ? json(body) : problem(404, "Not found", `Place "${id}" does not exist.`);
+  }
+
+  // The spec example carries a fixed date; a report sent now must not show it as its own.
+  if (input.method === "POST" && (path === "/reports" || /^\/places\/[^/]+\/confirmations$/.test(path))) {
+    const response = await fallback(input);
+    if (!response.ok) return response;
+    return json({ ...(await response.json()), createdAt: new Date().toISOString() }, response.status);
   }
 
   return fallback(input);

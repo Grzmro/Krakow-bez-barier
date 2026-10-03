@@ -40,10 +40,10 @@ describe("withPending", () => {
 
 describe("reportInput", () => {
   it("asks for a number within the contract's range for measured attributes", () => {
-    // GIVEN door width, which the contract bounds to 40–300 cm
+    // GIVEN door width, which the contract bounds to 10–300 cm
     // WHEN building its input
     // THEN it is a number field with that range
-    expect(reportInput("door_width_cm")).toEqual({ kind: "number", range: { min: 40, max: 300, unit: "cm" } });
+    expect(reportInput("door_width_cm")).toEqual({ kind: "number", range: { min: 10, max: 300, unit: "cm" } });
   });
 
   it("offers typed choices for yes/no and surface attributes", () => {

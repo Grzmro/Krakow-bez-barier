@@ -111,4 +111,26 @@ describe("FactRow", () => {
     // THEN the toggle carries it
     expect(html).toContain('aria-label="Winda: Brak danych. Wiarygodność: Brak danych."');
   });
+
+  it("keeps actions and the notice outside the collapsed panel", () => {
+    // GIVEN a closed fact with an action and a pending-report notice
+    // WHEN rendered
+    const html = renderToStaticMarkup(
+      <FactRow
+        label="Drzwi"
+        value="80"
+        unit="cm"
+        reliability={{ value: "confirmed", label: "Potwierdzone" }}
+        sources={[{ name: "OpenStreetMap", date: "2026-09-12" }]}
+        labels={LABELS}
+        notice={<p>Twoje zgłoszenie</p>}
+        actions={<button type="button">To się nie zgadza</button>}
+      />,
+    );
+
+    // THEN both come before the hidden provenance panel, so they are reachable without opening it
+    const panel = html.search(/<div id="[^"]+" hidden=""/);
+    expect(html.indexOf("Twoje zgłoszenie")).toBeLessThan(panel);
+    expect(html.indexOf("To się nie zgadza")).toBeLessThan(panel);
+  });
 });

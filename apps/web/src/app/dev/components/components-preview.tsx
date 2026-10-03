@@ -134,6 +134,16 @@ export function ComponentsPreview() {
                 staleNote: pl.common.fact.maybeOutdated("4.05.2021"),
               },
             ]}
+            notice={
+              <div className="rounded-xl bg-card px-3 py-2 text-caption ring-1 ring-primary/30">
+                <p className="flex flex-wrap items-center gap-1.5">
+                  <span className="font-semibold">{f.pendingReport}</span>
+                  <ReliabilityBadge value="unverified" />
+                  <span className="text-muted-foreground tabular-nums">3.10.2026</span>
+                </p>
+                <p className="mt-1 text-muted-foreground">{f.pendingNote}</p>
+              </div>
+            }
           />
           <FactRow
             icon={<Toilet />}

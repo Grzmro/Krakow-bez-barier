@@ -53,6 +53,7 @@ export const place = {
     error: {
       empty: "Podaj liczbę.",
       not_a_number: "Wpisz samą liczbę, np. 90.",
+      not_whole: "Wpisz liczbę całkowitą, np. 3.",
       out_of_range: (min: number, max: number, unit: string) => `Podaj liczbę od ${min} do ${max}${unit ? ` ${unit}` : ""}.`,
       choose: "Wybierz jedną z odpowiedzi.",
       commentTooLong: (max: number) => `Komentarz może mieć najwyżej ${max} znaków.`,
@@ -64,6 +65,7 @@ export const place = {
     thanks: "Dzięki! Czeka na weryfikację.",
     undo: "Cofnij",
     undone: "Zgłoszenie cofnięte.",
+    alreadySent: "Zgłoszenie zostało już wysłane — nie da się go cofnąć.",
     sent: "Zgłoszenie wysłane. Czeka na weryfikację.",
     failed: "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
     option: {

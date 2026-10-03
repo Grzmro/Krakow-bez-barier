@@ -1569,7 +1569,7 @@ components:
           max: 20
           unit: cm
         door_width_cm:
-          min: 40
+          min: 10
           max: 300
           unit: cm
         kerb_height_cm:

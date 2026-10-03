@@ -25,31 +25,58 @@
       - list:
         - listitem:
           - 'button "Wejście — stopnie: Bez stopni. Wiarygodność: Potwierdzone."': Wejście — stopnie Bez stopni Potwierdzone
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+          - button "Potwierdzam, byłem tu":
+            - img
+            - text: ""
         - listitem:
           - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Toaleta dostosowana: Jest / Nie ma. Wiarygodność: Sprzeczne." [expanded]': Toaleta dostosowana Jest / Nie ma Sprzeczne
           - list:
             - listitem: "/Twoje zgłoszenie: Jest Niezweryfikowane \\d+\\.\\d+\\.\\d+/"
           - paragraph: Czeka na weryfikację — nie zmienia danych powyżej.
-          - list:
-            - listitem: "/Źródło: Zintegrowany Informator Wojewódzki \\(ZIW\\) · Jest Pozyskano \\d+\\.\\d+\\.\\d+ · odczytane automatycznie Może być nieaktualne · \\d+\\.\\d+\\.\\d+/"
-            - listitem: "/Źródło: OpenStreetMap · Nie ma Pozyskano \\d+\\.\\d+\\.\\d+ · społeczność/"
           - button "To się nie zgadza":
             - img
             - text: ""
+          - list:
+            - listitem: "/Źródło: Zintegrowany Informator Wojewódzki \\(ZIW\\) · Jest Pozyskano \\d+\\.\\d+\\.\\d+ · odczytane automatycznie Może być nieaktualne · \\d+\\.\\d+\\.\\d+/"
+            - listitem: "/Źródło: OpenStreetMap · Nie ma Pozyskano \\d+\\.\\d+\\.\\d+ · społeczność/"
         - listitem:
           - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
     - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
     - button "Uzupełnij":
       - img

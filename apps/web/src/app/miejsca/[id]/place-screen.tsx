@@ -120,6 +120,7 @@ function PlaceCard({ place }: { place: Place }) {
   const contactRef = useRef<HTMLDivElement>(null);
   const announce = useAnnounce();
   const reports = usePlaceReports(place.id);
+  const notRightButtons = useRef(new Map<AccessibilityAttribute, HTMLButtonElement>());
   const [openFacts, setOpenFacts] = useState<Partial<Record<AccessibilityAttribute, boolean>>>({});
   const [drawer, setDrawer] = useState<{ open: boolean; mode: ReportMode; attribute: AccessibilityAttribute; key: number }>({
     open: false,
@@ -162,6 +163,12 @@ function PlaceCard({ place }: { place: Place }) {
     setDrawer((d) => ({ ...d, open: false }));
     setOpenFacts((o) => ({ ...o, [attribute]: true }));
     reports.submitReport({ attribute, value, comment }, valueText);
+  };
+
+  // "Potwierdzam" disappears once the confirmation is listed, so focus moves to the row's other action first.
+  const confirmFact = async (attribute: AccessibilityAttribute, factId: string, valueText?: string) => {
+    const ok = await reports.confirm(attribute, factId, valueText);
+    if (ok) notRightButtons.current.get(attribute)?.focus();
   };
 
   const share = async () => {
@@ -318,7 +325,15 @@ function PlaceCard({ place }: { place: Place }) {
                     </Button>
                   ) : (
                     <>
-                      <Button variant="outline" size="sm" onClick={() => openReport("correct", fact.attribute)}>
+                      <Button
+                        ref={(el) => {
+                          if (el) notRightButtons.current.set(fact.attribute, el);
+                          else notRightButtons.current.delete(fact.attribute);
+                        }}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openReport("correct", fact.attribute)}
+                      >
                         <PencilSimple weight="bold" />
                         {t.notRight}
                       </Button>
@@ -326,7 +341,7 @@ function PlaceCard({ place }: { place: Place }) {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => reports.confirm(fact.attribute, confirmId, fact.unit ? `${fact.value} ${fact.unit}` : fact.value)}
+                          onClick={() => confirmFact(fact.attribute, confirmId, fact.unit ? `${fact.value} ${fact.unit}` : fact.value)}
                         >
                           <HandPalm weight="bold" />
                           {t.confirm}

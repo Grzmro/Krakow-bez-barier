@@ -27,7 +27,6 @@ const CHOICES: Partial<Record<AccessibilityAttribute, ReportOption[]>> = {
   entrance_level: yesNo(o.yes, o.no),
   wheelchair_overall: yesNo(o.yes, o.no),
   surface: SURFACES.map((s) => ({ id: s, label: t.surface[s], value: { kind: "text", text: s } })),
-  smoothness: SURFACES.map((s) => ({ id: s, label: t.surface[s], value: { kind: "text", text: s } })),
 };
 
 /** Numeric attributes take a number within the contract's range; the rest a choice of values. */

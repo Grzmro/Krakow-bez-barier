@@ -61,7 +61,11 @@ export function usePlaceReports(placeId: string) {
           label: t.report.undo,
           onClick: () => {
             const item = queued.current.get(key);
-            if (!item) return;
+            if (!item) {
+              toast(t.report.alreadySent);
+              announce(t.report.alreadySent);
+              return;
+            }
             clearTimeout(item.timer);
             queued.current.delete(key);
             remove(key);
@@ -76,7 +80,7 @@ export function usePlaceReports(placeId: string) {
 
   const confirm = useCallback(
     async (attribute: AccessibilityAttribute, factId: string, valueText?: string) => {
-      if (confirming.current.has(factId)) return;
+      if (confirming.current.has(factId)) return false;
       confirming.current.add(factId);
       try {
         const { data } = await api.POST("/places/{id}/confirmations", {
@@ -90,9 +94,11 @@ export function usePlaceReports(placeId: string) {
         ]);
         toast(t.confirmed);
         announce(t.confirmed);
+        return true;
       } catch {
         toast.error(t.confirmFailed);
         announce(t.confirmFailed);
+        return false;
       } finally {
         confirming.current.delete(factId);
       }
