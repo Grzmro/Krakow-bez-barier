@@ -24,6 +24,29 @@
   - term: Miejsca ze sprzecznymi źródłami
   - definition: "1"
   - definition: 1 atrybut
+  - heading "Kraków w statystyce GUS" [level=2]
+  - paragraph: "Kogo dotyczą bariery: dane publiczne GUS dla całego miasta, bez podziału na dzielnice."
+  - term: Osoby z niepełnosprawnością
+  - definition: /\d+ \d+/
+  - definition: /Narodowy Spis Powszechny \d+ · zmienna BDL \d+/
+  - term: Osoby w wieku poprodukcyjnym
+  - definition: /\d+ \d+/
+  - definition: /\d+ · zmienna BDL \d+/
+  - term: Mieszkańcy
+  - definition: /\d+ \d+/
+  - definition: /\d+ · zmienna BDL \d+/
+  - term: Zwiedzający muzea w ciągu roku
+  - definition: /7 \d+ \d+/
+  - definition: /\d+ · zmienna BDL \d+/
+  - term: Muzea przystosowane do potrzeb osób z niepełnosprawnością
+  - definition: /\d+ z \d+/
+  - definition: /\d+ · zmienne BDL \d+ i \d+/
+  - paragraph: GUS nie mówi, co „przystosowane” znaczy w konkretnym muzeum — to pokazuje karta miejsca.
+  - paragraph:
+    - text: "Źródło:"
+    - link "GUS, Bank Danych Lokalnych":
+      - /url: https://bdl.stat.gov.pl
+    - text: /, licencja CC BY 4\.0\. Pobrano \d+\.\d+\.\d+\./
   - region "Bariery i luki w danych według potrzeby":
     - heading "Bariery i luki w danych według potrzeby" [level=2]
     - paragraph: /Każde miejsce sprawdzone jak w profilu „Wózek” \(wejście, drzwi min\. \d+ cm, winda, toaleta dostosowana\) oraz pod kątem równej nawierzchni\./

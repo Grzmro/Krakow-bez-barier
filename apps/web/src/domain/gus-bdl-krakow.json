@@ -1,0 +1,47 @@
+{
+  "fetchedAt": "2026-10-03T22:18:34.359Z",
+  "indicators": [
+    {
+      "key": "disabled",
+      "variableId": 1701558,
+      "unitId": "011212161000",
+      "year": 2021,
+      "value": 111014
+    },
+    {
+      "key": "postWorkingAge",
+      "variableId": 155,
+      "unitId": "011212161011",
+      "year": 2025,
+      "value": 183315
+    },
+    {
+      "key": "population",
+      "variableId": 72305,
+      "unitId": "011212161011",
+      "year": 2025,
+      "value": 816614
+    },
+    {
+      "key": "museumsAdapted",
+      "variableId": 1610486,
+      "unitId": "011212161011",
+      "year": 2025,
+      "value": 34
+    },
+    {
+      "key": "museums",
+      "variableId": 1241,
+      "unitId": "011212161011",
+      "year": 2025,
+      "value": 45
+    },
+    {
+      "key": "museumVisitors",
+      "variableId": 1243,
+      "unitId": "011212161011",
+      "year": 2025,
+      "value": 7445600
+    }
+  ]
+}
