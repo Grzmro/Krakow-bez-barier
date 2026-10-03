@@ -28,6 +28,19 @@ describe("StatusBadge", () => {
     expect(html).toContain("border-dashed");
     expect(html).not.toContain("status-met");
   });
+
+  it("wraps a long label instead of clipping it on a narrow screen", () => {
+    // GIVEN a met verdict with the "niepotwierdzone" qualifier
+    // WHEN rendered
+    const html = renderToStaticMarkup(<StatusBadge status="met" label="Spełnia" note="niepotwierdzone" />);
+
+    // THEN the full text is in the markup and the badge may grow instead of hiding overflow
+    expect(html).toContain("Spełnia");
+    expect(html).toContain("niepotwierdzone");
+    expect(html).toContain("whitespace-normal");
+    expect(html).toContain("overflow-visible");
+    expect(html).not.toMatch(/[\s"]h-7[\s"]/);
+  });
 });
 
 describe("ReliabilityBadge", () => {

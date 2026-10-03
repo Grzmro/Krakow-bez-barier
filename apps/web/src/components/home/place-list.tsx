@@ -52,6 +52,18 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
           .join(", ")
       : undefined;
   const detailsId = `need-groups-${place.id}`;
+  const badges = verdict ? (
+    <>
+      <StatusBadge
+        status={verdict.state}
+        reason={verdict.state === "met" ? undefined : verdict.reasons[0]}
+        unconfirmed={verdict.state === "met" && verdict.unconfirmed}
+      />
+      {gap ? <StatusBadge status={gap} size="sm" reason={gapFilters} /> : null}
+    </>
+  ) : gap ? (
+    <StatusBadge status={gap} size="sm" />
+  ) : null;
   return (
     <li
       data-selected={selected}
@@ -65,25 +77,18 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
         href={routes.place(place.id)}
         onFocus={() => onHighlight(place.id)}
         onMouseEnter={() => onHighlight(place.id)}
-        className="press flex w-full items-center gap-3.5 rounded-[20px] p-3 pr-3.5 text-left"
+        className="press grid w-full grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-x-3.5 rounded-[20px] p-3 pr-3.5 text-left"
       >
-        <span className="grid size-[52px] shrink-0 place-items-center self-start rounded-2xl bg-primary-container text-primary">
+        <span
+          className={cn(
+            "grid size-[52px] shrink-0 place-items-center self-start rounded-2xl bg-primary-container text-primary",
+            badges && "row-span-2",
+          )}
+        >
           <I weight="duotone" className="size-6" aria-hidden />
         </span>
-        <span className="min-w-0 flex-1">
-          {verdict ? (
-            <span className="mb-1.5 flex flex-wrap items-center gap-1.5">
-              <StatusBadge
-                status={verdict.state}
-                reason={verdict.state === "met" ? undefined : verdict.reasons[0]}
-                unconfirmed={verdict.state === "met" && verdict.unconfirmed}
-                className="max-w-full"
-              />
-              {gap ? <StatusBadge status={gap} size="sm" reason={gapFilters} className="max-w-full" /> : null}
-            </span>
-          ) : gap ? (
-            <StatusBadge status={gap} size="sm" className="mb-1.5 max-w-full" />
-          ) : null}
+        {badges ? <span className="col-span-2 mb-1.5 flex min-w-0 flex-wrap items-center gap-1.5">{badges}</span> : null}
+        <span className="col-start-2 min-w-0">
           <span className="block text-[17px] leading-6 font-semibold">{place.name}</span>
           <span className="block truncate text-caption text-muted-foreground">{address(place)}</span>
           {verdict ? null : (
@@ -92,7 +97,7 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
             </span>
           )}
         </span>
-        <span className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
+        <span className="col-start-3 flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
           {place.isSample ? <SampleTag /> : <span />}
           <span className="text-caption font-medium text-muted-foreground tabular-nums">
             {t.list.distance(distance)}
