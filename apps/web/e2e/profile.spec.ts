@@ -23,7 +23,7 @@ test("wheelchair profile on the home screen shows verdicts on the list and map, 
 }) => {
   // GIVEN a visitor on the home screen who searched for the sample places and picked a filter
   await page.goto("/");
-  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
   await searchFor(page, "przyk");
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("5 miejsc");
@@ -70,7 +70,7 @@ test("wheelchair profile on the home screen shows verdicts on the list and map, 
 /** The wheelchair profile over the five sample places; returns the verdict counters. */
 async function wheelchairOverSamples(page: Page) {
   await page.goto("/");
-  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await searchFor(page, "przyk");
   await page.getByRole("radio", { name: "Wózek", exact: true }).check();
   const counters = page.getByRole("group", { name: "Pokaż tylko miejsca z wynikiem" });
@@ -226,7 +226,7 @@ test("the senior profile is one tap away on a 360 px phone and judges places by 
   // GIVEN the home screen on a small 360 px phone
   await page.setViewportSize({ width: 360, height: 640 });
   await page.goto("/");
-  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // THEN every profile segment fits the switch with its label in full
   const profiles = page.getByRole("group", { name: "Profil potrzeb" });
@@ -272,7 +272,7 @@ test("the profile switch is one row on a 360 px phone and in the desktop sidebar
   // GIVEN the home screen on a 360 px phone
   await page.setViewportSize({ width: 360, height: 640 });
   await page.goto("/");
-  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // THEN the four segments share one row (icons hidden to make room)
   await expect.poll(rows).toBe(1);
@@ -306,7 +306,7 @@ test("no-data and conflicting places never meet a profile; turning it off return
 test("profile, counters and details work from the keyboard", async ({ page }) => {
   // GIVEN the home screen with the sample places
   await page.goto("/");
-  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await searchFor(page, "Hotel");
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
 

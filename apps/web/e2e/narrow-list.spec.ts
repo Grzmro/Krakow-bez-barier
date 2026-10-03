@@ -8,7 +8,7 @@ for (const width of [360, 390]) {
     // GIVEN a phone-width screen with the sample places and a filter that adds status badges
     await page.setViewportSize({ width, height: 800 });
     await page.goto("/");
-    await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+    await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
     const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
     await search.fill("przyk");
     await expect(page.getByRole("listbox")).toBeVisible();

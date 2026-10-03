@@ -24,6 +24,12 @@
     - button "Rozwiń arkusz"
     - button "Schowaj listę" [expanded]
     - group "Lista miejsc":
+      - group "Szybkie akcje":
+        - button "Najbliższa toaleta"
+        - button "Miejsce odpoczynku"
+        - button "Najbliższa winda"
+        - button "Najbliższa apteka"
+        - button "Najbliższy przystanek (wkrótce)" [disabled]
       - group "Profil potrzeb":
         - text: ""
         - radio "Profil wyłączony, widok dla każdego" [checked]
@@ -45,7 +51,7 @@
         - button "Ławki"
         - button "Parking dla niepełnosprawnych"
         - button "Przewijak"
-      - heading "3 miejsca" [level=2]
+      - heading "4 miejsca" [level=2]
       - list:
         - listitem:
           - link /Podziemia Rynku Rynek Główny 1, Kraków Toaleta dostosowana Dane przykładowe \d+ m od Rynku/:
@@ -56,8 +62,11 @@
         - listitem:
           - 'link /Pałac Krzysztofory Rynek Główny \d+, Kraków Wejście bez stopni · Toaleta: sprzeczne dane · Winda: brak danych Dane przykładowe \d+ m od Rynku/':
             - /url: /miejsca/palac-krzysztofory
+        - listitem:
+          - link /Muzeum Inżynierii i Techniki ul\. św\. Wawrzyńca \d+, Kraków Winda · Toaleta dostosowana Dane przykładowe \d+,\d+ km od Rynku/:
+            - /url: /miejsca/muzeum-inzynierii-i-techniki
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
-  - 'img "Grupa: 2 miejsca"'
+  - 'img "Grupa: 3 miejsca"'
   - button "Informacje o źródłach mapy"
   - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
   - button "Przybliż"

@@ -24,6 +24,12 @@
     - button "Rozwiń arkusz"
     - button "Schowaj listę" [expanded]
     - group "Lista miejsc":
+      - group "Szybkie akcje":
+        - button "Najbliższa toaleta"
+        - button "Miejsce odpoczynku"
+        - button "Najbliższa winda"
+        - button "Najbliższa apteka"
+        - button "Najbliższy przystanek (wkrótce)" [disabled]
       - group "Profil potrzeb":
         - text: ""
         - radio "Profil wyłączony, widok dla każdego" [checked]
@@ -45,7 +51,7 @@
         - button "Ławki"
         - button "Parking dla niepełnosprawnych"
         - button "Przewijak"
-      - heading "9 miejsc" [level=2]
+      - heading /\d+ miejsc/ [level=2]
       - list:
         - listitem:
           - 'link /Bistro Przykład ul\. Grodzka \d+, Kraków Wejście bez stopni · Toaleta: brak danych Dane przykładowe \d+ m od Ciebie/':
@@ -62,6 +68,9 @@
         - listitem:
           - 'link /Pałac Krzysztofory Rynek Główny \d+, Kraków Wejście bez stopni · Toaleta: sprzeczne dane · Winda: brak danych Dane przykładowe \d+ m od Ciebie/':
             - /url: /miejsca/palac-krzysztofory
+        - listitem:
+          - link /Muzeum Inżynierii i Techniki ul\. św\. Wawrzyńca \d+, Kraków Winda · Toaleta dostosowana Dane przykładowe \d+ m od Ciebie/:
+            - /url: /miejsca/muzeum-inzynierii-i-techniki
         - listitem:
           - link /Restauracja Przykład ul\. Szewska 8, Kraków Wejście — stopnie · Podjazd · Szerokość drzwi Dane przykładowe \d+,\d+ km od Ciebie/:
             - /url: /miejsca/restauracja-przyklad

@@ -8,7 +8,7 @@ test("a narrowed map has a back button and the logo, both returning to the whole
   // GIVEN the home screen with every sample place and no back button
   await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   const back = page.getByRole("button", { name: "Wróć do całej mapy" });
   await expect(back).toHaveCount(0);
 
@@ -16,7 +16,7 @@ test("a narrowed map has a back button and the logo, both returning to the whole
   await page.getByRole("button", { name: "Muzea" }).click();
 
   // THEN a back button appears next to the search field
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("3 miejsca");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("4 miejsca");
   await expect(back).toBeVisible();
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "home-narrowed.aria.yml" });
   await expectAccessible();
@@ -26,7 +26,7 @@ test("a narrowed map has a back button and the logo, both returning to the whole
   await back.press("Enter");
 
   // THEN every place is back, the button is gone and focus lands on the search field
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await expect(page.getByRole("button", { name: "Wszystko" })).toHaveAttribute("aria-pressed", "true");
   await expect(back).toHaveCount(0);
   await expect(page.getByRole("combobox", { name: "Wyszukaj miejsce" })).toBeFocused();
@@ -37,7 +37,7 @@ test("a narrowed map has a back button and the logo, both returning to the whole
   await page.getByRole("link", { name: "Kraków bez barier — strona główna" }).click();
 
   // THEN the logo also returns to the whole map, on the same page
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await expect(page.getByRole("combobox", { name: "Wyszukaj miejsce" })).toHaveValue("");
   await expect(page).toHaveURL(/\/$/);
 });

@@ -62,7 +62,7 @@ async function freeMapArea(page: Page) {
 
 async function openHome(page: Page) {
   await page.goto("/");
-  await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   // Zoomed out, the sample pins merge into clusters; one level past the split keeps them apart during a pinch.
   await expandClusters(page);
   expect(await pins(page).count()).toBeGreaterThan(1);

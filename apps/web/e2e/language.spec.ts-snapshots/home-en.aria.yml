@@ -5,6 +5,7 @@
   - search:
     - text: Search for a place
     - combobox "Search for a place"
+    - button "Type by voice"
   - group "Categories":
     - button "Everything" [pressed]
     - button "Restaurants"
@@ -22,6 +23,12 @@
     - button "Expand sheet"
     - button "Hide the list" [expanded]
     - group "List of places":
+      - group "Quick actions":
+        - button "Nearest toilet"
+        - button "Place to rest"
+        - button "Nearest lift"
+        - button "Nearest pharmacy"
+        - button "Nearest stop (soon)" [disabled]
       - group "Needs profile":
         - text: ""
         - radio "Profile off, view for everyone"
@@ -39,7 +46,7 @@
       - group "Show only places with the result":
         - button "1 meets"
         - button "1 conflicting"
-        - button "6 no data"
+        - button "7 no data"
         - button "1 doesn't meet"
       - button "Profile thresholds":
         - img
@@ -52,7 +59,7 @@
         - button "Benches"
         - button "Disabled parking"
         - button "Changing table"
-      - heading "9 places" [level=2]
+      - heading /\d+ places/ [level=2]
       - list:
         - listitem:
           - link /Meets · unconfirmed Hotel Przykład ul\. Sienna 5, Kraków Sample data \d+ m from the Main Square/:
@@ -87,10 +94,16 @@
             - /url: /miejsca/toaleta-planty-przyklad
           - button "Why does Toaleta publiczna Planty (przykład) have no data?": Why?
         - listitem:
+          - link /No data · entrance Muzeum Inżynierii i Techniki ul\. św\. Wawrzyńca \d+, Kraków Sample data 1\.5 km from the Main Square/:
+            - /url: /miejsca/muzeum-inzynierii-i-techniki
+          - button "Why does Muzeum Inżynierii i Techniki have no data?": Why?
+        - listitem:
           - link /Doesn't meet · 2 steps Restauracja Przykład ul\. Szewska 8, Kraków Sample data \d+ m from the Main Square/:
             - /url: /miejsca/restauracja-przyklad
           - button "Why does Restauracja Przykład not meet?": Why?
   - region "Map of places. Arrow keys move the view, plus and minus change the zoom. The list has the same places."
+  - 'img "Group: 7 places (Meets: 1, Conflicting: 1, No data: 4, Doesn''t meet: 1)"'
+  - 'img "Group: 2 places (No data: 2)"'
   - button "Information about the map sources"
   - paragraph: "Map sources: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
   - button "Zoom in"

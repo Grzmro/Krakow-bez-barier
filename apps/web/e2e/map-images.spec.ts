@@ -12,7 +12,7 @@ test("zoomed in to street level, the map has an image for every icon its style a
 
   // GIVEN the home screen with the map over the Old Town
   await page.goto("/");
-  await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   const canvas = page.locator(".maplibregl-canvas");
   await expect(canvas).toBeVisible();
   await page.waitForLoadState("networkidle");

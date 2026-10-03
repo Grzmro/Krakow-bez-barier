@@ -21,7 +21,7 @@ test.describe("with location access granted", () => {
     // GIVEN the home screen listing distances from Rynek
     await page.goto("/");
     const list = page.getByRole("region", { name: "Lista miejsc" });
-    await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+    await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
     const nearby = list.getByRole("button", { name: "W mojej okolicy" });
     await expect(nearby).toHaveAttribute("aria-pressed", "false");
     await expect(nearby).toHaveAccessibleDescription(/Dokładna pozycja zostaje na urządzeniu/);
@@ -38,7 +38,7 @@ test.describe("with location access granted", () => {
     await expect(list).not.toContainText("od Rynku");
     const distances = (await rows.allInnerTexts()).map(metres);
     expect(distances).toEqual(distances.toSorted((a, b) => a - b));
-    await expect(page.getByRole("status").filter({ hasText: "W Twojej okolicy, od najbliższych. Znaleziono 9 miejsc" })).toBeAttached();
+    await expect(page.getByRole("status").filter({ hasText: "W Twojej okolicy, od najbliższych. Znaleziono 10 miejsc" })).toBeAttached();
     await expect(page.locator("[data-you]")).toHaveCount(1);
     await expect(page.locator("main")).toMatchAriaSnapshot({ name: "home-nearby.aria.yml" });
     await expectAccessible();
@@ -61,7 +61,7 @@ test.describe("far from every listed place", () => {
     // GIVEN the home screen listing all 9 places, none of them near Nowa Huta
     await page.goto("/");
     const list = page.getByRole("region", { name: "Lista miejsc" });
-    await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+    await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
     // WHEN the user in Nowa Huta turns on "W mojej okolicy"
     await list.getByRole("button", { name: "W mojej okolicy" }).click();
@@ -78,7 +78,7 @@ test.describe("far from every listed place", () => {
 
     // THEN "W mojej okolicy" is off and all places are back
     await expect(list.getByRole("button", { name: "W mojej okolicy" })).toHaveAttribute("aria-pressed", "false");
-    await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+    await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   });
 });
 
@@ -100,7 +100,7 @@ test("'W mojej okolicy' on the list explains a refusal, retries and lets the use
   const list = page.getByRole("region", { name: "Lista miejsc" });
   const nearby = list.getByRole("button", { name: "W mojej okolicy" });
   // The list's own "Znaleziono…" announcement must come first, or it can replace the refusal in the live region.
-  await expect(page.getByRole("status")).toHaveText("Znaleziono 9 miejsc");
+  await expect(page.getByRole("status")).toHaveText("Znaleziono 10 miejsc");
 
   // WHEN the user turns on "W mojej okolicy"
   await nearby.click();
@@ -111,7 +111,7 @@ test("'W mojej okolicy' on the list explains a refusal, retries and lets the use
   await expect(problem).toContainText("Uprawnienia → Lokalizacja → Zezwalaj");
   await expect(page.getByRole("status")).toContainText("Brak zgody na lokalizację. Na Androidzie");
   await expect(nearby).toHaveAttribute("aria-pressed", "false");
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await expect(list.getByRole("listitem").first()).toContainText("od Rynku");
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "home-nearby-denied.aria.yml" });
   await expectAccessible();

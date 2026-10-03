@@ -9,7 +9,7 @@ test("search for Sukiennice shows it on the list and the map and opens its card"
   // GIVEN the home screen with every sample place
   await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "home-screen.aria.yml" });
   await expectAccessible();
   await evidence("home-screen");
@@ -43,13 +43,13 @@ test("feature filter hides places without data until the switch shows them as Br
   // GIVEN the home screen
   await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN the visitor turns on the "Winda" filter (no profile)
   await page.getByRole("button", { name: "Winda", exact: true }).click();
 
   // THEN only places with a known lift remain and none is marked as missing data
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("2 miejsca");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("3 miejsca");
   await expect(list.getByRole("link", { name: /Pałac Krzysztofory/ })).toHaveCount(0);
   await expect(list.getByText("Brak danych", { exact: true })).toHaveCount(0);
 
@@ -79,7 +79,7 @@ test("no results offers a wider search", async ({ page, evidence }) => {
   await expect(page.getByRole("status").filter({ hasText: "Nie znaleziono miejsc" })).toBeAttached();
   await evidence("home-empty");
   await list.getByRole("button", { name: "Szukaj w całym Krakowie" }).click();
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 });
 
 test("on a 390x844 phone the skip link jumps past the map to the list, below the sticky header", async ({
@@ -90,7 +90,7 @@ test("on a 390x844 phone the skip link jumps past the map to the list, below the
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   const header = (await page.locator("header").boundingBox())!;
   const searchBox = (await page.getByRole("combobox", { name: "Wyszukaj miejsce" }).boundingBox())!;
   expect(searchBox.y).toBeGreaterThanOrEqual(header.y + header.height);
@@ -118,7 +118,7 @@ test("the whole flow works with the keyboard alone", async ({ page }) => {
   // GIVEN the home screen
   await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN a keyboard user tabs to the search field and types
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
@@ -139,7 +139,7 @@ test("the whole flow works with the keyboard alone", async ({ page }) => {
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: "Muzea" })).toHaveAttribute("aria-pressed", "true");
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("3 miejsca");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("4 miejsca");
 
   // AND the map zooms with its buttons and the list rows are reachable by Tab
   await page.getByRole("button", { name: "Przybliż" }).press("Enter");

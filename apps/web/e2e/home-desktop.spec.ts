@@ -10,7 +10,7 @@ for (const width of WIDTHS) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/");
     const panel = page.getByRole("region", { name: "Lista miejsc" });
-    await expect(panel.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+    await expect(panel.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
     const canvas = page.locator(".maplibregl-canvas");
     await expect(canvas).toBeVisible();
 
@@ -44,7 +44,7 @@ test("the list scrolls inside its panel while the page and the map stay put, and
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
   const panel = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(panel.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(panel.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "home-desktop.aria.yml" });
   await expectAccessible();
   await evidence("home-desktop");
@@ -73,7 +73,7 @@ test("on a short window the search and chips leave the list at least a third of 
   await page.setViewportSize({ width: 1024, height: 600 });
   await page.goto("/");
   const panel = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(panel.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(panel.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN measuring the list panel
   const box = (await panel.boundingBox())!;
@@ -86,7 +86,7 @@ test("the skip link jumps to the list on desktop", async ({ page }) => {
   // GIVEN the home screen at 1440 px
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
-  await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN the visitor tabs to "Przejdź do listy" (the second skip link after the page-wide one) and activates it
   const link = page.getByRole("link", { name: "Przejdź do listy" });
@@ -102,7 +102,7 @@ test("the document order, which tab order follows, is search, categories, filter
   // GIVEN the home screen at 1440 px
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto("/");
-  await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN comparing where these controls sit in the document
   const order = await page.evaluate(() => {
