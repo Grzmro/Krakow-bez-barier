@@ -24,6 +24,8 @@ for round in $(seq 1 "$MAX_ROUNDS"); do
     npm ci --no-audit --no-fund --silent
     echo "$lock_hash" > node_modules/.lock-hash
   fi
+  # Generated contract types are gitignored; regenerate so a teammate's spec change isn't stale here.
+  npm run contracts:generate --silent
 
   echo "local gate on $head"
   if ! { npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e; } >"$log" 2>&1; then
