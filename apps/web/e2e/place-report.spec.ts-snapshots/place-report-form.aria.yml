@@ -11,6 +11,8 @@
     - text: Szerokość drzwi
     - radio "Winda"
     - text: Winda
+    - radio "Kondygnacje"
+    - text: Kondygnacje
     - radio "Nawierzchnia dojścia"
     - text: Nawierzchnia dojścia
     - radio "Toaleta dostosowana" [checked]

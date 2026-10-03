@@ -139,16 +139,50 @@ describe("matchProfile with resolved attributes", () => {
     expect(matchProfile(noRamp, entranceOnly)).toMatchObject({ state: "unknown", unknowns: ["step_count"] });
   });
 
-  it("never blocks on a missing lift while the number of floors is unknown", () => {
-    // GIVEN an otherwise accessible place known to have no lift
-    const place = {
-      attributes: fullyAccessible.attributes.map((a) => (a.attribute === "lift" ? known("lift", bool(false)) : a)),
-    };
-    // WHEN checked against the wheelchair preset
-    const verdict = matchProfile(place, wheelchair);
-    // THEN the lift is "can't say" with its reason, not a barrier and not met
-    expect(verdict).toMatchObject({ state: "unknown", blockers: [], unknowns: ["lift"] });
-    expect(verdict.reasons).toEqual(["winda: brak, piętra: brak danych"]);
+  describe("lift and storeys", () => {
+    const withoutLift = (...extra: ResolvedAttribute[]) => ({
+      attributes: [...fullyAccessible.attributes.map((a) => (a.attribute === "lift" ? known("lift", bool(false)) : a)), ...extra],
+    });
+    const liftNeed = (place: Pick<Place, "attributes">) => matchProfile(place, wheelchair).needs?.find((n) => n.need === "lift");
+
+    it("blocks on a missing lift where the place has floors", () => {
+      // GIVEN an otherwise accessible place on two storeys without a lift
+      const place = withoutLift(known("levels", num(2), "unverified"));
+      // WHEN checked against the wheelchair preset
+      const verdict = matchProfile(place, wheelchair);
+      // THEN the missing lift is the barrier
+      expect(verdict).toMatchObject({ state: "barrier", blockers: ["lift"], unknowns: [], reasons: ["winda: brak"] });
+    });
+
+    it("meets the lift need on a single storey, lift or not", () => {
+      // GIVEN single-storey places without a lift and without lift data
+      const noLift = withoutLift(known("levels", num(1), "unverified"));
+      const noLiftData = { attributes: [...fullyAccessible.attributes.filter((a) => a.attribute !== "lift"), known("levels", num(1))] };
+      // WHEN checked against the wheelchair preset
+      // THEN the lift need is met by the storey count, unconfirmed when that rests on community data
+      expect(matchProfile(noLift, wheelchair)).toMatchObject({ state: "met", unconfirmed: true, blockers: [] });
+      expect(liftNeed(noLift)).toMatchObject({ attribute: "levels", state: "met", unconfirmed: true });
+      expect(matchProfile(noLiftData, wheelchair)).toMatchObject({ state: "met", unconfirmed: false });
+    });
+
+    it("can't say on a missing lift while the number of storeys is unknown", () => {
+      // GIVEN an otherwise accessible place known to have no lift, with no storey data
+      const place = withoutLift();
+      // WHEN checked against the wheelchair preset
+      const verdict = matchProfile(place, wheelchair);
+      // THEN the lift is "can't say" with its reason, not a barrier and not met
+      expect(verdict).toMatchObject({ state: "unknown", blockers: [], unknowns: ["lift"] });
+      expect(verdict.reasons).toEqual(["winda: brak, piętra: brak danych"]);
+    });
+
+    it("reports a conflict on a missing lift when sources disagree on the storeys", () => {
+      // GIVEN no lift and conflicting storey data
+      const place = withoutLift({ attribute: "levels", state: "conflict", status: "conflict", value: null, facts: [] });
+      // WHEN checked against the wheelchair preset
+      // THEN the lift need is a conflict on the storeys, not a barrier
+      expect(liftNeed(place)).toMatchObject({ attribute: "levels", state: "conflict", reason: "winda: brak, piętra: sprzeczne dane" });
+      expect(matchProfile(place, wheelchair).state).toBe("conflict");
+    });
   });
 
   it("never returns met when an attribute the profile doesn't need is in conflict", () => {

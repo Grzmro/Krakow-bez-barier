@@ -22,6 +22,7 @@ export const CARD_ATTRIBUTES = [
   "door_width_cm",
   "ramp",
   "lift",
+  "levels",
   "surface",
   "toilet_accessible",
   "bench",

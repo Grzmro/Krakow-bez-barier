@@ -47,6 +47,7 @@ test("an incomplete place names missing data and offers contact and Uzupełnij",
 
   // THEN every fact reads "Brak danych" as text, never as accessible
   await expect(page.getByRole("button", { name: /Winda.*Brak danych/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Kondygnacje.*Brak danych/ })).toBeVisible();
   await expect(main).toContainText("Nie mamy jeszcze żadnego źródła dla tego miejsca.");
   await expect(main).toMatchAriaSnapshot({ name: "place-incomplete.aria.yml" });
 

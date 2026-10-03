@@ -43,6 +43,8 @@
             - text: ""
         - listitem:
           - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych Brak danych
+        - listitem:
+          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych Brak danych
           - button "Uzupełnij":
             - img
             - text: ""

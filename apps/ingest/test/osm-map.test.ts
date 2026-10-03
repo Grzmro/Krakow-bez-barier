@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { mapOsmElement, parseCentimetres, type OsmElement } from "../src/adapters/osm-map";
+import { mapOsmElement, parseCentimetres, storeysFromLevel, type OsmElement } from "../src/adapters/osm-map";
 
 const fixture = JSON.parse(
   readFileSync(new URL("./fixtures/overpass-krakow-sample.json", import.meta.url), "utf8"),
@@ -129,6 +129,34 @@ describe("mapOsmElement", () => {
     expect(skipped).toEqual(["door:width=90", "kerb:height=5 m"]);
   });
 
+  it("maps the storeys of a venue from its level, or else from its building", () => {
+    // GIVEN the recorded ground-floor café "Czarna kaczka" (level=0) and a museum building (building:levels=4)
+    // WHEN mapping them
+    const levels = (id: number) => mapOsmElement(byId(id)).place?.facts.find((f) => f.attribute === "levels");
+    // THEN each has a storey count with the raw tag as evidence
+    expect(levels(4986442006)).toMatchObject({ value: { kind: "number", number: 1, unit: "count" }, evidence: { comment: "level=0" } });
+    expect(levels(1863002)).toMatchObject({ value: { kind: "number", number: 4, unit: "count" }, evidence: { comment: "building:levels=4" } });
+  });
+
+  it("prefers the venue's level over the building's and skips unreadable storeys", () => {
+    // GIVEN a first-floor café in a five-storey building, and places with unreadable storey tags
+    const node = (id: number, tags: Record<string, string>): OsmElement => ({
+      type: "node",
+      id,
+      lat: 1,
+      lon: 1,
+      tags: { name: "x", amenity: "cafe", ...tags },
+    });
+    // WHEN mapping them
+    const upstairs = mapOsmElement(node(5, { level: "1", "building:levels": "5" }));
+    const badLevel = mapOsmElement(node(6, { level: "parter" }));
+    const badBuilding = mapOsmElement(node(7, { "building:levels": "0" }));
+    // THEN the venue's own level decides, and nothing is guessed from unreadable values
+    expect(upstairs.place?.facts.map((f) => [f.attribute, f.value])).toEqual([["levels", { kind: "number", number: 2, unit: "count" }]]);
+    expect(badLevel).toMatchObject({ place: { facts: [] }, skipped: ["level=parter"] });
+    expect(badBuilding).toMatchObject({ place: { facts: [] }, skipped: ["building:levels=0"] });
+  });
+
   it("skips unnamed non-toilet places and elements of unknown category", () => {
     // GIVEN an unnamed cafe and a bench
     const cafe: OsmElement = { type: "node", id: 2, lat: 1, lon: 1, tags: { amenity: "cafe" } };
@@ -153,5 +181,28 @@ describe("parseCentimetres", () => {
   it("rejects free text", () => {
     // GIVEN a non-measurement WHEN parsing THEN null
     expect(parseCentimetres("narrow")).toBeNull();
+  });
+});
+
+describe("storeysFromLevel", () => {
+  it("counts the storeys a visitor may need to reach from the ground floor", () => {
+    // GIVEN level values for one storey, upper and lower floors, lists and ranges
+    // WHEN converting them
+    // THEN the ground floor is always counted and mezzanines round outwards
+    expect(storeysFromLevel("0")).toBe(1);
+    expect(storeysFromLevel("1")).toBe(2);
+    expect(storeysFromLevel("-1")).toBe(2);
+    expect(storeysFromLevel("0;1")).toBe(2);
+    expect(storeysFromLevel("0-2")).toBe(3);
+    expect(storeysFromLevel("-2--1")).toBe(3);
+    expect(storeysFromLevel("0.5")).toBe(2);
+  });
+
+  it("rejects free text", () => {
+    // GIVEN level values that aren't numbers
+    // WHEN converting them
+    // THEN nothing is guessed
+    expect(storeysFromLevel("parter")).toBeNull();
+    expect(storeysFromLevel("0;")).toBeNull();
   });
 });

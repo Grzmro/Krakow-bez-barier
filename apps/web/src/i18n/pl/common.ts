@@ -54,6 +54,7 @@ export const common = {
     bench: "Miejsca odpoczynku",
     disabled_parking: "Parking dla osób z niepełnosprawnościami",
     wheelchair_overall: "Ogólna dostępność (OSM)",
+    levels: "Kondygnacje",
   } satisfies Record<AccessibilityAttribute, string>,
   unconfirmed: "niepotwierdzone",
   reliability: {
