@@ -12,7 +12,10 @@ export type RateLimitDecision = { allowed: true } | { allowed: false; retryAfter
 
 export type RateLimiter = {
   readonly limit: number;
+  /** Counts one request for `key` and says whether it is within the limit. */
   check(key: string): RateLimitDecision;
+  /** Says whether the next `check(key)` would be allowed, without counting anything. */
+  peek(key: string): RateLimitDecision;
 };
 
 /**
@@ -31,6 +34,11 @@ export function createRateLimiter({ limit, windowMs, now = Date.now }: RateLimit
     }
   }
 
+  const refused = (start: number, time: number): RateLimitDecision => ({
+    allowed: false,
+    retryAfterSeconds: Math.max(1, Math.ceil((start + windowMs - time) / 1000)),
+  });
+
   return {
     limit,
     check(key) {
@@ -45,7 +53,13 @@ export function createRateLimiter({ limit, windowMs, now = Date.now }: RateLimit
         current.count += 1;
         return { allowed: true };
       }
-      return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((current.start + windowMs - time) / 1000)) };
+      return refused(current.start, time);
+    },
+    peek(key) {
+      const time = now();
+      const current = windows.get(key);
+      if (!current || time - current.start >= windowMs || current.count < limit) return { allowed: true };
+      return refused(current.start, time);
     },
   };
 }

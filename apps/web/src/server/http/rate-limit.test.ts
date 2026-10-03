@@ -20,6 +20,25 @@ describe("createRateLimiter", () => {
   });
 });
 
+describe("peek", () => {
+  it("reports the decision without using up the limit", () => {
+    // GIVEN 1 request per 10 s
+    let now = 0;
+    const limiter = createRateLimiter({ limit: 1, windowMs: 10_000, now: () => now });
+
+    // WHEN a client peeks twice, then checks twice
+    const peeks = [limiter.peek("a"), limiter.peek("a")];
+    const checks = [limiter.check("a"), limiter.check("a")];
+
+    // THEN peeking never counted, and once the limit is used up peek refuses too
+    expect(peeks).toEqual([{ allowed: true }, { allowed: true }]);
+    expect(checks.map((d) => d.allowed)).toEqual([true, false]);
+    expect(limiter.peek("a")).toEqual({ allowed: false, retryAfterSeconds: 10 });
+    now = 10_000;
+    expect(limiter.peek("a")).toEqual({ allowed: true });
+  });
+});
+
 describe("clientKey", () => {
   it("uses the first forwarded hop and falls back to one shared bucket", () => {
     // GIVEN requests with and without proxy headers
