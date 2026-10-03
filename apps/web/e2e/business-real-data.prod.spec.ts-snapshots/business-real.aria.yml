@@ -2,7 +2,7 @@
   - link "Wróć na stronę główną":
     - /url: /
   - heading "Dla firm" [level=1]
-  - paragraph: Aktualna karta dostępności na stronie hotelu lub wydarzenia: fakty, źródła, daty. Odwiedzający nie potrzebują konta.
+  - paragraph: "Aktualna karta dostępności na stronie hotelu lub wydarzenia: fakty, źródła, daty. Odwiedzający nie potrzebują konta."
   - heading "Podgląd na stronie obiektu" [level=2]
   - paragraph: Strona hotelu z naszym widgetem. Poniżej działający widget (iframe) z danymi tego hotelu.
   - paragraph: strona-hotelu.example

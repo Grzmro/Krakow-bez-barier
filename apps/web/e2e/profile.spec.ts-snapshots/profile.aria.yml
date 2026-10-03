@@ -2,9 +2,11 @@
   - heading "Mapa i lista miejsc" [level=1]
   - link "Przejdź do listy":
     - /url: "#lista"
+  - button "Wróć do całej mapy"
   - search:
     - text: Wyszukaj miejsce
     - combobox "Wyszukaj miejsce": przyk
+    - button "Wpisz głosem"
     - button "Wyczyść wyszukiwanie"
   - group "Kategorie":
     - button "Wszystko" [pressed]
@@ -12,8 +14,16 @@
     - button "Muzea"
     - button "Toalety"
     - button "Hotele"
+    - button "Zabytki"
+    - button "Teatry i kina"
+    - button "Apteki"
+    - button "Miejsca postojowe"
+    - button "Przystanki"
+    - button "Handel"
+    - button "Inne"
   - region "Lista miejsc":
     - button "Rozwiń arkusz"
+    - button "Schowaj listę" [expanded]
     - group "Lista miejsc":
       - group "Profil potrzeb":
         - text: ""
@@ -23,6 +33,12 @@
         - text: Wózek
         - radio "Wózek dziecięcy"
         - text: Dziecięcy
+        - radio "Senior"
+        - text: Senior
+      - button "W mojej okolicy"
+      - text: Pokaż miejsca od najbliższych
+      - button "Albo wybierz dzielnicę"
+      - paragraph: Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.
       - group "Pokaż tylko miejsca z wynikiem":
         - button "1 spełnia"
         - button "0 sprzeczne"
@@ -37,7 +53,7 @@
         - button "Winda"
         - button "Toaleta dostosowana" [pressed]
         - button "Ławki"
-        - button "Parking N"
+        - button "Parking dla niepełnosprawnych"
         - button "Przewijak"
       - text: Pokaż też miejsca bez danych
       - switch "Pokaż też miejsca bez danych" [checked]
@@ -56,21 +72,22 @@
         - listitem:
           - link /Brak danych · wejście Brak danych · Toaleta dostosowana Bistro Przykład ul\. Grodzka \d+, Kraków Dane przykładowe \d+ m od Rynku/:
             - /url: /miejsca/bistro-przyklad
-          - button "Dlaczego Bistro Przykład ma brak danych?"
+          - button "Dlaczego Bistro Przykład ma brak danych?": Dlaczego?
         - listitem:
           - link /Brak danych · wejście Brak danych · Toaleta dostosowana Kawiarnia Przykład ul\. Floriańska \d+, Kraków Dane przykładowe \d+ m od Rynku/:
             - /url: /miejsca/kawiarnia-przyklad
-          - button "Dlaczego Kawiarnia Przykład ma brak danych?"
+          - button "Dlaczego Kawiarnia Przykład ma brak danych?": Dlaczego?
         - listitem:
           - link /Brak danych · wejście Toaleta publiczna Planty \(przykład\) ul\. Basztowa 1, Kraków Dane przykładowe \d+ m od Rynku/:
             - /url: /miejsca/toaleta-planty-przyklad
-          - button "Dlaczego Toaleta publiczna Planty (przykład) ma brak danych?"
+          - button "Dlaczego Toaleta publiczna Planty (przykład) ma brak danych?": Dlaczego?
         - listitem:
           - link /Nie spełnia · 2 stopnie Brak danych · Toaleta dostosowana Restauracja Przykład ul\. Szewska 8, Kraków Dane przykładowe \d+ m od Rynku/:
             - /url: /miejsca/restauracja-przyklad
-          - button "Dlaczego Restauracja Przykład nie spełnia?"
+          - button "Dlaczego Restauracja Przykład nie spełnia?": Dlaczego?
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
+  - 'img "Grupa: 2 miejsca (Spełnia: 1, Brak danych: 1)"'
   - button "Informacje o źródłach mapy"
-  - paragraph: Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors
+  - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
   - button "Przybliż"
   - button "Oddal"

@@ -68,7 +68,7 @@ test("dictation fills the search field in Polish, which the visitor can still ed
   await fakeSpeech(page);
   await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   const mic = page.getByRole("button", { name: "Wpisz głosem" });
   const field = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
 

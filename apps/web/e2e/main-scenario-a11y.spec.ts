@@ -17,7 +17,7 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
   test.setTimeout(60_000);
   // GIVEN the home screen
   await page.goto("/");
-  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN a keyboard user searches for the hotel and picks the suggestion
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
@@ -99,11 +99,11 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
 test("everything pinned on the map is also on the text list", async ({ page }) => {
   // GIVEN the home screen with the stroller profile, so pins and clusters carry verdicts
   await page.goto("/");
-  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await page.getByRole("radio", { name: "Wózek dziecięcy" }).check();
 
   // WHEN every row has its verdict for the new profile
-  await expect(list(page).getByRole("listitem").filter({ has: page.locator("[data-verdict]") })).toHaveCount(9);
+  await expect(list(page).getByRole("listitem").filter({ has: page.locator("[data-verdict]") })).toHaveCount(10);
   const rows = await list(page)
     .getByRole("listitem")
     .evaluateAll((items) =>
@@ -114,7 +114,7 @@ test("everything pinned on the map is also on the text list", async ({ page }) =
     );
 
   // THEN the map's pins and clusters hold the same places with the same verdicts
-  await expect.poll(() => placesOnMap(page)).toBe(9);
+  await expect.poll(() => placesOnMap(page)).toBe(10);
   await expect.poll(() => verdictsOnMap(page)).toEqual(rows);
 
   // AND once zoomed in, each pin has a row with its verdict

@@ -24,7 +24,7 @@ test("the language switch turns the demo path into English, remembers it and set
   // GIVEN a first visit, in Polish by default
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", "pl");
-  await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN the visitor opens the menu, where the language switch names each language in itself
   await page.getByRole("button", { name: "Menu" }).click();
@@ -41,7 +41,7 @@ test("the language switch turns the demo path into English, remembers it and set
   // THEN the page, its key texts and API labels switch to English at once
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   const list = page.getByRole("region", { name: "List of places" });
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 places");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 places");
   await expect(page.getByRole("combobox", { name: "Search for a place" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Step-free" })).toBeVisible();
   await expect(list.getByRole("link", { name: /Sukiennice/ })).toContainText("Step-free entrance · Lift");
