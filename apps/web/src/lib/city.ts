@@ -1,5 +1,6 @@
 import type { Category, PriorityItem } from "@krakow-bez-barier/contracts";
 import type { Messages } from "@/i18n/messages";
+import { intlLocale, type Locale } from "@/i18n/locale";
 
 /** A ranked place's reasons as text, each with the points it gave: "bariera: wejście (+4), brak danych o wejściu (+1)". */
 export function reasonsText(item: PriorityItem, messages: Messages): string {
@@ -39,4 +40,9 @@ export function priorityCsv(
     item.placeId,
   ]);
   return `﻿${[t.csvHeader, ...rows].map((row) => row.map(cell).join(";")).join("\r\n")}\r\n`;
+}
+
+/** A count with thousands separators, as the locale writes it: "111 014" / "111,014". */
+export function formatCount(n: number, locale: Locale): string {
+  return new Intl.NumberFormat(intlLocale[locale]).format(n);
 }

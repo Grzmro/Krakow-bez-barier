@@ -3,17 +3,19 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { DownloadSimple, SignOut } from "@phosphor-icons/react";
+import { ArrowSquareOut, DownloadSimple, SignOut } from "@phosphor-icons/react";
 import type { CityStats, NeedVerdict } from "@krakow-bez-barier/contracts";
 import { Button, cn, useAnnounce } from "@krakow-bez-barier/ui";
 import { bearer, ModeratorSignIn, StatusError, useModeratorSession } from "@/components/moderator/moderator-session";
 import { InfoSection } from "@/components/layout/info-page";
 import { useLocale, useMessages } from "@/i18n/client";
 import { CITY_EXCLUDED_CATEGORIES } from "@/domain/city-stats";
+import { GUS_BDL_SOURCE, gusIndicator, gusSnapshot } from "@/domain/gus-bdl";
 import { api } from "@/lib/api";
 import { useCategories, useCategoryLookup } from "@/lib/categories";
-import { priorityCsv, reasonsText } from "@/lib/city";
+import { formatCount, priorityCsv, reasonsText } from "@/lib/city";
 import { formatDateTime, retryMinutes } from "@/lib/moderation";
+import { formatDate } from "@/lib/place-facts";
 import { routes } from "@/lib/routes";
 
 // Signing out here or in /moderator drops both pages' data.
@@ -68,6 +70,55 @@ function TableRegion({ label, className, children }: { label: string; className?
     >
       {children}
     </div>
+  );
+}
+
+/** Context from GUS BDL: a static snapshot with its variable ids, years, licence and fetch date (never fetched per request). */
+function GusContext() {
+  const t = useMessages().city.gus;
+  const locale = useLocale();
+  const count = (n: number) => formatCount(n, locale);
+  const disabled = gusIndicator("disabled");
+  const adapted = gusIndicator("museumsAdapted");
+  const museums = gusIndicator("museums");
+  const tiles = [
+    { label: t.label.disabled, value: count(disabled.value), sub: t.census(disabled.year, disabled.variableId) },
+    ...(["postWorkingAge", "population", "museumVisitors"] as const).map((key) => {
+      const i = gusIndicator(key);
+      return { label: t.label[key], value: count(i.value), sub: t.year(i.year, i.variableId) };
+    }),
+    {
+      label: t.label.museumsAdapted,
+      value: t.outOf(count(adapted.value), count(museums.value)),
+      sub: t.museumsYear(adapted.year, adapted.variableId, museums.variableId),
+    },
+  ];
+
+  return (
+    <InfoSection title={t.heading}>
+      <p className="text-body-sm text-foreground/85">{t.lead}</p>
+      <dl className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-3">
+        {tiles.map((tile) => (
+          <div key={tile.label} className="flex flex-col rounded-[20px] bg-surface-raised p-4 ring-1 ring-border/70">
+            <dt className="text-caption text-muted-foreground">{tile.label}</dt>
+            <dd className="mt-1 font-display text-h2 font-bold tabular-nums">{tile.value}</dd>
+            <dd className="text-caption text-muted-foreground">{tile.sub}</dd>
+          </div>
+        ))}
+      </dl>
+      <p className="mt-2 text-body-sm text-foreground/85">{t.museumsNote}</p>
+      <p className="mt-1 text-caption text-muted-foreground">
+        {t.sourcePrefix}{" "}
+        <a
+          href={GUS_BDL_SOURCE.url}
+          className="inline-flex min-h-6 items-center gap-1 font-semibold text-primary underline underline-offset-2"
+        >
+          {GUS_BDL_SOURCE.name}
+          <ArrowSquareOut weight="bold" className="size-3.5" aria-hidden />
+        </a>
+        {t.licenseFetched(GUS_BDL_SOURCE.license, formatDate(gusSnapshot.fetchedAt, locale))}
+      </p>
+    </InfoSection>
   );
 }
 
@@ -193,6 +244,8 @@ function CityPanel({ token, onSignOut }: { token: string; onSignOut: (message: s
           ))}
         </dl>
       </InfoSection>
+
+      <GusContext />
 
       <section className="mt-6" aria-labelledby={ids.needs}>
         <h2 id={ids.needs} className="mb-2 text-caption font-semibold tracking-[0.06em] text-muted-foreground uppercase">

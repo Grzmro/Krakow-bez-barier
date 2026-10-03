@@ -15,7 +15,8 @@
     "demo:record": "playwright test -c playwright.demo.config.ts",
     "icons": "node scripts/generate-icons.mjs",
     "routes:record": "node --env-file=../../.env scripts/record-ors-fixtures.mjs",
-    "transit:record": "vite-node -c vitest.config.ts scripts/record-transit-fixture.ts"
+    "transit:record": "vite-node -c vitest.config.ts scripts/record-transit-fixture.ts",
+    "gus:record": "vite-node -c vitest.config.ts scripts/record-gus-bdl.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

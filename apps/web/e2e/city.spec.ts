@@ -35,6 +35,12 @@ test("the city panel shows statistics and the priority ranking, keyboard-reachab
   await expect(reports.getByRole("row", { name: /Oczekuje/ })).toContainText("1");
   await expect(reports.getByRole("row", { name: /Do wyjaśnienia/ })).toContainText("1");
 
+  // AND the GUS context gives each figure its census year or year, BDL variable, licence and fetch date
+  await expect(page.getByRole("heading", { name: "Kraków w statystyce GUS" })).toBeVisible();
+  await expect(main).toContainText(/Osoby z niepełnosprawnością\s*111\s014\s*Narodowy Spis Powszechny 2021 · zmienna BDL 1701558/);
+  await expect(main).toContainText(/34 z 45\s*2025 · zmienne BDL 1610486 i 1241/);
+  await expect(main).toContainText(/Źródło: GUS, Bank Danych Lokalnych, licencja CC BY 4\.0\. Pobrano \d+\.\d+\.\d{4}\./);
+
   // AND the ranking explains its criteria and lists places with their action and reasons
   await expect(main).toContainText("+4 pkt za każdą potrzebę ze znaną barierą");
   await expect(main).toContainText("Nie mamy danych o liczbie odwiedzin");
