@@ -82,7 +82,7 @@ test("dictation fills the search field in Polish, which the visitor can still ed
   await expect(field).toHaveAttribute("placeholder", "Słucham… mów teraz");
   await expect(page.getByRole("status").filter({ hasText: "Słucham… mów teraz" })).toBeAttached();
   expect(await page.evaluate(() => (window as unknown as { __speech: Fake }).__speech.lang)).toBe("pl-PL");
-  await expect(page.locator("main")).toMatchAriaSnapshot({ name: "voice-search.aria.yml" });
+  await expect(page.getByRole("search")).toMatchAriaSnapshot({ name: "voice-search.aria.yml" });
   await expectAccessible();
   await evidence("voice-search-listening");
 
