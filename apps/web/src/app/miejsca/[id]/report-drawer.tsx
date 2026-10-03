@@ -135,7 +135,7 @@ function ReportForm({
   const commentError = error?.field === "comment" ? error.message : null;
 
   return (
-    <form noValidate onSubmit={submit} className="overflow-y-auto px-4 pt-4 pb-5">
+    <form noValidate onSubmit={submit} className="overflow-y-auto overscroll-contain px-4 pt-4 pb-5">
       <VaulDrawerDescription id="report-place" className="text-body-sm text-muted-foreground">
         {placeName}
       </VaulDrawerDescription>
@@ -143,7 +143,7 @@ function ReportForm({
         {mode === "fill" ? r.titleFill : r.titleCorrect}
       </VaulDrawerTitle>
 
-      <fieldset className="mt-4">
+      <fieldset className="mt-4 min-w-0">
         <legend className="mb-2 text-body-sm font-semibold">{r.which}</legend>
         {/* data-vaul-no-drag: a horizontal swipe here scrolls the chips; Vaul would drag the whole sheet. */}
         <div
@@ -205,7 +205,7 @@ function ReportForm({
           </p>
         </div>
       ) : (
-        <fieldset className="mt-3" aria-describedby={valueError ? "report-choice-error" : undefined}>
+        <fieldset className="mt-3 min-w-0" aria-describedby={valueError ? "report-choice-error" : undefined}>
           <legend className="mb-2 text-body-sm font-semibold">{r.trueValue}</legend>
           <div ref={valueRef} className="grid gap-2.5">
             {input.options.map((option, i) => (
