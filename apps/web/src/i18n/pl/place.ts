@@ -106,6 +106,15 @@ export const place = {
     report: "Zgłoś awarię",
     reportAria: (equipment: OutageEquipment): string =>
       equipment === "lift" ? "Zgłoś awarię windy" : "Zgłoś awarię podjazdu",
+    confirmTitle: (equipment: OutageEquipment): string =>
+      equipment === "lift" ? "Winda nie działa?" : "Podjazd nie działa?",
+    confirmBody: (hours: number) =>
+      `Zgłoszenie od razu zobaczą inni, a werdykt profilu policzy je jako barierę. Zniknie po ${hours} godz., jeśli nikt go nie potwierdzi.`,
+    confirmUnknown: (equipment: OutageEquipment): string =>
+      equipment === "lift"
+        ? "Nie mamy danych, czy jest tu winda. Zgłoś awarię tylko, jeśli ją widzisz i nie działa."
+        : "Nie mamy danych, czy jest tu podjazd. Zgłoś awarię tylko, jeśli go widzisz i nie da się z niego skorzystać.",
+    cancel: "Anuluj",
     reported: "Dzięki! Awaria jest widoczna dla innych.",
     confirmed: "Dzięki! Potwierdzenie awarii zapisane.",
     resolved: "Dzięki! Awaria zdjęta z karty.",

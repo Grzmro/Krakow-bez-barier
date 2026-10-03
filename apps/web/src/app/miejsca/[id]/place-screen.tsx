@@ -32,7 +32,7 @@ import {
   Wrench,
   type Icon,
 } from "@phosphor-icons/react";
-import type { AccessibilityAttribute, Outage, OutageVote, Place, PlaceSummary } from "@krakow-bez-barier/contracts";
+import type { AccessibilityAttribute, Outage, OutageEquipment, OutageVote, Place, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { PlaceMap } from "@/components/home/place-map";
 import { FactRow, ReliabilityBadge, SampleTag } from "@/components/kbb";
@@ -47,6 +47,7 @@ import { usePlaceReports } from "@/lib/use-place-reports";
 import { routes } from "@/lib/routes";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { OutageBanners } from "./outage-banners";
+import { OutageConfirmDrawer } from "./outage-confirm-drawer";
 import { ReportDrawer, type ReportMode, type ReportSubmission } from "./report-drawer";
 
 const DESKTOP = "(min-width: 64rem)";
@@ -138,6 +139,11 @@ function PlaceCard({ place }: { place: Place }) {
     attribute: CARD_ATTRIBUTES[0],
     key: 0,
   });
+  const [outageConfirm, setOutageConfirm] = useState<{ open: boolean; equipment: OutageEquipment; unknown: boolean }>({
+    open: false,
+    equipment: "lift",
+    unknown: false,
+  });
   const facts = withPending(factViews(place, locale), pendingEntries(place, reports.entries, locale));
   const osmEdit = osmEditUrl(place);
   const failed = failedSources(place);
@@ -198,10 +204,14 @@ function PlaceCard({ place }: { place: Place }) {
     if (ok) notRightButtons.current.get(attribute)?.focus();
   };
 
-  const reportOutage = async (attribute: AccessibilityAttribute) => {
-    if (!isOutageEquipment(attribute)) return;
+  const askOutage = (attribute: AccessibilityAttribute, unknown: boolean) => {
+    if (isOutageEquipment(attribute)) setOutageConfirm({ open: true, equipment: attribute, unknown });
+  };
+
+  const reportOutage = async (equipment: OutageEquipment) => {
+    setOutageConfirm((c) => ({ ...c, open: false }));
     focusOutages.current = true;
-    const outage = await outageApi.report(attribute);
+    const outage = await outageApi.report(equipment);
     if (!outage) focusOutages.current = false;
     setNow(new Date());
   };
@@ -414,7 +424,7 @@ function PlaceCard({ place }: { place: Place }) {
                     variant="outline"
                     size="sm"
                     aria-label={t.breakdown.reportAria(fact.attribute)}
-                    onClick={() => reportOutage(fact.attribute)}
+                    onClick={() => askOutage(fact.attribute, fact.unknown)}
                   >
                     <Wrench weight="bold" />
                     {t.breakdown.report}
@@ -585,6 +595,14 @@ function PlaceCard({ place }: { place: Place }) {
         attributes={facts.map((f) => f.attribute)}
         formKey={drawer.key}
         onSubmit={submitReport}
+      />
+      <OutageConfirmDrawer
+        open={outageConfirm.open}
+        onOpenChange={(open) => setOutageConfirm((c) => ({ ...c, open }))}
+        placeName={place.name}
+        equipment={outageConfirm.equipment}
+        unknown={outageConfirm.unknown}
+        onConfirm={reportOutage}
       />
     </article>
   );

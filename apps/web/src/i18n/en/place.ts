@@ -94,6 +94,14 @@ export const place: Messages["place"] = {
     working: "It works",
     report: "Report an outage",
     reportAria: (equipment) => (equipment === "lift" ? "Report a lift outage" : "Report a ramp outage"),
+    confirmTitle: (equipment) => (equipment === "lift" ? "Lift out of order?" : "Ramp out of order?"),
+    confirmBody: (hours) =>
+      `Others see the report right away and profile verdicts count it as a barrier. It disappears after ${hours} h unless someone confirms it.`,
+    confirmUnknown: (equipment) =>
+      equipment === "lift"
+        ? "We have no data on whether there is a lift here. Report an outage only if you can see it and it doesn't work."
+        : "We have no data on whether there is a ramp here. Report an outage only if you can see it and it can't be used.",
+    cancel: "Cancel",
     reported: "Thanks! Others can see the outage now.",
     confirmed: "Thanks! Your confirmation is saved.",
     resolved: "Thanks! The outage is off the card.",
