@@ -24,3 +24,48 @@ test("web app manifest makes the app installable", async ({ request }) => {
     expect(image.headers()["content-type"], icon.src).toBe("image/png");
   }
 });
+
+test.describe("install banner on an iPhone", () => {
+  test.use({
+    userAgent:
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1",
+  });
+
+  test("Safari shows the Add to Home Screen hint, dismissable by keyboard", async ({
+    page,
+    expectAccessible,
+    evidence,
+  }) => {
+    // GIVEN the app opened in Safari on an iPhone
+    await page.goto("/");
+
+    // WHEN the page hydrates
+    const banner = page.getByRole("complementary", { name: "Instalacja aplikacji" });
+
+    // THEN the manual install hint is shown and passes axe, and "Nie teraz" removes it
+    await expect(banner).toMatchAriaSnapshot({ name: "install-banner-ios.aria.yml" });
+    await expectAccessible();
+    await evidence("install-banner-ios");
+    await banner.getByRole("button", { name: "Nie teraz" }).focus();
+    await page.keyboard.press("Enter");
+    await expect(banner).toHaveCount(0);
+  });
+
+  test("the native app (Capacitor) shows no install banner", async ({ page, evidence }) => {
+    // GIVEN the page runs inside the iOS Capacitor WebView (its bridge handler is present)
+    await page.addInitScript(() => {
+      Object.assign(window, { webkit: { messageHandlers: { bridge: { postMessage: () => undefined } } } });
+    });
+
+    // WHEN the page has hydrated (the menu opens and closes)
+    await page.goto("/");
+    await page.getByRole("button", { name: "Menu" }).click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.getByRole("dialog")).toHaveCount(0);
+
+    // THEN there is no install banner
+    await expect(page.getByRole("complementary", { name: "Instalacja aplikacji" })).toHaveCount(0);
+    await evidence("install-banner-native");
+  });
+});

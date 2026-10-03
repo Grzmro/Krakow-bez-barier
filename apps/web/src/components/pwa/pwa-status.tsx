@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation";
 import { CloudSlash, DeviceMobile, X } from "@phosphor-icons/react";
 import { Button, useAnnounce } from "@krakow-bez-barier/ui";
 import { pl } from "@/i18n/pl";
+import { appPlatform } from "@/lib/native/geolocation";
+import { installOffer } from "@/lib/pwa/install-offer";
 import { offlineMessage } from "@/lib/pwa/offline-message";
 
 const t = pl.pwa;
@@ -145,7 +147,9 @@ const noSubscribe = () => () => {};
 function InstallPrompt() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [dismissedNow, setDismissedNow] = useState(false);
-  const iosHint = useSyncExternalStore(noSubscribe, () => isIos() && !isStandalone(), () => false);
+  const native = useSyncExternalStore(noSubscribe, () => appPlatform() !== "web", () => true);
+  const standalone = useSyncExternalStore(noSubscribe, isStandalone, () => true);
+  const ios = useSyncExternalStore(noSubscribe, isIos, () => false);
   const dismissedBefore = useSyncExternalStore(noSubscribe, readDismissed, () => true);
 
   useEffect(() => {
@@ -162,7 +166,8 @@ function InstallPrompt() {
     };
   }, []);
 
-  if (dismissedBefore || dismissedNow || (!deferred && !iosHint)) return null;
+  const offer = installOffer({ native, standalone, ios, canPrompt: deferred !== null });
+  if (dismissedBefore || dismissedNow || !offer) return null;
 
   const dismiss = () => {
     setDismissedNow(true);
@@ -183,8 +188,8 @@ function InstallPrompt() {
     <aside aria-label={t.install.label} className="border-b border-border bg-primary-container">
       <div className="mx-auto flex w-full max-w-5xl items-center gap-3 px-4 py-2.5">
         <DeviceMobile aria-hidden weight="bold" className="size-5 shrink-0 text-foreground" />
-        <p className="flex-1 text-body text-foreground">{deferred ? t.install.lead : t.install.ios}</p>
-        {deferred && (
+        <p className="flex-1 text-body text-foreground">{offer === "button" ? t.install.lead : t.install.ios}</p>
+        {offer === "button" && (
           <Button size="sm" onClick={install}>
             {t.install.button}
           </Button>
