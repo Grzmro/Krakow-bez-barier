@@ -10,7 +10,7 @@ import { useMessages } from "@/i18n/client";
 import type { Messages } from "@/i18n/messages";
 import { useCategoryLookup } from "@/lib/categories";
 import type { DistanceFrom } from "@/lib/nearby";
-import { filterGapStatus, matchFeature, summaryLine } from "@/lib/place-features";
+import { filterGapStatus, formatAddress, matchFeature, summaryLine } from "@/lib/place-features";
 import { routes } from "@/lib/routes";
 
 function chipFallback(chip: PlaceSummary["summary"][number], t: Messages["common"]) {
@@ -18,12 +18,6 @@ function chipFallback(chip: PlaceSummary["summary"][number], t: Messages["common
   if (chip.state === "unknown") return `${name}: ${t.status.unknown.toLowerCase()}`;
   if (chip.state === "conflict") return `${name}: ${t.status.conflict.toLowerCase()}`;
   return name;
-}
-
-function address(place: PlaceSummary) {
-  const a = place.address;
-  if (!a) return "";
-  return [[a.street, a.houseNumber].filter(Boolean).join(" "), a.city].filter(Boolean).join(", ");
 }
 
 export interface PlaceRowProps {
@@ -90,7 +84,7 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
             <StatusBadge status={gap} size="sm" className="mb-1.5 max-w-full" />
           ) : null}
           <span className="block text-[17px] leading-6 font-semibold">{place.name}</span>
-          <span className="block truncate text-caption text-muted-foreground">{address(place)}</span>
+          <span className="block truncate text-caption text-muted-foreground">{formatAddress(place.address)}</span>
           {verdict ? null : (
             <span className="mt-1 block text-caption leading-[18px] font-medium text-foreground/80">
               {summaryLine(place.summary, (chip) => chipFallback(chip, m.common))}

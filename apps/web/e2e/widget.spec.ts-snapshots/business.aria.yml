@@ -5,10 +5,10 @@
   - text: Dane przykładowe
   - paragraph: Hotel albo organizator wydarzenia osadza na swojej stronie aktualną kartę dostępności — z faktami, źródłami i datami. Odwiedzający nie potrzebują konta.
   - heading "Podgląd na stronie obiektu" [level=2]
-  - paragraph: Przykładowa strona hotelu. Poniżej działający widget w ramce iframe.
-  - paragraph: hotel.przyklad.pl
+  - paragraph: /Tak wyglądałaby strona hotelu z naszym widgetem/
+  - paragraph: strona-hotelu.example
   - paragraph: Hotel Przykład
-  - paragraph: /Pokój dwuosobowy · \d+ zł \/ noc/
+  - paragraph: ul. Sienna 5, Kraków
   - iframe
   - heading "Kod do wklejenia" [level=2]
   - paragraph: Wklej na stronie obiektu. Widget pokazuje cechy, źródła, daty, statusy i atrybucję.
@@ -34,7 +34,7 @@
   - heading "API" [level=2]
   - paragraph: API tylko do odczytu. Każda cecha ma źródło, datę i status wiarygodności.
   - paragraph: GET /api/v1/widget/hotel-przyklad
-  - region "Przykładowa odpowiedź API"
+  - region "Odpowiedź API dla tego hotelu"
   - button "Kopiuj odpowiedź API":
     - img
   - heading "Dla obiektów" [level=2]
