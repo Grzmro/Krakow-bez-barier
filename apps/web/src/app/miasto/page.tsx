@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function CityPage() {
   const t = await getMessages();
   return (
-    <InfoPage title={t.city.title} backLabel={t.pages.back} wide aside={isMockApi ? <SampleTag className="shrink-0" /> : undefined}>
+    <InfoPage title={t.city.title} backLabel={t.pages.back} width="wide" aside={isMockApi ? <SampleTag className="shrink-0" /> : undefined}>
       <CityScreen />
     </InfoPage>
   );

@@ -98,7 +98,7 @@ export function AppHeader() {
           </Link>
           <ul className="hidden min-w-0 items-center gap-1 lg:flex">
             {menu(t)
-              .filter(({ href }) => href !== routes.moderator)
+              .filter(({ href }) => href !== routes.moderator && href !== routes.city)
               .map(({ href, title, short }) => (
                 <li key={href}>
                   <Link href={href} aria-current={isCurrent(pathname, href) ? "page" : undefined} className={navLink}>
@@ -116,6 +116,15 @@ export function AppHeader() {
             >
               <Gavel weight="bold" className="size-4 shrink-0" aria-hidden />
               <span className="sr-only xl:not-sr-only">{t.menu.moderator}</span>
+            </Link>
+            <Link
+              href={routes.city}
+              aria-current={isCurrent(pathname, routes.city) ? "page" : undefined}
+              title={t.menu.city}
+              className={cn(navLink, "border border-border")}
+            >
+              <ChartBar weight="bold" className="size-4 shrink-0" aria-hidden />
+              <span className="sr-only 2xl:not-sr-only">{t.menu.city}</span>
             </Link>
             <LanguageSwitch compact />
           </div>
