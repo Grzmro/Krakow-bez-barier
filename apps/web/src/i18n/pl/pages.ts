@@ -37,11 +37,21 @@ export const pages = {
       monthly: "co miesiąc",
       yearly: "co rok",
       realtime: "na bieżąco",
+      continuous: "na bieżąco",
+      unknown: "jednorazowy import",
     } satisfies Record<string, string>,
     // Notes the sources API writes itself (not from the source's own data).
     statusNote: {
       simulatedOutage: "Symulowana awaria źródła (przełącznik testowy). Pokazujemy ostatnie znane dane jako nieaktualne.",
       overdue: "Źródło nie odświeżało się o czasie. Dane mogą być nieaktualne.",
+      seeded: "Dane wczytane jednorazowo, bez automatycznej aktualizacji.",
+      awaitingLicense: "Czekamy na potwierdzenie licencji z urzędem. Do tego czasu nie pobieramy z tego źródła danych.",
+      notFetched: "Jeszcze nie pobraliśmy z tego źródła danych.",
+    },
+    // Licence wording the sources API shows instead of the internal raw value.
+    licenseNote: {
+      pending: "do potwierdzenia z urzędem",
+      userReports: "zgłoszenia mieszkańców sprawdzone przez moderatora, nie są otwartymi danymi",
     },
     verificationByKind: {
       official_open_data: "zarządca lub miasto",

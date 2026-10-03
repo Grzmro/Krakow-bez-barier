@@ -21,6 +21,7 @@ import { thresholdsFor } from "@/domain/profiles";
 import { isStale, resolveAttribute } from "@/domain/resolver";
 import { activeOutagesByPlace } from "@/server/outages/service";
 import { pendingReportsByAttribute, type ReportsStore } from "@/server/reports";
+import { localizeSourceText } from "@/server/sources";
 import {
   createDbPlaceRepository,
   normalizeText,
@@ -87,8 +88,8 @@ export function toFact(record: FactRecord, now: Date): AccessibilityFact {
   return { ...fact, stale: FAILED_REFRESH.has(record.source.refreshStatus) || isStale(fact, now) };
 }
 
-function toSource(record: SourceRecord): Source {
-  return {
+function toSource(record: SourceRecord, locale: Locale): Source {
+  const source: Source = {
     id: record.id,
     name: record.name,
     kind: record.kind,
@@ -102,6 +103,7 @@ function toSource(record: SourceRecord): Source {
     statusNote: record.statusNote,
     isSample: record.isSample,
   };
+  return localizeSourceText(source, locale);
 }
 
 export function resolvePlace(records: FactRecord[], now: Date): ResolvedAttribute[] {
@@ -318,7 +320,7 @@ export async function getPlace(id: string, query: GetPlaceQuery = {}, deps: Plac
   const records = await repository.activeFacts([place.id]);
   const attributes = resolvePlace(records, now);
   const thresholds = thresholdsFor(query);
-  const sources = [...new Map(records.map((r) => [r.source.id, r.source])).values()].map(toSource);
+  const sources = [...new Map(records.map((r) => [r.source.id, r.source])).values()].map((record) => toSource(record, locale));
   const outages = (await outagesOf(repository, [place.id], now)).get(place.id) ?? [];
 
   return {

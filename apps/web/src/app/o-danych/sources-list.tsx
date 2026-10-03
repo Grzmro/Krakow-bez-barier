@@ -42,6 +42,13 @@ function formatDate(iso: string | null | undefined, t: Messages["pages"]["aboutD
   );
 }
 
+// An unknown cadence means we imported the data once; a source never fetched has no cadence at all.
+function refreshLabel(source: Source, labels: Partial<Record<string, string>>) {
+  const interval = source.refreshInterval;
+  if (!interval || (interval === "unknown" && source.refreshStatus === "never")) return "—";
+  return labels[interval] ?? interval;
+}
+
 async function fetchSources() {
   const { data, error } = await api.GET("/sources");
   if (error || !data) throw new Error(error?.title ?? "listSources failed");
@@ -108,9 +115,7 @@ export function SourcesList() {
                 </>
               ) : null}
               <dt className="text-muted-foreground">{t.refresh}</dt>
-              <dd>
-                {source.refreshInterval ? (refreshIntervalLabels[source.refreshInterval] ?? source.refreshInterval) : "—"}
-              </dd>
+              <dd>{refreshLabel(source, refreshIntervalLabels)}</dd>
               <dt className="text-muted-foreground">{t.verification}</dt>
               <dd>{t.verificationByKind[source.kind]}</dd>
               <dt className="text-muted-foreground">{t.lastOk}</dt>
