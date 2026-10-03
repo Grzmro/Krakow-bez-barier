@@ -4,7 +4,7 @@ import { useDeferredValue, useId, useState } from "react";
 import { ArrowSquareOut } from "@phosphor-icons/react";
 import { buttonVariants, cn } from "@krakow-bez-barier/ui";
 import { pl } from "@/i18n/pl";
-import { EVENT_NAME_MAX } from "@/lib/event-page";
+import { EVENT_NAME_MAX } from "@/lib/event-link";
 import { usePlaces } from "@/lib/places";
 import { routes } from "@/lib/routes";
 import { useOrigin } from "@/lib/use-origin";

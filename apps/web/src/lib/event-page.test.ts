@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createApiClient, createMockFetch } from "@krakow-bez-barier/contracts";
 import { withPlacesMocks } from "./mocks/mock-fetch";
-import { eventPath, eventSections, formatEventDate, isEventDate, readEventDetails } from "./event-page";
+import { eventSections, formatEventDate } from "./event-page";
 
 const api = createApiClient({ baseUrl: "http://localhost/api/v1", fetch: withPlacesMocks(createMockFetch()) });
 
@@ -11,53 +11,11 @@ async function examplePlace(id: string) {
   return data;
 }
 
-describe("eventPath / readEventDetails", () => {
-  it("round-trips the event name and date through the link", () => {
-    // GIVEN an organizer's event at a place
-    const details = { name: "Koncert jesienny & goście", date: "2026-10-10" };
-
-    // WHEN the link is built and read back by the event page
-    const path = eventPath("teatr-slowackiego", details);
-    const url = new URL(path, "http://localhost");
-    const read = readEventDetails(Object.fromEntries(url.searchParams));
-
-    // THEN the path names the place and the page gets the same name and date
-    expect(url.pathname).toBe("/wydarzenie/teatr-slowackiego");
-    expect(read).toEqual(details);
-  });
-
-  it("leaves out empty and malformed values instead of showing them", () => {
-    // GIVEN a link without a name and with an impossible date
-    // WHEN it's built and read
-    const path = eventPath("sukiennice", { name: "   ", date: "2026-02-30" });
-    const read = readEventDetails({ nazwa: "  ", data: "jutro" });
-
-    // THEN neither ends up in the link or on the page
-    expect(path).toBe("/wydarzenie/sukiennice");
-    expect(read).toEqual({});
-  });
-
-  it("caps an over-long name and takes the first of repeated parameters", () => {
-    // GIVEN a hand-edited link with a very long name repeated twice
-    const long = "x".repeat(500);
-
-    // WHEN it's read
-    const read = readEventDetails({ nazwa: [long, "drugi"], data: ["2026-10-10", "2026-10-11"] });
-
-    // THEN the name is capped and the first values win
-    expect(read.name).toHaveLength(120);
-    expect(read.date).toBe("2026-10-10");
-  });
-});
-
-describe("isEventDate / formatEventDate", () => {
-  it("accepts only real calendar days and formats them in Polish without a time zone shift", () => {
-    // GIVEN dates from a date input and from a hand-edited link
-    // WHEN they're validated and formatted
-    // THEN only real days pass and the formatted day is the one picked
-    expect(isEventDate("2026-10-10")).toBe(true);
-    expect(isEventDate("2026-13-01")).toBe(false);
-    expect(isEventDate("10.10.2026")).toBe(false);
+describe("formatEventDate", () => {
+  it("formats the day in Polish without a time zone shift", () => {
+    // GIVEN a date picked by the organizer
+    // WHEN it's formatted
+    // THEN the formatted day is the one picked
     expect(formatEventDate("2026-10-10")).toBe("sobota, 10 października 2026");
   });
 });

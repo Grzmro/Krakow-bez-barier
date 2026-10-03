@@ -1,4 +1,4 @@
-import { eventPath } from "./event-page";
+import { eventPath } from "./event-link";
 
 export const routes = {
   home: "/",

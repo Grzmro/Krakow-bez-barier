@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { pl } from "@/i18n/pl";
-import { readEventDetails } from "@/lib/event-page";
+import { readEventDetails } from "@/lib/event-link";
 import { EventScreen } from "./event-screen";
 
 export async function generateMetadata({ searchParams }: PageProps<"/wydarzenie/[placeId]">): Promise<Metadata> {

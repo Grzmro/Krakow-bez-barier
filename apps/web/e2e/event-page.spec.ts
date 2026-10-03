@@ -45,6 +45,9 @@ test("an organizer generates an event link and it opens the event page without a
   await expect(main.getByRole("list", { name: "Parking" })).toContainText(/Brak danych.*Nikt jeszcze nie sprawdził\./);
   await expect(main).toContainText("Brak danych o dostępności przystanków w pobliżu");
   await expect(main.getByRole("heading", { name: "Źródła danych" })).toBeVisible();
+  // AND a source that is down says so next to its last fetch, and the free-text name is attributed
+  await expect(main.getByRole("region", { name: "Źródła danych" })).toContainText(/MSIP: Toalety publiczne · .* · Źródło niedostępne/);
+  await expect(main).toContainText("Nazwa i termin podane przez organizatora wydarzenia.");
 });
 
 test("the event page is accessible, keyboard-operable and prints without the app chrome", async ({

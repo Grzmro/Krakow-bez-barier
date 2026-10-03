@@ -7,9 +7,10 @@ import type { Place } from "@krakow-bez-barier/contracts";
 import { Button, LogoMark, buttonVariants, cn } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge, SampleTag } from "@/components/kbb";
 import { pl } from "@/i18n/pl";
-import { eventSections, formatEventDate, type EventDetails, type EventSectionId } from "@/lib/event-page";
-import { formatDate, latestSourceDate, type FactView } from "@/lib/place-facts";
-import { usePlaceOrNull } from "@/lib/places";
+import type { EventDetails } from "@/lib/event-link";
+import { eventSections, formatEventDate, type EventSectionId } from "@/lib/event-page";
+import { failedSources, formatDate, latestSourceDate, type FactView } from "@/lib/place-facts";
+import { usePlace } from "@/lib/places";
 import { routes } from "@/lib/routes";
 import { useOrigin } from "@/lib/use-origin";
 
@@ -18,7 +19,7 @@ const t = pl.event;
 const SECTION_ICON: Record<EventSectionId, Icon> = { entrance: DoorOpen, toilet: Toilet, parking: Car };
 
 export function EventScreen({ placeId, details }: { placeId: string; details: EventDetails }) {
-  const query = usePlaceOrNull(placeId);
+  const query = usePlace(placeId, {});
 
   if (query.isPending) {
     return (
@@ -97,6 +98,7 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
   const origin = useOrigin();
   const sections = eventSections(place);
   const latest = latestSourceDate(place);
+  const failed = new Set(failedSources(place).map((s) => s.id));
   const address = [[place.address?.street, place.address?.houseNumber].filter(Boolean).join(" "), place.address?.city]
     .filter(Boolean)
     .join(", ");
@@ -110,24 +112,31 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
           <h1 id="event-title" className="mt-1 font-display text-h1 font-bold">
             {details.name ?? place.name}
           </h1>
+          {details.name || details.date ? (
+            <p className="mt-1 text-caption text-muted-foreground">{t.organizerProvided}</p>
+          ) : null}
         </div>
         {place.isSample ? <SampleTag className="mt-1 shrink-0" /> : null}
       </div>
 
       <dl className="mt-3 space-y-1.5 text-body-sm">
-        <div className="flex gap-2">
-          <MapPin weight="fill" className="mt-0.5 size-[18px] shrink-0 text-primary" aria-hidden />
+        <div>
           <dt className="sr-only">{t.venue}</dt>
-          <dd>
-            <span className="font-semibold">{place.name}</span>
-            {address ? <span className="text-muted-foreground">{` · ${address}`}</span> : null}
+          <dd className="flex gap-2">
+            <MapPin weight="fill" className="mt-0.5 size-[18px] shrink-0 text-primary" aria-hidden />
+            <span>
+              <span className="font-semibold">{place.name}</span>
+              {address ? <span className="text-muted-foreground">{` · ${address}`}</span> : null}
+            </span>
           </dd>
         </div>
         {details.date ? (
-          <div className="flex gap-2">
-            <CalendarBlank weight="fill" className="mt-0.5 size-[18px] shrink-0 text-primary" aria-hidden />
+          <div>
             <dt className="sr-only">{t.date}</dt>
-            <dd className="font-semibold first-letter:uppercase">{formatEventDate(details.date)}</dd>
+            <dd className="flex gap-2">
+              <CalendarBlank weight="fill" className="mt-0.5 size-[18px] shrink-0 text-primary" aria-hidden />
+              <span className="font-semibold first-letter:uppercase">{formatEventDate(details.date)}</span>
+            </dd>
           </div>
         ) : null}
       </dl>
@@ -146,6 +155,7 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
         </Card>
       ))}
 
+      {/* TODO(KBB-60): list the nearest ZTP stops with their accessibility facts once KBB-52 lands. */}
       <Card id="event-transit" title={t.transit.title} icon={Bus}>
         <p className="mt-2 text-body-sm text-muted-foreground">{t.transit.noData}</p>
       </Card>
@@ -164,6 +174,9 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
                   {` · ${t.lastSuccess(source.lastSuccessAt ? formatDate(source.lastSuccessAt) : undefined)}`}
                   {source.attribution ? ` · ${source.attribution}` : null}
                 </span>
+                {failed.has(source.id) ? (
+                  <span className="font-semibold text-status-conflict">{` · ${source.statusNote ?? t.sourceOutage}`}</span>
+                ) : null}
               </li>
             ))}
           </ul>

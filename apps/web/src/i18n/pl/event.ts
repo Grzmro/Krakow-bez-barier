@@ -2,6 +2,7 @@
 export const event = {
   pageTitle: "Dojazd i wejście bez barier",
   kicker: "Dojazd i wejście bez barier",
+  organizerProvided: "Nazwa i termin podane przez organizatora wydarzenia.",
   venue: "Miejsce",
   date: "Termin",
   loading: "Wczytujemy dane o dostępności miejsca…",
@@ -20,13 +21,13 @@ export const event = {
   },
   transit: {
     title: "Przystanki w pobliżu",
-    // TODO(KBB-52): list the nearest ZTP stops once stops have their own category and a confirmed licence.
     noData: "Brak danych o dostępności przystanków w pobliżu — dane ZTP czekają na potwierdzenie licencji.",
   },
   noSource: "Nikt jeszcze nie sprawdził.",
   sourceLine: (source: string, date: string, value?: string) => (value ? `${value} — ${source} · ${date}` : `${source} · ${date}`),
   sourcesTitle: "Źródła danych",
   sourcesNone: "Żadne źródło nie ma jeszcze danych o tym miejscu.",
+  sourceOutage: "Źródło jest teraz niedostępne — dane mogą być nieaktualne.",
   lastSuccess: (date?: string) => (date ? `ostatnie pobranie ${date}` : "jeszcze nie pobrano"),
   updated: (date: string) => `Stan na ${date}.`,
   fullCard: "Pełna karta miejsca",

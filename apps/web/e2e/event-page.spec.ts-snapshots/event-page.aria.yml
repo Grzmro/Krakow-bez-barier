@@ -2,6 +2,7 @@
   - article "Koncert jesienny":
     - paragraph: Dojazd i wejście bez barier
     - heading "Koncert jesienny" [level=1]
+    - paragraph: Nazwa i termin podane przez organizatora wydarzenia.
     - text: Dane przykładowe
     - term: Miejsce
     - definition: /Pałac Krzysztofory · Rynek Główny \d+, Kraków/
@@ -61,7 +62,7 @@
       - heading "Źródła danych" [level=2]
       - list:
         - listitem: /OpenStreetMap · ostatnie pobranie \d+\.\d+\.\d+ · © OpenStreetMap contributors/
-        - listitem: "/MSIP: Toalety publiczne · ostatnie pobranie \\d+\\.\\d+\\.\\d+/"
+        - listitem: "/MSIP: Toalety publiczne · ostatnie pobranie \\d+\\.\\d+\\.\\d+ · Źródło niedostępne \\(HTTP \\d+\\)\\. Pokazujemy ostatnie znane dane jako nieaktualne\\./"
       - paragraph: /Stan na \d+\.\d+\.\d+\./
     - link "Pełna karta miejsca":
       - /url: /miejsca/palac-krzysztofory
