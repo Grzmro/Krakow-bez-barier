@@ -121,14 +121,12 @@ Materiał do oceny („Wykaz funkcji już dostępnych i elementów wymagających
 | Film demo (max 3 min, napisy PL) | KBB-31 |
 | Karta miejsca na desktopie w dwóch kolumnach z tabelą porównania źródeł | KBB-67 (PR #59) |
 | Ogólna informacja OSM `wheelchair=*` jako wiersz karty | KBB-72 (PR #61) |
-| Profil „Senior” w przełączniku profili | KBB-58 (PR #60) |
 
 ## Wymaga dalszych prac
 
 | Element | Dlaczego | Zadanie |
 |---|---|---|
 | Ogólna informacja OSM `wheelchair=*` jako wiersz karty | w `main` liczy się w werdykcie profilu i podsumowaniu na liście, ale nie ma własnego wiersza na karcie; miejsce z samym `wheelchair=*` ma w wierszach karty „Brak danych” | KBB-72 (PR #61) |
-| Profil „Senior” w przełączniku profili | potrzeby są już konfiguracją (#46), w `main` brak wartości w enumie profilu | KBB-58 (PR #60), US-2.8 |
 | Ładowanie źródeł miejskich | licencje MSIP / ZDMK / ZTP do potwierdzenia z miastem | KBB-20 |
 | Start trasy z własnej pozycji lub dowolnego adresu; nawigacja „Ruszamy” | w prototypie start jest stały (Dworzec Główny, `apps/web/src/lib/config.ts`), a „Ruszamy” pokazuje komunikat „w kolejnej wersji” | — |
 | Panel właściciela obiektu (US-9.3), zdjęcia w zgłoszeniach (US-4.6), wycofanie zgłoszenia linkiem (US-8.4), link do edycji w OSM (US-4.7) | wartość dodana, nie zaczęte | — |
