@@ -52,6 +52,12 @@ export type PriorityFactor = Schemas["PriorityFactor"];
 export type PriorityCriterion = Schemas["PriorityCriterion"];
 export type PriorityItem = Schemas["PriorityItem"];
 export type PriorityAction = Schemas["PriorityAction"];
+export type Outage = Schemas["Outage"];
+export type OutageEquipment = Schemas["OutageEquipment"];
+export type OutageState = Schemas["OutageState"];
+export type OutageVote = Schemas["OutageVote"];
+export type OutageCreate = Schemas["OutageCreate"];
+export type OutageVoteCreate = Schemas["OutageVoteCreate"];
 
 /** Base path of the v1 API on the app's own origin. */
 export const API_BASE_PATH = "/api/v1";
@@ -61,6 +67,7 @@ export function createApiClient(options: ClientOptions = {}) {
   return createClient<paths>({ baseUrl: API_BASE_PATH, ...options });
 }
 
+export { outageRules, type OutageRules } from "./outage-rules";
 export { checkReportNumber, reportRules, type RangeCheck, type ReportRules, type ValueRange } from "./report-rules";
 export {
   categories,

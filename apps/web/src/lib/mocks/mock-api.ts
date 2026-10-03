@@ -15,6 +15,7 @@ import { thresholdsFor } from "@/domain/profiles";
 import { defaultLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
 import { byDistance } from "@/lib/nearby";
+import { mockOutagesOf } from "./mock-outages";
 
 // In-browser stand-in for the places API, for tests and the demo recording only (NEXT_PUBLIC_API_MOCK=true),
 // built only from the spec's `examples`. Supports `q`, `category`, `feature` + `includeUnknown`, `bbox`, `near` (nearest first, one page) and the profile
@@ -46,7 +47,13 @@ function inBbox(summary: PlaceSummary, bbox?: number[]) {
   return lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat;
 }
 
-const factsOf = (summary: PlaceSummary) => EXAMPLE_PLACES.find((p) => p.id === summary.id) ?? { attributes: [] };
+const factsOf = (summary: PlaceSummary) => ({
+  attributes: EXAMPLE_PLACES.find((p) => p.id === summary.id)?.attributes ?? [],
+  outages: mockOutagesOf(summary.id),
+});
+
+/** Whether the example data has a place with this id (outage reports are refused for others). */
+export const mockPlaceExists = (id: string) => EXAMPLE_PLACES.some((p) => p.id === id);
 
 // List-only examples have no facts; their hand-written chips mark only present features as known.
 function stateFromChips(summary: PlaceSummary, feature: FeatureFilter): FeatureMatch["state"] {
@@ -125,5 +132,6 @@ export function mockGetPlace(id: string, query: GetPlaceQuery = {}, locale: Loca
   const place = EXAMPLE_PLACES.find((p) => p.id === id);
   if (!place) return null;
   const thresholds = thresholdsFor(query);
-  return { ...place, verdict: thresholds ? matchProfile(place, thresholds, locale) : null };
+  const outages = mockOutagesOf(id);
+  return { ...place, outages, verdict: thresholds ? matchProfile({ ...place, outages }, thresholds, locale) : null };
 }

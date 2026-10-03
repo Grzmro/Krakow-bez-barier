@@ -1,12 +1,14 @@
-import type { Need, NeedResult } from "@krakow-bez-barier/contracts";
+import type { Need, NeedResult, Outage } from "@krakow-bez-barier/contracts";
 import type { Locale } from "@/i18n/locale";
 import { messagesFor, type Messages } from "@/i18n/messages";
+import { isActiveOutage } from "./outages";
 import { OPTIONAL_NEEDS, type NeedRule, type Thresholds } from "./profiles";
 import type { AccessibilityAttribute, NeedVerdict, ResolvedAttribute, Verdict } from "./types";
 
 type Reasons = Messages["profile"]["reasons"];
 
-type PlaceFacts = { attributes: ResolvedAttribute[] };
+/** `outages`: the place's reported outages (`Place.outages`); only active ones count. */
+type PlaceFacts = { attributes: ResolvedAttribute[]; outages?: Outage[] };
 
 export const SMOOTH_SURFACES = new Set(["asphalt", "concrete", "paving_stones", "paved", "flat"]);
 
@@ -122,6 +124,24 @@ function surface(t: Reasons, place: PlaceFacts, need: Need, attribute: Accessibi
     : result(need, attribute, "barrier", t.surface);
 }
 
+/**
+ * A need that rests on equipment with an active outage (a lift, or the ramp that answers the entrance) is a barrier
+ * whatever the facts say: a broken lift blocks today. It stays `unconfirmed` until enough visitors confirm the outage.
+ */
+function withOutage(t: Reasons, need: NeedResult, outages: Outage[]): NeedResult {
+  if (need.state === "barrier") return need;
+  const outage = outages.find((o) => o.equipment === need.attribute && isActiveOutage(o));
+  if (!outage) return need;
+  return {
+    need: need.need,
+    attribute: need.attribute,
+    state: "barrier",
+    reason: t.outage(outage.equipment),
+    unconfirmed: outage.state !== "confirmed",
+    outage: true,
+  };
+}
+
 const RULES: Record<NeedRule, (t: Reasons, place: PlaceFacts, need: Need, attribute: AccessibilityAttribute) => NeedResult> = {
   facility,
   lift,
@@ -131,7 +151,8 @@ const RULES: Record<NeedRule, (t: Reasons, place: PlaceFacts, need: Need, attrib
 /**
  * Checks the entrance, the door and each optional need the thresholds switch on against a place's
  * resolved attributes: barrier beats conflict beats unknown, and only all-met is met. A conflict on
- * any attribute of the place, needed or not, also rules out met; stale data never counts as met.
+ * any attribute of the place, needed or not, also rules out met; stale data never counts as met. An active outage
+ * makes the need relying on its equipment a barrier.
  */
 export function matchProfile(place: PlaceFacts, thresholds: Thresholds, locale: Locale): Verdict {
   const t = messagesFor(locale).profile.reasons;
@@ -141,7 +162,7 @@ export function matchProfile(place: PlaceFacts, thresholds: Thresholds, locale: 
     ...OPTIONAL_NEEDS.filter(({ flag }) => thresholds[flag]).map(({ rule, need, attribute }) =>
       RULES[rule](t, place, need, attribute),
     ),
-  ];
+  ].map((need) => withOutage(t, need, place.outages ?? []));
 
   const has = (state: NeedVerdict) => needs.some((n) => n.state === state);
   const conflictElsewhere = place.attributes.some((a) => a.state === "conflict");
@@ -156,7 +177,10 @@ export function matchProfile(place: PlaceFacts, thresholds: Thresholds, locale: 
   if (state === "conflict" && !has("conflict")) reasons.push(t.conflictElsewhere);
   return {
     state,
-    unconfirmed: state === "met" && needs.some((n) => n.unconfirmed),
+    unconfirmed:
+      state === "met"
+        ? needs.some((n) => n.unconfirmed)
+        : state === "barrier" && needs.filter((n) => n.state === "barrier").every((n) => n.outage && n.unconfirmed),
     reasons,
     blockers: needs.filter((n) => n.state === "barrier").map((n) => n.attribute),
     unknowns: needs.filter((n) => n.state === "unknown").map((n) => n.attribute),

@@ -613,6 +613,119 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /places/{id}/outages:
+    post:
+      operationId: reportOutage
+      summary: Report a temporary outage (lift or ramp not working)
+      description: 'Anonymous, no moderation: the outage shows on the place card at once as unverified
+        (`Place.outages`) and makes the equipment a barrier in every profile verdict that relies on it (`NeedResult.outage`).
+        With an active outage of the same equipment already listed, the report counts as one more confirmation of it
+        (`200`) instead of opening a second one. `x-outage-rules` sets the thresholds: after `confirmationsToConfirm`
+        confirmations the outage is `confirmed` ("Potwierdzona przez społeczność"), after `workingVotesToResolve` "Działa"
+        votes it is `resolved`, and with no confirmation for `expiresAfterHours` it is `expired`. Resolved and expired
+        outages are no longer listed. No account, e-mail or IP is stored; a per-client limit (`429`) and the `website`
+        honeypot protect against abuse.
+
+        '
+      x-outage-rules:
+        confirmationsToConfirm: 2
+        workingVotesToResolve: 1
+        expiresAfterHours: 48
+      tags:
+      - reports
+      parameters:
+      - $ref: '#/components/parameters/PlaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OutageCreate'
+            examples:
+              liftBroken:
+                summary: The lift is not working
+                value:
+                  equipment: lift
+      responses:
+        '200':
+          description: An active outage of this equipment was already listed; the report counted as a confirmation.
+            When this client already reported or confirmed that outage today, nothing is counted and the answer is `429`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Outage'
+              examples:
+                confirmed:
+                  $ref: '#/components/examples/OutageConfirmed'
+        '201':
+          description: Outage reported.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Outage'
+              examples:
+                reported:
+                  $ref: '#/components/examples/OutageReported'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /places/{id}/outages/{outageId}/votes:
+    post:
+      operationId: voteOutage
+      summary: Confirm an outage ("still broken") or mark it fixed ("working")
+      description: 'Anonymous vote on an active outage. `still_broken` adds a confirmation and restarts the expiry clock;
+        `working` counts towards resolving it. The thresholds are `x-outage-rules` of `reportOutage`. One vote of each
+        kind per outage per client a day (`429` on repeat). An outage that is no longer active answers `409`.
+
+        '
+      tags:
+      - reports
+      parameters:
+      - $ref: '#/components/parameters/PlaceId'
+      - name: outageId
+        in: path
+        required: true
+        description: Outage identifier from `Place.outages`.
+        schema:
+          type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OutageVoteCreate'
+            examples:
+              working:
+                summary: The lift works again
+                value:
+                  vote: working
+      responses:
+        '200':
+          description: Vote recorded; the outage with its new state.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Outage'
+              examples:
+                resolved:
+                  $ref: '#/components/examples/OutageResolved'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /moderation/reports:
     get:
       operationId: listModerationReports
@@ -1950,7 +2063,8 @@ components:
         unconfirmed:
           type: boolean
           default: false
-          description: True when `met` rests on unverified data.
+          description: True when `met` rests on unverified data, or when `barrier` rests only on outages nobody has
+            confirmed yet.
         reasons:
           type: array
           items:
@@ -1985,7 +2099,12 @@ components:
         unconfirmed:
           type: boolean
           default: false
-          description: True when `met` rests on data that is not confirmed.
+          description: True when `met` rests on data that is not confirmed, or when `barrier` comes from an outage
+            (`outage`) nobody has confirmed yet.
+        outage:
+          type: boolean
+          description: True when the barrier is a temporary outage of the equipment the need relies on (`Place.outages`);
+            left out otherwise.
         reason:
           type:
           - string
@@ -2116,6 +2235,12 @@ components:
           description: Sources that contributed, with their current refresh status.
           items:
             $ref: '#/components/schemas/Source'
+        outages:
+          type: array
+          description: Active temporary outages (`reported` or `confirmed`), newest first. They are visitor reports, not
+            facts, and count in `verdict` as barriers (`NeedResult.outage`).
+          items:
+            $ref: '#/components/schemas/Outage'
         updatedAt:
           type: string
           format: date-time
@@ -2622,6 +2747,88 @@ components:
         createdAt:
           type: string
           format: date-time
+    OutageEquipment:
+      type: string
+      description: Equipment that can break down for a while; each value is also the place attribute an outage blocks.
+      enum:
+      - lift
+      - ramp
+    OutageState:
+      type: string
+      description: '`reported` (unverified), `confirmed` (enough visitors confirmed it), `resolved` (marked working
+        again), `expired` (no confirmation for `expiresAfterHours`).'
+      enum:
+      - reported
+      - confirmed
+      - resolved
+      - expired
+    OutageVote:
+      type: string
+      enum:
+      - still_broken
+      - working
+    Outage:
+      type: object
+      description: A temporary outage reported by anonymous visitors, never moderated. Its provenance is `reliability`
+        (always `user_report`), `reportedAt` and `lastConfirmedAt`; community confirmations never raise it to `confirmed`.
+      required:
+      - id
+      - equipment
+      - reliability
+      - state
+      - confirmations
+      - workingVotes
+      - reportedAt
+      - lastConfirmedAt
+      - expiresAt
+      properties:
+        id:
+          type: string
+        equipment:
+          $ref: '#/components/schemas/OutageEquipment'
+        reliability:
+          $ref: '#/components/schemas/Reliability'
+          description: Always `user_report`.
+        state:
+          $ref: '#/components/schemas/OutageState'
+        confirmations:
+          type: integer
+          minimum: 0
+          description: Confirmations after the first report ("Potwierdzam awarię" and repeated reports).
+        workingVotes:
+          type: integer
+          minimum: 0
+        reportedAt:
+          type: string
+          format: date-time
+        lastConfirmedAt:
+          type: string
+          format: date-time
+          description: The latest report or confirmation; `reportedAt` when nobody has confirmed it yet.
+        expiresAt:
+          type: string
+          format: date-time
+          description: When the outage expires unless someone confirms it again.
+    OutageCreate:
+      type: object
+      required:
+      - equipment
+      properties:
+        equipment:
+          $ref: '#/components/schemas/OutageEquipment'
+        website:
+          type:
+          - string
+          - 'null'
+          maxLength: 200
+          description: Honeypot for bots, as in `ReportCreate`; a non-empty value is refused with `422`.
+    OutageVoteCreate:
+      type: object
+      required:
+      - vote
+      properties:
+        vote:
+          $ref: '#/components/schemas/OutageVote'
     RouteRequest:
       type: object
       required:
@@ -2789,6 +2996,42 @@ components:
         isSample:
           type: boolean
   examples:
+    OutageReported:
+      summary: Lift reported as not working a moment ago
+      value:
+        id: out_01J9Z5LIFT
+        equipment: lift
+        reliability: user_report
+        state: reported
+        confirmations: 0
+        workingVotes: 0
+        reportedAt: '2026-10-03T09:40:00Z'
+        lastConfirmedAt: '2026-10-03T09:40:00Z'
+        expiresAt: '2026-10-05T09:40:00Z'
+    OutageConfirmed:
+      summary: Lift outage confirmed by two more visitors
+      value:
+        id: out_01J9Z5LIFT
+        equipment: lift
+        reliability: user_report
+        state: confirmed
+        confirmations: 2
+        workingVotes: 0
+        reportedAt: '2026-10-03T09:40:00Z'
+        lastConfirmedAt: '2026-10-03T10:00:00Z'
+        expiresAt: '2026-10-05T10:00:00Z'
+    OutageResolved:
+      summary: Lift marked as working again
+      value:
+        id: out_01J9Z5LIFT
+        equipment: lift
+        reliability: user_report
+        state: resolved
+        confirmations: 0
+        workingVotes: 1
+        reportedAt: '2026-10-03T09:40:00Z'
+        lastConfirmedAt: '2026-10-03T09:40:00Z'
+        expiresAt: '2026-10-05T09:40:00Z'
     PlaceConflict:
       value:
         id: palac-krzysztofory

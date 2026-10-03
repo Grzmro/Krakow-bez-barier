@@ -1,7 +1,9 @@
 import type { Category } from "@krakow-bez-barier/contracts";
 import { confirmations, facts, places, sources, type Db } from "@krakow-bez-barier/db";
 import { and, eq, inArray, notInArray, sql, type SQL } from "drizzle-orm";
+import type { OutageRecord } from "@/domain/outages";
 import { getDb } from "../db";
+import { createDrizzleOutagesStore } from "../outages/drizzle-store";
 
 export type PlaceRecord = typeof places.$inferSelect;
 export type SourceRecord = typeof sources.$inferSelect;
@@ -28,6 +30,8 @@ export interface PlaceRepository {
   findPlace(id: string): Promise<PlaceRecord | null>;
   /** Active facts of the given places, each with its source and number of confirmations. */
   activeFacts(placeIds: string[]): Promise<FactRecord[]>;
+  /** Outages of the given places reported or confirmed at or after `since`, with their votes counted. */
+  recentOutages(placeIds: string[], since: Date): Promise<OutageRecord[]>;
 }
 
 // Folds Polish letters to ASCII; SQL `translate` below must use the same pairs.
@@ -85,5 +89,7 @@ export function createDbPlaceRepository(db: Db = getDb()): PlaceRepository {
         .where(and(inArray(facts.placeId, placeIds), eq(facts.status, "active")));
       return rows.map(({ fact, source, confirmations: count }) => ({ ...fact, source, confirmations: Number(count) }));
     },
+
+    recentOutages: (placeIds, since) => createDrizzleOutagesStore(db).listRecent(placeIds, since),
   };
 }

@@ -79,7 +79,7 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
               <StatusBadge
                 status={verdict.state}
                 reason={verdict.state === "met" ? undefined : verdict.reasons[0]}
-                unconfirmed={verdict.state === "met" && verdict.unconfirmed}
+                unconfirmed={verdict.unconfirmed}
                 className="max-w-full"
               />
               {gap ? <StatusBadge status={gap} size="sm" reason={gapFilters} className="max-w-full" /> : null}

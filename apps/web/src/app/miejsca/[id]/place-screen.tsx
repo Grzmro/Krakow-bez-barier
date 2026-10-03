@@ -28,25 +28,30 @@ import {
   Toilet,
   TrendUp,
   WarningDiamond,
+  Wrench,
   type Icon,
 } from "@phosphor-icons/react";
-import type { AccessibilityAttribute, Place, PlaceSummary } from "@krakow-bez-barier/contracts";
+import type { AccessibilityAttribute, Outage, OutageVote, Place, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { PlaceMap } from "@/components/home/place-map";
 import { FactRow, ReliabilityBadge, SampleTag } from "@/components/kbb";
+import { canReportOutage, isActiveOutage, isOutageEquipment } from "@/domain/outages";
 import { useLocale, useMessages } from "@/i18n/client";
 import { api } from "@/lib/api";
 import { useCategoryLookup } from "@/lib/categories";
 import { CARD_ATTRIBUTES, factViews, failedSources, formatDate, latestSourceDate, osmEditUrl } from "@/lib/place-facts";
 import { pendingEntries, servedReportIds, withPending, type PendingEntry } from "@/lib/reports";
+import { usePlaceOutages } from "@/lib/use-place-outages";
 import { usePlaceReports } from "@/lib/use-place-reports";
 import { routes } from "@/lib/routes";
 import { useMediaQuery } from "@/lib/use-media-query";
+import { OutageBanners } from "./outage-banners";
 import { ReportDrawer, type ReportMode, type ReportSubmission } from "./report-drawer";
 
 const DESKTOP = "(min-width: 64rem)";
 const MAP_PADDING = { top: 40, bottom: 40 };
 const noop = () => {};
+const MINUTE_MS = 60_000;
 
 const FACT_ICON: Partial<Record<AccessibilityAttribute, Icon>> = {
   step_count: Stairs,
@@ -117,6 +122,13 @@ function PlaceCard({ place }: { place: Place }) {
   const announce = useAnnounce();
   const reports = usePlaceReports(place.id, servedReportIds(place));
   const notRightButtons = useRef(new Map<AccessibilityAttribute, HTMLButtonElement>());
+  const outageApi = usePlaceOutages(place.id);
+  const outages = useMemo(() => place.outages ?? [], [place.outages]);
+  const outagesRef = useRef<HTMLElement>(null);
+  const factsHeadingRef = useRef<HTMLHeadingElement>(null);
+  const workingButtons = useRef(new Map<string, HTMLButtonElement>());
+  const focusOutages = useRef(false);
+  const [now, setNow] = useState(() => new Date());
   const [openFacts, setOpenFacts] = useState<Partial<Record<AccessibilityAttribute, boolean>>>({});
   const [drawer, setDrawer] = useState<{ open: boolean; mode: ReportMode; attribute: AccessibilityAttribute; key: number }>({
     open: false,
@@ -144,6 +156,19 @@ function PlaceCard({ place }: { place: Place }) {
     .filter(Boolean)
     .join(", ");
 
+  // Keeps "20 min temu" and the expiry current while the card stays open.
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), MINUTE_MS);
+    return () => clearInterval(timer);
+  }, []);
+
+  // A new outage shows only after the card is refetched; focus follows to its banner then.
+  useEffect(() => {
+    if (!focusOutages.current || outages.length === 0) return;
+    focusOutages.current = false;
+    outagesRef.current?.focus();
+  }, [outages]);
+
   useEffect(() => {
     if (!contactOpen || !focusContact.current) return;
     focusContact.current = false;
@@ -169,6 +194,24 @@ function PlaceCard({ place }: { place: Place }) {
   const confirmFact = async (attribute: AccessibilityAttribute, factId: string, valueText?: string) => {
     const ok = await reports.confirm(attribute, factId, valueText);
     if (ok) notRightButtons.current.get(attribute)?.focus();
+  };
+
+  const reportOutage = async (attribute: AccessibilityAttribute) => {
+    if (!isOutageEquipment(attribute)) return;
+    focusOutages.current = true;
+    const outage = await outageApi.report(attribute);
+    if (!outage) focusOutages.current = false;
+    setNow(new Date());
+  };
+
+  // The button pressed disappears; focus moves to the banner's other answer, or past the banners once it is gone.
+  const voteOutage = async (outage: Outage, vote: OutageVote) => {
+    const result = await outageApi.vote(outage.id, vote);
+    setNow(new Date());
+    if (!result) return;
+    if (vote === "still_broken") workingButtons.current.get(outage.id)?.focus();
+    else if (isActiveOutage(result) || outages.length > 1) outagesRef.current?.focus();
+    else factsHeadingRef.current?.focus();
   };
 
   const share = async () => {
@@ -280,6 +323,17 @@ function PlaceCard({ place }: { place: Place }) {
       </div>
 
       <div className="lg:col-span-2">
+        <OutageBanners
+          ref={outagesRef}
+          outages={outages}
+          now={now}
+          hasVoted={outageApi.hasVoted}
+          onVote={voteOutage}
+          workingRef={(id, element) => {
+            if (element) workingButtons.current.set(id, element);
+            else workingButtons.current.delete(id);
+          }}
+        />
         {failed.map((source) => (
           <div key={source.id} className="mt-5 flex gap-3 rounded-2xl bg-status-conflict-bg p-4">
             <CloudSlash weight="bold" className="mt-0.5 size-6 shrink-0 text-status-conflict" aria-hidden />
@@ -344,7 +398,7 @@ function PlaceCard({ place }: { place: Place }) {
 
       <div className="lg:col-start-1">
         <section aria-labelledby="place-facts">
-          <h2 id="place-facts" className="mt-6 mb-1 text-title font-semibold">
+          <h2 id="place-facts" ref={factsHeadingRef} tabIndex={-1} className="mt-6 mb-1 text-title font-semibold">
             {t.facts}
           </h2>
           <p className="mb-3 text-caption text-muted-foreground">{t.factsHint}</p>
@@ -352,6 +406,18 @@ function PlaceCard({ place }: { place: Place }) {
             {facts.map((fact) => {
               const I = FACT_ICON[fact.attribute];
               const confirmId = fact.pending.some((p) => p.kind === "confirmation") ? undefined : fact.confirmFactId;
+              const outageButton =
+                canReportOutage(place, fact.attribute) && !outages.some((o) => o.equipment === fact.attribute) ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label={t.breakdown.reportAria(fact.attribute)}
+                    onClick={() => reportOutage(fact.attribute)}
+                  >
+                    <Wrench weight="bold" />
+                    {t.breakdown.report}
+                  </Button>
+                ) : null;
               return (
                 <FactRow
                   key={fact.attribute}
@@ -366,10 +432,13 @@ function PlaceCard({ place }: { place: Place }) {
                   sources={fact.sources}
                   actions={
                     fact.unknown ? (
-                      <Button variant="outline" size="sm" onClick={() => openReport("fill", fact.attribute)}>
-                        <Plus weight="bold" />
-                        {t.fill}
-                      </Button>
+                      <>
+                        <Button variant="outline" size="sm" onClick={() => openReport("fill", fact.attribute)}>
+                          <Plus weight="bold" />
+                          {t.fill}
+                        </Button>
+                        {outageButton}
+                      </>
                     ) : (
                       <>
                         <Button
@@ -394,6 +463,7 @@ function PlaceCard({ place }: { place: Place }) {
                             {t.confirm}
                           </Button>
                         ) : null}
+                        {outageButton}
                       </>
                     )
                   }

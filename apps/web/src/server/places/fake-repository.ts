@@ -1,4 +1,5 @@
 import type { FactValue } from "@krakow-bez-barier/contracts";
+import type { OutageRecord } from "@/domain/outages";
 import {
   normalizeText,
   type FactRecord,
@@ -93,7 +94,7 @@ export function factRecord(
   };
 }
 
-export function createFakePlaceRepository(places: PlaceRecord[], facts: FactRecord[]): PlaceRepository {
+export function createFakePlaceRepository(places: PlaceRecord[], facts: FactRecord[], outages: OutageRecord[] = []): PlaceRepository {
   return {
     async searchPlaces({ text, categories, excludeCategories, bbox, near }) {
       const hits = places.filter((p) => {
@@ -118,6 +119,9 @@ export function createFakePlaceRepository(places: PlaceRecord[], facts: FactReco
     },
     async activeFacts(placeIds) {
       return facts.filter((f) => placeIds.includes(f.placeId) && f.status === "active");
+    },
+    async recentOutages(placeIds, since) {
+      return outages.filter((o) => placeIds.includes(o.placeId) && o.lastConfirmedAt.getTime() >= since.getTime());
     },
   };
 }

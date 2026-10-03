@@ -29,6 +29,13 @@
       "when": 1791041642077,
       "tag": "0003_moderation_log_moderator",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791054496865,
+      "tag": "0004_outages",
+      "breakpoints": true
     }
   ]
 }

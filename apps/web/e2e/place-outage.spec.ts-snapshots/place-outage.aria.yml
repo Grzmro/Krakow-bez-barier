@@ -1,0 +1,126 @@
+- main:
+  - article "Hotel Przykład":
+    - text: Brak zdjęcia Dane przykładowe
+    - heading "Hotel Przykład" [level=1]
+    - paragraph: Hotel · ul. Sienna 5, Kraków
+    - paragraph: "Jak dojść do wejścia: Wejście główne od ul. Siennej, bez progu."
+    - link "Prowadź":
+      - /url: /trasa?do=hotel-przyklad
+      - img
+      - text: ""
+    - button "Udostępnij":
+      - img
+      - text: ""
+    - link "Skąd wiemy?":
+      - /url: "#skad-wiemy"
+      - img
+      - text: ""
+    - region "Zgłoszone awarie":
+      - heading "Zgłoszone awarie" [level=2]
+      - list:
+        - listitem:
+          - paragraph:
+            - text: Zgłoszona awaria windy · 0 potwierdzeń ·
+            - time: teraz
+          - paragraph: Niezweryfikowane
+          - paragraph: Zgłoszenie odwiedzających, bez moderacji. Werdykt profilu liczy awarię jako barierę.
+          - paragraph: /Zniknie za \d+ godz\., jeśli nikt jej nie potwierdzi\./
+          - button "Działa":
+            - img
+            - text: ""
+    - region "Fakty":
+      - heading "Fakty" [level=2]
+      - paragraph: Pokazujemy konkretne dane, bez zbiorczej oceny. Rozwiń cechę, aby zobaczyć źródło i datę.
+      - list:
+        - listitem:
+          - 'button "Wejście — stopnie: Bez stopni. Wiarygodność: Potwierdzone."': Wejście — stopnie Bez stopni Potwierdzone
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+          - button "Potwierdzam, byłem tu":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Próg: 1 cm. Wiarygodność: Potwierdzone."': Próg 1 cm Potwierdzone
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+          - button "Potwierdzam, byłem tu":
+            - img
+            - text: ""
+        - listitem:
+          - 'button /Szerokość drzwi: \d+ cm\. Wiarygodność: Potwierdzone\./': /Szerokość drzwi \d+ cm Potwierdzone/
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+          - button "Potwierdzam, byłem tu":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Winda: Jest. Wiarygodność: Niezweryfikowane."': Winda Jest Niezweryfikowane
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+          - button "Potwierdzam, byłem tu":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Toaleta dostosowana: Jest. Wiarygodność: Potwierdzone."': Toaleta dostosowana Jest Potwierdzone
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+          - button "Potwierdzam, byłem tu":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+    - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
+    - button "Uzupełnij":
+      - img
+      - text: ""
+    - region "Skąd wiemy?":
+      - heading "Skąd wiemy?" [level=2]
+      - paragraph: Źródła danych o tym miejscu, ich licencje i stan odświeżenia.
+      - list:
+        - listitem:
+          - paragraph: Dane obiektu Dane przykładowe
+          - paragraph: "Zarządca obiektu · Licencja: Udostępnione przez obiekt"
+          - paragraph: /Działa · Ostatnie udane pobranie \d+\.\d+\.\d+/
+        - listitem:
+          - paragraph: OpenStreetMap
+          - paragraph: "Społeczność · Licencja: ODbL 1.0"
+          - paragraph: /Działa · Ostatnie udane pobranie \d+\.\d+\.\d+/
+          - paragraph: © OpenStreetMap contributors
+          - link "www.openstreetmap.org":
+            - /url: https://www.openstreetmap.org
+      - paragraph: /2 źródła · najnowsze \d+\.\d+\.\d+/
+      - link "O danych":
+        - /url: /o-danych
+        - img
+        - text: ""
+      - link "Edytuj w OpenStreetMap":
+        - /url: https://www.openstreetmap.org/edit?node=987654
+      - paragraph: Popraw dane u źródła — trafią do nas przy następnym pobraniu.
