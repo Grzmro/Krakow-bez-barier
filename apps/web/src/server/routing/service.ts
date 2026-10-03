@@ -1,7 +1,8 @@
 import type { Profile, Route, RouteRequest } from "@krakow-bez-barier/contracts";
 import { PROFILE_PRESETS } from "../domain/profiles";
 import { createOrsProvider } from "./ors";
-import { RoutingError, type LonLat, type ProviderRequest, type RoutingProvider } from "./provider";
+import { RoutingError, type LonLat, type ProviderRequest, type ProviderRoute, type RoutingProvider } from "./provider";
+import { createRecordedProvider } from "./recorded-provider";
 import { buildRoute, type NearbyFact, type RouteThresholds } from "./segments";
 
 /** Facts within this distance of the route line count as on it. */
@@ -35,11 +36,18 @@ export type RouteDeps = {
   now?: Date;
 };
 
-function defaultProvider(): RoutingProvider {
-  return createOrsProvider({
-    apiKey: process.env.ORS_API_KEY,
-    baseUrl: process.env.ORS_BASE_URL || "https://api.openrouteservice.org",
-  });
+/** openrouteservice with `ORS_API_KEY`; without it, the recorded demo answers (Dworzec Główny → Rynek Główny). */
+export function defaultProvider(): RoutingProvider {
+  const apiKey = process.env.ORS_API_KEY;
+  if (!apiKey) return createRecordedProvider();
+  return createOrsProvider({ apiKey, baseUrl: process.env.ORS_BASE_URL || "https://api.openrouteservice.org" });
+}
+
+/** Whether a weaker request is worth trying after `failed` ended with `error`. */
+function tryNext(error: unknown, failed: ProviderRequest): boolean {
+  if (!(error instanceof RoutingError)) return false;
+  // The wheelchair graph is sparser: a point next to a footway can be off it while foot-walking reaches it.
+  return error.kind === "no_route" || (error.kind === "point_not_routable" && failed.mode === "wheelchair");
 }
 
 const point = (p: RouteRequest["from"]): LonLat => [p.coordinates[0], p.coordinates[1]];
@@ -47,8 +55,9 @@ const point = (p: RouteRequest["from"]): LonLat => [p.coordinates[0], p.coordina
 /**
  * Computes the requested route and judges it segment by segment (see `buildRoute`). "Avoid stairs" without a
  * profile is a walking route without steps; with a profile it is a wheelchair route within the profile's kerb and
- * incline limits. When no such route exists, the shortest route comes back as the best alternative
- * (`fallback: true`) with its barriers listed. Throws `RoutingError` when the provider fails.
+ * incline limits. When no such route exists, the best alternative comes back (`fallback: true`) with its barriers
+ * listed: with a profile the step-free walking route first, then the shortest one. Throws `RoutingError` when the
+ * provider fails.
  */
 export async function createRoute(request: RouteRequest, deps: RouteDeps = {}): Promise<Route> {
   const provider = deps.provider ?? defaultProvider();
@@ -58,28 +67,34 @@ export async function createRoute(request: RouteRequest, deps: RouteDeps = {}): 
   const ends = { from: point(request.from), to: point(request.to) };
 
   const shortest: ProviderRequest = { ...ends, mode: "foot", avoidSteps: false };
-  const wanted: ProviderRequest = !request.avoidStairs
-    ? shortest
+  const stepFree: ProviderRequest = { ...ends, mode: "foot", avoidSteps: true };
+  const attempts: ProviderRequest[] = !request.avoidStairs
+    ? [shortest]
     : thresholds
-      ? {
-          ...ends,
-          mode: "wheelchair",
-          avoidSteps: true,
-          restrictions: { maxKerbCm: thresholds.maxKerbCm, maxInclinePct: thresholds.maxInclinePct, smoothSurface: thresholds.smoothSurface },
-        }
-      : { ...ends, mode: "foot", avoidSteps: true };
+      ? [
+          {
+            ...ends,
+            mode: "wheelchair",
+            avoidSteps: true,
+            restrictions: { maxKerbCm: thresholds.maxKerbCm, maxInclinePct: thresholds.maxInclinePct, smoothSurface: thresholds.smoothSurface },
+          },
+          stepFree,
+          shortest,
+        ]
+      : [stepFree, shortest];
 
-  let kind: Route["kind"] = request.avoidStairs ? "avoid_stairs" : "shortest";
-  let fallback = false;
-  let route;
-  try {
-    route = await provider.route(wanted);
-  } catch (error) {
-    if (!(error instanceof RoutingError && error.kind === "no_route" && wanted !== shortest)) throw error;
-    route = await provider.route(shortest);
-    kind = "shortest";
-    fallback = true;
+  let route: ProviderRoute | undefined;
+  let used = 0;
+  while (!route) {
+    try {
+      route = await provider.route(attempts[used]);
+    } catch (error) {
+      if (used === attempts.length - 1 || !tryNext(error, attempts[used])) throw error;
+      used += 1;
+    }
   }
+  const kind: Route["kind"] = attempts[used].avoidSteps ? "avoid_stairs" : "shortest";
+  const fallback = used > 0;
 
   const nearby = facts ? await facts.factsNear(route.coordinates, NEARBY_METERS, now) : [];
   return buildRoute({

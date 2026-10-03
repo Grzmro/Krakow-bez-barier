@@ -74,17 +74,31 @@ describe("POST /api/v1/routes", () => {
     expect(problem).toMatchObject({ title: "Routing provider unavailable", detail: "The routing provider did not answer. Try again in a moment." });
   });
 
-  it("answers 502 without calling openrouteservice when no key is configured", async () => {
+  it("answers the demo route from recorded answers when no key is configured", async () => {
+    // GIVEN no ORS_API_KEY
+    vi.stubEnv("ORS_API_KEY", "");
+    vi.stubEnv("DATABASE_URL", "");
+
+    // WHEN the recorded Dworzec Główny → Rynek route is requested
+    const { status, body: route } = await post(body());
+
+    // THEN it comes from the recording, dated by it, and nothing left the server
+    expect(status).toBe(200);
+    expect(route).toMatchObject({ kind: "shortest", knownBarrierCount: 2 });
+    expect(route.segments[0].facts[0].fetchedAt).toBe(DEMO_ROUTES[0].recordedAt);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("answers 502 without calling openrouteservice for an unrecorded route when no key is configured", async () => {
     // GIVEN no ORS_API_KEY
     vi.stubEnv("ORS_API_KEY", "");
     vi.spyOn(console, "error").mockImplementation(() => {});
 
-    // WHEN a route is requested
-    const { status, body: problem } = await post(body());
+    // WHEN a route that was never recorded is requested
+    const { status } = await post({ ...body(), to: { type: "Point", coordinates: [19.94, 50.05] } });
 
     // THEN it is a 502 problem and nothing left the server
     expect(status).toBe(502);
-    expect(problem.detail).toBe("Routing is not configured on this server.");
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

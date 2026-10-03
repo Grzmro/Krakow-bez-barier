@@ -181,7 +181,12 @@ function judge(attributes: Map<AccessibilityAttribute, ResolvedAttribute>, data:
   if (th && attributes.get("incline_pct")?.state !== "known") missing.push(t.noIncline);
   if (missing.length) return { state: "unknown" as NeedVerdict, note: missing.join(t.separator) };
 
-  const notes = [surface ? surfaceLabel(surface) : null, th && incline !== null ? (incline <= 1 ? t.inclineLow : t.incline(incline)) : null];
+  // Kerbs come only from our facts (the provider reports none), so a met segment says when it has no kerb data.
+  const notes = [
+    surface ? surfaceLabel(surface) : null,
+    th && incline !== null ? (incline <= 1 ? t.inclineLow : t.incline(incline)) : null,
+    th && kerb === null ? t.noKerb : null,
+  ];
   return { state: "met" as NeedVerdict, note: notes.filter(Boolean).join(t.separator) || null };
 }
 

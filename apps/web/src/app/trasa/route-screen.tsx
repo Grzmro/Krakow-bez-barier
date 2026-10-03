@@ -12,6 +12,7 @@ import { pl } from "@/i18n/pl";
 import { config } from "@/lib/config";
 import { factViews, formatDate, formatValue, joinValue } from "@/lib/place-facts";
 import { usePlace } from "@/lib/places";
+import type { ProfileSettings } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { routes } from "@/lib/routes";
 import { RouteError, routeRequest, useRoute, type RouteKind } from "@/lib/use-route";
@@ -49,10 +50,28 @@ const STATUS_TEXT: Record<Status, string> = {
 const barrierList = (route: Route) =>
   [...new Set(route.segments.filter((s) => s.state === "barrier").map((s) => s.note).filter(Boolean))].join(", ");
 
-function summary(route: Route) {
-  if (route.fallback) return `${t.noneOk}. ${t.alternative} ${barrierList(route)}. ${t.unknownOn(route.unknownSegmentCount, route.unknownMeters)}.`;
-  if (route.knownBarrierCount === 0) return `${t.noKnown}, ${t.unknownOn(route.unknownSegmentCount, route.unknownMeters)}.`;
-  return `${t.hasBarriers(barrierList(route))}. ${t.unknownOn(route.unknownSegmentCount, route.unknownMeters)}.`;
+/** What the alternative misses when it shows no known barrier: the request's own limits. */
+const limitsOf = (settings: ProfileSettings) => {
+  const profile = settings.profile;
+  if (!profile) return t.limitsNoProfile;
+  const { maxThresholdCm, requireSmoothSurface } = settings.thresholds[profile];
+  return t.limitsProfile(maxThresholdCm, requireSmoothSurface);
+};
+
+/** Segments without data and with conflicting data: neither counts as passable. */
+function gaps(route: Route) {
+  const conflicts = route.segments.filter((s) => s.state === "conflict").length;
+  return [t.unknownOn(route.unknownSegmentCount, route.unknownMeters), conflicts ? t.conflictOn(conflicts) : null].filter(Boolean).join(", ");
+}
+
+function alternativeLine(route: Route, limits: string) {
+  return route.knownBarrierCount ? `${t.alternative} ${barrierList(route)}` : `${t.alternativeUnmet} ${limits}`;
+}
+
+function summary(route: Route, limits: string) {
+  if (route.fallback) return `${t.noneOk}. ${alternativeLine(route, limits)}. ${gaps(route)}.`;
+  if (route.knownBarrierCount === 0) return `${t.noKnown}, ${gaps(route)}.`;
+  return `${t.hasBarriers(barrierList(route))}. ${gaps(route)}.`;
 }
 
 export function RouteScreen({ to }: { to?: string }) {
@@ -76,10 +95,11 @@ export function RouteScreen({ to }: { to?: string }) {
   const current = kind === "avoid_stairs" ? avoid : shortest;
   const other = kind === "avoid_stairs" ? shortest : avoid;
   const route = current.data;
+  const limits = limitsOf(settings);
 
   useEffect(() => {
-    if (route) announce(summary(route));
-  }, [announce, route]);
+    if (route) announce(summary(route, limits));
+  }, [announce, route, limits]);
   useEffect(() => {
     if (current.error) announce(current.error instanceof RouteError && current.error.reason === "no_route" ? t.error.noRoute : t.error.unavailable);
   }, [announce, current.error]);
@@ -208,6 +228,7 @@ export function RouteScreen({ to }: { to?: string }) {
               onSelect={setSelected}
               onSwitch={() => switchKind(kind === "avoid_stairs" ? "shortest" : "avoid_stairs")}
               noProfile={!profile}
+              limits={limits}
             />
           ) : null}
           {to && place.data ? <Destination place={place.data} /> : null}
@@ -224,6 +245,7 @@ function RouteDetails({
   onSelect,
   onSwitch,
   noProfile,
+  limits,
 }: {
   route: Route;
   other: Route | undefined;
@@ -231,14 +253,17 @@ function RouteDetails({
   onSelect: (id: number | null) => void;
   onSwitch: () => void;
   noProfile: boolean;
+  limits: string;
 }) {
   const clean = route.knownBarrierCount === 0;
-  const unknown = t.unknownOn(route.unknownSegmentCount, route.unknownMeters);
+  const conflicted = route.segments.some((s) => s.state === "conflict");
+  const unknown = gaps(route);
   const total = route.segments.length;
+  const background = route.fallback || !clean ? "bg-status-barrier-bg" : conflicted ? "bg-status-conflict-bg" : "bg-status-met-bg";
 
   return (
     <>
-      <div className={cn("mt-3 rounded-[20px] p-4", clean ? "bg-status-met-bg" : "bg-status-barrier-bg")}>
+      <div className={cn("mt-3 rounded-[20px] p-4", background)}>
         {route.fallback ? (
           <>
             <p className="flex items-center gap-2 text-body font-semibold text-status-barrier">
@@ -246,14 +271,15 @@ function RouteDetails({
               {noProfile ? t.noneOkNoProfile : t.noneOk}
             </p>
             <p className="mt-1 pl-7 text-body-sm">
-              {t.alternative} <strong>{barrierList(route)}</strong>
+              {route.knownBarrierCount ? t.alternative : t.alternativeUnmet}{" "}
+              <strong>{route.knownBarrierCount ? barrierList(route) : limits}</strong>
             </p>
             <p className="mt-0.5 pl-7 text-caption text-muted-foreground">{unknown}</p>
           </>
         ) : clean ? (
           <>
-            <p className="flex items-center gap-2 text-body font-semibold text-status-met">
-              <StatusIcon status="met" className="size-5" />
+            <p className={cn("flex items-center gap-2 text-body font-semibold", conflicted ? "text-status-conflict" : "text-status-met")}>
+              <StatusIcon status={conflicted ? "conflict" : "met"} className="size-5" />
               {t.noKnown}
             </p>
             <p className="mt-1 pl-7 text-body-sm font-semibold text-status-unknown">{unknown}</p>

@@ -27,16 +27,22 @@ export const route = {
   minutes: (n: number) => `${n} min`,
   distance: km,
   headingAria: (minutes: number, meters: number) => `Trasa: ${minutes} minut, ${km(meters)}`,
-  profileOn: (p: Profile) => `Ocena według progów profilu: ${profileName[p]} (krawężnik, nachylenie, nawierzchnia).`,
+  profileOn: (p: Profile) =>
+    `Ocena według progów profilu: ${profileName[p]} (nachylenie, nawierzchnia; krawężniki tam, gdzie mamy o nich dane).`,
   profileOff: "Bez profilu sprawdzamy schody i nawierzchnię. Włącz profil, by ocenić krawężniki i nachylenie.",
   loading: "Wyznaczamy trasę…",
   noKnown: "Trasa nie zawiera znanych barier",
   unknownOn: (n: number, m: number) =>
     `brak danych na ${n} ${plural(n, "odcinku", "odcinkach", "odcinkach")}${n ? ` (${Math.round(m)} m)` : ""}`,
+  conflictOn: (n: number) => `sprzeczne dane na ${n} ${plural(n, "odcinku", "odcinkach", "odcinkach")}`,
   hasBarriers: (list: string) => `Na trasie: ${list}`,
   noneOk: "Brak trasy spełniającej Twoje potrzeby",
   noneOkNoProfile: "Brak trasy bez schodów",
   alternative: "Najlepsza alternatywa — bariery:",
+  alternativeUnmet: "Najlepsza alternatywa — bez znanych barier, ale nie spełnia:",
+  limitsProfile: (kerbCm: number, smooth: boolean) =>
+    `krawężnik do ${String(kerbCm).replace(".", ",")} cm, dopuszczalne nachylenie${smooth ? ", gładka nawierzchnia" : ""}`,
+  limitsNoProfile: "bez schodów",
   segments: "Odcinki trasy",
   segmentsHint: "Pasek pokazuje odcinki w skali długości. Szczegóły w liście „Krok po kroku”.",
   steps: "Krok po kroku",
@@ -77,6 +83,7 @@ export const route = {
     partSurface: "brak danych o nawierzchni na części odcinka",
     noStairs: "brak danych o schodach",
     noIncline: "brak danych o nachyleniu",
+    noKerb: "brak danych o krawężnikach",
     separator: ", ",
   },
 } as const;

@@ -70,7 +70,8 @@ describe("createRoute — Dworzec Główny → Rynek Główny (recorded openrout
 
     // THEN incline is judged too (an elevation-model estimate) and Floriańska, without surface data, is unknown
     expect(route).toMatchObject({ kind: "avoid_stairs", knownBarrierCount: 0, unknownMeters: 678 });
-    expect(route.segments[0]).toMatchObject({ state: "met", note: "płyty chodnikowe, płasko (do 1%)" });
+    // AND a met segment says it has no kerb data: kerbs come only from our facts
+    expect(route.segments[0]).toMatchObject({ state: "met", note: "płyty chodnikowe, płasko (do 1%), brak danych o krawężnikach" });
     expect(route.segments[0].facts.find((f) => f.attribute === "incline_pct")).toMatchObject({
       value: { kind: "number", number: 1, unit: "pct" },
       reliability: "inferred",
@@ -132,6 +133,66 @@ describe("createRoute — Dworzec Główny → Rynek Główny (recorded openrout
     // THEN the shortest route comes back as the best alternative, with its stairs listed
     expect(asked.map((r) => r.avoidSteps)).toEqual([true, false]);
     expect(route).toMatchObject({ kind: "shortest", fallback: true, knownBarrierCount: 2 });
+  });
+
+  it("with a profile falls back to the step-free walking route before the shortest one", async () => {
+    // GIVEN a provider without a wheelchair route within the profile's limits
+    const asked: ProviderRequest[] = [];
+    const provider: RoutingProvider = {
+      attribution: recorded.attribution,
+      async route(req) {
+        asked.push(req);
+        if (req.mode === "wheelchair") throw new RoutingError("no_route", "Route could not be found");
+        return recorded.route(req);
+      },
+    };
+
+    // WHEN the wheelchair avoid-stairs route is requested
+    const route = await createRoute(request({ avoidStairs: true, profile: "wheelchair" }), { provider, now });
+
+    // THEN the stair-free walking route comes back as the alternative, judged against the profile
+    expect(asked.map((r) => [r.mode, r.avoidSteps])).toEqual([
+      ["wheelchair", true],
+      ["foot", true],
+    ]);
+    expect(route).toMatchObject({ kind: "avoid_stairs", fallback: true, knownBarrierCount: 0 });
+  });
+
+  it("tries the walking network when a point is off the sparser wheelchair graph", async () => {
+    // GIVEN openrouteservice can't place a point on the wheelchair graph, while foot-walking can
+    const asked: ProviderRequest[] = [];
+    const provider: RoutingProvider = {
+      attribution: recorded.attribution,
+      async route(req) {
+        asked.push(req);
+        if (req.mode === "wheelchair") throw new RoutingError("point_not_routable", "Could not find routable point");
+        return recorded.route(req);
+      },
+    };
+
+    // WHEN the stroller avoid-stairs route is requested
+    const route = await createRoute(request({ avoidStairs: true, profile: "stroller" }), { provider, now });
+
+    // THEN the step-free walking route is the alternative
+    expect(asked.map((r) => r.mode)).toEqual(["wheelchair", "foot"]);
+    expect(route).toMatchObject({ kind: "avoid_stairs", fallback: true });
+  });
+
+  it("does not retry a point that is off the walking network too", async () => {
+    // GIVEN openrouteservice can't place a point on any network
+    const asked: ProviderRequest[] = [];
+    const provider: RoutingProvider = {
+      attribution: "",
+      async route(req) {
+        asked.push(req);
+        throw new RoutingError("point_not_routable", "Could not find routable point");
+      },
+    };
+
+    // WHEN the stair-free route is requested without a profile
+    // THEN the failure reaches the caller after one call
+    await expect(createRoute(request({ avoidStairs: true }), { provider, now })).rejects.toMatchObject({ kind: "point_not_routable" });
+    expect(asked).toHaveLength(1);
   });
 
   it("passes other provider failures on", async () => {

@@ -765,8 +765,9 @@ paths:
         15 m — and a state. Segments without data are `unknown` and are never treated as barrier-free.
 
         `avoidStairs` asks for a route without stairs; with `profile` it also has to stay within the profile''s kerb and
-        incline limits. When no such route exists, the shortest route comes back with `fallback: true` and its barriers
-        listed. Routing runs on the server only (the provider key never reaches the browser); when the provider is
+        incline limits. When no such route exists, the best alternative comes back with `fallback: true` and its barriers
+        listed: with `profile` the stair-free walking route (`kind: avoid_stairs`) if there is one, otherwise the
+        shortest route. Routing runs on the server only (the provider key never reaches the browser); when the provider is
         unavailable the answer is a `502` problem.
 
         '

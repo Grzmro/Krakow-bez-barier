@@ -1,7 +1,8 @@
 import { expect, test } from "./fixtures";
 
-// The example-data mode answers POST /routes from openrouteservice responses recorded for Dworzec Główny →
-// Rynek Główny (src/server/routing/fixtures), through the same route service as the API — no key, no network.
+// POST /routes hits the real handler; the e2e server runs without ORS_API_KEY (playwright.config.ts), so it answers
+// from openrouteservice responses recorded for Dworzec Główny → Rynek Główny (src/server/routing/fixtures) — no
+// network. Any other route behaves like an openrouteservice outage.
 
 test("avoid-stairs route from Dworzec Główny to Rynek names the segments without data", async ({
   page,
@@ -72,7 +73,7 @@ test("a route the provider can't answer shows a readable error and the destinati
   await page.goto("/miejsca/kawiarnia-przyklad");
   await expect(page.getByRole("heading", { level: 1, name: "Kawiarnia Przykład" })).toBeVisible();
 
-  // WHEN the visitor asks for a route to it (no recorded answer: the routing provider is "down")
+  // WHEN the visitor asks for a route to it (no recorded answer and no key: the routing provider is "down")
   await page.getByRole("link", { name: "Prowadź" }).click();
 
   // THEN the route screen says routing is unavailable, offers a retry, and still shows the entrance facts
