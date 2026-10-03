@@ -15,7 +15,7 @@ import { listedCount } from "@/lib/list-count";
 import { usePlaces } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
-import { countByStatus, filterByVerdict, STATUS_ORDER } from "@/lib/profile/verdict-list";
+import { countByStatus, filterByVerdict, missingNeeds, STATUS_ORDER } from "@/lib/profile/verdict-list";
 import { scrollIntoViewWithin } from "@/lib/scroll-within";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useSessionFlag } from "@/lib/use-session-flag";
@@ -112,6 +112,8 @@ export function HomeScreen() {
       ? (origin ? tn.nearestOnly : tn.nearestRynekOnly)(places.data.items.length, total)
       : null;
   const verdicts = Boolean(profile && items.some(({ place }) => place.verdict));
+  const verdictCount = items.filter(({ place }) => place.verdict).length;
+  const missing = useMemo(() => (verdicts && counts.met === 0 ? missingNeeds(items).slice(0, 3) : []), [verdicts, counts.met, items]);
   const settled = query.q === q.trim() && !places.isPlaceholderData;
   const suggestions = useMemo(
     () => (settled && query.q ? [...new Set(items.map(({ place }) => place.name))] : []),
@@ -277,6 +279,13 @@ export function HomeScreen() {
                 </Button>
               </div>
               <LabeledSwitch label={tp.hideFailing} checked={hideFailing} onCheckedChange={changeHideFailing} className="-my-1" />
+              {missing.length && !pending ? (
+                <div role="note" className="space-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-body-sm">
+                  <p className="font-semibold">{tp.list.noneMet.title}</p>
+                  <p>{tp.list.noneMet.missing(missing, verdictCount)}</p>
+                  <p className="text-muted-foreground">{tp.list.noneMet.hint}</p>
+                </div>
+              ) : null}
             </>
           ) : null}
           <div role="group" aria-label={t.filtersLabel} className={cn(CHIP_ROW, "-mx-4 flex gap-2 pl-4")}>
@@ -331,6 +340,11 @@ export function HomeScreen() {
                   {origin ? (
                     <p className="text-body-sm text-muted-foreground">
                       {chosenPlace ? tn.emptyHintChosen(chosenPlace) : tn.emptyHint}
+                    </p>
+                  ) : null}
+                  {features.length && !showUnknown ? (
+                    <p className="text-body-sm text-muted-foreground">
+                      {t.list.noFeatureMatch(features.map((f) => t.filters[f]).join(", "))}
                     </p>
                   ) : null}
                   <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>

@@ -1,4 +1,4 @@
-import type { PlaceSummary } from "@krakow-bez-barier/contracts";
+import type { Need, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { STATUSES, type Status } from "@krakow-bez-barier/ui";
 
 /** Display order of verdicts: what works first, what blocks last. */
@@ -8,6 +8,17 @@ export function countByStatus(items: { place: PlaceSummary }[]): Record<Status, 
   const counts = Object.fromEntries(STATUSES.map((s) => [s, 0])) as Record<Status, number>;
   for (const { place } of items) if (place.verdict) counts[place.verdict.state] += 1;
   return counts;
+}
+
+/** How many places could not check each need for lack of data, most often missing first; needs nobody lacks are left out. */
+export function missingNeeds(items: { place: PlaceSummary }[]): { need: Need; count: number }[] {
+  const counts = new Map<Need, number>();
+  for (const { place } of items) {
+    for (const need of place.verdict?.needs ?? []) {
+      if (need.state === "unknown") counts.set(need.need, (counts.get(need.need) ?? 0) + 1);
+    }
+  }
+  return [...counts].map(([need, count]) => ({ need, count })).toSorted((a, b) => b.count - a.count);
 }
 
 export interface VerdictFilter {

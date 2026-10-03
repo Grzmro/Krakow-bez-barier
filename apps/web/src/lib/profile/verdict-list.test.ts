@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { PlaceSummary, Verdict } from "@krakow-bez-barier/contracts";
-import { countByStatus, filterByVerdict } from "./verdict-list";
+import type { NeedResult, PlaceSummary, Verdict } from "@krakow-bez-barier/contracts";
+import { countByStatus, filterByVerdict, missingNeeds } from "./verdict-list";
 
 function item(id: string, state: Verdict["state"] | null) {
   const place = {
@@ -52,5 +52,37 @@ describe("filterByVerdict", () => {
     // THEN only the matching places stay
     expect(ids(filterByVerdict(items, { status: "barrier", hideFailing: false }))).toEqual(["near-barrier", "far-barrier"]);
     expect(ids(filterByVerdict(items, { status: null, hideFailing: true }))).toEqual(["met", "conflict", "unknown"]);
+  });
+});
+
+describe("missingNeeds", () => {
+  const withNeeds = (id: string, needs: [NeedResult["need"], NeedResult["state"]][]) => {
+    const place = {
+      id,
+      verdict: { state: "unknown", reasons: [], needs: needs.map(([need, state]) => ({ need, attribute: "step_count", state })) },
+    } as unknown as PlaceSummary;
+    return { place };
+  };
+
+  it("counts places per need that lacks data, most often missing first", () => {
+    // GIVEN places where the door is unknown twice and the entrance once, plus a met and a barrier need
+    const items = [
+      withNeeds("a", [["entrance", "unknown"], ["door", "unknown"], ["lift", "met"]]),
+      withNeeds("b", [["entrance", "barrier"], ["door", "unknown"]]),
+      item("c", null),
+    ];
+    // WHEN counting the missing needs
+    // THEN only unknown needs count, sorted by how many places lack them
+    expect(missingNeeds(items)).toEqual([
+      { need: "door", count: 2 },
+      { need: "entrance", count: 1 },
+    ]);
+  });
+
+  it("is empty when no place lacks data", () => {
+    // GIVEN places with verdicts but no per-need breakdown
+    // WHEN counting
+    // THEN nothing is missing
+    expect(missingNeeds([item("a", "met"), item("b", "barrier")])).toEqual([]);
   });
 });

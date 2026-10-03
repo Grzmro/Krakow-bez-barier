@@ -160,3 +160,22 @@ test("category chips are rendered from the categories API response, including on
   await expect(chips.getByRole("button", { name: "Apteki" })).toBeVisible();
   await expect(chips.getByRole("button", { name: "Muzea" })).toBeVisible();
 });
+
+test("a feature filter nobody described here says it is missing data, not the facility", async ({ page, evidence }) => {
+  // GIVEN the home screen searched down to one place
+  await page.goto("/");
+  await page.getByRole("combobox", { name: "Wyszukaj miejsce" }).fill("Sukiennice");
+  const list = page.getByRole("region", { name: "Lista miejsc" });
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
+
+  // WHEN a feature filter no listed place has in its data is turned on
+  await page.getByRole("button", { name: "Parking N", exact: true }).click();
+
+  // THEN the empty state says the data is missing and offers to show the places without it
+  await expect(list.getByText("Brak miejsc dla tego wyszukiwania.")).toBeVisible();
+  await expect(list).toContainText("Żadne miejsce w wynikach nie ma w danych: Parking N.");
+  await expect(list).toContainText("brak danych to nie brak udogodnienia");
+  await evidence("home-feature-no-data");
+  await list.getByRole("button", { name: "Pokaż też miejsca bez danych" }).click();
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
+});

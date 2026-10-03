@@ -66,6 +66,8 @@ export const profile = {
     door: (cm: number) => `drzwi ${cm} cm`,
     surface: "nierówna nawierzchnia",
     overallNo: "Oznaczone jako niedostępne dla wózków",
+    overallOnly: (value: "yes" | "limited"): string =>
+      value === "yes" ? "wejście: ogólnie oznaczone jako dostępne, bez szczegółów" : "wejście: ogólnie oznaczone jako częściowo dostępne, bez szczegółów",
     missing: (need: Need) => `${needName[need].toLowerCase()}: brak`,
     liftWithoutFloors: "winda: brak, piętra: brak danych",
     liftFloorsConflict: "winda: brak, piętra: sprzeczne dane",
@@ -86,5 +88,11 @@ export const profile = {
     showAll: "Pokaż wszystkie wyniki",
     filteredEmpty: "Żadne miejsce nie pasuje do wybranego wyniku",
     filteredEmptyHint: "Wyniki wyszukiwania są, ale ukrywa je filtr wyniku profilu.",
+    noneMet: {
+      title: "Żadne miejsce na liście nie ma jeszcze kompletu danych dla tego profilu",
+      missing: (missing: { need: Need; count: number }[], total: number) =>
+        `Najczęściej brakuje danych o: ${missing.map(({ need, count }) => `${needName[need].toLowerCase()} (${count} z ${total})`).join(", ")}.`,
+      hint: "Otwarte dane rzadko opisują stopnie, progi i szerokość drzwi. „Brak danych” nie znaczy „niedostępne” — szczegóły pod „Dlaczego?” przy miejscu.",
+    },
   },
 } as const;

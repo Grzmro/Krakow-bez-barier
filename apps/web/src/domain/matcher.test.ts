@@ -313,6 +313,22 @@ describe("matchProfile with facts through the resolver", () => {
     expect(match(wheelchair, yes).state).toBe("unknown");
   });
 
+  it("says the entrance has only OSM's overall tag when steps are unknown, without making it met", () => {
+    // GIVEN OSM's overall "yes" or "limited" and no entrance details
+    const yes = [fact("wheelchair_overall", text("yes"))];
+    const limited = [fact("wheelchair_overall", text("limited"))];
+    // WHEN matching the wheelchair preset
+    const fromYes = match(wheelchair, yes);
+    const fromLimited = match(wheelchair, limited);
+    // THEN the entrance stays unknown and its reason names the overall tag instead of a bare "wejście"
+    expect(fromYes.state).toBe("unknown");
+    expect(fromYes.needs?.find((n) => n.need === "entrance")).toMatchObject({
+      state: "unknown",
+      reason: "wejście: ogólnie oznaczone jako dostępne, bez szczegółów",
+    });
+    expect(fromLimited.reasons).toContain("wejście: ogólnie oznaczone jako częściowo dostępne, bez szczegółów");
+  });
+
   it("applies custom thresholds over the existing needs without code changes", () => {
     // GIVEN thresholds for a profile that only needs a step-free entrance and an 80 cm door
     const custom: Thresholds = {

@@ -112,6 +112,32 @@ test("an empty verdict counter blames the verdict filter, not the search", async
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("5 miejsc");
 });
 
+test("a profile no listed place meets says which data is missing, without passing the unknown", async ({ page, expectAccessible, evidence }) => {
+  // GIVEN the home screen narrowed to a place that has no entrance or door data
+  await page.goto("/");
+  await searchFor(page, "Kawiarnia");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
+
+  // WHEN the wheelchair profile is turned on
+  await page.getByRole("radio", { name: "Wózek", exact: true }).check();
+
+  // THEN nothing is met, and a note names the needs without data instead of showing an unexplained zero
+  const counters = page.getByRole("group", { name: "Pokaż tylko miejsca z wynikiem" });
+  await expect(counters.getByRole("button", { name: "0 spełnia" })).toBeVisible();
+  const note = list(page).getByRole("note");
+  await expect(note).toContainText("Żadne miejsce na liście nie ma jeszcze kompletu danych dla tego profilu");
+  await expect(note).toContainText(/Najczęściej brakuje danych o: .*\(1 z 1\)/);
+  await expect(note).toContainText("„Brak danych” nie znaczy „niedostępne”");
+  await expect(row(page, "Kawiarnia Przykład")).toContainText("Brak danych");
+  await expectAccessible();
+  await evidence("home-profile-none-met");
+
+  // AND the note goes away once a listed place meets the profile
+  await searchFor(page, "przyk");
+  await expect(counters.getByRole("button", { name: "1 spełnia" })).toBeVisible();
+  await expect(list(page).getByRole("note")).toHaveCount(0);
+});
+
 test("switching the profile releases a pressed counter", async ({ page }) => {
   // GIVEN the wheelchair profile over the sample places with the "Spełnia" counter pressed
   const counters = await wheelchairOverSamples(page);

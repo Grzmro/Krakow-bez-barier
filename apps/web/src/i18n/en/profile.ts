@@ -61,6 +61,8 @@ export const profile: Messages["profile"] = {
     door: (cm: number) => `${cm} cm door`,
     surface: "uneven surface",
     overallNo: "Marked as not wheelchair accessible",
+    overallOnly: (value: "yes" | "limited") =>
+      value === "yes" ? "entrance: marked accessible overall, no details" : "entrance: marked partly accessible overall, no details",
     missing: (need: Need) => `${needName[need].toLowerCase()}: none`,
     liftWithoutFloors: "lift: none, floors: no data",
     liftFloorsConflict: "lift: none, floors: conflicting data",
@@ -81,5 +83,11 @@ export const profile: Messages["profile"] = {
     showAll: "Show all results",
     filteredEmpty: "No place matches the selected result",
     filteredEmptyHint: "There are search results, but the profile result filter hides them.",
+    noneMet: {
+      title: "No place on the list has complete data for this profile yet",
+      missing: (missing: { need: Need; count: number }[], total: number) =>
+        `Most often missing: ${missing.map(({ need, count }) => `${needName[need].toLowerCase()} (${count} of ${total})`).join(", ")}.`,
+      hint: "Open data rarely records steps, thresholds or door width. “No data” doesn't mean “not accessible” — see “Why?” on a place.",
+    },
   },
 };
