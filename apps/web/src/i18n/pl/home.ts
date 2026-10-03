@@ -40,6 +40,7 @@ export const home = {
     empty: "Brak miejsc dla tego wyszukiwania.",
     emptyHint: "Spróbuj szerzej: bez nazwy, kategorii i filtrów.",
     searchWider: "Szukaj w całym Krakowie",
-    distance: (m: number) => `${m >= 1000 ? `${(m / 1000).toFixed(1).replace(".", ",")} km` : `${m} m`} od Rynku`,
+    distance: (m: number, fromUser = false) =>
+      `${m >= 1000 ? `${(m / 1000).toFixed(1).replace(".", ",")} km` : `${m} m`} ${fromUser ? "od Ciebie" : "od Rynku"}`,
   },
 } as const;

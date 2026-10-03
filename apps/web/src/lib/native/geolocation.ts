@@ -1,8 +1,9 @@
 import { Capacitor } from "@capacitor/core";
 
 // One way to ask for the device position: the native plugin inside the Capacitor app (native
-// permission prompt), the browser Geolocation API elsewhere. The position never leaves the device
-// (US-6.6) — callers use it locally and must not send it to the server.
+// permission prompt), the browser Geolocation API elsewhere. The exact position never leaves the device
+// (US-6.6): callers use it locally; only a coarse, grid-snapped area (`searchArea` in lib/nearby.ts) may
+// be sent to the server.
 
 export type DevicePosition = { latitude: number; longitude: number; accuracyMeters: number };
 export type LocateFailure = "denied" | "unavailable" | "unsupported";
