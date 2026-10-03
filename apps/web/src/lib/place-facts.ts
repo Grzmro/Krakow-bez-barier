@@ -77,7 +77,7 @@ export function formatValue(attribute: AccessibilityAttribute, value: FactValue)
   }
 }
 
-function joinValue(v: { value: string; unit?: string }) {
+export function joinValue(v: { value: string; unit?: string }) {
   return v.unit ? `${v.value} ${v.unit}` : v.value;
 }
 

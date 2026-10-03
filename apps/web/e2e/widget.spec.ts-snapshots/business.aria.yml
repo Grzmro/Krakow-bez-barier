@@ -2,11 +2,11 @@
   - link "Wróć na stronę główną":
     - /url: /
   - heading "Dla firm" [level=1]
+  - text: Dane przykładowe
   - paragraph: Hotel albo organizator wydarzenia osadza na swojej stronie aktualną kartę dostępności — z faktami, źródłami i datami. Odwiedzający nie potrzebują konta.
   - heading "Podgląd na stronie obiektu" [level=2]
   - paragraph: Przykładowa strona hotelu. Poniżej działający widget w ramce iframe.
   - paragraph: hotel.przyklad.pl
-  - text: Dane przykładowe
   - paragraph: Hotel Przykład
   - paragraph: /Pokój dwuosobowy · \d+ zł \/ noc/
   - iframe

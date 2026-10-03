@@ -14,8 +14,12 @@
         - text: Potwierdzone
         - paragraph: /Dane obiektu · \d+\.\d+\.\d+/
       - listitem:
-        - paragraph: "Toaleta dostosowana: Jest"
+        - paragraph: "Winda: Jest"
         - text: Niezweryfikowane
+        - paragraph: /OpenStreetMap · \d+\.\d+\.\d+/
+      - listitem:
+        - paragraph: "Toaleta dostosowana: Jest"
+        - text: Potwierdzone
         - paragraph: /Dane obiektu · \d+\.\d+\.\d+/
       - listitem:
         - paragraph: "Przewijak: Brak danych"

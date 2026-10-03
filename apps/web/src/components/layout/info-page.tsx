@@ -5,7 +5,7 @@ import { pl } from "@/i18n/pl";
 import { routes } from "@/lib/routes";
 
 /** Secondary page from the menu: back link, one h1, then the content. Owns the skip-link target. */
-export function InfoPage({ title, children }: { title: string; children: ReactNode }) {
+export function InfoPage({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
   return (
     <main id="main" tabIndex={-1} className="mx-auto w-full max-w-xl flex-1 px-4 pt-3 pb-10 outline-none">
       <div className="flex items-center gap-2">
@@ -17,6 +17,7 @@ export function InfoPage({ title, children }: { title: string; children: ReactNo
           <ArrowLeft weight="bold" className="size-5" aria-hidden />
         </Link>
         <h1 className="min-w-0 flex-1 font-display text-h2 font-bold">{title}</h1>
+        {aside}
       </div>
       <div className="mt-2">{children}</div>
     </main>

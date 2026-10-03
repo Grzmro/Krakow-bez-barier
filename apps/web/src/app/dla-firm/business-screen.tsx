@@ -2,8 +2,8 @@
 
 import { useSyncExternalStore } from "react";
 import { Bed, Copy, LockSimple } from "@phosphor-icons/react";
+import { API_BASE_PATH } from "@krakow-bez-barier/contracts";
 import { Button, toast, useAnnounce } from "@krakow-bez-barier/ui";
-import { SampleTag } from "@/components/kbb";
 import { InfoSection } from "@/components/layout/info-page";
 import { pl } from "@/i18n/pl";
 import { routes } from "@/lib/routes";
@@ -85,7 +85,6 @@ export function BusinessScreen() {
               <LockSimple weight="fill" className="size-3.5 shrink-0" aria-hidden />
               <span className="truncate">{t.hotelUrl}</span>
             </p>
-            <SampleTag />
           </div>
           <div className="p-3">
             <div aria-hidden className="grid h-24 place-items-center rounded-2xl bg-primary-container text-primary">
@@ -110,7 +109,7 @@ export function BusinessScreen() {
 
       <InfoSection title={t.apiTitle}>
         <p className="text-body-sm text-foreground/85">{t.apiLead}</p>
-        <p className="mt-3 font-mono text-caption font-semibold break-all">{t.apiRequest(DEMO_PLACE_ID)}</p>
+        <p className="mt-3 font-mono text-caption font-semibold break-all">{`${t.apiMethod} ${API_BASE_PATH}/widget/${encodeURIComponent(DEMO_PLACE_ID)}`}</p>
         {widget.data ? (
           <CodeBlock code={JSON.stringify(widget.data, null, 2)} label={t.apiLabel} copyLabel={t.copyApi} />
         ) : (

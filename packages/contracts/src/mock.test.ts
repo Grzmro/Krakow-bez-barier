@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createApiClient } from "./index";
+import { createApiClient, responseExamples } from "./index";
 import { createMockFetch } from "./mock";
 
 const BASE_URL = "http://localhost/api/v1";
@@ -108,5 +108,44 @@ describe("createMockFetch", () => {
     // THEN it resolves to a problem response instead of rejecting
     expect(response.status).toBe(400);
     expect(response.headers.get("content-type")).toBe("application/problem+json");
+  });
+});
+
+describe("spec examples", () => {
+  it("give every getPlace example its own id, so the mocks never shadow one", () => {
+    // GIVEN the getPlace examples
+    const ids = Object.values(responseExamples.getPlace[200]).map((place) => place.id);
+
+    // THEN no two share an id
+    expect(ids.length).toBe(new Set(ids).size);
+  });
+
+  it("show the same facts in a widget card as on the place card with that id", () => {
+    // GIVEN every widget example and the place examples by id
+    const places = new Map(Object.values(responseExamples.getPlace[200]).map((p) => [p.id, p]));
+
+    for (const card of Object.values(responseExamples.getWidgetCard[200])) {
+      const place = places.get(card.placeId);
+      expect(place, `no getPlace example for ${card.placeId}`).toBeDefined();
+
+      // WHEN each widget fact is looked up on the place
+      for (const fact of card.facts) {
+        const attribute = place?.attributes.find((a) => a.attribute === fact.attribute);
+
+        // THEN value, status, source and date agree
+        expect({ id: card.placeId, attribute: fact.attribute, state: attribute?.state ?? "unknown" }).toEqual({
+          id: card.placeId,
+          attribute: fact.attribute,
+          state: fact.state,
+        });
+        if (fact.state !== "known") continue;
+        expect(attribute?.value).toEqual(fact.value);
+        expect(attribute?.status).toBe(fact.status);
+        const sourced = attribute?.facts.find((f) => f.source.name === fact.sourceName);
+        expect(sourced, `${card.placeId}.${fact.attribute} source`).toBeDefined();
+        expect(sourced?.fetchedAt).toBe(fact.fetchedAt);
+        expect(sourced?.reliability).toBe(fact.reliability);
+      }
+    }
   });
 });

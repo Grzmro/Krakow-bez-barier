@@ -26,6 +26,12 @@ test("the widget works embedded on a venue's own website, without an account", a
   await expect(facts.getByRole("listitem").filter({ hasText: "Szerokość drzwi" })).toContainText(
     /90 cm.*Potwierdzone.*Dane obiektu · 12\.09\.2026/,
   );
+  await expect(facts.getByRole("listitem").filter({ hasText: "Toaleta dostosowana" })).toContainText(
+    /Jest.*Potwierdzone.*Dane obiektu · 12\.09\.2026/,
+  );
+  await expect(facts.getByRole("listitem").filter({ hasText: "Winda" })).toContainText(
+    /Jest.*Niezweryfikowane.*OpenStreetMap/,
+  );
   const changing = facts.getByRole("listitem").filter({ hasText: "Przewijak" });
   await expect(changing).toContainText(/Brak danych.*Nikt jeszcze nie sprawdził\./);
   await expect(changing.locator("[data-reliability]")).toHaveAttribute("data-reliability", "unknown");
@@ -36,6 +42,8 @@ test("the widget works embedded on a venue's own website, without an account", a
   await expect(fullCard).toHaveAttribute("href", "/miejsca/hotel-przyklad");
   await expect(fullCard).toHaveAttribute("target", "_blank");
   await expect(widget.getByRole("button", { name: "Menu" })).toHaveCount(0);
+  // AND the app-wide sample banner gives way to the card's own PRZYKŁAD tag
+  await expect(widget.getByText(/prototyp, dane mogą być przykładowe/)).toHaveCount(0);
 });
 
 test("the widget page is accessible and keyboard-operable", async ({ page, expectAccessible, evidence }) => {
@@ -101,7 +109,9 @@ test("the widget's full card link opens the hotel's place card", async ({ page }
   // GIVEN the link target of the demo hotel's widget
   await page.goto("/miejsca/hotel-przyklad");
 
-  // THEN the full card shows the same hotel with its missing changing-table data
+  // THEN the full card shows the same hotel and the same facts as the widget
   await expect(page.getByRole("heading", { level: 1, name: "Hotel Przykład" })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Toaleta dostosowana.*Jest.*Potwierdzone/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Winda.*Jest.*Niezweryfikowane/ })).toBeVisible();
   await expect(page.getByRole("button", { name: /Przewijak.*Brak danych/ })).toBeVisible();
 });

@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { LiveRegionProvider, Providers, Toaster } from "@krakow-bez-barier/ui";
-import { SampleBanner } from "@/components/kbb";
+import { AppSampleBanner } from "@/components/layout/app-sample-banner";
 import { AppHeader } from "@/components/layout/app-header";
 import { PwaStatus } from "@/components/pwa/pwa-status";
 import { pl } from "@/i18n/pl";
@@ -33,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           {pl.common.layout.skipToContent}
         </a>
-        <SampleBanner />
+        <AppSampleBanner />
         <Providers>
           <LiveRegionProvider>
             <AppHeader />

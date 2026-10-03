@@ -24,7 +24,7 @@ import {
   VaulDrawerTrigger,
 } from "@krakow-bez-barier/ui";
 import { pl } from "@/i18n/pl";
-import { routes } from "@/lib/routes";
+import { isWidgetRoute, routes } from "@/lib/routes";
 import { NearMe } from "./near-me";
 
 const t = pl.common;
@@ -41,9 +41,8 @@ const MENU: { href: string; icon: Icon; title: string; sub: string }[] = [
 
 export function AppHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
-  // The widget is embedded in venue websites, where our navigation would be noise.
   const pathname = usePathname();
-  if (pathname.startsWith(routes.widget(""))) return null;
+  if (isWidgetRoute(pathname)) return null;
   return (
     <header className="sticky top-[env(safe-area-inset-top)] z-30 border-b border-border bg-background">
       <VaulDrawer open={menuOpen} onOpenChange={setMenuOpen}>

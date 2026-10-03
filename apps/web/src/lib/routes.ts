@@ -11,3 +11,6 @@ export const routes = {
   devComponents: "/dev/components",
   devNative: "/dev/native",
 } as const;
+
+/** The embeddable widget renders inside venue websites, without the app's chrome. */
+export const isWidgetRoute = (pathname: string) => pathname.startsWith(routes.widget(""));
