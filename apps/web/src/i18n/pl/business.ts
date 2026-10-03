@@ -34,6 +34,7 @@ export const business = {
     apiMethod: "GET",
     apiLabel: "Odpowiedź API dla tego hotelu",
     apiLoading: "Wczytujemy odpowiedź API…",
+    placeMissing: "Nie znaleźliśmy obiektu do pokazania — sprawdź identyfikator miejsca w adresie strony.",
     copyCode: "Kopiuj kod widgetu",
     copyApi: "Kopiuj odpowiedź API",
     copied: "Skopiowano do schowka",

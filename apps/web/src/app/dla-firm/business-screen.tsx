@@ -1,7 +1,7 @@
 "use client";
 
 import { Bed, LockSimple } from "@phosphor-icons/react";
-import { API_BASE_PATH } from "@krakow-bez-barier/contracts";
+import { API_BASE_PATH, type PlaceSummary } from "@krakow-bez-barier/contracts";
 import { InfoSection } from "@/components/layout/info-page";
 import { useMessages } from "@/i18n/client";
 import { formatAddress } from "@/lib/place-features";
@@ -22,18 +22,32 @@ function embedSnippet(origin: string, placeId: string, title: string) {
         loading="lazy"></iframe>`;
 }
 
-export function BusinessScreen() {
+type ShownPlace = Pick<PlaceSummary, "id" | "name" | "address">;
+
+export function BusinessScreen({ placeId: chosen }: { placeId?: string }) {
   const m = useMessages();
   const t = m.business.page;
   const origin = useOrigin();
-  const showcase = useShowcasePlace("hotel");
-  const hotel = showcase.place;
-  const widget = useWidgetCard(hotel?.id);
+  const showcase = useShowcasePlace("hotel", { enabled: !chosen });
+  const widget = useWidgetCard(chosen ?? showcase.place?.id);
+  // A place named in `?miejsce=` is shown once its widget card exists, so the page never embeds an unknown id.
+  const hotel: ShownPlace | undefined = chosen
+    ? widget.data
+      ? { id: chosen, name: widget.data.name }
+      : undefined
+    : showcase.place;
+  const lookup = chosen ? widget : showcase;
+  const noHotelText = lookup.isError
+    ? t.showcaseError
+    : lookup.isPending
+      ? t.showcaseLoading
+      : chosen
+        ? t.placeMissing
+        : t.showcaseNone;
   const iframeTitle = hotel ? t.iframeTitle(hotel.name) : "";
-  const noHotelText = showcase.isError ? t.showcaseError : showcase.isPending ? t.showcaseLoading : t.showcaseNone;
   // Only the first copy is a live region, so a screen reader hears the state once.
   const noHotel = (live: boolean) => (
-    <p role={live ? (showcase.isError ? "alert" : "status") : undefined} className="mt-3 text-body-sm text-muted-foreground">
+    <p role={live ? (lookup.isError ? "alert" : "status") : undefined} className="mt-3 text-body-sm text-muted-foreground">
       {noHotelText}
     </p>
   );

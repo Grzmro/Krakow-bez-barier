@@ -21,7 +21,7 @@ import { thresholdsFor } from "@/domain/profiles";
 import { isStale, resolveAttribute } from "@/domain/resolver";
 import { activeOutagesByPlace } from "@/server/outages/service";
 import { pendingReportsByAttribute, type ReportsStore } from "@/server/reports";
-import { localizeSourceText } from "@/server/sources";
+import { localizeSourceText, simulatedOutageIds, withSimulatedOutage } from "@/server/sources";
 import {
   createDbPlaceRepository,
   normalizeText,
@@ -43,8 +43,11 @@ export class InvalidQueryError extends Error {
   }
 }
 
-/** `locale`: language of chip labels and verdict reasons — the one the caller picked, Polish by default. */
-export type PlacesDeps = { repository?: PlaceRepository; now?: Date; locale?: Locale };
+/**
+ * `locale`: language of chip labels and verdict reasons — the one the caller picked, Polish by default.
+ * `simulated`: sources under the demo outage switch (`SIMULATE_SOURCE_OUTAGE`), shown failed here as on `GET /sources`.
+ */
+export type PlacesDeps = { repository?: PlaceRepository; now?: Date; locale?: Locale; simulated?: readonly string[] };
 
 // Describe a route segment, not a place (see the spec's AccessibilityAttribute).
 const ROUTE_ONLY: AccessibilityAttribute[] = ["stairs"];
@@ -104,6 +107,11 @@ function toSource(record: SourceRecord, locale: Locale): Source {
     isSample: record.isSample,
   };
   return localizeSourceText(source, locale);
+}
+
+function withOutages(records: FactRecord[], now: Date, simulated: readonly string[], locale: Locale): FactRecord[] {
+  if (!simulated.length) return records;
+  return records.map((r) => ({ ...r, source: withSimulatedOutage(r.source, now, simulated, locale) }));
 }
 
 export function resolvePlace(records: FactRecord[], now: Date): ResolvedAttribute[] {
@@ -215,7 +223,7 @@ function readBbox(bbox: number[] | undefined): [number, number, number, number] 
  * never does. Adds a profile verdict when `profile` is set.
  */
 export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}): Promise<PlaceList> {
-  const { repository = createDbPlaceRepository(), now = new Date(), locale = defaultLocale } = deps;
+  const { repository = createDbPlaceRepository(), now = new Date(), locale = defaultLocale, simulated = simulatedOutageIds() } = deps;
   const bbox = readBbox(query.bbox);
   const unknownCategory = query.category?.find((id) => !categories.some((c) => c.id === id));
   if (unknownCategory) {
@@ -236,7 +244,8 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
     bbox,
     near,
   });
-  const factsByPlace = Map.groupBy(await repository.activeFacts(candidates.map((p) => p.id)), (f) => f.placeId);
+  const facts = withOutages(await repository.activeFacts(candidates.map((p) => p.id)), now, simulated, locale);
+  const factsByPlace = Map.groupBy(facts, (f) => f.placeId);
 
   const matching = candidates
     .map((place) => {
@@ -313,11 +322,11 @@ function contact(place: PlaceRecord): Place["contact"] {
  * optional verdict that counts them.
  */
 export async function getPlace(id: string, query: GetPlaceQuery = {}, deps: PlacesDeps = {}): Promise<Place | null> {
-  const { repository = createDbPlaceRepository(), now = new Date(), locale = defaultLocale } = deps;
+  const { repository = createDbPlaceRepository(), now = new Date(), locale = defaultLocale, simulated = simulatedOutageIds() } = deps;
   const place = await repository.findPlace(id);
   if (!place) return null;
 
-  const records = await repository.activeFacts([place.id]);
+  const records = withOutages(await repository.activeFacts([place.id]), now, simulated, locale);
   const attributes = resolvePlace(records, now);
   const thresholds = thresholdsFor(query);
   const sources = [...new Map(records.map((r) => [r.source.id, r.source])).values()].map((record) => toSource(record, locale));

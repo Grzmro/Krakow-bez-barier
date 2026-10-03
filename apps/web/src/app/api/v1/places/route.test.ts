@@ -200,6 +200,23 @@ describe("GET /api/v1/places", () => {
     }
   });
 
+  it("shows the demo outage switch in the list's chips and verdicts, as on the place card", async () => {
+    // GIVEN the hotel meets every wheelchair need on city data only, and the operator simulates the city source's outage
+    vi.stubEnv("SIMULATE_SOURCE_OUTAGE", "msip");
+    try {
+      // WHEN listing with the wheelchair profile
+      const { body } = await list("?q=hotel&profile=wheelchair");
+
+      // THEN the hotel's city facts are outdated in the chips, and the verdict that is met on fresh data
+      // turns unknown instead of vouching for them
+      const [item] = body.items;
+      expect(item.summary).toContainEqual(expect.objectContaining({ attribute: "step_count", state: "stale", status: "outdated" }));
+      expect(item.verdict.state).toBe("unknown");
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("checks a facility need the profile switches on through its query parameter", async () => {
     // GIVEN the wheelchair profile, which doesn't ask for a bench by default
     // WHEN listing with requireBench=true

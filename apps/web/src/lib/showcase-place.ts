@@ -30,7 +30,7 @@ export function bestDocumented<T extends Pick<PlaceSummary, "summary" | "isSampl
  * A real place to show the widget and the API on: the best-documented place of `category` near the Rynek,
  * picked from whatever the data API serves, so the example never points at a place that isn't there.
  */
-export function useShowcasePlace(category: Category) {
-  const places = usePlaces({ category: [category], near: config.cityCenter, limit: SHOWCASE_CANDIDATES });
+export function useShowcasePlace(category: Category, { enabled = true }: { enabled?: boolean } = {}) {
+  const places = usePlaces({ category: [category], near: config.cityCenter, limit: SHOWCASE_CANDIDATES }, { enabled });
   return { ...places, place: places.data ? bestDocumented(places.data.items) : undefined };
 }

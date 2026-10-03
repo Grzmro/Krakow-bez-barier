@@ -35,6 +35,7 @@ export const business: Messages["business"] = {
     apiMethod: "GET",
     apiLabel: "API response for this hotel",
     apiLoading: "Loading the API response…",
+    placeMissing: "We couldn't find a venue to show — check the place ID in the page address.",
     copyCode: "Copy widget code",
     copyApi: "Copy API response",
     copied: "Copied to clipboard",

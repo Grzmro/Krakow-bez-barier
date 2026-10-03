@@ -1,0 +1,33 @@
+- main:
+  - link "Wróć na stronę główną":
+    - /url: /
+  - heading "Dla firm" [level=1]
+  - paragraph: Hotel albo organizator wydarzenia osadza na swojej stronie aktualną kartę dostępności — z faktami, źródłami i datami. Odwiedzający nie potrzebują konta.
+  - heading "Podgląd na stronie obiektu" [level=2]
+  - paragraph: Tak wyglądałaby strona hotelu z naszym widgetem. Poniżej działający widget w ramce iframe — z danymi tego hotelu, ze źródłami i datami.
+  - paragraph: strona-hotelu.example
+  - paragraph: /.+/
+  - iframe
+  - heading "Kod do wklejenia" [level=2]
+  - paragraph: Wklej na stronie obiektu. Widget pokazuje cechy, źródła, daty, statusy i atrybucję.
+  - region "Kod widgetu": "/<iframe src=\"http:\\/\\/localhost:\\d+\\/widget\\/[0-9a-fA-F-]+\" title=\"Dostępność: .+ — Kraków bez barier\"/"
+  - button "Kopiuj kod widgetu":
+    - img
+  - heading "Strona wydarzenia" [level=2]
+  - searchbox "Szukaj miejsca"
+  - combobox "Miejsce wydarzenia"
+  - textbox "Nazwa wydarzenia"
+  - textbox "Data wydarzenia"
+  - region "Link do strony wydarzenia": /http:\/\/localhost:\d+\/wydarzenie\/[0-9a-fA-F-]+/
+  - heading "API" [level=2]
+  - paragraph: API tylko do odczytu. Każda cecha ma źródło, datę i status wiarygodności.
+  - paragraph: /GET \/api\/v1\/widget\/[0-9a-fA-F-]+/
+  - region "Odpowiedź API dla tego hotelu": "/\"isSample\": false/"
+  - button "Kopiuj odpowiedź API":
+    - img
+  - heading "Dla obiektów" [level=2]
+  - term: Karta na stronie obiektu
+  - definition: /\d+ zł \/ mies\./
+  - term: Weryfikacja na miejscu
+  - definition: /od \d+ zł/
+  - paragraph: Ceny orientacyjne. Dane o dostępności pozostają otwarte i bezpłatne dla mieszkańców.

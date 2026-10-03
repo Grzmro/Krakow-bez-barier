@@ -1,3 +1,4 @@
+import { pl } from "../src/i18n/pl";
 import { expect, test } from "./fixtures";
 
 // The widget card comes from the openapi.yaml example served by the mock API (TODO(KBB-29)).
@@ -103,6 +104,18 @@ test("the business page previews the widget and copies the embed code", async ({
   await expect(page.getByRole("status").filter({ hasText: "Skopiowano do schowka" })).toBeAttached();
   const copied = await page.evaluate(() => navigator.clipboard.readText());
   expect(copied).toContain(`<iframe src="${new URL(page.url()).origin}/widget/hotel-przyklad"`);
+});
+
+test("the business page names an unknown place instead of a blank embed code", async ({ page }) => {
+  // GIVEN a sales link naming a place that doesn't exist
+  await page.goto("/dla-firm?miejsce=nie-ma-takiego");
+
+  // THEN the preview, the embed code and the API example say so, and no snippet is built from the id
+  await expect(page.getByRole("status").filter({ hasText: pl.business.page.placeMissing })).toBeVisible();
+  await expect(page.getByText(pl.business.page.placeMissing)).toHaveCount(3);
+  await expect(page.locator("iframe")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: pl.business.page.copyCode })).toHaveCount(0);
+  await expect(page.getByText(/GET \/api\/v1\/widget\//)).toHaveCount(0);
 });
 
 test("the widget's full card link opens the hotel's place card", async ({ page }) => {
