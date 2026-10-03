@@ -32,6 +32,8 @@ export interface BottomPanelProps {
   /** Text in the bar, e.g. the result count. */
   stowedSummary?: ReactNode;
   stowedHeight?: string;
+  /** Called with the panel's height (px) whenever it changes, every frame of a swipe or transition included. */
+  onHeightChange?: (height: number) => void;
 }
 
 /**
@@ -59,6 +61,7 @@ export function BottomPanel({
   stowLabels,
   stowedSummary,
   stowedHeight = "4.5rem",
+  onHeightChange,
 }: BottomPanelProps) {
   const canStow = Boolean(onStowedChange && stowLabels);
   const isStowed = canStow && stowed;
@@ -91,6 +94,17 @@ export function BottomPanel({
   const probeRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
   const scrollerRef = useRef<HTMLDivElement>(null);
+  const onHeight = useRef(onHeightChange);
+  useEffect(() => {
+    onHeight.current = onHeightChange;
+  });
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    const observer = new ResizeObserver(() => onHeight.current?.(panel.getBoundingClientRect().height));
+    observer.observe(panel);
+    return () => observer.disconnect();
+  }, []);
   const { rowHandlers, onClickCapture } = usePanelSwipe({ panelRef, probeRef, rowRef, scrollerRef, heights, order, current, settle });
   const style = { height: heights[current] } satisfies CSSProperties;
   return (

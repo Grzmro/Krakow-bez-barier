@@ -31,15 +31,19 @@ const LIST_ID = "lista";
 // One chip look for categories and feature filters; the scroll rows fade out at the right edge on a phone.
 const CHIP = "lg:h-8 lg:px-3 lg:text-[13px]";
 const CHIP_ROW = "no-scrollbar overflow-x-auto py-1.5 pr-10 [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] lg:flex-wrap lg:overflow-visible lg:pr-4 lg:[mask-image:none]";
-// Mobile: search and chips float over the map and the sheet covers its lower half. Desktop: the map has the right column to itself.
-const MAP_PADDING = { top: 150, bottom: 100 };
-// Stowed: only the zoom buttons sit above the bar, so the pins need little room below.
-const MAP_PADDING_STOWED = { top: 150, bottom: 60 };
+// Mobile: the map fills the screen; search and chips float over its top, the panel over its bottom (added as
+// `inset`), and the bottom value keeps the pins off the strip with the attribution above the panel.
+// Desktop: the map has the right column to itself.
+const MAP_PADDING = { top: 150, bottom: 64 };
 const MAP_PADDING_DESKTOP = { top: 48, bottom: 48 };
+// Waits for the panel to stop moving (a swipe, the height transition) before the map's padding follows it.
+const INSET_SETTLE_MS = 120;
+// The attribution and zoom buttons ride just above the panel (never above its half height: see `followPanel`).
+const CONTROLS_ABOVE_PANEL = "bottom-[calc(var(--panel-inset,0px)+0.75rem)] lg:bottom-9";
 const STOWED_KEY = "kbb-list-stowed";
 const STOWED_HEIGHT = "calc(4.5rem + env(safe-area-inset-bottom))";
 // Set on <main> as --list-collapsed: half the screen, but on a short phone (banners, browser toolbars) down to 40%,
-// so ~20rem stays for the map and its overlays. The map's bottom edge follows the same value.
+// so ~20rem stays for the map and its overlays. The map's padding and controls stop at the same value.
 const COLLAPSED_HEIGHT = "var(--list-collapsed)";
 const DESKTOP = "(min-width: 64rem)";
 
@@ -87,6 +91,30 @@ export function HomeScreen() {
   const listRef = useRef<HTMLDivElement>(null);
   const desktop = useMediaQuery(DESKTOP);
   const stowed = stowedFlag && !desktop;
+  const mainRef = useRef<HTMLElement>(null);
+  const collapsedRef = useRef<HTMLDivElement>(null);
+  const [panelInset, setPanelInset] = useState(0);
+  const insetTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const insetKnown = useRef(false);
+  useEffect(() => () => clearTimeout(insetTimer.current), []);
+
+  // Every frame of a swipe or transition: the map controls follow the panel at once (CSS variable, no render);
+  // the map's padding follows once the panel has settled.
+  function followPanel(height: number) {
+    const main = mainRef.current;
+    const probe = collapsedRef.current;
+    if (!main || !probe) return;
+    // The probe is not rendered on desktop, where the panel is a column beside the map, not over it.
+    const collapsed = probe.getClientRects().length ? probe.getBoundingClientRect().height : 0;
+    const inset = Math.round(Math.min(height, collapsed));
+    main.style.setProperty("--panel-inset", `${inset}px`);
+    clearTimeout(insetTimer.current);
+    // The first height is taken at once: the map fits the places to it as soon as it loads.
+    if (!insetKnown.current) {
+      insetKnown.current = true;
+      setPanelInset(inset);
+    } else insetTimer.current = setTimeout(() => setPanelInset(inset), INSET_SETTLE_MS);
+  }
 
   const area = position ? searchArea(position) : undefined;
   const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown, area };
@@ -214,6 +242,7 @@ export function HomeScreen() {
     // Full bleed: cancel the body's bottom safe-area padding so the map and sheet reach the screen edge;
     // the sheet pads its own content instead.
     <main
+      ref={mainRef}
       id="main"
       tabIndex={-1}
       data-fill-viewport
@@ -279,6 +308,7 @@ export function HomeScreen() {
         stowLabels={t.list.stow}
         stowedSummary={resultsLabel}
         stowedHeight={STOWED_HEIGHT}
+        onHeightChange={followPanel}
         headerClassName="lg:hidden"
         className="mx-auto max-w-xl pb-[env(safe-area-inset-bottom)] lg:static lg:col-start-1 lg:row-start-2 lg:mx-0 lg:h-auto! lg:max-w-none lg:rounded-none lg:border-r lg:border-border lg:pb-0 lg:shadow-none"
       >
@@ -416,15 +446,18 @@ export function HomeScreen() {
           )}
         </div>
       </BottomPanel>
-      <div
-        style={stowed ? { bottom: STOWED_HEIGHT } : undefined}
-        className="absolute inset-x-0 top-0 bottom-[calc(var(--list-collapsed)_-_24px)] transition-[bottom] duration-[420ms] ease-(--ease-out-soft) lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0"
-      >
+      {/* Resolves --list-collapsed in px: the map's padding and controls never rise above the half-height panel. */}
+      <div ref={collapsedRef} aria-hidden className="pointer-events-none invisible absolute bottom-0 left-0 h-(--list-collapsed) w-px lg:hidden" />
+      {/* Phone: the map fills the screen at every panel height and the panel lies over it, so it never resizes. */}
+      <div className="absolute inset-0 lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0">
         <PlaceMap
           places={mapPlaces}
           selectedId={selectedId}
           onSelect={selectFromMap}
-          padding={desktop ? MAP_PADDING_DESKTOP : stowed ? MAP_PADDING_STOWED : MAP_PADDING}
+          padding={desktop ? MAP_PADDING_DESKTOP : MAP_PADDING}
+          inset={desktop ? 0 : panelInset}
+          revealSelected={!desktop}
+          controlsClassName={CONTROLS_ABOVE_PANEL}
           you={origin}
           youLabel={chosenPlace}
         />

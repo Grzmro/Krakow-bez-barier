@@ -38,8 +38,9 @@ export async function markersSettled(page: Page) {
         .join("|"),
     );
   let last = "";
+  // While the full-screen software-GL map draws freshly loaded tiles, one sample can wait seconds for the main thread.
   await expect
-    .poll(async () => last === (last = await signature()) && last !== "", { message: "map keeps moving", intervals: [200] })
+    .poll(async () => last === (last = await signature()) && last !== "", { message: "map keeps moving", intervals: [200], timeout: 10_000 })
     .toBe(true);
 }
 
