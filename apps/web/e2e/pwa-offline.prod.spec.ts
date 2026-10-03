@@ -1,3 +1,4 @@
+import { routes } from "../src/lib/routes";
 import { expect, test } from "./fixtures";
 
 // Runs against `next start` (project chromium-prod): the service worker is production-only.
@@ -28,6 +29,10 @@ test("home page works offline after the first visit and says so", async ({
   });
   await page.reload();
   await expect(page.locator("main")).toBeVisible();
+  // AND the client router prefetched another page's RSC payload (what <Link> does)
+  await page.evaluate(async (path) => {
+    await fetch(`${path}?_rsc=prefetch`, { headers: { RSC: "1" } });
+  }, routes.privacy);
 
   // WHEN the connection drops and they open the app again
   await context.setOffline(true);
@@ -42,8 +47,8 @@ test("home page works offline after the first visit and says so", async ({
   await expectAccessible();
   await evidence("pwa-offline-home");
 
-  // AND a page that was never cached falls back to the offline page
-  await page.goto("/prywatnosc");
+  // AND a page that was only prefetched, never opened, falls back to the offline page (not RSC data)
+  await page.goto(routes.privacy);
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "offline.aria.yml" });
   await expectAccessible();
   await evidence("pwa-offline-fallback");

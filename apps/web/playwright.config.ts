@@ -1,5 +1,3 @@
-import { existsSync } from "node:fs";
-import path from "node:path";
 import { defineConfig, devices, type PlaywrightTestConfig } from "@playwright/test";
 
 const isCI = !!process.env.CI;
@@ -16,23 +14,26 @@ const port = Number(process.env.PORT ?? (isCI ? 3000 : worktreePort(__dirname)))
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${port}`;
 
 // Offline specs (*.prod.spec.ts) need the production service worker setup — the dev client doesn't
-// hydrate offline. Locally they run against `next start` of the last `npm run build` (the merge gate
-// builds right before e2e); without a build they're skipped with a warning.
+// hydrate offline. They run only on request (E2E_PROD=1, set by scripts/merge-pr.sh right after its
+// build) against `next start` of the current build, or against E2E_PROD_BASE_URL.
 const prodPort = port + 1000;
-const hasBuild = existsSync(path.join(__dirname, ".next", "BUILD_ID"));
-const prodURL = process.env.E2E_BASE_URL ?? (isCI ? baseURL : `http://localhost:${prodPort}`);
-const runProdSpecs = isCI || !!process.env.E2E_BASE_URL || hasBuild;
-if (!runProdSpecs) console.warn("e2e: no production build — skipping *.prod.spec.ts (run `npm run build` first)");
+const prodURL = process.env.E2E_PROD_BASE_URL ?? (isCI ? baseURL : `http://localhost:${prodPort}`);
+const runProdSpecs = process.env.E2E_PROD === "1" || !!process.env.E2E_PROD_BASE_URL;
+const startProdServer = runProdSpecs && !isCI && !process.env.E2E_PROD_BASE_URL;
 
 const device = { ...devices["Pixel 7"], browserName: "chromium" as const };
 const servers: PlaywrightTestConfig["webServer"] = [
-  {
-    command: isCI ? `npm run start -- --port ${port}` : `npm run dev -- --port ${port}`,
-    url: baseURL,
-    reuseExistingServer: !isCI,
-    timeout: 60_000,
-  },
-  ...(runProdSpecs && !isCI
+  ...(process.env.E2E_BASE_URL
+    ? []
+    : [
+        {
+          command: isCI ? `npm run start -- --port ${port}` : `npm run dev -- --port ${port}`,
+          url: baseURL,
+          reuseExistingServer: !isCI,
+          timeout: 60_000,
+        },
+      ]),
+  ...(startProdServer
     ? [{ command: `npm run start -- --port ${prodPort}`, url: prodURL, reuseExistingServer: false, timeout: 60_000 }]
     : []),
 ];
@@ -56,5 +57,5 @@ export default defineConfig({
     { name: "chromium", testIgnore: /\.prod\.spec\.ts$/, use: device },
     ...(runProdSpecs ? [{ name: "chromium-prod", testMatch: /\.prod\.spec\.ts$/, use: { ...device, baseURL: prodURL } }] : []),
   ],
-  webServer: process.env.E2E_BASE_URL ? undefined : servers,
+  webServer: servers,
 });

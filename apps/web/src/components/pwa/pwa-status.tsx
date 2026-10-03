@@ -7,8 +7,9 @@ import { pl } from "@/i18n/pl";
 import { offlineMessage } from "@/lib/pwa/offline-message";
 
 const t = pl.pwa;
-const SW_URL = "/sw.js";
-const LAST_SYNC_KEY = "/__kbb/last-sync";
+const SW_URL = `/sw.js?build=${process.env.NEXT_PUBLIC_SW_BUILD}`;
+// Set by public/sw.js on every page it stores.
+const CACHED_AT_HEADER = "x-kbb-cached-at";
 const INSTALL_DISMISSED_KEY = "kbb:install-dismissed";
 
 declare global {
@@ -75,10 +76,11 @@ function useOnline() {
   );
 }
 
-async function readLastSync(): Promise<string | null> {
+/** When the cached copy of the current page was fetched — the date of the data shown offline. */
+async function readCachedAt(): Promise<string | null> {
   if (!("caches" in window)) return null;
-  const response = await caches.match(LAST_SYNC_KEY).catch(() => undefined);
-  return response ? response.text() : null;
+  const response = await caches.match(location.origin + location.pathname + location.search).catch(() => undefined);
+  return response?.headers.get(CACHED_AT_HEADER) ?? null;
 }
 
 function OfflineBanner() {
@@ -89,9 +91,9 @@ function OfflineBanner() {
   useEffect(() => {
     if (online) return;
     let active = true;
-    void readLastSync().then((lastSync) => {
+    void readCachedAt().then((cachedAt) => {
       if (!active) return;
-      const text = offlineMessage(lastSync);
+      const text = offlineMessage(cachedAt);
       setMessage(text);
       announce(text);
     });

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ButtonLink } from "@/components/pwa/button-link";
+import { ButtonLink } from "@/components/button-link";
 import { pl } from "@/i18n/pl";
 import { routes } from "@/lib/routes";
 

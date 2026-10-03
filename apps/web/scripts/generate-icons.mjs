@@ -1,6 +1,6 @@
 // Renders the "Fiolet" app icons (PWA manifest + apple-touch-icon) to PNG with Playwright's Chromium.
 // Colors come from the light-theme tokens in packages/ui. Rerun after changing the mark or tokens:
-//   node apps/web/scripts/generate-icons.mjs
+//   npm run icons -w apps/web
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

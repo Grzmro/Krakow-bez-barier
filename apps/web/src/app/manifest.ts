@@ -14,7 +14,6 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: routes.home,
     scope: routes.home,
     display: "standalone",
-    orientation: "portrait",
     background_color: brandColors.background,
     theme_color: brandColors.primary,
     categories: ["navigation", "travel", "utilities"],

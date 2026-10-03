@@ -8,9 +8,9 @@ const dateFormat = new Intl.DateTimeFormat("pl-PL", {
   timeZone: "Europe/Warsaw",
 });
 
-/** Offline banner text for the moment the service worker last stored data (ISO string, or null). */
-export function offlineMessage(lastSync: string | null): string {
-  const date = lastSync ? new Date(lastSync) : null;
+/** Offline banner text for the moment the shown page was cached (ISO string, or null). */
+export function offlineMessage(cachedAt: string | null): string {
+  const date = cachedAt ? new Date(cachedAt) : null;
   if (!date || Number.isNaN(date.getTime())) return t.noDate;
   return t.withDate(dateFormat.format(date));
 }

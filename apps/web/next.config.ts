@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@krakow-bez-barier/contracts", "@krakow-bez-barier/ui"],
+  // Versions the service worker cache: each build registers /sw.js?build=<id> and drops older caches.
+  env: { NEXT_PUBLIC_SW_BUILD: process.env.VERCEL_DEPLOYMENT_ID ?? String(Date.now()) },
   async headers() {
     return [
       {
