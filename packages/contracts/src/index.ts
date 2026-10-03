@@ -1,5 +1,5 @@
 import createClient, { type ClientOptions } from "openapi-fetch";
-import type { components, paths } from "./generated/schema";
+import type { components, operations, paths } from "./generated/schema";
 
 export type { components, operations, paths } from "./generated/schema";
 
@@ -23,6 +23,14 @@ export type FactStatus = Schemas["FactStatus"];
 export type SourceKind = Schemas["SourceKind"];
 export type SourceRefreshStatus = Schemas["SourceRefreshStatus"];
 export type ReportStatus = Schemas["ReportStatus"];
+export type PlaceList = Schemas["PlaceList"];
+export type Verdict = Schemas["Verdict"];
+export type NeedResult = Schemas["NeedResult"];
+export type Need = Schemas["Need"];
+export type NeedVerdict = Schemas["NeedVerdict"];
+
+export type ListPlacesQuery = NonNullable<operations["listPlaces"]["parameters"]["query"]>;
+export type GetPlaceQuery = NonNullable<operations["getPlace"]["parameters"]["query"]>;
 
 /** Typed client for the v1 API. Defaults to same-origin `/api/v1`. */
 export function createApiClient(options: ClientOptions = {}) {
@@ -30,3 +38,6 @@ export function createApiClient(options: ClientOptions = {}) {
 }
 
 export { createMockFetch, type MockChoice, type MockFetchOptions, type OperationId } from "./mock";
+
+/** Response examples from `openapi.yaml`, typed against the spec — the source for front-end mocks. */
+export { responseExamples } from "./generated/examples";

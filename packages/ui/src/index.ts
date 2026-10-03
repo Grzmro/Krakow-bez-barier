@@ -5,6 +5,7 @@ export { STATUSES, RELIABILITIES, type Status, type Reliability } from "./types"
 
 export { Badge, badgeVariants } from "./components/badge";
 export { Button, buttonVariants } from "./components/button";
+export { LabeledSwitch, type LabeledSwitchProps } from "./components/labeled-switch";
 export { Toaster, toast } from "./components/sonner";
 export {
   VaulDrawer,

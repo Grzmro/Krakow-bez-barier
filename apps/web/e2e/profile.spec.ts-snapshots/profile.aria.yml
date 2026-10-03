@@ -1,0 +1,43 @@
+- main:
+  - heading "Kraków bez barier" [level=1]
+  - paragraph: Wyszukaj miejsce i zobacz, co wiemy o jego dostępności — i skąd to wiemy.
+  - text: Szukaj miejsca
+  - searchbox "Szukaj miejsca": przyk
+  - group "Profil potrzeb":
+    - text: ""
+    - radio "Profil wyłączony, widok dla każdego"
+    - text: Dla każdego
+    - radio "Wózek" [checked]
+    - text: Wózek
+    - radio "Wózek dziecięcy"
+    - text: Dziecięcy
+  - list "Liczba miejsc według wyniku":
+    - listitem: 1 Spełnia
+    - listitem: 0 Sprzeczne
+    - listitem: 1 Brak danych
+    - listitem: 0 Nie spełnia
+  - button "Progi profilu":
+    - img
+  - text: Ukryj niespełniające
+  - switch "Ukryj niespełniające" [checked]
+  - region "Miejsca · 2 miejsca":
+    - heading "Miejsca · 2 miejsca" [level=2]
+    - list:
+      - listitem:
+        - text: Spełnia · niepotwierdzone
+        - heading "Hotel Przykład" [level=3]
+        - paragraph: ul. Sienna 5
+        - text: Dane przykładowe
+        - button "Ukryj szczegóły" [expanded]
+        - heading "Pasuje (4)" [level=4]
+        - list:
+          - listitem: Wejście Spełnia
+          - listitem: Drzwi Spełnia
+          - listitem: Winda Spełnia · niepotwierdzone
+          - listitem: Toaleta dostosowana Spełnia
+      - listitem:
+        - text: Brak danych · wejście
+        - heading "Kawiarnia Przykład" [level=3]
+        - paragraph: /ul\. Floriańska \d+/
+        - text: Dane przykładowe
+        - button "Dlaczego?"
