@@ -25,8 +25,10 @@ never from code.
 Target: the web app and API on Vercel, Postgres with PostGIS on Neon, the ingest cron and
 database tasks on GitHub Actions. Steps marked **owner** need repository admin rights.
 
-1. **Database.** Create a Neon project (region AWS Europe, Frankfurt; Postgres 17). From the
-   connection dialog copy two strings: *Pooled connection* (for Vercel) and *Direct connection*
+1. **Database.** Sign up at https://neon.com (GitHub, Google or e-mail, no card for the free tier;
+   the service was formerly at neon.tech) and create a Neon project (region AWS Europe, Frankfurt; Postgres 17). From the
+   **Connect** dialog (Project Dashboard; the *Connection pooling* toggle switches between the two
+   strings, see https://neon.com/docs/connect/connection-pooling) copy two strings: *Pooled connection* (for Vercel) and *Direct connection*
    (for GitHub Actions); the pooled host contains `-pooler`. Keep `?sslmode=require`; a trailing
    `&channel_binding=require` is harmless (the client drops it). PostGIS is created by the first
    migration (`CREATE EXTENSION postgis`), nothing to enable by hand.
