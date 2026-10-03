@@ -91,9 +91,11 @@ describe("GET /api/v1/moderation/reports", () => {
     expect(page.items[0]).toMatchObject({
       placeName: "Podziemia Rynku",
       currentValue: { kind: "boolean", boolean: true },
+      currentSource: { name: "OpenStreetMap", asOf: "2026-10-01T00:00:00.000Z" },
       history: [],
     });
     expect(page.items[1].currentValue).toBeNull();
+    expect(page.items[1].currentSource).toBeNull();
 
     // AND the cursor leads to the last report
     const next = await (await list(`?status=new&limit=2&cursor=${page.nextCursor}`)).json();

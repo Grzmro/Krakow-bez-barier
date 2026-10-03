@@ -19,7 +19,10 @@ const PAGE_SIZE = 100;
 const bearer = (token: string) => ({ authorization: `Bearer ${token}` });
 
 class StatusError extends Error {
-  constructor(readonly status: number) {
+  constructor(
+    readonly status: number,
+    readonly retryAfter: string | null = null,
+  ) {
     super(`HTTP ${status}`);
   }
 }
@@ -61,7 +64,7 @@ async function fetchReports(token: string): Promise<ModerationReport[]> {
       params: { query: { limit: PAGE_SIZE, cursor } },
       headers: bearer(token),
     });
-    if (!data) throw new StatusError(response.status);
+    if (!data) throw new StatusError(response.status, response.headers.get("retry-after"));
     items.push(...data.items);
     cursor = data.nextCursor ?? undefined;
   } while (cursor);
@@ -188,7 +191,8 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
   const [note, setNote] = useState("");
   const noteId = useId();
   const noteHintId = useId();
-  const queryKey = ["moderation", "reports", token];
+  // Sign-out removes every "moderation" query, so the token itself stays out of the cache key.
+  const queryKey = ["moderation", "reports"];
 
   const query = useQuery({ queryKey, queryFn: () => fetchReports(token), retry: false });
   const expired = query.error instanceof StatusError && query.error.status === 401;
@@ -197,9 +201,24 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
     if (expired) onSignOut(t.sessionExpired);
   }, [expired, onSignOut]);
 
+  const loadError =
+    query.error instanceof StatusError && query.error.status === 429
+      ? t.loadLockedOut(retryMinutes(query.error.retryAfter))
+      : t.loadFailed;
+  useEffect(() => {
+    if (query.isError && !expired) announce(loadError);
+  }, [announce, query.isError, expired, loadError]);
+
   const reports = query.data ?? [];
   const open = reports.filter(isOpen);
   const current = open.find((r) => r.id === selected) ?? open[0];
+
+  // The note belongs to one report: switching reports (by click or after a refresh) starts it empty.
+  const [noteFor, setNoteFor] = useState(current?.id);
+  if (noteFor !== current?.id) {
+    setNoteFor(current?.id);
+    setNote("");
+  }
 
   // Only the first load: after a decision its own message is the one to hear.
   const announcedLoad = useRef(false);
@@ -219,7 +238,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
       return data;
     },
     onSuccess: (_report, { decision }) => {
-      const message = t.decided[decision];
+      const message = (isMockApi ? t.decidedMock : t.decided)[decision];
       toast(message);
       announce(message);
       setNote("");
@@ -248,7 +267,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
   if (query.isError) {
     return (
       <div className="mt-4 rounded-[20px] bg-status-barrier-bg p-4 text-body-sm text-status-barrier">
-        <p>{t.loadFailed}</p>
+        <p>{loadError}</p>
         <Button variant="outline" className="mt-3" onClick={() => query.refetch()}>
           {t.retry}
         </Button>
@@ -323,6 +342,9 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
                 <dt className="text-caption text-muted-foreground">{t.before}</dt>
                 <dd className={cn("mt-1 text-body-sm font-semibold", !preview.beforeKnown && "text-muted-foreground")}>
                   {preview.before}
+                  {preview.beforeSource ? (
+                    <span className="mt-1 block text-caption font-normal text-muted-foreground">{preview.beforeSource}</span>
+                  ) : null}
                 </dd>
               </div>
               <div className="rounded-2xl bg-card p-3 ring-2 ring-primary">
@@ -410,7 +432,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
               <li key={entry.key} className="flex items-start gap-3 px-4 py-3 text-caption">
                 <span className="min-w-0 flex-1">
                   <span className="block font-semibold text-foreground">
-                    {entry.placeName} · {entry.attribute} → {entry.value}
+                    {entry.summary}
                   </span>
                   <span className="block text-muted-foreground">
                     {t.historyEntry(entry.moderator, formatDateTime(entry.decidedAt))}

@@ -37,6 +37,7 @@ export const moderator = {
   after: "Po zatwierdzeniu",
   afterSource: "Źródło: Społeczność, zweryfikowane przez moderatora",
   noData: "Brak danych",
+  sourceLine: (source: string, date: string) => `${source} · ${date}`,
   reportedOn: (date: string) => `Zgłoszone ${date}`,
   comment: "Komentarz zgłaszającego",
   note: "Notatka do decyzji (opcjonalnie)",
@@ -50,11 +51,22 @@ export const moderator = {
     rejected: "Odrzucone. Zgłoszenie znika z widoku publicznego.",
     needs_info: "Oznaczone „Do wyjaśnienia”. Zgłoszenie zostaje w kolejce.",
   } satisfies Record<ModerationDecisionKind, string>,
+  // Mock mode: decisions change only the example queue, never a place card.
+  decidedMock: {
+    accepted: "Zatwierdzone (tryb przykładowy — karta miejsca się nie zmieni).",
+    rejected: "Odrzucone (tryb przykładowy — nic nie trafia na serwer).",
+    needs_info: "Oznaczone „Do wyjaśnienia” (tryb przykładowy). Zgłoszenie zostaje w kolejce.",
+  } satisfies Record<ModerationDecisionKind, string>,
   alreadyDecided: "Ktoś już podjął decyzję w tej sprawie. Odświeżyłem kolejkę.",
   decideFailed: "Nie udało się zapisać decyzji. Spróbuj ponownie.",
   history: "Historia zmian",
   historyEmpty: "Jeszcze nie ma decyzji.",
   historyEntry: (moderatorName: string, date: string) => `${moderatorName} · ${date}`,
+  historySummary: {
+    accepted: (place: string, attribute: string, value: string) => `${place} · ${attribute} → ${value}`,
+    reported: (place: string, attribute: string, value: string) => `${place} · ${attribute} · zgłoszono: ${value}`,
+  },
+  loadLockedOut: (minutes: number) => `Za dużo nieudanych prób. Kolejka będzie dostępna za ${minutes} min.`,
   status: {
     new: "Oczekuje",
     needs_info: "Do wyjaśnienia",

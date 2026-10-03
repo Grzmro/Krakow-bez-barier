@@ -50,27 +50,39 @@ test("approving a report from the keyboard moves it from the queue to the histor
   const main = page.locator("main");
   await expect(page.getByRole("heading", { name: "Kolejka zgłoszeń (2)" })).toBeVisible();
 
-  // THEN the first report is previewed: what the card says now and what it will say, with the new source
+  // THEN the first report is previewed: what the card says now with its source and date, and what it will say
   await expect(page.getByRole("heading", { name: "Podziemia Rynku · Winda" })).toBeVisible();
-  await expect(main).toContainText("TerazJest");
+  await expect(main).toContainText("TerazJestOpenStreetMap · 14.05.2026");
   await expect(main).toContainText("Po zatwierdzeniuNie ma");
   await expect(main).toContainText("Źródło: Społeczność, zweryfikowane przez moderatora");
   // AND the earlier "Do wyjaśnienia" decision on the hotel report is in the history with who and when
   const history = page.locator("section").filter({ has: page.getByRole("heading", { name: "Historia zmian" }) });
-  await expect(history).toContainText("Hotel Przykład · Szerokość drzwi → 90 cm");
+  // AND a decision other than approval shows what was reported, not a change
+  await expect(history).toContainText("Hotel Przykład · Szerokość drzwi · zgłoszono: 90 cm");
   await expect(history).toContainText("anna ·");
   await expect(main).toMatchAriaSnapshot({ name: "moderator-queue.aria.yml" });
   await expectAccessible();
   await evidence("moderator-queue");
 
-  // WHEN the moderator adds a note and approves with the keyboard
-  await page.getByLabel("Notatka do decyzji (opcjonalnie)").fill("Sprawdzone na miejscu.");
+  // WHEN a note typed for one report is left behind by opening another
+  const note = page.getByLabel("Notatka do decyzji (opcjonalnie)");
+  await note.fill("Notatka do hotelu");
+  await page.getByRole("button", { name: /^Hotel Przykład/ }).click();
+
+  // THEN the other report starts with an empty note
+  await expect(page.getByRole("heading", { name: "Hotel Przykład · Szerokość drzwi" })).toBeVisible();
+  await expect(note).toHaveValue("");
+
+  // WHEN the moderator goes back, adds a note and approves with the keyboard
+  await page.getByRole("button", { name: /^Podziemia Rynku/ }).click();
+  await note.fill("Sprawdzone na miejscu.");
   await page.keyboard.press("Tab");
   await expect(page.getByRole("button", { name: "Zatwierdź" })).toBeFocused();
   await page.keyboard.press("Enter");
 
   // THEN the decision is announced, the report leaves the queue and focus returns to the queue heading
-  await expect(page.getByRole("status").filter({ hasText: /^Zatwierdzone\./ })).toBeAttached();
+  // (mock mode says the place card does not change)
+  await expect(page.getByRole("status").filter({ hasText: /^Zatwierdzone \(tryb przykładowy/ })).toBeAttached();
   const queueHeading = page.getByRole("heading", { name: "Kolejka zgłoszeń (1)" });
   await expect(queueHeading).toBeFocused();
   await expect(page.getByRole("heading", { name: "Podziemia Rynku · Winda" })).toHaveCount(0);

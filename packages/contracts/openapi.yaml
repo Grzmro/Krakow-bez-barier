@@ -645,6 +645,9 @@ paths:
                       currentValue:
                         kind: boolean
                         boolean: true
+                      currentSource:
+                        name: OpenStreetMap
+                        asOf: '2026-05-14T00:00:00Z'
                       comment: Winda nie działa od tygodnia.
                       photoUrl: null
                       status: new
@@ -660,6 +663,7 @@ paths:
                         number: 90
                         unit: cm
                       currentValue: null
+                      currentSource: null
                       comment: Zmierzone taśmą.
                       photoUrl: null
                       status: needs_info
@@ -1991,6 +1995,21 @@ components:
             description: Value currently shown for the attribute, for comparison.
             oneOf:
             - $ref: '#/components/schemas/FactValue'
+            - type: 'null'
+          currentSource:
+            description: Where `currentValue` comes from — the source of the fact behind it and that fact's
+              date (confirmed, else observed, else fetched); null when there is no current value.
+            oneOf:
+            - type: object
+              required:
+              - name
+              - asOf
+              properties:
+                name:
+                  type: string
+                asOf:
+                  type: string
+                  format: date-time
             - type: 'null'
     ModerationDecision:
       type: object

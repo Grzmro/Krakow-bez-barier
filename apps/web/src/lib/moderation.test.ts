@@ -25,7 +25,13 @@ describe("changePreview", () => {
     const preview = changePreview(report());
 
     // THEN the card goes from "Brak danych" to the reported width
-    expect(preview).toEqual({ attribute: "Szerokość drzwi", before: "Brak danych", after: "85 cm", beforeKnown: false });
+    expect(preview).toEqual({
+      attribute: "Szerokość drzwi",
+      before: "Brak danych",
+      beforeSource: null,
+      after: "85 cm",
+      beforeKnown: false,
+    });
   });
 
   it("formats the current and the reported value of a yes/no attribute", () => {
@@ -87,7 +93,8 @@ describe("moderationHistory", () => {
       ["b", "rejected", "anna"],
       ["a", "needs_info", "anna"],
     ]);
-    expect(history[1]).toMatchObject({ placeName: "Sukiennice", attribute: "Szerokość drzwi", value: "85 cm" });
+    expect(history[0].summary).toBe("Podziemia Rynku · Szerokość drzwi → 85 cm");
+    expect(history[1].summary).toBe("Sukiennice · Szerokość drzwi · zgłoszono: 85 cm");
     expect(new Set(history.map((h) => h.key)).size).toBe(3);
   });
 });

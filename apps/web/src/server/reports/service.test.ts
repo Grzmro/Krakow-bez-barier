@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { bool, fact, NOW } from "@/server/domain/fixtures";
 import { HttpError } from "@/server/http";
 import { createMemoryReportsStore } from "./memory-store";
-import { checkReportValue, decodeCursor, encodeCursor, pendingReportsByAttribute, redactContactData } from "./service";
+import { checkReportValue, currentOf, decodeCursor, encodeCursor, pendingReportsByAttribute, redactContactData } from "./service";
 
 describe("redactContactData", () => {
   it("removes e-mail addresses and phone numbers but keeps measurements", () => {
@@ -82,5 +83,31 @@ describe("pendingReportsByAttribute", () => {
     // THEN each attribute lists its unverified report
     expect(grouped.get("lift")).toEqual([expect.objectContaining({ status: "new", value: { kind: "boolean", boolean: false } })]);
     expect(grouped.get("step_count")).toHaveLength(1);
+  });
+});
+
+describe("currentOf", () => {
+  it("cites the fresh fact the card shows, not an older one with the same value", () => {
+    // GIVEN an old city audit and a fresh OpenStreetMap tag that agree the lift exists
+    const audit = fact("lift", bool(true), { sourceId: "city", reliability: "confirmed", observedAt: "2024-01-10T00:00:00Z" });
+    const osm = fact("lift", bool(true), { sourceId: "osm", observedAt: "2026-05-14T00:00:00Z" });
+
+    // WHEN the moderation queue shows the current value
+    const current = currentOf("lift", [audit, osm], NOW);
+
+    // THEN it comes with the source and date of the fresh fact
+    expect(current).toEqual({
+      currentValue: { kind: "boolean", boolean: true },
+      currentSource: { name: "osm", asOf: "2026-05-14T00:00:00Z" },
+    });
+  });
+
+  it("has no source when the card has no value", () => {
+    // GIVEN facts that disagree
+    const facts = [fact("lift", bool(true), { sourceId: "osm" }), fact("lift", bool(false), { sourceId: "city" })];
+
+    // WHEN / THEN a conflict has neither a value nor a source
+    expect(currentOf("lift", facts, NOW)).toEqual({ currentValue: null, currentSource: null });
+    expect(currentOf("lift", [], NOW)).toEqual({ currentValue: null, currentSource: null });
   });
 });

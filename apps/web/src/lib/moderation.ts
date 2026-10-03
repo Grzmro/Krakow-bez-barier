@@ -4,7 +4,7 @@ import type {
   ReportStatus,
 } from "@krakow-bez-barier/contracts";
 import { pl } from "@/i18n/pl";
-import { formatValue, joinValue } from "./place-facts";
+import { formatDate, formatValue, joinValue } from "./place-facts";
 
 const t = pl.moderator;
 
@@ -14,13 +14,22 @@ export const OPEN_STATUSES: readonly ReportStatus[] = ["new", "needs_info"];
 export const isOpen = (report: Pick<ModerationReport, "status">) => OPEN_STATUSES.includes(report.status);
 
 /** "What changes on the card": the value shown now and the one an accepted report puts there. */
-export type ChangePreview = { attribute: string; before: string; after: string; beforeKnown: boolean };
+export type ChangePreview = {
+  attribute: string;
+  before: string;
+  /** "<source> · <date>" of the value shown now; null when there is none. */
+  beforeSource: string | null;
+  after: string;
+  beforeKnown: boolean;
+};
 
 export function changePreview(report: ModerationReport): ChangePreview {
   const current = report.currentValue ?? null;
+  const source = report.currentSource ?? null;
   return {
     attribute: pl.common.attribute[report.attribute],
     before: current ? joinValue(formatValue(report.attribute, current)) : t.noData,
+    beforeSource: current && source ? t.sourceLine(source.name, formatDate(source.asOf)) : null,
     after: joinValue(formatValue(report.attribute, report.value)),
     beforeKnown: current !== null,
   };
@@ -29,9 +38,8 @@ export function changePreview(report: ModerationReport): ChangePreview {
 export type HistoryEntry = ModerationEvent & {
   key: string;
   reportId: string;
-  placeName: string;
-  attribute: string;
-  value: string;
+  /** Place, attribute and value — as a change for an approval, as what was reported otherwise. */
+  summary: string;
 };
 
 /** Every decision across the reports — who, what and when — newest first. */
@@ -42,9 +50,11 @@ export function moderationHistory(reports: ModerationReport[]): HistoryEntry[] {
         ...event,
         key: `${report.id}-${i}`,
         reportId: report.id,
-        placeName: report.placeName,
-        attribute: pl.common.attribute[report.attribute],
-        value: joinValue(formatValue(report.attribute, report.value)),
+        summary: t.historySummary[event.decision === "accepted" ? "accepted" : "reported"](
+          report.placeName,
+          pl.common.attribute[report.attribute],
+          joinValue(formatValue(report.attribute, report.value)),
+        ),
       })),
     )
     .sort((a, b) => Date.parse(b.decidedAt) - Date.parse(a.decidedAt));
