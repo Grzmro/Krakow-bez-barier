@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, type ReactNode } from "react";
-import { CaretDown, ClockCounterClockwise } from "@phosphor-icons/react";
+import { ArrowSquareOut, CaretDown, ClockCounterClockwise } from "@phosphor-icons/react";
 import { cn } from "../cn";
 import type { Reliability, Status } from "../types";
 import { ReliabilityBadge, StatusBadge } from "./status";
@@ -17,6 +17,10 @@ export interface FactSource {
   detail?: string;
   /** Staleness warning, e.g. "Może być nieaktualne · 2021-05-04". */
   staleNote?: string;
+  /** What the source says, e.g. the quoted sentence a fact was read from. */
+  note?: string;
+  /** The page the fact comes from, e.g. { href: "https://www.bip.krakow.pl/?mmi=1", label: "Strona źródła" }. */
+  link?: { href: string; label: string };
 }
 
 export interface FactRowLabels {
@@ -145,6 +149,16 @@ export function FactRow({
                     <ClockCounterClockwise className="size-3.5" aria-hidden />
                     {s.staleNote}
                   </span>
+                ) : null}
+                {s.note ? <span className="mt-0.5 text-foreground/85">{s.note}</span> : null}
+                {s.link ? (
+                  <a
+                    href={s.link.href}
+                    className="inline-flex min-h-6 items-center gap-1 self-start font-semibold text-primary underline underline-offset-2"
+                  >
+                    {s.link.label}
+                    <ArrowSquareOut weight="bold" className="size-3.5" aria-hidden />
+                  </a>
                 ) : null}
               </li>
             ))}
