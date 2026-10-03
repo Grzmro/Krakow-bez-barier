@@ -8,7 +8,8 @@ description: Commit the relevant changes, push the branch and open (or update) a
 ## 1. Pre-flight
 
 - Not on `main`. If you are, stop and create a branch (`<type>/KBB-<n>`) — never push to `main`.
-- Build, lint, typecheck and tests of affected apps pass.
+- Build, lint, typecheck and unit tests of affected apps pass, plus the e2e specs of the screens you
+  changed (`npm run test:e2e -- e2e/<screen>.spec.ts`; not the full suite).
 - No debug logs, no secrets, no `.env` in the diff.
 
 ## 2. Commit

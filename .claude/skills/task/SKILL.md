@@ -64,9 +64,13 @@ Follow `AGENTS.md` hard rules. Small, coherent commits as you go (see `ship` for
 
 ## 5. Verify
 
-- Build, lint, typecheck and tests of every affected app pass (commands in root `AGENTS.md` → Commands).
+- Build, lint, typecheck and unit tests of every affected app pass (commands in root `AGENTS.md` → Commands).
 - New business logic and endpoints have tests (`// GIVEN` / `// WHEN` / `// THEN`).
-- **UI changed → Playwright smoke** (`npm run test:e2e`): add or extend a spec in `apps/web/e2e/`
+- **E2E: only the specs of the screens you changed** — `npm run test:e2e -- e2e/<screen>.spec.ts`
+  (add `E2E_PROD=1` after `npm run build` for a `*.prod.spec.ts`). Never the full suite by default:
+  parallel agents share this machine. Changed a shared component (`packages/ui`, `components/`)?
+  Run the specs of the screens that use it. Note the specs you ran — step 8 passes them to the merge.
+- **UI changed → Playwright smoke**: add or extend a spec in `apps/web/e2e/`
   that imports `test`/`expect` from `./fixtures` and, for your screen:
   - clicks the main path (open, key interaction, keyboard-only pass);
   - `toMatchAriaSnapshot({ name: "<screen>.aria.yml" })` on `main` — the structure check
@@ -104,15 +108,23 @@ Merge only when **all** gates are green; otherwise leave the PR open and say why
 GitHub's merge queue isn't available on this repo, so use the soft queue script:
 
 ```bash
-scripts/merge-pr.sh   # rebase → full local gate (lint, typecheck, unit, build, e2e) → push
-                      # → fast CI green on that exact commit → main unchanged? → merge
+E2E_SPECS="e2e/route.spec.ts e2e/home.spec.ts" scripts/merge-pr.sh
+  # rebase → local gate (lint, typecheck, unit, build, e2e of the given specs) → push
+  # → fast CI green on that exact commit → main unchanged? → merge
 ```
 
 CI only runs lint, typecheck and unit tests (fast); build and e2e run on this machine inside the
-script, on the rebased commit. It retries up to 3 rounds when `main` moves and exits non-zero (PR
+script, on the rebased commit. **E2E runs only the specs of the screens you changed**: pass them in
+`E2E_SPECS` (paths relative to `apps/web`, no globs, or as arguments after the PR number). The script
+adds the spec files changed vs `origin/main` (incl. their `-snapshots/`), and stops with an error
+when the change can affect the UI — `apps/web` code (server and API too), public files, e2e helpers or
+config, `packages/ui`, `packages/contracts` — but no spec is selected (an API-only change: name e.g.
+`e2e/public-api.spec.ts`). A `*.prod.spec.ts` in
+the list runs with `E2E_PROD=1` on the fresh build. `scripts/merge-pr.sh --print-specs` shows the
+selection without running anything. It retries up to 3 rounds when `main` moves and exits non-zero (PR
 stays open) on a rebase conflict, a red local gate or red CI. Fix, then run it again. Don't merge
 by hand around it. Working on a differently named local branch (the PR's branch is checked out in
-another worktree)? Pass the PR number: `scripts/merge-pr.sh 42`.
+another worktree)? Pass the PR number: `E2E_SPECS="…" scripts/merge-pr.sh 42`.
 
 **Evidence:** before merging, attach the main evidence screenshot(s) from
 `apps/web/test-results/evidence/` to the Linear task (`prepare_attachment_upload` →
