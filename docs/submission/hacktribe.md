@@ -4,7 +4,8 @@
 > [features.md](features.md)). Liczby oznaczone „szacunek” to nasze wyliczenia; resztę podajemy ze źródłem.
 >
 > **Przed wysłaniem uzupełnić (PLACEHOLDER):** `[ID zespołu]`, `[link do demo]`, `[link do filmu MP4]`,
-> `[link do repozytorium]` (sprawdzić, czy repozytorium jest publiczne), `[link do PDF]`.
+> `[link do repozytorium]` (sprawdzić, czy repozytorium jest publiczne), `[link do PDF]`,
+> `[MODERATOR_DEMO_TOKEN]` (sekcja „Instructions on how to open project”).
 
 ## ID zespołu
 
@@ -92,6 +93,23 @@ Kierunki rozwoju: kolejne profile (osoba z bagażem, osoby niewidome), dostępne
 - **Kolejne miasto:** plik konfiguracyjny (obszar OSM, lokalne zbiory danych z potwierdzoną licencją, kategorie) — działa już w kodzie, przykład Wrocław; partner lokalny (NGO lub uczelnia), finansowanie audytów pierwszych ~100 obiektów; cel 2–4 tygodnie wdrożenia (szacunek).
 
 Pełne materiały w repozytorium: `docs/submission/features.md` (wykaz funkcji), `docs/submission/privacy-security.md` (ochrona danych), `docs/submission/operations.md` (utrzymanie poza UMK), `docs/data-sources.md` (rejestr źródeł), `docs/deployment.md` (zależności, licencje, kolejne miasto).
+
+## Instructions on how to open project
+
+Tekst do pola „Instructions on how to open project”. Token konta demo to wartość `MODERATOR_DEMO_TOKEN`
+z Vercela (16+ znaków, np. `openssl rand -hex 12`) — wpisujemy ją tylko w formularz, nigdy do repozytorium.
+
+> Aplikacja działa w przeglądarce bez logowania: **[link do demo — PLACEHOLDER]**.
+> Panel moderatora dla jury: **[link do demo]/moderator** → w pole „Token moderatora” wklej
+> **[MODERATOR_DEMO_TOKEN — PLACEHOLDER]** → „Zaloguj”. To konto demonstracyjne (tak je oznaczamy w panelu):
+> decyzje działają naprawdę — zatwierdzone zgłoszenie od razu zmienia kartę miejsca (link „Zobacz na karcie”
+> w historii), ze źródłem „Konto demonstracyjne moderatora (zmiana tymczasowa)” — a po 30 minutach cofamy je
+> automatycznie, żeby nie zmieniać danych na stałe. Przez ten czas całe miejsce ma oznaczenie „PRZYKŁAD” (na karcie,
+> liście, stronie wydarzenia i w widżecie), bo źródło demonstracyjne traktujemy jak dane przykładowe. Ścieżka: otwórz
+> dowolne miejsce → „To się nie zgadza” albo „Uzupełnij” → wyślij zgłoszenie → panel moderatora → w kolejce wybierz
+> swoje zgłoszenie (najnowsze jest na końcu listy; kolejka zawiera też prawdziwe zgłoszenia innych osób) →
+> „Zatwierdź” → „Zobacz na karcie”.
+> Po 5 błędnych tokenach panel blokuje się na 15 minut.
 
 ## Linki
 

@@ -41,6 +41,7 @@ export type ConfirmationCreate = Schemas["ConfirmationCreate"];
 export type PendingReport = Schemas["PendingReport"];
 export type ModerationReport = Schemas["ModerationReport"];
 export type ModerationDecision = Schemas["ModerationDecision"];
+export type ModeratorSession = Schemas["ModeratorSession"];
 export type ModerationDecisionKind = Schemas["ModerationDecisionKind"];
 export type ModerationEvent = Schemas["ModerationEvent"];
 export type RouteRequest = Schemas["RouteRequest"];

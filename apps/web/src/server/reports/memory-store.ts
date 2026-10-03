@@ -1,5 +1,6 @@
 import type { AccessibilityFact } from "@krakow-bez-barier/contracts";
 import { randomUUID } from "node:crypto";
+import { DEMO_MODERATED_SOURCE } from "./demo";
 import { COMMUNITY_MODERATED_SOURCE } from "./drizzle-store";
 import type { ConfirmationRecord, ModerationEventRecord, ReportRecord, ReportsStore } from "./store";
 
@@ -61,7 +62,7 @@ export function createMemoryReportsStore(seed: { places?: MemoryPlace[]; facts?:
             .map(({ decision, note, moderator, createdAt }) => ({ decision, note, moderator, createdAt })),
         }));
     },
-    async decide({ reportId, decision, note, moderator, at, toFact }) {
+    async decide({ reportId, decision, note, moderator, demo, at, toFact }) {
       const report = reports.find((r) => r.id === reportId);
       if (!report) return { kind: "not_found" };
       if (report.status === "accepted" || report.status === "rejected") return { kind: "final", status: report.status };
@@ -70,9 +71,10 @@ export function createMemoryReportsStore(seed: { places?: MemoryPlace[]; facts?:
       log.push({ reportId, decision, note, moderator, createdAt: at });
       if (decision === "accepted") {
         const fact = toFact({ ...report });
+        const moderatedSource = demo ? DEMO_MODERATED_SOURCE : COMMUNITY_MODERATED_SOURCE;
         for (const old of facts) {
           if (
-            old.source.id === COMMUNITY_MODERATED_SOURCE.id &&
+            old.source.id === moderatedSource.id &&
             old.recordRef === fact.sourceRecordRef &&
             old.attribute === fact.attribute &&
             old.status === "active"
@@ -88,15 +90,15 @@ export function createMemoryReportsStore(seed: { places?: MemoryPlace[]; facts?:
           value: fact.value,
           unit: fact.unit,
           source: {
-            id: COMMUNITY_MODERATED_SOURCE.id,
-            name: COMMUNITY_MODERATED_SOURCE.name,
-            kind: COMMUNITY_MODERATED_SOURCE.kind,
+            id: moderatedSource.id,
+            name: moderatedSource.name,
+            kind: moderatedSource.kind,
             recordRef: fact.sourceRecordRef,
           },
           fetchedAt: fact.fetchedAt.toISOString(),
           observedAt: fact.observedAt.toISOString(),
           confirmedAt: fact.confirmedAt.toISOString(),
-          reliability: COMMUNITY_MODERATED_SOURCE.baseReliability,
+          reliability: moderatedSource.baseReliability,
           evidence: { comment: fact.comment, photoUrl: fact.photoUrl },
           status: "active",
           stale: false,
@@ -106,6 +108,22 @@ export function createMemoryReportsStore(seed: { places?: MemoryPlace[]; facts?:
     },
     async listPending(placeId) {
       return reports.filter((r) => r.placeId === placeId && (r.status === "new" || r.status === "needs_info"));
+    },
+    async revertDemoDecisions({ moderator, before }) {
+      const undone = log.filter((e) => e.moderator === moderator && e.createdAt < before);
+      for (const entry of undone) log.splice(log.indexOf(entry), 1);
+      for (const reportId of new Set(undone.map((e) => e.reportId))) {
+        const report = reports.find((r) => r.id === reportId)!;
+        const latest = log.filter((e) => e.reportId === reportId).at(-1);
+        report.status = latest?.decision ?? "new";
+        report.decidedAt = latest?.createdAt ?? null;
+      }
+      const expired = facts.filter((f) => f.source.id === DEMO_MODERATED_SOURCE.id && Date.parse(f.fetchedAt) < before.getTime());
+      for (const fact of expired) {
+        facts.splice(facts.indexOf(fact), 1);
+        for (const c of confirmations.filter((c) => c.factId === fact.id)) confirmations.splice(confirmations.indexOf(c), 1);
+      }
+      return undone.length;
     },
   };
 

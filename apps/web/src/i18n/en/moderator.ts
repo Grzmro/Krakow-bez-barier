@@ -32,6 +32,7 @@ export const moderator: Messages["moderator"] = {
   before: "Now",
   after: "After approval",
   afterSource: "Source: Community, verified by a moderator",
+  afterSourceDemo: "Source: Konto demonstracyjne moderatora (zmiana tymczasowa) — demo moderator account, temporary change",
   noData: "No data",
   sourceLine: (source: string, date: string) => `${source} · ${date}`,
   reportedOn: (date: string) => `Reported ${date}`,
@@ -52,6 +53,20 @@ export const moderator: Messages["moderator"] = {
     rejected: "Rejected (sample mode — nothing reaches the server).",
     needs_info: "Marked “Needs clarification” (sample mode). The report stays in the queue.",
   },
+  decidedDemo: {
+    accepted: (minutes: number) =>
+      `Approved on the demo account. The place card shows this report as a fact from the demo source (the place is marked SAMPLE) for ${minutes} min, then the change is undone.`,
+    rejected: (minutes: number) => `Rejected on the demo account. The decision is undone after ${minutes} min.`,
+    needs_info: (minutes: number) =>
+      `Marked “Needs clarification” on the demo account. The decision is undone after ${minutes} min.`,
+  },
+  demo: {
+    heading: "Demo account",
+    body: (minutes: number) =>
+      `This account is for trying out the panel. Decisions are real: an approved report changes the place card at once, with the source “Konto demonstracyjne moderatora (zmiana tymczasowa)” (demo moderator account, temporary change). Every decision of this account is undone automatically after ${minutes} min, so place data never changes for good.`,
+  },
+  showOnCard: "See on the card",
+  showOnCardLabel: (place: string) => `See on the card: ${place}`,
   alreadyDecided: "Someone has already decided on this. I've refreshed the queue.",
   decideFailed: "Couldn't save the decision. Try again.",
   history: "Change history",

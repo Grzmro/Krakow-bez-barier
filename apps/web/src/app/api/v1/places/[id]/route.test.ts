@@ -156,7 +156,7 @@ describe("GET /api/v1/places/{id}", () => {
     // GIVEN two visitors say the palace has no lift (one asked for details) and one says the toilet is accessible
     const first = await report("lift", false, "winda wyłączona");
     const second = await report("lift", false);
-    await decideReport(reports.store, { reportId: second.id, decision: "needs_info", note: "zdjęcie?" }, "anna");
+    await decideReport(reports.store, { reportId: second.id, decision: "needs_info", note: "zdjęcie?" }, { name: "anna", demo: false });
     await report("toilet_accessible", true);
 
     // WHEN the place is read
@@ -196,8 +196,8 @@ describe("GET /api/v1/places/{id}", () => {
     const accepted = await report("lift", false);
 
     // WHEN a moderator rejects one and accepts the other, then the place is read
-    await decideReport(reports.store, { reportId: rejected.id, decision: "rejected" }, "anna");
-    await decideReport(reports.store, { reportId: accepted.id, decision: "accepted" }, "anna");
+    await decideReport(reports.store, { reportId: rejected.id, decision: "rejected" }, { name: "anna", demo: false });
+    await decideReport(reports.store, { reportId: accepted.id, decision: "accepted" }, { name: "anna", demo: false });
     const { body } = await get(palac.id);
 
     // THEN neither is listed as pending any more (the accepted one became a moderated fact in the store)

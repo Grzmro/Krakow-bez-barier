@@ -3,6 +3,7 @@ import { createDb, facts, places, sources } from "@krakow-bez-barier/db";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
+import { DEMO_MODERATED_SOURCE, DEMO_MODERATOR_NAME, DEMO_REVERT_MINUTES, revertExpiredDemoDecisions } from "./demo";
 import { COMMUNITY_MODERATED_SOURCE, createDrizzleReportsStore } from "./drizzle-store";
 import { createConfirmation, createReport, decideReport, listModerationQueue, pendingReportsByAttribute } from "./service";
 
@@ -50,8 +51,8 @@ describe.skipIf(!url)("Drizzle reports store (database)", () => {
     expect(confirmed.confirmedAt).not.toBeNull();
 
     // WHEN a moderator asks for details, then accepts
-    await decideReport(store, { reportId: report.id, decision: "needs_info", note: "?" }, "anna");
-    const accepted = await decideReport(store, { reportId: report.id, decision: "accepted" }, "anna");
+    await decideReport(store, { reportId: report.id, decision: "needs_info", note: "?" }, { name: "anna", demo: false });
+    const accepted = await decideReport(store, { reportId: report.id, decision: "accepted" }, { name: "anna", demo: false });
 
     // THEN the queue shows the history and the place gets a moderated community fact beside OSM's
     const queue = await listModerationQueue(store, { status: "accepted", limit: 100 });
@@ -81,11 +82,45 @@ describe.skipIf(!url)("Drizzle reports store (database)", () => {
     );
 
     // WHEN moderators accept them all concurrently
-    await Promise.all(pending.map((r, i) => decideReport(store, { reportId: r.id, decision: "accepted" }, `mod${i}`)));
+    await Promise.all(pending.map((r, i) => decideReport(store, { reportId: r.id, decision: "accepted" }, { name: `mod${i}`, demo: false })));
 
     // THEN every decision succeeds and exactly one moderated fact stays active, the others superseded
     const all = await db.select().from(facts).where(eq(facts.placeId, place.id));
     expect(all.filter((f) => f.status === "active")).toHaveLength(1);
     expect(all.filter((f) => f.status === "superseded")).toHaveLength(5);
+  });
+
+  it("undoes the demo account's decisions, facts and confirmations after the revert time", async () => {
+    // GIVEN a report a real moderator asked about
+    const { db } = handle!;
+    const store = createDrizzleReportsStore(db);
+    const ref = `test:${randomUUID()}`;
+    const [place] = await db
+      .insert(places)
+      .values({ externalRef: ref, name: "Demo place", category: "museum", location: { x: 19.94, y: 50.06 } })
+      .returning();
+    const report = await createReport(store, { placeId: ref, attribute: "lift", value: { kind: "boolean", boolean: false } });
+    const asked = new Date(Date.now() - 60 * 60_000);
+    await decideReport(store, { reportId: report.id, decision: "needs_info" }, { name: "anna", demo: false }, asked);
+
+    // WHEN the demo account accepts it and someone confirms the demo fact
+    await decideReport(store, { reportId: report.id, decision: "accepted" }, { name: DEMO_MODERATOR_NAME, demo: true });
+    const [demoFact] = await db.select().from(facts).where(eq(facts.placeId, place.id));
+    await createConfirmation(store, place.id, { factId: demoFact.id });
+
+    // THEN the fact is from the demo source, not the real moderated one
+    expect(demoFact).toMatchObject({ sourceId: DEMO_MODERATED_SOURCE.id, status: "active" });
+
+    // WHEN the revert runs after the revert time
+    const undone = await revertExpiredDemoDecisions(store, new Date(Date.now() + (DEMO_REVERT_MINUTES + 1) * 60_000));
+
+    // THEN the report is back to the real moderator's decision and the demo fact is gone
+    expect(undone).toBeGreaterThanOrEqual(1);
+    const queue = await listModerationQueue(store, { status: "needs_info", limit: 100 });
+    const item = queue.items.find((i) => i.id === report.id);
+    expect(item?.history).toEqual([expect.objectContaining({ decision: "needs_info", moderator: "anna" })]);
+    expect(item?.decidedAt).toBe(asked.toISOString());
+    expect(await db.select().from(facts).where(eq(facts.placeId, place.id))).toEqual([]);
+    expect((await pendingReportsByAttribute(store, place.id)).get("lift")).toHaveLength(1);
   });
 });

@@ -6,6 +6,7 @@ import {
   type FactValue,
   type ModerationDecision,
   type ModerationReport,
+  type ModeratorSession,
   type PendingReport,
   type Report,
   type ReportCreate,
@@ -13,6 +14,8 @@ import {
 } from "@krakow-bez-barier/contracts";
 import { isStale, resolveAttribute, type AccessibilityFact } from "@/domain";
 import { HttpError, type FieldError } from "@/server/http";
+import { DEMO_REVERT_MINUTES } from "./demo";
+import type { ModeratorPrincipal } from "./moderator-auth";
 import type { NewFact, QueueCursor, ReportRecord, ReportsStore } from "./store";
 
 export const REDACTED = "[usunięto]";
@@ -203,17 +206,23 @@ export function factFromReport(report: ReportRecord, at: Date): NewFact {
   };
 }
 
+/** The signed-in moderator as the queue response describes it. */
+export function moderatorSession(moderator: ModeratorPrincipal): ModeratorSession {
+  return { name: moderator.name, demo: moderator.demo, revertsAfterMinutes: moderator.demo ? DEMO_REVERT_MINUTES : null };
+}
+
 export async function decideReport(
   store: ReportsStore,
   body: ModerationDecision,
-  moderator: string,
+  moderator: ModeratorPrincipal,
   now: Date = new Date(),
 ): Promise<Report> {
   const result = await store.decide({
     reportId: body.reportId,
     decision: body.decision,
     note: body.note?.trim() || null,
-    moderator,
+    moderator: moderator.name,
+    demo: moderator.demo,
     at: now,
     toFact: (report) => factFromReport(report, now),
   });
