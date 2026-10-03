@@ -1,0 +1,138 @@
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
+
+// Accessibility check of the demo's main scenario (docs/demo-script.md, scene 8): every screen the
+// jury sees, with axe, the keyboard alone, 200% zoom / 320 px reflow, and the map available as text.
+// Results feed the "Deklaracja dostępności" page.
+
+const list = (page: Page) => page.getByRole("region", { name: "Lista miejsc" });
+
+async function tabTo(page: Page, target: ReturnType<Page["getByRole"]>, maxTabs = 40) {
+  for (let i = 0; i < maxTabs && !(await target.evaluate((el) => el === document.activeElement)); i++) {
+    await page.keyboard.press("Tab");
+  }
+  await expect(target).toBeFocused();
+}
+
+const SCREENS: { name: string; url: string; heading: RegExp }[] = [
+  { name: "home", url: "/", heading: /Mapa i lista miejsc/ },
+  { name: "place", url: "/miejsca/hotel-przyklad", heading: /Hotel Przykład/ },
+  { name: "place-conflict", url: "/miejsca/palac-krzysztofory", heading: /Pałac Krzysztofory/ },
+  { name: "place-incomplete", url: "/miejsca/kawiarnia-przyklad", heading: /Kawiarnia Przykład/ },
+  { name: "about-data", url: "/o-danych", heading: /O danych/ },
+  { name: "business", url: "/dla-firm", heading: /Dla firm/ },
+  { name: "accessibility-statement", url: "/deklaracja-dostepnosci", heading: /Deklaracja dostępności/ },
+];
+
+test("the demo scenario works from the keyboard alone, with axe passing on every step", async ({
+  page,
+  expectAccessible,
+  evidence,
+}) => {
+  test.setTimeout(60_000);
+  // GIVEN the home screen
+  await page.goto("/");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+
+  // WHEN a keyboard user searches for the hotel and picks the suggestion
+  const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
+  await tabTo(page, search);
+  await page.keyboard.type("Hotel");
+  await expect(page.getByRole("option", { name: "Hotel Przykład" })).toBeVisible();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Enter");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
+
+  // AND turns on the wheelchair profile with the arrow key
+  await tabTo(page, page.getByRole("radio", { name: "Profil wyłączony, widok dla każdego" }));
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByRole("radio", { name: "Wózek", exact: true })).toBeChecked();
+  const row = list(page).getByRole("link", { name: /Hotel Przykład/ });
+  const item = list(page).getByRole("listitem").filter({ has: page.getByRole("link", { name: /Hotel Przykład/ }) });
+  await expect(item).toContainText("Spełnia");
+  // axe would read the profile switch mid colour transition; let it settle first.
+  await page.evaluate(() => Promise.all(document.getAnimations().map((a) => a.finished)));
+  await expectAccessible();
+
+  // AND opens the place card from the list
+  await tabTo(page, row);
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { level: 1, name: "Hotel Przykład" })).toBeVisible();
+
+  // THEN a fact opens with Enter and shows its source and date
+  const door = page.getByRole("button", { name: /Szerokość drzwi/ });
+  await tabTo(page, door);
+  await page.keyboard.press("Enter");
+  await expect(door).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator(`#${await door.getAttribute("aria-controls")}`)).toContainText("Źródło");
+  await expectAccessible();
+
+  // WHEN they open the report form on that fact and close it with Escape
+  const doorRow = page.locator("li").filter({ has: door });
+  await tabTo(page, doorRow.getByRole("button", { name: "To się nie zgadza" }));
+  await page.keyboard.press("Enter");
+  const drawer = page.getByRole("dialog", { name: "To się nie zgadza" });
+  await expect(drawer).toBeVisible();
+  await expectAccessible();
+  await page.keyboard.press("Escape");
+
+  // THEN focus returns to the button that opened it — no trap, nothing lost
+  await expect(drawer).toBeHidden();
+  await expect(doorRow.getByRole("button", { name: "To się nie zgadza" })).toBeFocused();
+  await evidence("a11y-keyboard-pass");
+});
+
+test("everything pinned on the map is also on the text list", async ({ page }) => {
+  // GIVEN the home screen with the stroller profile, so pins carry verdicts
+  await page.goto("/");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await page.getByRole("radio", { name: "Wózek dziecięcy" }).check();
+
+  // WHEN the map pins and the list rows are compared
+  const pins = await page.locator("[data-place-id]").evaluateAll((els) =>
+    els.map((el) => `${el.getAttribute("data-place-id")}:${el.getAttribute("data-status")}`).sort(),
+  );
+  const rows = await list(page)
+    .getByRole("listitem")
+    .evaluateAll((items) =>
+      items.map((li) => {
+        const id = li.querySelector("a")?.getAttribute("href")?.split("/").pop();
+        return `${id}:${li.querySelector("[data-status]")?.getAttribute("data-status")}`;
+      }),
+    );
+
+  // THEN every pin, with its verdict, has a row on the list
+  expect(pins).toHaveLength(9);
+  expect(rows.sort()).toEqual(pins);
+});
+
+for (const zoom of [
+  { name: "200% zoom", viewport: { width: 640, height: 400 } },
+  { name: "320 px reflow", viewport: { width: 320, height: 640 } },
+]) {
+  test.describe(zoom.name, () => {
+    test.use({ viewport: zoom.viewport });
+
+    for (const screen of SCREENS) {
+      test(`${screen.name} reflows without horizontal scrolling and passes axe`, async ({
+        page,
+        expectAccessible,
+        evidence,
+      }) => {
+        // GIVEN a screen of the demo scenario, zoomed in
+        await page.goto(screen.url);
+        await expect(page.getByRole("heading", { level: 1, name: screen.heading })).toBeAttached();
+
+        // THEN the content fits the width — nothing needs sideways scrolling
+        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+        expect(overflow).toBeLessThanOrEqual(0);
+
+        // AND it has no WCAG 2.2 AA violations axe can detect
+        await expectAccessible();
+        if (screen.name === "home" || screen.name === "place-conflict") {
+          await evidence(`a11y-${zoom.viewport.width}-${screen.name}`);
+        }
+      });
+    }
+  });
+}
