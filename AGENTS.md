@@ -92,6 +92,7 @@ npm install                    # all workspaces
 npx playwright install --only-shell chromium   # once, for e2e
 npm run dev                    # web app (http://localhost:3000)
 npm run dev -w apps/web -- -H 0.0.0.0   # reachable from a phone on the LAN; flags go after `-w apps/web --` (root `npm run dev -- …` drops them)
+npm run dev -w apps/web -- -H 0.0.0.0 --experimental-https   # same, for location on the phone: browsers allow geolocation only over https on a LAN IP (accept the self-signed cert on the phone)
 npm run lint                   # ESLint
 npm run typecheck              # next typegen + tsc
 npm run test                   # Vitest (unit)

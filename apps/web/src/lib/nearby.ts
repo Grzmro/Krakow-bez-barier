@@ -1,6 +1,28 @@
-import type { DevicePosition } from "@/lib/native/geolocation";
+import type { Messages } from "@/i18n/messages";
 import { config } from "@/lib/config";
+import type { DevicePosition, LocateFailure } from "@/lib/native/geolocation";
+import type { LocationSettings } from "@/lib/native/platform";
 import { distanceMeters } from "@/lib/place-features";
+
+/** What list distances are measured from: Rynek (default), the device position, or a point the user chose. */
+export type DistanceFrom = "centre" | "user" | "chosen";
+
+/**
+ * Where "W mojej okolicy" searches from: the device position, or a point picked by hand (a district) when
+ * location is unavailable. `place` names the chosen point; it is absent for the device position.
+ */
+export type NearbyOrigin = { position: Pick<DevicePosition, "latitude" | "longitude">; place?: string };
+
+/** What went wrong and what to do about it, with settings paths for the device the user is on. */
+export function locateFailureText(
+  reason: LocateFailure,
+  settings: LocationSettings,
+  t: Messages["nearby"],
+): { message: string; help: string | null } {
+  const message = t.errors[reason];
+  if (reason === "denied" || reason === "off") return { message, help: t.help[reason][settings] };
+  return { message, help: reason === "unsupported" ? null : t.help[reason] };
+}
 
 /** Grid the search area snaps to (0.01° ≈ 1.1 km north–south, ≈ 0.7 km east–west in Kraków). */
 const GRID_DEG = 0.01;

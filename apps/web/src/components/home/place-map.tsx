@@ -97,6 +97,8 @@ export interface PlaceMapProps {
   padding: { top: number; bottom: number };
   /** The user's position (`[lon, lat]`): shown as "Ty" and the map centres on it instead of fitting the places. */
   you?: [number, number] | null;
+  /** Label of the `you` marker when it is a chosen point rather than the user ("Ty"). */
+  youLabel?: string;
   /** Accessible name of the map; defaults to the home screen's ("... The list has the same places."). */
   label?: string;
   className?: string;
@@ -107,12 +109,12 @@ export interface PlaceMapProps {
  * (a verdict donut with a profile); only what is in or near the viewport gets a DOM marker. Pins are
  * mouse shortcuts only and hidden from assistive tech: the list next to the map holds the same places.
  */
-export function PlaceMap({ places, selectedId, onSelect, padding, you = null, label, className }: PlaceMapProps) {
+export function PlaceMap({ places, selectedId, onSelect, padding, you = null, youLabel: chosenLabel, label, className }: PlaceMapProps) {
   const messages = useMessages();
   const t = messages.home.map;
   const statusWords = messages.common.status;
   const announce = useAnnounce();
-  const youLabel = messages.nearby.home.you;
+  const youLabel = chosenLabel ?? messages.nearby.home.you;
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [unavailable, setUnavailable] = useState(false);

@@ -1,3 +1,4 @@
+import type { DistanceFrom } from "@/lib/nearby";
 import type { Messages } from "../messages";
 
 const placesWord = (n: number) => (n === 1 ? "place" : "places");
@@ -44,7 +45,9 @@ export const home: Messages["home"] = {
     empty: "No places for this search.",
     emptyHint: "Try a wider search: no name, category or filters.",
     searchWider: "Search all of Kraków",
-    distance: (m: number, fromUser = false) =>
-      `${m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${m} m`} ${fromUser ? "from you" : "from the Main Square"}`,
+    distance: (m: number, from: DistanceFrom = "centre") =>
+      `${m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${m} m`} ${
+        from === "user" ? "from you" : from === "chosen" ? "from the chosen point" : "from the Main Square"
+      }`,
   },
 };

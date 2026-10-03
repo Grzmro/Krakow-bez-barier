@@ -9,6 +9,7 @@ import { NeedGroups } from "@/components/profile/need-groups";
 import { useMessages } from "@/i18n/client";
 import type { Messages } from "@/i18n/messages";
 import { useCategoryLookup } from "@/lib/categories";
+import type { DistanceFrom } from "@/lib/nearby";
 import { filterGapStatus, matchFeature, summaryLine } from "@/lib/place-features";
 import { routes } from "@/lib/routes";
 
@@ -30,14 +31,15 @@ export interface PlaceRowProps {
   /** Meters from the reference point. */
   distance: number;
   /** The distance is from the user's position ("od Ciebie"), not from Rynek. */
-  fromUser?: boolean;
+  /** What the distance is measured from. */
+  from?: DistanceFrom;
   features: FeatureFilter[];
   selected: boolean;
   onHighlight: (id: string) => void;
 }
 
 export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function PlaceRow(
-  { place, distance, fromUser = false, features, selected, onHighlight },
+  { place, distance, from = "centre", features, selected, onHighlight },
   ref,
 ) {
   const m = useMessages();
@@ -98,7 +100,7 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
         <span className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
           {place.isSample ? <SampleTag /> : <span />}
           <span className="text-caption font-medium text-muted-foreground tabular-nums">
-            {t.list.distance(distance, fromUser)}
+            {t.list.distance(distance, from)}
           </span>
         </span>
       </Link>
