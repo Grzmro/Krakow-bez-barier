@@ -1,19 +1,28 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { expect, test, type Frame, type Locator, type Page } from "@playwright/test";
+import type { components, PlaceList, PlaceSummary } from "@krakow-bez-barier/contracts";
+import { expect, test, type APIRequestContext, type Frame, type Locator, type Page } from "@playwright/test";
+import { pl } from "../../src/i18n/pl";
 
 // Walks the demo scenario from docs/demo-script.md and records it as a 1080p video: the app runs
 // in a phone-sized frame, the scene caption sits beside it. The final video (KBB-31) then only
 // needs a voice-over. Scene numbers and captions match the script.
+//
+// Real data only: every place is looked up in the API by name (or, for the conflict, by its state), never by a
+// sample id, and the recording stops with an error when the database or a place is missing.
 
-// The demo runs on the sample places served by the mock API (TODO(KBB-28): switch to the real
-// demo places from docs/demo-data.md once the data API serves them).
 const PLACES = {
-  hotel: { id: "hotel-przyklad", name: "Hotel Przykład", query: "Hotel" },
-  conflict: { id: "palac-krzysztofory", name: "Pałac Krzysztofory" },
-  incomplete: { id: "kawiarnia-przyklad", name: "Kawiarnia Przykład" },
+  /** A hotel with OSM facts and a check date. */
+  facts: "Qubus",
+  /** OSM says only wheelchair=yes: every concrete barrier is "Brak danych". */
+  incomplete: "Hotel Miodowa",
 };
+/** The public toilet where the city (MSIP) and OSM disagree about the changing table. */
+const CONFLICT = { category: "toilet", attribute: "changing_table" } as const;
+/** The source the outage server reports as down (SIMULATE_SOURCE_OUTAGE in playwright.demo.config.ts). */
+const OUTAGE_SOURCE = "MSIP: Toalety publiczne";
+const SETUP_HINT = "Load the data first: `npm run db:setup` and `npm run ingest -- --source osm` (docs/demo-script.md).";
 
 const MAX_SECONDS = 180;
 // DEMO_PACE=0.2 shortens every pause, for checking the walkthrough without waiting 3 minutes.
@@ -41,6 +50,57 @@ const STAGE_HTML = `<!doctype html><html lang="pl"><meta charset="utf-8"><title>
 let startedAt = 0;
 const elapsed = () => (Date.now() - startedAt) / 1000;
 const pause = (page: Page, seconds: number) => page.waitForTimeout(seconds * 1000 * PACE);
+
+/** Fails with what to do when the app can't read its database, instead of recording empty screens. */
+async function requireDatabase(request: APIRequestContext) {
+  const response = await request.get("/api/v1/health");
+  const health = (await response.json().catch(() => null)) as components["schemas"]["Health"] | null;
+  const database = health?.checks?.database;
+  if (database?.status !== "up") {
+    throw new Error(
+      `The demo records real data, but the app's database is ${database?.status ?? `unreachable (health ${response.status()})`}` +
+        `${database?.detail ? ` — ${database.detail.replace(/\.$/, "")}` : ""}. Set DATABASE_URL in the root .env. ${SETUP_HINT}`,
+    );
+  }
+}
+
+async function listPlacesPage(request: APIRequestContext, query: string): Promise<PlaceList> {
+  const response = await request.get(`/api/v1/places?${query}`);
+  expect(response.ok(), `GET /api/v1/places?${query} answered ${response.status()}`).toBe(true);
+  return (await response.json()) as PlaceList;
+}
+
+/** The first place that `matches`, following `nextCursor` through every page of the query. */
+async function findPlace(request: APIRequestContext, query: string, matches: (place: PlaceSummary) => boolean) {
+  let cursor: string | null | undefined;
+  do {
+    const page = await listPlacesPage(request, cursor ? `${query}&cursor=${encodeURIComponent(cursor)}` : query);
+    const found = page.items.find(matches);
+    if (found) return found;
+    cursor = page.nextCursor;
+  } while (cursor);
+  return undefined;
+}
+
+async function placeNamed(request: APIRequestContext, name: string): Promise<PlaceSummary> {
+  const place = await findPlace(request, `q=${encodeURIComponent(name)}&limit=50`, (p) => p.name === name && !p.isSample);
+  if (!place) throw new Error(`The demo place "${name}" is not in the database. ${SETUP_HINT}`);
+  return place;
+}
+
+async function conflictPlace(request: APIRequestContext): Promise<PlaceSummary> {
+  const place = await findPlace(
+    request,
+    `category=${CONFLICT.category}&limit=100`,
+    (p) => !p.isSample && p.summary.some((chip) => chip.attribute === CONFLICT.attribute && chip.state === "conflict"),
+  );
+  if (!place) {
+    throw new Error(
+      `No ${CONFLICT.category} with conflicting "${CONFLICT.attribute}" in the database (city toilets vs OSM). ${SETUP_HINT}`,
+    );
+  }
+  return place;
+}
 
 /** Shows the scene caption beside the phone, so the silent recording can be followed and voiced over. */
 async function caption(page: Page, scene: string, text: string) {
@@ -87,7 +147,21 @@ async function typeSlowly(page: Page, target: Locator, text: string) {
   await target.pressSequentially(text, { delay: 140 * PACE });
 }
 
-test("record the demo walkthrough", async ({ browser, baseURL }) => {
+/** The app is on real data: no sample banner and no PRZYKŁAD tag anywhere on the screen. */
+async function expectNoSampleLabel(app: Frame) {
+  await expect(app.getByText(pl.common.layout.sampleBanner)).toHaveCount(0);
+  await expect(app.getByText(pl.common.sample.tag, { exact: true })).toHaveCount(0);
+}
+
+test("record the demo walkthrough", async ({ browser, baseURL, request }) => {
+  // GIVEN the app answers from a database that holds the demo places
+  await requireDatabase(request);
+  const facts = await placeNamed(request, PLACES.facts);
+  const incomplete = await placeNamed(request, PLACES.incomplete);
+  const conflict = await conflictPlace(request);
+  const outageURL = process.env.DEMO_OUTAGE_BASE_URL;
+  if (!outageURL) console.warn("DEMO_OUTAGE_BASE_URL is not set: the recording skips the unavailable-source scene.");
+
   // The video starts with the context, so caption times and the length check count from here.
   startedAt = Date.now();
   const context = await browser.newContext({
@@ -99,93 +173,114 @@ test("record the demo walkthrough", async ({ browser, baseURL }) => {
   await page.route(stage, (route) => route.fulfill({ contentType: "text/html; charset=utf-8", body: STAGE_HTML }));
   await page.goto(stage);
   const app: Frame = page.frame({ name: "phone" })!;
-  const open = (url: string) => app.goto(new URL(url, baseURL).toString());
+  const open = async (url: string, base = baseURL) => {
+    await app.goto(new URL(url, base).toString());
+  };
   const list = app.getByRole("region", { name: "Lista miejsc" });
+  const factRow = (label: string) => app.getByRole("button", { name: new RegExp(`^${label}:`) });
 
   // 1. Who and what they need
   await open("/");
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText(/miejsc/);
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText(/^\d+ miejsc/);
+  await expectNoSampleLabel(app);
   await caption(page, "1 · Dla kogo", "Osoba na wózku sprawdza, czy miejsce w Krakowie pasuje do jej potrzeb. Bez konta.");
-  await pause(page, 7);
+  await pause(page, 6);
   await caption(page, "1 · Dla kogo", "Wybiera profil „Wózek” — tylko progi: stopnie, szerokość drzwi, toaleta. Bez pytań o niepełnosprawność.");
   await tap(page, app.getByRole("radio", { name: "Wózek", exact: true }));
   await pause(page, 3);
   await tap(page, app.getByRole("button", { name: "Progi profilu" }));
   const thresholds = app.getByRole("dialog", { name: "Progi profilu" });
   await expect(thresholds).toBeVisible();
-  await pause(page, 6);
+  await pause(page, 5);
   await tap(page, thresholds.getByRole("button", { name: "Gotowe" }));
   await expect(thresholds).toBeHidden();
 
-  // 2. Find a place: list and map show the same results, each with a verdict
-  await caption(page, "2 · Miejsce", "Szuka hotelu. Wynik jest na liście i na mapie — lista to tekstowa wersja mapy.");
-  await typeSlowly(page, app.getByRole("combobox", { name: "Wyszukaj miejsce" }), PLACES.hotel.query);
-  await pause(page, 1.5);
-  await tap(page, app.getByRole("option", { name: PLACES.hotel.name }));
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
-  await pause(page, 5);
-  await caption(page, "2 · Miejsce", "„Spełnia · niepotwierdzone” — i od razu widać dlaczego.");
+  // 2. Find a real place: list and map show the same results, each with a verdict
+  await caption(page, "2 · Miejsce", `Szuka hotelu ${facts.name}. Prawdziwe miejsca z OpenStreetMap — wynik na liście i na mapie.`);
+  await typeSlowly(page, app.getByRole("combobox", { name: "Wyszukaj miejsce" }), facts.name);
+  const row = list.getByRole("listitem").filter({ has: app.getByRole("link", { name: new RegExp(facts.name) }) }).first();
+  await expect(row).toBeVisible();
+  await expect(app.locator(`[data-place-id="${facts.id}"]`)).toHaveCount(1);
+  await pause(page, 4);
+  await caption(page, "2 · Miejsce", "Werdykt dla jej progów jest słowem, nie kolorem — a „Dlaczego?” mówi, czego brakuje.");
   await tap(page, list.getByRole("button", { name: "Rozwiń arkusz" }));
-  await tap(page, list.getByRole("button", { name: `Dlaczego? ${PLACES.hotel.name}` }));
-  await pause(page, 8);
+  await tap(page, row.getByRole("button", { name: `Dlaczego? ${facts.name}` }));
+  await pause(page, 7);
 
   // 3. Concrete facts with source, date and reliability
-  await caption(page, "3 · Konkretne fakty", "Karta miejsca: stopnie, drzwi, winda, toaleta — konkretne wartości, nie etykieta „dostępne”.");
-  await tap(page, list.getByRole("link", { name: new RegExp(PLACES.hotel.name) }));
-  await expect(app.getByRole("heading", { level: 1, name: PLACES.hotel.name })).toBeVisible();
-  await pause(page, 7);
-  const door = app.getByRole("button", { name: /Szerokość drzwi/ });
-  await caption(page, "3 · Skąd wiemy?", "Każda cecha ma źródło, datę i wiarygodność. Dane przykładowe są oznaczone „Przykład”.");
-  await tap(page, door);
-  await pause(page, 7);
-  const lift = app.getByRole("button", { name: /^Winda/ });
-  await caption(page, "3 · Skąd wiemy?", "Winda z OpenStreetMap: „Niezweryfikowane” — jedno źródło społeczności, nie gwarancja.");
-  await tap(page, lift);
-  await pause(page, 7);
-
-  // 4. Failure cases: missing data, unavailable source, conflict
-  await open(`/miejsca/${PLACES.incomplete.id}`);
-  await expect(app.getByRole("heading", { level: 1, name: PLACES.incomplete.name })).toBeVisible();
-  await caption(page, "4 · Niepełne dane", "Brak informacji to „Brak danych” na szaro — nigdy „dostępne”. Można zapytać obiekt albo uzupełnić.");
-  await pause(page, 9);
-
-  await open(`/miejsca/${PLACES.conflict.id}`);
-  await expect(app.getByRole("heading", { level: 1, name: PLACES.conflict.name })).toBeVisible();
-  await caption(page, "4 · Źródło niedostępne", "Źródło miejskie (MSIP) nie odpowiada: pokazujemy ostatnie dane z datą i jako nieaktualne.");
+  await tap(page, row.getByRole("link", { name: new RegExp(facts.name) }));
+  await expect(app.getByRole("heading", { level: 1, name: facts.name })).toBeVisible();
+  await expectNoSampleLabel(app);
+  await caption(page, "3 · Konkretne fakty", "Karta miejsca: konkretne cechy, nie etykieta „dostępne”. Czego nie wiemy, to „Brak danych”.");
+  await pause(page, 6);
+  const levels = factRow(pl.common.attribute.levels);
+  await tap(page, levels);
+  const levelsPanel = app.locator(`#${await levels.getAttribute("aria-controls")}`);
+  await expect(levelsPanel).toContainText("OpenStreetMap");
+  await expect(levels).toHaveAccessibleName(new RegExp(pl.common.reliability.unverified));
+  await caption(page, "3 · Skąd wiemy?", "Każda cecha ma źródło, datę i wiarygodność: tu OpenStreetMap, jedno źródło społeczności — więc „Niezweryfikowane”.");
   await pause(page, 8);
-  const toilet = app.getByRole("button", { name: /Toaleta dostosowana/ });
-  await caption(page, "4 · Sprzeczne dane", "Dwa źródła mówią co innego o toalecie — pokazujemy obie wartości, nie wybieramy za użytkownika.");
-  await tap(page, toilet);
-  await pause(page, 9);
+
+  // 4. Failure cases: missing data, conflict, unavailable source
+  await open(`/miejsca/${incomplete.id}`);
+  await expect(app.getByRole("heading", { level: 1, name: incomplete.name })).toBeVisible();
+  await expect(factRow(pl.common.attribute.door_width_cm)).toContainText(pl.common.status.unknown);
+  await caption(page, "4 · Niepełne dane", `${incomplete.name}: o stopniach, drzwiach i windzie nie wiemy nic — „Brak danych” na szaro, nigdy „dostępne”.`);
+  await pause(page, 8);
+
+  await open(`/miejsca/${conflict.id}`);
+  await expect(app.getByRole("heading", { level: 1, name: conflict.name })).toBeVisible();
+  const changingTable = factRow(pl.common.attribute.changing_table);
+  await expect(changingTable).toContainText(pl.common.reliability.conflict);
+  await caption(page, "4 · Sprzeczne dane", "Publiczna toaleta: miasto (MSIP) mówi „nie ma przewijaka”, OpenStreetMap — „jest”. Pokazujemy obie wersje.");
+  await pause(page, 4);
+  await tap(page, changingTable);
+  await pause(page, 8);
 
   // 5. Correcting data
   await caption(page, "5 · Zgłoszenie", "Każdy może poprawić dane: „To się nie zgadza” — trzy kroki, bez konta.");
-  const toiletRow = app.locator("li").filter({ has: toilet });
-  await tap(page, toiletRow.getByRole("button", { name: "To się nie zgadza" }));
+  const changingTableRow = app.locator("li").filter({ has: changingTable });
+  await tap(page, changingTableRow.getByRole("button", { name: "To się nie zgadza" }));
   const report = app.getByRole("dialog", { name: "To się nie zgadza" });
   await expect(report).toBeVisible();
   await pause(page, 3);
   // The radio input is visually hidden; the visible target is its label.
-  const yes = app.getByRole("radio", { name: "Jest dostosowana" });
+  const yes = app.getByRole("radio", { name: pl.place.report.option.yes, exact: true });
   await tap(page, report.locator("label").filter({ has: yes }));
   await expect(yes).toBeChecked();
   await pause(page, 2);
   await tap(page, report.getByRole("button", { name: "Wyślij" }), "enter");
   await expect(report).toBeHidden();
   await caption(page, "5 · Zgłoszenie", "Zgłoszenie jest „Niezweryfikowane” i czeka na moderację — nie zmienia danych od razu.");
-  await expect(toiletRow).toContainText("Niezweryfikowane");
+  await expect(changingTableRow).toContainText(pl.common.reliability.unverified);
+  await expect(changingTable).toContainText(pl.common.reliability.conflict);
   await pause(page, 7);
 
-  // 6. Where the data comes from
-  await open("/o-danych");
-  await caption(page, "6 · Źródła danych", "OpenStreetMap i otwarte dane Krakowa (MSIP): licencja, odświeżanie, status — także awaria.");
-  await pause(page, 6);
-  await app.getByRole("heading", { name: "Jak liczymy wiarygodność" }).scrollIntoViewIfNeeded();
-  await pause(page, 6);
+  if (outageURL) {
+    await open(`/miejsca/${conflict.id}`, outageURL);
+    await expect(app.getByRole("heading", { level: 1, name: conflict.name })).toBeVisible();
+    await expect(app.getByText(pl.place.outage.source(OUTAGE_SOURCE)).first()).toBeVisible();
+    await expect(app.getByText(pl.place.outage.title(""))).toBeVisible();
+    await caption(page, "4 · Źródło niedostępne", "Symulujemy awarię serwera MSIP. Ta sama toaleta: dane miasta zostają, z datą i jako „Nieaktualne”.");
+    await pause(page, 8);
+    await open("/o-danych", outageURL);
+    await caption(page, "6 · Źródła danych", "OpenStreetMap i otwarte dane Krakowa (MSIP): licencja, odświeżanie, status — także awaria.");
+    await pause(page, 6);
+  } else {
+    await open("/o-danych");
+    await caption(page, "6 · Źródła danych", "OpenStreetMap i otwarte dane Krakowa (MSIP): licencja, odświeżanie i status każdego źródła.");
+    await pause(page, 6);
+  }
 
-  // 7. Widget and API for businesses
-  await open("/dla-firm");
-  await caption(page, "7 · Dla firm", "Hotel wkleja widget z aktualną kartą dostępności. Do tego API tylko do odczytu.");
+  // 6. Where the data comes from
+  await app.getByRole("heading", { name: "Jak liczymy wiarygodność" }).scrollIntoViewIfNeeded();
+  await pause(page, 5);
+
+  // 7. Widget and API for businesses, on the hotel from scene 2
+  await open(`/dla-firm?miejsce=${encodeURIComponent(facts.id)}`);
+  await expect(app.frameLocator("iframe").getByRole("heading", { name: facts.name })).toBeVisible();
+  await expectNoSampleLabel(app);
+  await caption(page, "7 · Dla firm", `Obiekt wkleja na swojej stronie widget z aktualną kartą — tu z danymi ${facts.name}. Do tego API tylko do odczytu.`);
   await pause(page, 7);
   await app.getByRole("heading", { name: "Dla obiektów" }).scrollIntoViewIfNeeded();
   await caption(page, "7 · Model biznesowy", "Płacą obiekty: karta na stronie i weryfikacja na miejscu. Dla mieszkańców dane są bezpłatne.");

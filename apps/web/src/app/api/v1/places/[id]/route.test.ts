@@ -146,6 +146,30 @@ describe("GET /api/v1/places/{id}", () => {
     expect(body.contact).toBeNull();
   });
 
+  it("shows the demo outage switch on the card like on GET /sources, keeping the city's values", async () => {
+    // GIVEN the operator switched on the simulated outage of the city source
+    vi.stubEnv("SIMULATE_SOURCE_OUTAGE", "msip");
+    try {
+      // WHEN the palace is read
+      const { body } = await get(palac.id);
+
+      // THEN the city source is in outage with its last success kept and its facts are outdated but still listed;
+      // where OSM has a fresh value it decides, as for any stale fact
+      expect(body.sources).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ id: "msip", refreshStatus: "outage", lastSuccessAt: city.lastSuccessAt?.toISOString() ?? null }),
+          expect.objectContaining({ id: "osm", refreshStatus: "ok" }),
+        ]),
+      );
+      expect(attribute(body, "lift")).toMatchObject({ state: "stale", status: "outdated", value: { boolean: true } });
+      const toilet = attribute(body, "toilet_accessible")!;
+      expect(toilet).toMatchObject({ state: "known", value: { boolean: true } });
+      expect(toilet.facts.map((f) => [f.source.id, f.stale])).toEqual(expect.arrayContaining([["msip", true], ["osm", false]]));
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it("adds a verdict whose needs split into blocks, fits and unknowns", async () => {
     // GIVEN the hotel meets every wheelchair need, but its lift is only known from OSM
     // WHEN read with the wheelchair profile and with a stricter threshold set by the user

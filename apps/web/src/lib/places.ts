@@ -11,13 +11,14 @@ async function listPlaces(query: ListPlacesQuery) {
   return data;
 }
 
-/** `GET /places`. Keeps the previous list while a new profile or query loads, so nothing flickers. */
-export function usePlaces(query: ListPlacesQuery) {
+/** `GET /places`. Keeps the previous list while a new profile or query loads, so nothing flickers. `enabled: false` skips the request. */
+export function usePlaces(query: ListPlacesQuery, { enabled = true }: { enabled?: boolean } = {}) {
   const locale = useLocale();
   return useQuery({
     queryKey: ["places", locale, query],
     queryFn: () => listPlaces(query),
     placeholderData: keepPreviousData,
+    enabled,
   });
 }
 

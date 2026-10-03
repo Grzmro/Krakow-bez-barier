@@ -56,15 +56,24 @@ export function simulatedOutageIds(env: Record<string, string | undefined> = pro
     .filter(Boolean);
 }
 
+/** The row as the simulated outage shows it: failed now, its last success and data kept. Other rows pass through. */
+export function withSimulatedOutage(
+  row: SourceRow,
+  now: Date,
+  simulated: readonly string[],
+  locale: Locale = defaultLocale,
+): SourceRow {
+  if (!simulated.includes(row.id)) return row;
+  const notes = messagesFor(locale).pages.aboutData.statusNote;
+  return { ...row, refreshStatus: "outage", statusNote: notes.simulatedOutage, lastAttemptAt: now };
+}
+
 export function toSource(row: SourceRow, now: Date, simulated: readonly string[] = [], locale: Locale = defaultLocale): Source {
   const notes = messagesFor(locale).pages.aboutData.statusNote;
-  let { refreshStatus, statusNote, lastAttemptAt } = row;
+  const overlaid = withSimulatedOutage(row, now, simulated, locale);
+  let { refreshStatus, statusNote } = overlaid;
 
-  if (simulated.includes(row.id)) {
-    refreshStatus = "outage";
-    statusNote = notes.simulatedOutage;
-    lastAttemptAt = now;
-  } else if (refreshStatus === "ok" && row.lastSuccessAt) {
+  if (refreshStatus === "ok" && row.lastSuccessAt) {
     const interval = row.refreshInterval ? INTERVAL_MS[row.refreshInterval] : undefined;
     if (interval && now.getTime() - row.lastSuccessAt.getTime() > interval * STALE_AFTER_INTERVALS) {
       refreshStatus = "stale";
@@ -82,7 +91,7 @@ export function toSource(row: SourceRow, now: Date, simulated: readonly string[]
     refreshInterval: row.refreshInterval,
     refreshStatus,
     lastSuccessAt: row.lastSuccessAt?.toISOString() ?? null,
-    lastAttemptAt: lastAttemptAt?.toISOString() ?? null,
+    lastAttemptAt: overlaid.lastAttemptAt?.toISOString() ?? null,
     statusNote,
     isSample: row.isSample,
   };
