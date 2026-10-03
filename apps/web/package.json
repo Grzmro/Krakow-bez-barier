@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@krakow-bez-barier/contracts": "*",
     "@krakow-bez-barier/ui": "*",
     "@phosphor-icons/react": "^2.1.10",
     "@tanstack/react-query": "^5.104.1",

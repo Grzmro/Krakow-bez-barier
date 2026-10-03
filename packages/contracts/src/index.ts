@@ -23,3 +23,5 @@ export type ReliabilityStatus = Schemas["ReliabilityStatus"];
 export function createApiClient(options: ClientOptions = {}) {
   return createClient<paths>({ baseUrl: "/api/v1", ...options });
 }
+
+export { createMockFetch, type MockChoice, type MockFetchOptions, type OperationId } from "./mock";
