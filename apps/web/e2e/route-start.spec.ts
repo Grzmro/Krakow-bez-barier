@@ -17,7 +17,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function openRoute(page: Page) {
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
 }
 
@@ -86,7 +86,7 @@ test("a refused location says why, keeps Dworzec Główny as the start and is re
   await expect(page.getByRole("status")).toContainText(notice);
   await expect(startField(page)).toHaveValue("Dworzec Główny");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
-  await expect(page).toHaveURL(/\/trasa$/);
+  await expect(page).toHaveURL(/\/trasa\?z=station$/);
   // AND the way to allow it is one click away
   await page.getByText("Jak to włączyć?").click();
   await expect(page.locator("main")).toContainText("Potem spróbuj ponownie.");
@@ -133,8 +133,8 @@ test("a place found by name becomes the start, also from a shared link", async (
   // WHEN the link names a place that doesn't exist
   await page.goto("/trasa?z=nie-ma-takiego");
 
-  // THEN the route starts at the station and says why
+  // THEN no route is planned and the screen says why, with no start filled in
   await expect(page.locator("main")).toContainText("Nie znaleźliśmy miejsca startu z linku");
-  await expect(startField(page)).toHaveValue("Dworzec Główny");
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
+  await expect(startField(page)).toHaveValue("");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Trasa");
 });

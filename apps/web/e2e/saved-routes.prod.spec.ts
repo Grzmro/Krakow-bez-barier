@@ -12,7 +12,7 @@ test("a route saved on the phone opens offline and can be deleted", async ({
   await page.addInitScript(() => {
     window.__kbbServiceWorker = true;
   });
-  await page.goto(routes.route());
+  await page.goto(routes.route(undefined, "station"));
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
   });

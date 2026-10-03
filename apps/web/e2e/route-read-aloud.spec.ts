@@ -44,7 +44,7 @@ test("Czytaj na głos reads the steps in Polish, pauses, resumes and stops from 
       },
     });
   });
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
   const spoken = () => page.evaluate(() => (window as unknown as { __spoken: Spoken[] }).__spoken);
 
@@ -92,7 +92,7 @@ test("without speech synthesis there is no read-aloud button", async ({ page }) 
   });
 
   // WHEN the route screen opens
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
 
   // THEN the step list is there and the button is not

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseStart, startParam, STATION } from "./route-start";
+import { NO_START, parseStart, startParam, startPosition, STATION } from "./route-start";
 import { routes } from "./routes";
 
 describe("parseStart", () => {
@@ -11,13 +11,48 @@ describe("parseStart", () => {
     expect(parseStart("50.065,19.942")).toEqual({ kind: "point", position: [19.942, 50.065] });
   });
 
-  it("falls back to Dworzec Główny for a missing or unusable value", () => {
+  it("gives no start, never Dworzec Główny, for a missing or unusable value", () => {
     // GIVEN no start, an empty one, coordinates off the globe and an absurdly long id
     const values = [undefined, "", "  ", "95.1,19.9", "50.1,190.5", "x".repeat(201)];
 
     // WHEN each is parsed
-    // THEN the route starts at the station, so the link still opens a route
-    for (const value of values) expect(parseStart(value)).toEqual(STATION);
+    // THEN there is no start, so the screen has to use the device position or ask for one
+    for (const value of values) expect(parseStart(value)).toEqual(NO_START);
+  });
+
+  it("reads Dworzec Główny only when the link names it", () => {
+    // GIVEN the link of a route started from the station
+    // WHEN it is parsed and written back
+    // THEN the station is the start, and the link keeps it
+    expect(parseStart("station")).toEqual(STATION);
+    expect(startParam(STATION)).toBe("station");
+  });
+});
+
+describe("startPosition", () => {
+  const station: [number, number] = [19.9461, 50.0668];
+
+  it("is the device position when there is one", () => {
+    // GIVEN a start at the device position
+    // WHEN the position to plan from is chosen
+    // THEN it is that position
+    expect(startPosition({ kind: "me", position: [19.9, 50.1] }, station)).toEqual([19.9, 50.1]);
+  });
+
+  it("is nothing without a location and a chosen start, so the route is not planned", () => {
+    // GIVEN no start (location denied, nothing picked)
+    // WHEN the position to plan from is chosen
+    // THEN there is none; the station is not substituted
+    expect(startPosition(NO_START, station)).toBeNull();
+  });
+
+  it("uses the station only when it was picked, and a place once its position is known", () => {
+    // GIVEN the station picked, a place from a link and the same place after it loaded
+    // WHEN the positions are chosen
+    // THEN the station is its position, the unloaded place has none yet and the loaded one has its own
+    expect(startPosition(STATION, station)).toEqual(station);
+    expect(startPosition({ kind: "place", id: "a" }, station)).toBeNull();
+    expect(startPosition({ kind: "place", id: "a" }, station, [19.95, 50.06])).toEqual([19.95, 50.06]);
   });
 });
 
@@ -34,12 +69,12 @@ describe("startParam", () => {
     expect(parseStart(param)).toEqual({ kind: "point", position: [19.942, 50.065] });
   });
 
-  it("keeps a place's id and leaves the default start out of the link", () => {
-    // GIVEN a place start and the default one
+  it("keeps a place's id and leaves no start out of the link", () => {
+    // GIVEN a place start and no start
     // WHEN they go into the link
-    // THEN the place is its id and the station is no parameter at all
+    // THEN the place is its id and no start is no parameter at all
     expect(startParam({ kind: "place", id: "kawiarnia-przyklad", name: "Kawiarnia Przykład" })).toBe("kawiarnia-przyklad");
-    expect(startParam(STATION)).toBeUndefined();
+    expect(startParam(NO_START)).toBeUndefined();
   });
 });
 

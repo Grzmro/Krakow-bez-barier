@@ -10,7 +10,7 @@ test("avoid-stairs route from Dworzec Główny to Rynek names the segments witho
   evidence,
 }) => {
   // GIVEN a visitor without a profile opening the route screen
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
   const main = page.locator("main");
 
   // THEN the avoid-stairs route reports no known barriers, but never as a pass while some segments lack data
@@ -50,7 +50,7 @@ test("with the wheelchair profile the route keeps its limits and Floriańska sho
   evidence,
 }) => {
   // GIVEN the route screen
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
   const main = page.locator("main");
   await expect(main).toContainText("Brak znanych barier, ale 336 m bez danych");
 
@@ -84,7 +84,9 @@ test("a route without a routing key says so, offers the example route, and still
   expectAccessible,
   evidence,
 }) => {
-  // GIVEN a place card
+  // GIVEN a place card and a device that shares its location (a route starts there, not at a default)
+  await page.context().grantPermissions(["geolocation"]);
+  await page.context().setGeolocation({ latitude: 50.065, longitude: 19.942 });
   await page.goto("/miejsca/kawiarnia-przyklad");
   await expect(page.getByRole("heading", { level: 1, name: "Kawiarnia Przykład" })).toBeVisible();
 
@@ -113,6 +115,6 @@ test("a route without a routing key says so, offers the example route, and still
   await page.getByRole("link", { name: "Pokaż przykładową trasę" }).click();
 
   // THEN the recorded Dworzec Główny → Rynek route opens
-  await expect(page).toHaveURL(/\/trasa$/);
+  await expect(page).toHaveURL(/\/trasa\?z=station$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
 });

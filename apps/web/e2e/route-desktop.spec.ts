@@ -40,7 +40,7 @@ test("at 1024–1920 px the steps are in a side panel, the map fills the rest of
 }) => {
   // GIVEN the route screen in a desktop window
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
   const panel = page.getByRole("region", { name: "Odcinki trasy" });
   await expect(panel.getByRole("list", { name: /tekstowa wersja mapy/ })).toBeAttached();
@@ -82,7 +82,7 @@ test("at 1024–1920 px the steps are in a side panel, the map fills the rest of
 test("the desktop route screen passes axe and keeps its structure", async ({ page, expectAccessible, evidence }) => {
   // GIVEN the route screen at 1440 px
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
 
   // THEN its structure matches the snapshot and axe finds no WCAG 2.2 A/AA violation
@@ -97,7 +97,7 @@ test("a keyboard user goes from the form through the results and steps to the ma
 }) => {
   // GIVEN the route screen at 1440 px
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
 
   // WHEN a keyboard user tabs on from the swap button
@@ -156,7 +156,7 @@ test("a keyboard user goes from the form through the results and steps to the ma
 test("at 200% and 400% zoom of a 1440 px window the content scrolls in one direction only", async ({ page }) => {
   // GIVEN a 1440×900 window zoomed to 200%: the page lays out in 720 CSS px
   await page.setViewportSize({ width: 720, height: 450 });
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
 
   for (const width of [720, 360]) {
@@ -174,7 +174,7 @@ test("in English the side panel keeps the same layout", async ({ page, context, 
   // GIVEN the English UI at 1440 px
   await context.addCookies([{ name: "kbb-lang", value: "en", url: baseURL! }]);
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
 
   // THEN the steps are in the side panel left of the map
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
@@ -187,7 +187,7 @@ test("in English the side panel keeps the same layout", async ({ page, context, 
 test("the map stays one window tall however long the step list is, with zoom and attribution in view", async ({ page }) => {
   // GIVEN a 1440×900 window and a route of 33 steps, far taller than the window
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
 
   for (const kind of ["Najkrótsza", "Unikaj schodów"]) {

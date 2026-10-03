@@ -23,7 +23,7 @@ import { locateFailureText, toLonLat } from "@/lib/nearby";
 import { usePlace } from "@/lib/places";
 import type { ProfileSettings } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
-import { parseStart, startParam, STATION, type RouteStart } from "@/lib/route-start";
+import { NO_START, parseStart, startParam, startPosition, STATION, type RouteStart } from "@/lib/route-start";
 import { barrierList, cleanHeadline, gaps, routeStatus } from "@/lib/route-summary";
 import { routes } from "@/lib/routes";
 import type { SavedRouteInput } from "@/lib/saved-routes";
@@ -141,29 +141,31 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
   const startPlaceId = chosenStart.kind === "place" && !chosenStart.position ? chosenStart.id : "";
   const startPlace = usePlace(startPlaceId, {}, { enabled: Boolean(startPlaceId) });
   const startMissing = Boolean(startPlaceId) && startPlace.data === null;
-  const start = startMissing ? STATION : chosenStart;
-  const startPosition =
-    start.kind === "station"
-      ? config.routeStart
-      : start.kind === "place"
-        ? (start.position ?? (startPlace.data?.location.coordinates as [number, number] | undefined))
-        : start.position;
+  const start = startMissing ? NO_START : chosenStart;
+  const noStart = start.kind === "none";
+  const fromPosition = startPosition(start, config.routeStart, startPlace.data?.location.coordinates as [number, number] | undefined);
   const startName =
-    start.kind === "station"
-      ? t.places.dworzec
-      : start.kind === "me"
-        ? t.start.me
-        : start.kind === "point"
-          ? t.start.point
-          : (start.name ?? startPlace.data?.name ?? "…");
+    start.kind === "none"
+      ? ""
+      : start.kind === "station"
+        ? t.places.dworzec
+        : start.kind === "me"
+          ? t.start.me
+          : start.kind === "point"
+            ? t.start.point
+            : (start.name ?? startPlace.data?.name ?? "…");
   const startOption: StartOption = {
     value: start.kind === "place" ? `place:${start.id}` : start.kind,
     label: startName,
     pick: start,
   };
-  const startNotice = startMissing ? { message: t.start.notFound, help: null } : notice;
+  const startNotice = startMissing
+    ? { message: t.start.notFound, help: null }
+    : noStart
+      ? (notice ?? { message: t.start.required, help: null })
+      : notice;
 
-  const planned = end && startPosition ? (swapped ? { from: end, to: startPosition } : { from: startPosition, to: end }) : null;
+  const planned = end && fromPosition ? (swapped ? { from: end, to: fromPosition } : { from: fromPosition, to: end }) : null;
   const ends = planned && origin ? { from: origin, to: planned.to } : planned;
 
   const avoid = useRoute(ends ? routeRequest(ends.from, ends.to, "avoid_stairs", settings) : null);
@@ -235,10 +237,19 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
     }
     // No position: the route keeps its start and says why, with what to do about it.
     const { message, help } = locateFailureText(result.reason, locationSettings(), messages.nearby);
-    const text = t.start.failed(message, startName);
+    const text = noStart ? t.start.failedNone(message) : t.start.failed(message, startName);
     setNotice({ message: text, help });
     announce(help ? `${text} ${help}` : text);
   };
+
+  // No start in the link: the route starts at the device position. If it can't be found, the screen asks for a start.
+  const autoLocated = useRef(false);
+  useEffect(() => {
+    if (autoLocated.current || chosenStart.kind !== "none") return;
+    autoLocated.current = true;
+    void pickStart({ kind: "locate" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once on mount
+  }, []);
 
   const switchKind = (next: RouteKind) => {
     setKind(next);
@@ -458,7 +469,7 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
                   </details>
                 ) : null}
               </div>
-              {startMissing ? null : (
+              {startMissing || noStart ? null : (
                 <Button variant="ghost" size="icon" aria-label={t.start.dismiss} onClick={() => setNotice(null)} className="-mt-2 -mr-2 size-10 shrink-0">
                   <X weight="bold" />
                 </Button>
@@ -470,7 +481,7 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
 
           {to && place.isError ? (
             <p className="mt-4 text-body font-semibold">{t.error.noPlace}</p>
-          ) : current.isPending ? (
+          ) : noStart ? null : current.isPending ? (
             <p className="mt-4 text-body text-muted-foreground">{t.loading}</p>
           ) : current.isError ? (
             <div className="mt-4 flex gap-3 rounded-[20px] bg-status-conflict-bg p-4">

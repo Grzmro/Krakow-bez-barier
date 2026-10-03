@@ -27,7 +27,7 @@ async function settledHeight(page: Page) {
 const pageScroll = (page: Page) => page.evaluate(() => document.scrollingElement!.scrollTop);
 
 async function openRoute(page: Page) {
-  await page.goto("/trasa");
+  await page.goto("/trasa?z=station");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
   await expect(panel(page)).toHaveAttribute("data-expanded", "false");
   return settledHeight(page);
@@ -78,7 +78,7 @@ test.describe("route panel swipe on iPhone 15", () => {
   test("swiping the bar up brings the panel back at half height, with „Ruszamy”", async ({ page }) => {
     // GIVEN the route panel stowed earlier in this session
     await page.addInitScript(() => sessionStorage.setItem("kbb-route-stowed", "1"));
-    await page.goto("/trasa");
+    await page.goto("/trasa?z=station");
     await expect(panel(page)).toHaveAttribute("data-stowed", "true");
     const bar = await settledHeight(page);
     const half = 0.55 * (await page.locator("main").boundingBox())!.height;
