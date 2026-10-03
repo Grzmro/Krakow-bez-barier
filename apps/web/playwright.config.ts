@@ -1,11 +1,20 @@
 import { defineConfig, devices } from "@playwright/test";
 
-const port = Number(process.env.PORT ?? 3000);
-const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${port}`;
 const isCI = !!process.env.CI;
 
+// Parallel agents run e2e in separate git worktrees; a shared default port would let one worktree's
+// tests hit another worktree's dev server. Derive a stable per-worktree port instead.
+function worktreePort(dir: string): number {
+  let hash = 0;
+  for (const char of dir) hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+  return 3100 + (hash % 800);
+}
+
+const port = Number(process.env.PORT ?? (isCI ? 3000 : worktreePort(__dirname)));
+const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${port}`;
+
 // Fast by design: one browser, parallel files, no retries. CI runs against the production build
-// made earlier in the same job (`next start`); locally it reuses a running dev server.
+// made earlier in the same job (`next start`); locally it reuses this worktree's dev server.
 export default defineConfig({
   testDir: "e2e",
   fullyParallel: true,
