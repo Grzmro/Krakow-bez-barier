@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { verdictsOnMap } from "./map";
+import { verdictsOnMap, gotoAllPlaces } from "./map";
 
 const liveRegion = (page: Page) => page.locator('div[role="status"][aria-atomic="true"]');
 const list = (page: Page) => page.getByRole("region", { name: "Lista miejsc" });
@@ -22,7 +22,7 @@ test("wheelchair profile on the home screen shows verdicts on the list and map, 
   evidence,
 }) => {
   // GIVEN a visitor on the home screen who searched for the sample places and picked a filter
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
   await searchFor(page, "przyk");
@@ -69,7 +69,7 @@ test("wheelchair profile on the home screen shows verdicts on the list and map, 
 
 /** The wheelchair profile over the five sample places; returns the verdict counters. */
 async function wheelchairOverSamples(page: Page) {
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await searchFor(page, "przyk");
   await page.getByRole("radio", { name: "Wózek", exact: true }).check();
@@ -225,7 +225,7 @@ test("the senior profile is one tap away on a 360 px phone and judges places by 
 }) => {
   // GIVEN the home screen on a small 360 px phone
   await page.setViewportSize({ width: 360, height: 640 });
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // THEN every profile segment fits the switch with its label in full
@@ -271,7 +271,7 @@ test("the profile switch is one row on a 360 px phone and in the desktop sidebar
 
   // GIVEN the home screen on a 360 px phone
   await page.setViewportSize({ width: 360, height: 640 });
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // THEN the four segments share one row (icons hidden to make room)
@@ -305,7 +305,7 @@ test("no-data and conflicting places never meet a profile; turning it off return
 
 test("profile, counters and details work from the keyboard", async ({ page }) => {
   // GIVEN the home screen with the sample places
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await searchFor(page, "Hotel");
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("1 miejsce");

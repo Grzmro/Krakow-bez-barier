@@ -4,6 +4,15 @@ import { expect } from "./fixtures";
 export const pins = (page: Page) => page.locator("[data-place-id]");
 export const clusters = (page: Page) => page.locator("[data-cluster-count]");
 
+/**
+ * Opens the home screen with all ten sample places listed and pinned. The start state shows none, so this
+ * searches for "r", which every sample place's name or street contains.
+ */
+export async function gotoAllPlaces(page: Page) {
+  await page.goto("/");
+  await page.getByRole("combobox", { name: "Wyszukaj miejsce" }).fill("r");
+}
+
 /** Places the map shows: single pins plus the places counted inside clusters. */
 export async function placesOnMap(page: Page) {
   const inClusters = await clusters(page).evaluateAll((els) =>

@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { gotoAllPlaces } from "./map";
 
 // A wide window shows enough of the Old Town for the basemap's POIs without a sprite icon (gate, bollard, atm…).
 test.use({ isMobile: false, hasTouch: false, viewport: { width: 1440, height: 1000 } });
@@ -11,7 +12,7 @@ test("zoomed in to street level, the map has an image for every icon its style a
   });
 
   // GIVEN the home screen with the map over the Old Town
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   const canvas = page.locator(".maplibregl-canvas");
   await expect(canvas).toBeVisible();

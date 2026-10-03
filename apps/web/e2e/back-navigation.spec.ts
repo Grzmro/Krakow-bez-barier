@@ -5,10 +5,10 @@ test("a narrowed map has a back button and the logo, both returning to the whole
   expectAccessible,
   evidence,
 }) => {
-  // GIVEN the home screen with every sample place and no back button
+  // GIVEN the home screen at its start (clean map, peek of the nearest places) and no back button
   await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("Najbliżej Rynku (bez lokalizacji)");
   const back = page.getByRole("button", { name: "Wróć do całej mapy" });
   await expect(back).toHaveCount(0);
 
@@ -25,8 +25,9 @@ test("a narrowed map has a back button and the logo, both returning to the whole
   // WHEN a keyboard user presses it
   await back.press("Enter");
 
-  // THEN every place is back, the button is gone and focus lands on the search field
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
+  // THEN the clean map and the peek are back, the button is gone and focus lands on the search field
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("Najbliżej Rynku (bez lokalizacji)");
+  await expect(page.locator("[data-place-id], [data-cluster-count]")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Wszystko" })).toHaveAttribute("aria-pressed", "true");
   await expect(back).toHaveCount(0);
   await expect(page.getByRole("combobox", { name: "Wyszukaj miejsce" })).toBeFocused();
@@ -36,8 +37,8 @@ test("a narrowed map has a back button and the logo, both returning to the whole
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
   await page.getByRole("link", { name: "Kraków bez barier — strona główna" }).click();
 
-  // THEN the logo also returns to the whole map, on the same page
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
+  // THEN the logo also returns to the clean map, on the same page
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("Najbliżej Rynku (bez lokalizacji)");
   await expect(page.getByRole("combobox", { name: "Wyszukaj miejsce" })).toHaveValue("");
   await expect(page).toHaveURL(/\/$/);
 });

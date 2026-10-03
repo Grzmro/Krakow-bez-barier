@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { gotoAllPlaces } from "./map";
 
 const WAWEL = { latitude: 50.0541, longitude: 19.9354, accuracy: 20 };
 const NOWA_HUTA = { latitude: 50.0722, longitude: 20.0375, accuracy: 20 };
@@ -19,7 +20,7 @@ test.describe("with location access granted", () => {
     evidence,
   }) => {
     // GIVEN the home screen listing distances from Rynek
-    await page.goto("/");
+    await gotoAllPlaces(page);
     const list = page.getByRole("region", { name: "Lista miejsc" });
     await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
     const nearby = list.getByRole("button", { name: "W mojej okolicy" });
@@ -59,7 +60,7 @@ test.describe("far from every listed place", () => {
 
   test("'W mojej okolicy' narrows the list to the user's area and says why it is empty", async ({ page, expectAccessible }) => {
     // GIVEN the home screen listing all 9 places, none of them near Nowa Huta
-    await page.goto("/");
+    await gotoAllPlaces(page);
     const list = page.getByRole("region", { name: "Lista miejsc" });
     await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 

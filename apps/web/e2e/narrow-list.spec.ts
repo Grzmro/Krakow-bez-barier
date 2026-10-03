@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { gotoAllPlaces } from "./map";
 
 const list = (page: Page) => page.getByRole("region", { name: "Lista miejsc" });
 
@@ -7,7 +8,7 @@ for (const width of [360, 390]) {
   test(`verdict and status badges are never clipped at ${width} px`, async ({ page, expectAccessible, evidence }) => {
     // GIVEN a phone-width screen with the sample places and a filter that adds status badges
     await page.setViewportSize({ width, height: 800 });
-    await page.goto("/");
+    await gotoAllPlaces(page);
     await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
     const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
     await search.fill("przyk");

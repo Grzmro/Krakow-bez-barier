@@ -90,7 +90,7 @@ export const home = {
   },
   list: {
     label: "Lista miejsc",
-    start: { summary: "Wyszukaj miejsce albo wybierz kategorię", hint: "Mapa jest czysta. Wpisz nazwę, wybierz kategorię albo szybką akcję, a pokażemy miejsca w okolicy: blisko Ciebie, blisko wybranego punktu, a bez lokalizacji w widocznej części mapy." },
+    start: { summary: "Najbliższe miejsca", hint: "Mapa jest czysta. Wpisz nazwę, wybierz kategorię albo szybką akcję, a pokażemy wyniki na liście i na mapie.", nearYou: "Najbliżej Ciebie", nearChosen: "Najbliżej wybranego punktu", nearCentre: "Najbliżej Rynku (bez lokalizacji)", empty: "Brak miejsc w okolicy." },
     stow: { hide: "Schowaj listę", show: "Pokaż listę" },
     results: (n: number) => `${n} ${placesWord(n)}`,
     announce: (n: number) => (n === 0 ? "Nie znaleziono miejsc" : `Znaleziono ${n} ${placesWord(n)}`),

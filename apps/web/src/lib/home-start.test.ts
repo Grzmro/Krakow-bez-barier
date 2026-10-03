@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isSearching, searchOrigin } from "./home-start";
+import { homeView, isSearching, searchOrigin } from "./home-start";
 
 const start = { q: "", category: null, features: [], nearby: null };
 const rynek: [number, number] = [19.9372, 50.0617];
@@ -36,6 +36,47 @@ describe("isSearching", () => {
     // WHEN the query and category are reset
     // THEN the start state is back
     expect(isSearching({ ...searched, q: "", category: null })).toBe(false);
+  });
+});
+
+describe("homeView", () => {
+  it("peeks the nearest places on a clean map at the start", () => {
+    // GIVEN nothing was asked and there is no position
+    // WHEN the view is resolved
+    const view = homeView(start, searchOrigin(null, rynek));
+    // THEN the panel is a peek, no pins show, and nothing claims to be near the user
+    expect(view).toEqual({ searching: false, pins: false, panel: "peek", heading: "nearCentre" });
+  });
+
+  it("calls the peek 'near you' only for a device position", () => {
+    // GIVEN the device position and a hand-picked point
+    // WHEN the headings are resolved
+    // THEN only the device position is "near you"
+    expect(homeView(start, searchOrigin({ position: here }, rynek)).heading).toBe("nearYou");
+    expect(homeView(start, searchOrigin({ position: here, place: "Kazimierz" }, rynek)).heading).toBe("nearChosen");
+  });
+
+  it.each([
+    ["a query", { q: "kawiarnia" }],
+    ["a category", { category: "pharmacy" }],
+    ["a quick action's feature", { features: ["toilet_accessible"] }],
+    ["the near me toggle", { nearby: { position: here } }],
+  ])("shows results and pins after %s", (_, ask) => {
+    // GIVEN one thing was asked
+    // WHEN the view is resolved
+    const view = homeView({ ...start, ...ask }, searchOrigin(null, rynek));
+    // THEN the results panel and pins show
+    expect(view).toMatchObject({ searching: true, pins: true, panel: "results" });
+  });
+
+  it("returns to the peek and a clean map when the search is cleared", () => {
+    // GIVEN results for a query
+    const origin = searchOrigin(null, rynek);
+    expect(homeView({ ...start, q: "apteka" }, origin).pins).toBe(true);
+    // WHEN the query is cleared
+    const cleared = homeView({ ...start, q: "" }, origin);
+    // THEN the start view is back
+    expect(cleared).toMatchObject({ pins: false, panel: "peek" });
   });
 });
 

@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { gotoAllPlaces } from "./map";
 
 // A stand-in for the browser's SpeechRecognition: the test drives its events, so no microphone or network is used.
 async function fakeSpeech(page: Page) {
@@ -66,7 +67,7 @@ test("dictation fills the search field in Polish, which the visitor can still ed
 }) => {
   // GIVEN a browser with speech recognition
   await fakeSpeech(page);
-  await page.goto("/");
+  await gotoAllPlaces(page);
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   const mic = page.getByRole("button", { name: "Wpisz głosem" });

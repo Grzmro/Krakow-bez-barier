@@ -1,5 +1,6 @@
 import { devices, type Locator, type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { gotoAllPlaces } from "./map";
 import { finger, type Point } from "./touch";
 
 const panel = (page: Page) => page.getByRole("region", { name: "Lista miejsc" });
@@ -26,7 +27,7 @@ async function settledHeight(page: Page) {
 const pageScroll = (page: Page) => page.evaluate(() => document.scrollingElement!.scrollTop);
 
 async function openHome(page: Page) {
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await expect(panel(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await expect(panel(page)).toHaveAttribute("data-expanded", "false");
   return settledHeight(page);
@@ -75,13 +76,14 @@ for (const [name, device] of [
       await page.goto("/");
       await expect(panel(page)).toHaveAttribute("data-stowed", "true");
       const bar = await settledHeight(page);
-      const half = (await page.locator("main").boundingBox())!.height / 2;
+      // The start peek is 14.5rem tall (no home indicator in this test).
+      const half = 14.5 * 16;
       const touch = await finger(page);
 
       // WHEN a finger swipes the bar up, most of the way to half height
       await touch.swipe(await topRow(page), -0.8 * (half - bar));
 
-      // THEN the list is back at half height, with the grabber still offering to expand, and the page didn't scroll
+      // THEN the panel is back at its peek height, with the grabber still offering to expand, and the page didn't scroll
       await expect(panel(page)).toHaveAttribute("data-stowed", "false");
       expect(await pageScroll(page)).toBe(0);
       await expect(panel(page).getByRole("button", { name: "Rozwiń arkusz" })).toHaveAttribute("aria-expanded", "false");
