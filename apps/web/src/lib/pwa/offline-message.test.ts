@@ -11,10 +11,10 @@ describe("offlineMessage", () => {
     expect(text).toBe("Jesteś offline — pokazujemy dane z 3 października 2026 14:20.");
   });
 
-  it.each([null, "", "not-a-date"])("falls back to a generic message for %j", (value) => {
+  it.each([null, "", "not-a-date"])("says only that the device is offline for %j", (value) => {
     // GIVEN no usable timestamp
     // WHEN building the banner text
     // THEN it doesn't invent a date
-    expect(offlineMessage(value)).toBe("Jesteś offline — pokazujemy ostatnio zapisane dane.");
+    expect(offlineMessage(value)).toBe("Jesteś offline.");
   });
 });

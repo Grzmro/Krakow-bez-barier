@@ -50,6 +50,7 @@ test("home page works offline after the first visit and says so", async ({
   // AND a page that was only prefetched, never opened, falls back to the offline page (not RSC data)
   await page.goto(routes.privacy);
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "offline.aria.yml" });
+  await expect(page.getByRole("note").filter({ hasText: "Jesteś offline" })).toHaveText("Jesteś offline.");
   await expectAccessible();
   await evidence("pwa-offline-fallback");
   await page.keyboard.press("Tab");
@@ -60,4 +61,30 @@ test("home page works offline after the first visit and says so", async ({
   await context.setOffline(false);
   await page.goto("/");
   await expect(page.getByRole("note").filter({ hasText: "Jesteś offline" })).toHaveCount(0);
+});
+
+test("a page opened through an in-app link is available offline too", async ({ page, context }) => {
+  // GIVEN a visitor with the service worker who opens "O danych" from the menu (client-side navigation)
+  await page.addInitScript(() => {
+    window.__kbbServiceWorker = true;
+  });
+  await page.goto("/");
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  await page.reload();
+  await page.getByRole("button", { name: "Menu" }).click();
+  await page.getByRole("link", { name: /O danych/ }).click();
+  await expect(page).toHaveURL(routes.aboutData);
+  await expect
+    .poll(() => page.evaluate(async (path) => !!(await caches.match(location.origin + path)), routes.aboutData))
+    .toBe(true);
+
+  // WHEN they open it again without a connection
+  await context.setOffline(true);
+  await page.goto(routes.aboutData);
+
+  // THEN the cached page is shown, not the offline fallback
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("O danych");
+  await expect(page.getByRole("note").filter({ hasText: "Jesteś offline" })).toContainText("pokazujemy dane z");
 });

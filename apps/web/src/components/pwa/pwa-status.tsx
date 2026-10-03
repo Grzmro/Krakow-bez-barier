@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
 import { CloudSlash, DeviceMobile, X } from "@phosphor-icons/react";
 import { Button, useAnnounce } from "@krakow-bez-barier/ui";
 import { pl } from "@/i18n/pl";
@@ -49,14 +50,21 @@ function useServiceWorker() {
       .register(SW_URL, { scope: "/", updateViaCache: "none" })
       .then(() => navigator.serviceWorker.ready)
       .then((registration) => {
-        const urls = [
-          location.pathname + location.search,
-          ...performance.getEntriesByType("resource").map((entry) => entry.name),
-        ].filter((url) => new URL(url, location.origin).origin === location.origin);
-        registration.active?.postMessage({ type: "kbb:warm", urls });
+        const urls = performance
+          .getEntriesByType("resource")
+          .map((entry) => entry.name)
+          .filter((url) => new URL(url).origin === location.origin);
+        registration.active?.postMessage({ type: "kbb:warm", urls, page: location.pathname + location.search });
       })
       .catch(() => undefined);
   }, []);
+
+  // Client-side navigations fetch RSC data, which the worker doesn't cache; ask it to store the page's
+  // HTML so pages opened from a list also work offline.
+  const pathname = usePathname();
+  useEffect(() => {
+    navigator.serviceWorker?.controller?.postMessage({ type: "kbb:warm-page", url: location.pathname + location.search });
+  }, [pathname]);
 }
 
 function subscribeOnline(onChange: () => void) {

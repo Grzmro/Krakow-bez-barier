@@ -3,7 +3,7 @@ export const pwa = {
   shortName: "Bez barier",
   offline: {
     withDate: (date: string) => `Jesteś offline — pokazujemy dane z ${date}.`,
-    noDate: "Jesteś offline — pokazujemy ostatnio zapisane dane.",
+    noCopy: "Jesteś offline.",
   },
   offlinePage: {
     title: "Jesteś offline",

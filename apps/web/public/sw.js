@@ -24,14 +24,17 @@ self.addEventListener("activate", (event) => {
   );
 });
 
-// The page sends the URLs it loaded before the worker took control so the first visit works offline.
 self.addEventListener("message", (event) => {
-  if (event.data?.type !== "kbb:warm" || !Array.isArray(event.data.urls)) return;
-  const urls = event.data.urls.filter((href) => {
-    const url = new URL(href, self.location.origin);
-    return isHandled(url) && url.pathname.startsWith("/_next/static/");
-  });
-  event.waitUntil(cacheMissing(urls));
+  // The page sends the assets it loaded before the worker took control so the first visit works offline.
+  if (event.data?.type === "kbb:warm" && Array.isArray(event.data.urls)) {
+    const urls = event.data.urls.filter((href) => {
+      const url = new URL(href, self.location.origin);
+      return isHandled(url) && url.pathname.startsWith("/_next/static/");
+    });
+    event.waitUntil(Promise.all([cacheMissing(urls), warmPage(event.data.page)]));
+  }
+  // Client-side (RSC) navigations bypass the cache; the page asks for its HTML to be stored instead.
+  if (event.data?.type === "kbb:warm-page") event.waitUntil(warmPage(event.data.url));
 });
 
 self.addEventListener("fetch", (event) => {
@@ -99,6 +102,23 @@ async function stamped(response) {
   // Keyed by URL alone (RSC requests never reach the cache), so Next's Vary list must not block a match.
   headers.delete("Vary");
   return new Response(await response.blob(), { status: response.status, statusText: response.statusText, headers });
+}
+
+async function warmPage(path) {
+  if (typeof path !== "string") return;
+  const url = new URL(path, self.location.origin);
+  if (!isHandled(url) || url.searchParams.has("_rsc")) return;
+  const cache = await caches.open(CACHE);
+  // A full page load stored it a moment ago — don't fetch it twice.
+  const cached = await cache.match(url.href);
+  const cachedAt = Date.parse(cached?.headers.get(CACHED_AT) ?? "");
+  if (Date.now() - cachedAt < 30_000) return;
+  try {
+    const response = await fetch(url.href);
+    if (isStorable(response)) await cache.put(url.href, await stamped(response));
+  } catch {
+    // Offline or server down: keep whatever copy we have.
+  }
 }
 
 async function page(request) {
