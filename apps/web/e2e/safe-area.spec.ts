@@ -72,7 +72,7 @@ test("the menu drawer keeps its last link above the home indicator", async ({ pa
 test("the threshold drawer's buttons stay above the home indicator", async ({ page, expectAccessible, evidence }) => {
   // GIVEN an iPhone with a home indicator and the wheelchair profile on
   await withHomeIndicator(page);
-  await page.goto("/profil");
+  await page.goto("/");
   await page.getByRole("radio", { name: "Wózek", exact: true }).check();
 
   // WHEN the visitor opens the threshold editor
