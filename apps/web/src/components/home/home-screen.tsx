@@ -10,8 +10,7 @@ import { ThresholdsDrawer } from "@/components/profile/thresholds-drawer";
 import { useMessages } from "@/i18n/client";
 import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
-import type { DevicePosition } from "@/lib/native/geolocation";
-import { byDistance, listCentre, searchArea, toLonLat } from "@/lib/nearby";
+import { byDistance, listCentre, searchArea, toLonLat, type NearbyOrigin } from "@/lib/nearby";
 import { listedCount } from "@/lib/list-count";
 import { usePlaces } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
@@ -80,7 +79,9 @@ export function HomeScreen() {
   const [stowedFlag, setStowed] = useSessionFlag(STOWED_KEY);
   const revealRef = useRef<string | null>(null);
   // Stays in this component: only the coarse `searchArea` goes to the API (see docs/architecture.md).
-  const [position, setPosition] = useState<DevicePosition | null>(null);
+  const [nearby, setNearby] = useState<NearbyOrigin | null>(null);
+  const position = nearby?.position ?? null;
+  const chosenPlace = nearby?.place;
   const rowRefs = useRef(new Map<string, HTMLAnchorElement>());
   const listRef = useRef<HTMLDivElement>(null);
   const desktop = useMediaQuery(DESKTOP);
@@ -122,7 +123,9 @@ export function HomeScreen() {
   const pending = places.isPlaceholderData || total === undefined;
   const listAnnouncement =
     total === undefined ? null : verdicts && profile ? tp.announce(profile, shown.length, items.length, counts) : t.list.announce(listedCount(places.data!, shown.length));
-  const announcement = listAnnouncement && [origin ? tn.announce : null, listAnnouncement, cutNote].filter(Boolean).join(". ");
+  const announcement =
+    listAnnouncement &&
+    [origin ? (chosenPlace ? tn.announceChosen(chosenPlace) : tn.announce) : null, listAnnouncement, cutNote].filter(Boolean).join(". ");
   useEffect(() => {
     if (!pending && announcement) announce(announcement);
   }, [announce, pending, announcement, queryKey]);
@@ -151,7 +154,7 @@ export function HomeScreen() {
   }
 
   function searchWider() {
-    setPosition(null);
+    setNearby(null);
     setQ("");
     setCategory(ALL);
     setFeatures([]);
@@ -245,7 +248,7 @@ export function HomeScreen() {
       >
         <div className="space-y-2 px-4 pt-1 pb-2">
           <ProfileSwitch value={profile} onChange={changeProfile} />
-          <NearbyToggle active={Boolean(position)} onChange={setPosition} />
+          <NearbyToggle origin={nearby} onChange={setNearby} />
           {profile ? (
             <>
               <div className="flex items-center gap-2">
@@ -325,7 +328,11 @@ export function HomeScreen() {
               ) : (
                 <>
                   <p className="text-title font-semibold">{t.list.empty}</p>
-                  {origin ? <p className="text-body-sm text-muted-foreground">{tn.emptyHint}</p> : null}
+                  {origin ? (
+                    <p className="text-body-sm text-muted-foreground">
+                      {chosenPlace ? tn.emptyHintChosen(chosenPlace) : tn.emptyHint}
+                    </p>
+                  ) : null}
                   <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>
                   <div className="flex flex-wrap justify-center gap-2">
                     <Button variant="outline" onClick={searchWider}>
@@ -345,7 +352,7 @@ export function HomeScreen() {
               {shown.map(({ place, distance }) => (
                 <PlaceRow
                   distance={distance}
-                  fromUser={Boolean(origin)}
+                  from={origin ? (chosenPlace ? "chosen" : "user") : "centre"}
                   key={place.id}
                   ref={(node) => {
                     if (node) rowRefs.current.set(place.id, node);
@@ -371,6 +378,7 @@ export function HomeScreen() {
           onSelect={selectFromMap}
           padding={desktop ? MAP_PADDING_DESKTOP : stowed ? MAP_PADDING_STOWED : MAP_PADDING}
           you={origin}
+          youLabel={chosenPlace}
         />
       </div>
       <ThresholdsDrawer open={thresholdsOpen} onOpenChange={setThresholdsOpen} />

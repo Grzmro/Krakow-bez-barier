@@ -1,6 +1,62 @@
 import { describe, expect, it } from "vitest";
+import { en } from "@/i18n/en";
+import { pl } from "@/i18n/pl";
 import { config } from "./config";
-import { byDistance, listCentre, searchArea, searchCentre, toLonLat } from "./nearby";
+import { KRAKOW_DISTRICTS } from "./districts";
+import type { LocateFailure } from "./native/geolocation";
+import { byDistance, listCentre, locateFailureText, searchArea, searchCentre, toLonLat } from "./nearby";
+
+describe("locateFailureText", () => {
+  const reasons: LocateFailure[] = ["denied", "off", "unavailable", "timeout", "insecure", "unsupported"];
+
+  it("gives every failure its own message, in both languages", () => {
+    // GIVEN every failure reason
+    for (const t of [pl.nearby, en.nearby]) {
+      // WHEN each is turned into text
+      const messages = reasons.map((reason) => locateFailureText(reason, "other", t).message);
+
+      // THEN no two reasons share a message
+      expect(new Set(messages).size).toBe(reasons.length);
+    }
+  });
+
+  it("tells an iPhone user and an Android user where to allow location", () => {
+    // GIVEN a refused permission
+    // WHEN the text is built for each device
+    const iphone = locateFailureText("denied", "ios", pl.nearby);
+    const android = locateFailureText("denied", "android", pl.nearby);
+    const iosApp = locateFailureText("denied", "ios-app", pl.nearby);
+
+    // THEN each names its own settings path
+    expect(iphone).toEqual({ message: "Brak zgody na lokalizację.", help: expect.stringContaining("Witryny Safari") });
+    expect(android.help).toContain("Uprawnienia → Lokalizacja");
+    expect(iosApp.help).toContain("Ustawienia → Kraków bez barier");
+  });
+
+  it("gives an action for every failure the user can fix", () => {
+    // GIVEN the failures a user can act on
+    const fixable = reasons.filter((reason) => reason !== "unsupported");
+
+    // WHEN their text is built / THEN each has a non-empty hint, and "unsupported" has none
+    for (const reason of fixable) expect(locateFailureText(reason, "android", pl.nearby).help).toBeTruthy();
+    expect(locateFailureText("unsupported", "android", pl.nearby).help).toBeNull();
+  });
+});
+
+describe("KRAKOW_DISTRICTS", () => {
+  it("lists the 18 districts, each a point inside Kraków", () => {
+    // GIVEN / WHEN the district list
+    // THEN it has all 18 with unique ids and points within the city's bounding box
+    expect(KRAKOW_DISTRICTS).toHaveLength(18);
+    expect(new Set(KRAKOW_DISTRICTS.map((d) => d.id)).size).toBe(18);
+    for (const d of KRAKOW_DISTRICTS) {
+      expect(d.latitude).toBeGreaterThan(49.96);
+      expect(d.latitude).toBeLessThan(50.13);
+      expect(d.longitude).toBeGreaterThan(19.79);
+      expect(d.longitude).toBeLessThan(20.22);
+    }
+  });
+});
 
 const WAWEL = { latitude: 50.0541, longitude: 19.9354 };
 

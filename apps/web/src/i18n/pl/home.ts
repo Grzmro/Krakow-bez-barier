@@ -1,4 +1,5 @@
 import type { FeatureFilter } from "@krakow-bez-barier/contracts";
+import type { DistanceFrom } from "@/lib/nearby";
 
 const placesWord = (n: number) =>
   n === 1 ? "miejsce" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "miejsca" : "miejsc";
@@ -45,7 +46,9 @@ export const home = {
     empty: "Brak miejsc dla tego wyszukiwania.",
     emptyHint: "Spróbuj szerzej: bez nazwy, kategorii i filtrów.",
     searchWider: "Szukaj w całym Krakowie",
-    distance: (m: number, fromUser = false) =>
-      `${m >= 1000 ? `${(m / 1000).toFixed(1).replace(".", ",")} km` : `${m} m`} ${fromUser ? "od Ciebie" : "od Rynku"}`,
+    distance: (m: number, from: DistanceFrom = "centre") =>
+      `${m >= 1000 ? `${(m / 1000).toFixed(1).replace(".", ",")} km` : `${m} m`} ${
+        from === "user" ? "od Ciebie" : from === "chosen" ? "od wybranego punktu" : "od Rynku"
+      }`,
   },
 } as const;

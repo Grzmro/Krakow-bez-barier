@@ -7,9 +7,14 @@ import { useLocale, useMessages } from "@/i18n/client";
 import { intlLocale, type Locale } from "@/i18n/locale";
 import type { Messages } from "@/i18n/messages";
 import { locateDevice, type LocateResult } from "@/lib/native/geolocation";
+import { locationSettings } from "@/lib/native/platform";
+import { locateFailureText } from "@/lib/nearby";
 
 function describe(result: LocateResult, t: Messages["nearby"], locale: Locale): string {
-  if (!result.ok) return t.errors[result.reason];
+  if (!result.ok) {
+    const { message, help } = locateFailureText(result.reason, locationSettings(), t);
+    return help ? `${message} ${help}` : message;
+  }
   const { latitude, longitude, accuracyMeters } = result.position;
   const coordinate = new Intl.NumberFormat(intlLocale[locale], { minimumFractionDigits: 5, maximumFractionDigits: 5 });
   return t.found(coordinate.format(latitude), coordinate.format(longitude), accuracyMeters);
@@ -17,6 +22,7 @@ function describe(result: LocateResult, t: Messages["nearby"], locale: Locale): 
 
 /**
  * "W mojej okolicy": asks for the device position and shows it; the position stays on the device.
+ * A failure says why and what to do; the same button then tries again.
  * `autoStart` asks right away (the /dev/native diagnostics page) instead of waiting for a tap.
  */
 export function NearMe({ autoStart = false }: { autoStart?: boolean }) {
@@ -70,7 +76,7 @@ export function NearMe({ autoStart = false }: { autoStart?: boolean }) {
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-body font-semibold">{t.action}</span>
-          <span className="block text-caption text-muted-foreground">{locating ? t.locating : t.actionSub}</span>
+          <span className="block text-caption text-muted-foreground">{locating ? t.locating : result && !result.ok ? t.retry : t.actionSub}</span>
         </span>
       </button>
       {result && <p className="px-2 pt-2 text-body font-semibold">{describe(result, t, locale)}</p>}

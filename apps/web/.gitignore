@@ -49,3 +49,6 @@ next-env.d.ts
 
 # demo recording (npm run demo:record)
 /demo-output/
+
+# next dev --experimental-https (self-signed cert)
+/certificates

@@ -1,0 +1,42 @@
+- main:
+  - heading "Mapa i lista miejsc" [level=1]
+  - region "Lista miejsc":
+    - group "Lista miejsc":
+      - group "Profil potrzeb"
+      - button "W mojej okolicy"
+      - text: Pokaż miejsca od najbliższych
+      - group "Brak zgody na lokalizację.":
+        - paragraph: Brak zgody na lokalizację.
+        - paragraph: "Na Androidzie: w Chrome dotknij ikony obok adresu (w zainstalowanej aplikacji przytrzymaj jej ikonę → Informacje o aplikacji) → Uprawnienia → Lokalizacja → Zezwalaj. Potem spróbuj ponownie."
+        - button "Spróbuj ponownie"
+      - button "Albo wybierz dzielnicę" [expanded]
+      - text: Dzielnica
+      - combobox "Dzielnica":
+        - option "Wybierz dzielnicę…" [disabled] [selected]
+        - option "Stare Miasto"
+        - option "Grzegórzki"
+        - option "Prądnik Czerwony"
+        - option "Prądnik Biały"
+        - option "Krowodrza"
+        - option "Bronowice"
+        - option "Zwierzyniec"
+        - option "Dębniki"
+        - option "Łagiewniki-Borek Fałęcki"
+        - option "Swoszowice"
+        - option "Podgórze Duchackie"
+        - option "Bieżanów-Prokocim"
+        - option "Podgórze"
+        - option "Czyżyny"
+        - option "Mistrzejowice"
+        - option "Bieńczyce"
+        - option "Wzgórza Krzesławickie"
+        - option "Nowa Huta"
+      - button "Pokaż okolicę" [disabled]
+      - paragraph: Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.
+      - group "Filtry cech"
+      - heading "9 miejsc" [level=2]
+      - list:
+        - listitem:
+          - link /od Rynku/
+  - paragraph:
+    - link "© OpenStreetMap contributors"

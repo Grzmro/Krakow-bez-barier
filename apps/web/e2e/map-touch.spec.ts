@@ -107,7 +107,7 @@ for (const [name, device] of [
       await openHome(page);
       const touch = await touchscreen(page);
       const area = await freeMapArea(page);
-      const sheetToggle = page.getByRole("region", { name: "Lista miejsc" }).getByRole("button", { expanded: false });
+      const sheetToggle = page.getByRole("region", { name: "Lista miejsc" }).getByRole("button", { name: "Rozwiń arkusz", expanded: false });
 
       for (let i = 0; i < 10; i++) {
         if (i === 5) {
