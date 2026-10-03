@@ -26,10 +26,6 @@ const profileName = { wheelchair: "Wózek", stroller: "Wózek dziecięcy" } sati
 
 // Needs profiles (E2). Every label names a barrier or facility — never a disability (R4).
 export const profile = {
-  page: {
-    title: "Profil potrzeb",
-    lead: "Włącz profil, a przy każdym miejscu zobaczysz, czy pasuje do Twoich progów — i dlaczego.",
-  },
   switch: {
     label: "Profil potrzeb",
     off: "Dla każdego",
@@ -58,12 +54,10 @@ export const profile = {
     done: "Gotowe",
   },
   hideFailing: "Ukryj niespełniające",
-  counter: (n: number, status: string) => `${n} ${status}`,
-  countersLabel: "Liczba miejsc według wyniku",
-  announce: (active: Profile | null, shown: number, hidden: number, byStatus: Record<Status, number>) =>
-    active
-      ? `Profil: ${profileName[active].toLowerCase()}. ${places(shown)}${hidden ? ` (ukryto niespełniające: ${hidden})` : ""}: ${counts(byStatus)}.`
-      : `Profil wyłączony. Widok dla każdego, ${places(shown)}.`,
+  counter: (n: number, status: string) => `${n} ${status.toLowerCase()}`,
+  countersLabel: "Pokaż tylko miejsca z wynikiem",
+  announce: (active: Profile, shown: number, total: number, byStatus: Record<Status, number>) =>
+    `Profil: ${profileName[active].toLowerCase()}. ${shown === total ? places(total) : `Pokazano ${shown} z ${places(total)}`}: ${counts(byStatus)}.`,
   reasons: {
     steps: (n: number) => `${n} ${plural(n, "stopień", "stopnie", "stopni")}`,
     threshold: (cm: number) => `próg ${cm} cm`,
@@ -79,15 +73,10 @@ export const profile = {
     unknown: "Nie wiadomo",
   },
   list: {
-    heading: "Miejsca",
-    search: "Szukaj miejsca",
-    searchHint: "Nazwa lub ulica",
-    results: places,
-    loading: "Wczytywanie miejsc…",
-    error: "Nie udało się wczytać miejsc.",
-    empty: "Brak miejsc dla tego wyszukiwania.",
     details: "Dlaczego?",
+    detailsAria: (place: string) => `Dlaczego? ${place}`,
     hideDetails: "Ukryj szczegóły",
-    noProfile: "Włącz profil, aby zobaczyć, co Cię blokuje.",
+    hideDetailsAria: (place: string) => `Ukryj szczegóły: ${place}`,
+    showAll: "Pokaż wszystkie wyniki",
   },
 } as const;

@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import Link from "next/link";
 import {
   Bank,
@@ -14,13 +14,15 @@ import {
   type Icon,
 } from "@phosphor-icons/react";
 import type { Category, FeatureFilter, PlaceSummary } from "@krakow-bez-barier/contracts";
-import { cn } from "@krakow-bez-barier/ui";
+import { Button, cn } from "@krakow-bez-barier/ui";
 import { SampleTag, StatusBadge } from "@/components/kbb";
+import { NeedGroups } from "@/components/profile/need-groups";
 import { pl } from "@/i18n/pl";
 import { filterGapStatus, summaryLine } from "@/lib/place-features";
 import { routes } from "@/lib/routes";
 
 const t = pl.home;
+const tp = pl.profile.list;
 
 const CATEGORY_ICON: Record<Category, Icon> = {
   restaurant: ForkKnife,
@@ -59,31 +61,47 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
   { place, distance, features, selected, onHighlight },
   ref,
 ) {
+  const [open, setOpen] = useState(false);
   const I = CATEGORY_ICON[place.category];
-  const gap = features.length ? filterGapStatus(place.summary, features) : null;
+  const verdict = place.verdict;
+  const gap = !verdict && features.length ? filterGapStatus(place.summary, features) : null;
+  const detailsId = `need-groups-${place.id}`;
   return (
-    <li>
+    <li
+      data-selected={selected}
+      className={cn(
+        "rounded-[20px] bg-surface-raised shadow-soft ring-1 ring-border/70 has-[a:hover]:ring-primary/40",
+        "data-[selected=true]:ring-2 data-[selected=true]:ring-primary",
+      )}
+    >
       <Link
         ref={ref}
         href={routes.place(place.id)}
-        data-selected={selected}
         onFocus={() => onHighlight(place.id)}
         onMouseEnter={() => onHighlight(place.id)}
-        className={cn(
-          "press flex w-full items-center gap-3.5 rounded-[20px] bg-surface-raised p-3 pr-3.5 text-left shadow-soft ring-1 ring-border/70 hover:ring-primary/40",
-          "data-[selected=true]:ring-2 data-[selected=true]:ring-primary",
-        )}
+        className="press flex w-full items-center gap-3.5 rounded-[20px] p-3 pr-3.5 text-left"
       >
         <span className="grid size-[52px] shrink-0 place-items-center self-start rounded-2xl bg-primary-container text-primary">
           <I weight="duotone" className="size-6" aria-hidden />
         </span>
         <span className="min-w-0 flex-1">
-          {gap ? <StatusBadge status={gap} size="sm" className="mb-1.5 max-w-full" /> : null}
+          {verdict ? (
+            <StatusBadge
+              status={verdict.state}
+              reason={verdict.state === "met" ? undefined : verdict.reasons[0]}
+              unconfirmed={verdict.state === "met" && verdict.unconfirmed}
+              className="mb-1.5 max-w-full"
+            />
+          ) : gap ? (
+            <StatusBadge status={gap} size="sm" className="mb-1.5 max-w-full" />
+          ) : null}
           <span className="block text-[17px] leading-6 font-semibold">{place.name}</span>
           <span className="block truncate text-caption text-muted-foreground">{address(place)}</span>
-          <span className="mt-1 block text-caption leading-[18px] font-medium text-foreground/80">
-            {summaryLine(place.summary, chipFallback)}
-          </span>
+          {verdict ? null : (
+            <span className="mt-1 block text-caption leading-[18px] font-medium text-foreground/80">
+              {summaryLine(place.summary, chipFallback)}
+            </span>
+          )}
         </span>
         <span className="flex shrink-0 flex-col items-end justify-between gap-2 self-stretch py-0.5">
           {place.isSample ? <SampleTag /> : <span />}
@@ -92,6 +110,24 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
           </span>
         </span>
       </Link>
+      {verdict?.needs?.length ? (
+        <div className="px-3 pb-2">
+          <Button
+            variant="link"
+            size="sm"
+            className="h-10 px-1"
+            aria-label={open ? tp.hideDetailsAria(place.name) : tp.detailsAria(place.name)}
+            aria-expanded={open}
+            aria-controls={detailsId}
+            onClick={() => setOpen((v) => !v)}
+          >
+            {open ? tp.hideDetails : tp.details}
+          </Button>
+          <div id={detailsId} hidden={!open} className="pt-1 pb-2">
+            {open ? <NeedGroups verdict={verdict} headingLevel={3} /> : null}
+          </div>
+        </div>
+      ) : null}
     </li>
   );
 });

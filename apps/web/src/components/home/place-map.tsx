@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Minus, Plus } from "@phosphor-icons/react";
 import type { PlaceSummary } from "@krakow-bez-barier/contracts";
-import { cn } from "@krakow-bez-barier/ui";
+import { cn, type Status } from "@krakow-bez-barier/ui";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { pl } from "@/i18n/pl";
@@ -12,7 +12,44 @@ import { config, mapAttribution } from "@/lib/config";
 const t = pl.home.map;
 
 const PIN_CLASS =
-  "grid size-8 cursor-pointer place-items-center rounded-full border-[3px] border-card bg-primary shadow-float transition-transform duration-150 data-[selected=true]:z-10 data-[selected=true]:scale-125 data-[selected=true]:bg-ink";
+  "group relative grid size-9 cursor-pointer place-items-center transition-transform duration-150 data-[selected=true]:z-10 data-[selected=true]:scale-125";
+const PIN_RING = "absolute -inset-1 hidden rounded-full border-[3px] border-ink group-data-[selected=true]:block";
+
+// Each verdict has its own shape as well as colour (octagon, diamond, dashed ring), like the
+// status icons; the list beside the map carries the same verdict as text.
+const PIN_SHAPE: Record<Status | "none", string> = {
+  none: "size-8 rounded-full border-[3px] border-card bg-primary shadow-float",
+  met: "size-8 rounded-full border-[3px] border-card bg-status-met shadow-float",
+  barrier:
+    "size-8 bg-status-barrier shadow-float [clip-path:polygon(30%_0,70%_0,100%_30%,100%_70%,70%_100%,30%_100%,0_70%,0_30%)]",
+  conflict: "size-6 rotate-45 rounded-[5px] border-[3px] border-card bg-status-conflict shadow-float",
+  unknown: "size-8 rounded-full border-[2.5px] border-dashed border-status-unknown bg-status-unknown-bg shadow-float",
+};
+const PIN_DOT: Record<Status | "none", string> = {
+  none: "size-2.5 rounded-full bg-card",
+  met: "size-2.5 rounded-full bg-card",
+  barrier: "h-1 w-3.5 rounded-full bg-card",
+  conflict: "size-2 rounded-full bg-card",
+  unknown: "size-2 rounded-full bg-status-unknown",
+};
+
+function pinElement(place: PlaceSummary) {
+  const status = place.verdict?.state ?? "none";
+  const element = document.createElement("div");
+  element.className = PIN_CLASS;
+  element.setAttribute("aria-hidden", "true");
+  element.dataset.placeId = place.id;
+  if (place.verdict) element.dataset.status = place.verdict.state;
+  const ring = document.createElement("span");
+  ring.className = PIN_RING;
+  const shape = document.createElement("span");
+  shape.className = `grid place-items-center ${PIN_SHAPE[status]}`;
+  const dot = document.createElement("span");
+  dot.className = `${PIN_DOT[status]}${status === "conflict" ? " -rotate-45" : ""}`;
+  shape.append(dot);
+  element.append(ring, shape);
+  return element;
+}
 
 export interface PlaceMapProps {
   places: PlaceSummary[];
@@ -24,7 +61,7 @@ export interface PlaceMapProps {
 }
 
 /**
- * MapLibre map with neutral pins (no profile → no verdict colours). Pins are mouse shortcuts only
+ * MapLibre map with neutral pins, or verdict pins when a profile is on. Pins are mouse shortcuts only
  * and hidden from assistive tech: the list next to the map holds the same places.
  */
 export function PlaceMap({ places, selectedId, onSelect, padding, className }: PlaceMapProps) {
@@ -32,6 +69,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, className }: P
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const markersRef = useRef(new Map<string, Marker>());
+  const fittedRef = useRef<string | null>(null);
   const onSelectRef = useRef(onSelect);
   useEffect(() => {
     onSelectRef.current = onSelect;
@@ -75,11 +113,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, className }: P
       for (const marker of markers.values()) marker.remove();
       markers.clear();
       for (const place of places) {
-        const element = document.createElement("div");
-        element.className = PIN_CLASS;
-        element.setAttribute("aria-hidden", "true");
-        element.dataset.placeId = place.id;
-        element.innerHTML = '<span class="size-2.5 rounded-full bg-card"></span>';
+        const element = pinElement(place);
         element.addEventListener("click", (event) => {
           event.stopPropagation();
           onSelectRef.current(place.id);
@@ -87,7 +121,9 @@ export function PlaceMap({ places, selectedId, onSelect, padding, className }: P
         const [lon, lat] = place.location.coordinates;
         markers.set(place.id, new Marker({ element }).setLngLat([lon, lat]).addTo(map));
       }
-      if (!places.length) return;
+      const key = places.map((place) => place.id).toSorted().join(",");
+      if (!places.length || key === fittedRef.current) return;
+      fittedRef.current = key;
       const bounds = new LngLatBounds();
       for (const place of places) bounds.extend(place.location.coordinates as [number, number]);
       map.fitBounds(bounds, {

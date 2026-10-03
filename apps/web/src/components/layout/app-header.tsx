@@ -10,7 +10,6 @@ import {
   List,
   PersonArmsSpread,
   ShieldCheck,
-  SlidersHorizontal,
   Storefront,
   type Icon,
 } from "@phosphor-icons/react";
@@ -30,8 +29,6 @@ import { NearMe } from "./near-me";
 const t = pl.common;
 
 const MENU: { href: string; icon: Icon; title: string; sub: string }[] = [
-  // TODO(KBB-41): drop once the profile lives on the home screen.
-  { href: routes.profile, icon: SlidersHorizontal, title: t.menu.profile, sub: t.menu.profileSub },
   { href: routes.aboutData, icon: Database, title: t.menu.aboutData, sub: t.menu.aboutDataSub },
   { href: routes.business, icon: Storefront, title: t.menu.business, sub: t.menu.businessSub },
   { href: routes.moderator, icon: Gavel, title: t.menu.moderator, sub: t.menu.moderatorSub },
