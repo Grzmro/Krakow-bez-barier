@@ -176,6 +176,12 @@ export const place = {
     separator: " / ",
   },
   unit: { cm: "cm", pct: "%", m: "m", count: "" },
+  // `wheelchair_overall` text values (OSM `wheelchair=*`, MSIP access); the list chip uses the same words.
+  overall: {
+    yes: "Dostępne dla wózków",
+    limited: "Częściowo dostępne dla wózków",
+    no: "Niedostępne dla wózków",
+  } as Record<string, string>,
   surface: {
     flat: "równa",
     asphalt: "asfalt",

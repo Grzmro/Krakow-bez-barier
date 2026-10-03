@@ -65,7 +65,7 @@ export const profile = {
     threshold: (cm: number) => `próg ${cm} cm`,
     door: (cm: number) => `drzwi ${cm} cm`,
     surface: "nierówna nawierzchnia",
-    overallNo: "OSM: niedostępne dla wózków",
+    overallNo: "Oznaczone jako niedostępne dla wózków",
     missing: (need: Need) => `${needName[need].toLowerCase()}: brak`,
     liftWithoutFloors: "winda: brak, piętra: brak danych",
     liftFloorsConflict: "winda: brak, piętra: sprzeczne dane",

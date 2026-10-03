@@ -175,6 +175,11 @@ export const place: Messages["place"] = {
     separator: " / ",
   },
   unit: { cm: "cm", pct: "%", m: "m", count: "" },
+  overall: {
+    yes: "Wheelchair accessible",
+    limited: "Partly wheelchair accessible",
+    no: "Not wheelchair accessible",
+  },
   surface: {
     flat: "even",
     asphalt: "asphalt",

@@ -13,6 +13,9 @@ const yesNo = (yes: string, no: string): ReportOption[] => [
   { id: "no", label: no, value: { kind: "boolean", boolean: false } },
 ];
 
+// OSM `wheelchair=*` values, the same text facts the matcher reads.
+const OVERALL = ["yes", "limited", "no"];
+
 const SURFACES = ["flat", "asphalt", "paving_stones", "concrete", "cobblestone", "sett", "gravel", "grass"];
 
 function choices(locale: Locale): Partial<Record<AccessibilityAttribute, ReportOption[]>> {
@@ -26,7 +29,7 @@ function choices(locale: Locale): Partial<Record<AccessibilityAttribute, ReportO
   bench: yesNo(o.benchYes, o.no),
   disabled_parking: yesNo(o.parkingYes, o.no),
   entrance_level: yesNo(o.yes, o.no),
-  wheelchair_overall: yesNo(o.yes, o.no),
+  wheelchair_overall: OVERALL.map((v) => ({ id: v, label: t.overall[v], value: { kind: "text", text: v } })),
   surface: SURFACES.map((s) => ({ id: s, label: t.surface[s], value: { kind: "text", text: s } })),
   };
 }

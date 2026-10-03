@@ -105,7 +105,7 @@ describe("reportInput", () => {
   });
 
   it("offers typed choices for yes/no and surface attributes", () => {
-    // GIVEN a yes/no attribute and the surface attribute
+    // GIVEN a yes/no attribute, the OSM overall tag and the surface attribute
     const ramp = reportInput("ramp", "pl");
     const surface = reportInput("surface", "pl");
 
@@ -114,6 +114,12 @@ describe("reportInput", () => {
     expect(ramp.kind === "choice" && ramp.options.map((o) => o.value)).toEqual([
       { kind: "boolean", boolean: true },
       { kind: "boolean", boolean: false },
+    ]);
+    const overall = reportInput("wheelchair_overall", "pl");
+    expect(overall.kind === "choice" && overall.options.map((o) => [o.label, o.value])).toEqual([
+      ["Dostępne dla wózków", { kind: "text", text: "yes" }],
+      ["Częściowo dostępne dla wózków", { kind: "text", text: "limited" }],
+      ["Niedostępne dla wózków", { kind: "text", text: "no" }],
     ]);
     expect(surface.kind === "choice" && surface.options.find((o) => o.id === "cobblestone")).toMatchObject({
       label: "kostka brukowa",

@@ -1,7 +1,8 @@
+import type { APIRequestContext } from "@playwright/test";
 import type { Place, PlaceList } from "@krakow-bez-barier/contracts";
 import { pl } from "../src/i18n/pl";
 import { config } from "../src/lib/config";
-import { CARD_ATTRIBUTES } from "../src/lib/place-facts";
+import { CARD_ATTRIBUTES, formatDate } from "../src/lib/place-facts";
 import { expect, test } from "./fixtures";
 import { clusters, pins } from "./map";
 
@@ -114,3 +115,81 @@ function fromRynek(row: string): number {
   const value = Number(match[1].replace(",", "."));
   return match[2] === "km" ? value * 1000 : value;
 }
+
+type PlaceItem = PlaceList["items"][number];
+
+async function listPlaces(request: APIRequestContext, params: Record<string, string | number>): Promise<PlaceList> {
+  const response = await request.get("/api/v1/places", { params });
+  expect(response.ok(), `GET /api/v1/places answered ${response.status()}`).toBe(true);
+  return (await response.json()) as PlaceList;
+}
+
+// Pages through the whole city only until the first match: the full list is thousands of places.
+async function findPlace(request: APIRequestContext, matches: (item: PlaceItem) => boolean): Promise<PlaceItem | undefined> {
+  let cursor: string | null | undefined;
+  do {
+    const list = await listPlaces(request, { limit: 100, ...(cursor ? { cursor } : {}) });
+    for (const item of list.items) {
+      if (!matches(item)) continue;
+      const sameName = await listPlaces(request, { q: item.name, limit: 100 });
+      if (sameName.items.filter((other) => other.name === item.name).length === 1) return item;
+    }
+    cursor = list.nextCursor;
+  } while (cursor);
+  return undefined;
+}
+
+test("a place tagged only as not wheelchair accessible says so on the list and on the card, with its source and date", async ({
+  page,
+  request,
+  expectAccessible,
+  evidence,
+}) => {
+  // GIVEN a real place whose only known card fact is the overall tag "no" (OSM wheelchair=no), under a name no other place has
+  test.skip(!process.env.DATABASE_URL, "DATABASE_URL is unset — no database to read real places from (npm run db:setup)");
+  const chipText = pl.summary.chip("wheelchair_overall", "known", { kind: "text", text: "no" });
+  const target = await findPlace(
+    request,
+    (item) =>
+      item.summary.some((chip) => chip.attribute === "wheelchair_overall" && chip.state === "known" && chip.label === chipText) &&
+      item.summary.every((chip) => chip.attribute === "wheelchair_overall" || chip.state === "unknown" || !onCard(chip.attribute)),
+  );
+  test.skip(!target, "the database has no place tagged only wheelchair=no");
+  const place = (await (await request.get(`/api/v1/places/${target!.id}`)).json()) as Place;
+  const overall = place.attributes.find((a) => a.attribute === "wheelchair_overall")!.facts[0];
+  const value = pl.place.overall.no;
+  expect(chipText).toBe(value);
+  const name = new RegExp(escape(target!.name));
+
+  // WHEN the visitor finds it on the list
+  await page.goto("/");
+  await page.getByRole("combobox", { name: "Wyszukaj miejsce" }).fill(target!.name);
+  const list = page.getByRole("region", { name: "Lista miejsc" });
+  const row = list.getByRole("listitem").filter({ has: page.getByRole("link", { name }) }).first();
+
+  // THEN the row carries the overall chip
+  await expect(row).toContainText(chipText);
+
+  // WHEN they pick the wheelchair profile
+  await page.getByRole("radio", { name: "Wózek", exact: true }).check();
+
+  // THEN the row reads as a barrier
+  await expect(row).toContainText(pl.common.status.barrier);
+
+  // WHEN they open the card and the overall fact
+  await row.getByRole("link", { name }).click();
+  await expect(page.getByRole("heading", { level: 1, name: target!.name })).toBeVisible();
+  const factButton = page.getByRole("button", {
+    name: new RegExp(`^${escape(pl.common.attribute.wheelchair_overall)}: ${escape(value)}`),
+  });
+  await factButton.click();
+
+  // THEN the card says what the chip says, naming the fact's own source and the date it was fetched
+  await expect(factButton).toHaveAttribute("aria-expanded", "true");
+  const panel = page.locator(`#${await factButton.getAttribute("aria-controls")}`);
+  await expect(panel).toContainText(`${pl.common.fact.source}: ${overall.source.name}`);
+  await expect(panel).toContainText(formatDate(overall.fetchedAt, "pl"));
+  await expect(page.getByRole("listitem").filter({ has: factButton })).toMatchAriaSnapshot({ name: "real-overall-fact.aria.yml" });
+  await expectAccessible();
+  await evidence("real-data-overall-fact");
+});

@@ -60,7 +60,7 @@ export const profile: Messages["profile"] = {
     threshold: (cm: number) => `${cm} cm threshold`,
     door: (cm: number) => `${cm} cm door`,
     surface: "uneven surface",
-    overallNo: "OSM: not wheelchair accessible",
+    overallNo: "Marked as not wheelchair accessible",
     missing: (need: Need) => `${needName[need].toLowerCase()}: none`,
     liftWithoutFloors: "lift: none, floors: no data",
     liftFloorsConflict: "lift: none, floors: conflicting data",

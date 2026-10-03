@@ -28,6 +28,7 @@ import {
   Toilet,
   TrendUp,
   WarningDiamond,
+  Wheelchair,
   Wrench,
   type Icon,
 } from "@phosphor-icons/react";
@@ -54,6 +55,7 @@ const noop = () => {};
 const MINUTE_MS = 60_000;
 
 const FACT_ICON: Partial<Record<AccessibilityAttribute, Icon>> = {
+  wheelchair_overall: Wheelchair,
   step_count: Stairs,
   step_height_cm: Stairs,
   threshold_cm: Stairs,
@@ -140,7 +142,7 @@ function PlaceCard({ place }: { place: Place }) {
   const osmEdit = osmEditUrl(place);
   const failed = failedSources(place);
   const conflicts = facts.filter((f) => f.conflict);
-  const firstUnknown = facts.find((f) => f.unknown);
+  const firstUnknown = facts.find((f) => f.unknown && f.attribute !== "wheelchair_overall");
   const latest = latestSourceDate(place);
   const contact = place.contact;
   const hasContact = !!(contact?.phone || contact?.website || contact?.email);

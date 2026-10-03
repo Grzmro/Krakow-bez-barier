@@ -4,6 +4,10 @@
     - heading "Pałac Krzysztofory" [level=1]
     - paragraph: /Muzeum · Rynek Główny \d+, Kraków/
     - paragraph: "Jak dojść do wejścia: Wejście główne od Rynku, bez stopni."
+    - link "Prowadź":
+      - /url: /trasa?do=palac-krzysztofory
+      - img
+      - text: ""
     - button "Udostępnij":
       - img
       - text: ""
@@ -23,6 +27,11 @@
       - heading "Fakty" [level=2]
       - paragraph: Pokazujemy konkretne dane, bez zbiorczej oceny. Rozwiń cechę, aby zobaczyć źródło i datę.
       - list:
+        - listitem:
+          - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Wejście — stopnie: Bez stopni. Wiarygodność: Potwierdzone."': Wejście — stopnie Bez stopni Potwierdzone
           - button "To się nie zgadza":

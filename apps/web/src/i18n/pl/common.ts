@@ -59,7 +59,7 @@ export const common = {
     kerb_height_cm: "Wysokość krawężnika",
     bench: "Miejsca odpoczynku",
     disabled_parking: "Parking dla osób z niepełnosprawnościami",
-    wheelchair_overall: "Ogólna dostępność (OSM)",
+    wheelchair_overall: "Ogólna dostępność",
     levels: "Kondygnacje",
     stairs: "Schody na trasie",
   } satisfies Record<AccessibilityAttribute, string>,

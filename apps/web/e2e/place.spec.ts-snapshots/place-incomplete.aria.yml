@@ -4,6 +4,10 @@
     - heading "Kawiarnia Przykład" [level=1]
     - paragraph: /Restauracja · ul\. Floriańska \d+, Kraków/
     - paragraph: "Jak dojść do wejścia: Brak wskazówki, jak dojść do wejścia."
+    - link "Prowadź":
+      - /url: /trasa?do=kawiarnia-przyklad
+      - img
+      - text: ""
     - button "Udostępnij":
       - img
       - text: ""
@@ -18,6 +22,11 @@
       - heading "Fakty" [level=2]
       - paragraph: Pokazujemy konkretne dane, bez zbiorczej oceny. Rozwiń cechę, aby zobaczyć źródło i datę.
       - list:
+        - listitem:
+          - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Wejście — stopnie: Brak danych. Wiarygodność: Brak danych."': Wejście — stopnie Brak danych Brak danych
           - button "Uzupełnij":

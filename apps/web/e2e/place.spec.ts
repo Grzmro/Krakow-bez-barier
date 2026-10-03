@@ -63,6 +63,13 @@ test("an incomplete place names missing data and offers contact and Uzupełnij",
 
   await expectAccessible();
   await evidence("place-incomplete");
+
+  // WHEN they press Uzupełnij
+  await page.getByRole("button", { name: "Uzupełnij" }).last().click();
+
+  // THEN the form starts on the first concrete entrance fact, not the overall summary row
+  const drawer = page.getByRole("dialog", { name: "Uzupełnij dane" });
+  await expect(drawer.getByRole("radio", { name: "Wejście — stopnie" })).toBeChecked();
 });
 
 test("an outdated fact says it may be outdated, with its date", async ({ page, expectAccessible, evidence }) => {
