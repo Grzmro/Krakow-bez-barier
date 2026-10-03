@@ -92,6 +92,6 @@
           - button "Why does Restauracja Przykład not meet?": Why?
   - region "Map of places. Arrow keys move the view, plus and minus change the zoom. The list has the same places."
   - button "Information about the map sources"
-  - paragraph: Map sources: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors
+  - paragraph: "Map sources: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
   - button "Zoom in"
   - button "Zoom out"
