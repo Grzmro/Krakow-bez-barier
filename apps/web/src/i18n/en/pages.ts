@@ -142,7 +142,7 @@ export const pages: Messages["pages"] = {
     limits: {
       id: "limitations",
       title: "Known limitations and improvement plan",
-      intro: "The status shows how far each fix has got. We don't give dates we can't keep.",
+      intro: "The status shows each fix's stage. We give no dates.",
       items: [
         [
           "inProgress",

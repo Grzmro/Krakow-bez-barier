@@ -29,7 +29,7 @@ test("a keyboard-only visitor reports a wrong value in three steps; the card kee
 
   // THEN the drawer closes, the thank-you toast offers "Cofnij" and the report shows as unverified with a date
   await expect(drawer).toBeHidden();
-  await expect(page.locator("[data-sonner-toast]").getByText("Dzięki! Czeka na weryfikację.")).toBeVisible();
+  await expect(page.locator("[data-sonner-toast]").getByText("Czeka na weryfikację.")).toBeVisible();
   await expect(row).toContainText("Twoje zgłoszenie:Jest");
   await expect(row).toContainText("Niezweryfikowane");
   await expect(row).toContainText("Czeka na weryfikację — nie zmienia danych powyżej.");
@@ -122,8 +122,8 @@ test("Potwierdzam, byłem tu records a confirmation beside the fact", async ({ p
   await page.keyboard.press("Enter");
 
   // THEN the thanks are shown and announced, the confirmation is listed and can't be sent twice
-  await expect(page.locator("[data-sonner-toast]").getByText("Dzięki! Potwierdzenie zapisane.")).toBeVisible();
-  await expect(page.getByRole("status").filter({ hasText: "Dzięki! Potwierdzenie zapisane." })).toBeAttached();
+  await expect(page.locator("[data-sonner-toast]").getByText("Potwierdzenie zapisane.")).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Potwierdzenie zapisane." })).toBeAttached();
   await expect(row).toContainText("Twoje potwierdzenie:Bez stopni");
   await expect(row.getByRole("button", { name: "Potwierdzam, byłem tu" })).toHaveCount(0);
   // AND focus stays in the row instead of falling back to the page

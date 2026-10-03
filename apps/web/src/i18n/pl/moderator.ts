@@ -8,7 +8,7 @@ export const moderator = {
   title: "Panel moderatora",
   signIn: {
     heading: "Logowanie moderatora",
-    lead: "Wklej token moderatora od administratora. Możesz użyć menedżera haseł — bez zagadek i przepisywania kodów.",
+    lead: "Wklej token moderatora od administratora.",
     token: "Token moderatora",
     show: "Pokaż token",
     submit: "Zaloguj",

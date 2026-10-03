@@ -18,9 +18,9 @@ export const business = {
   },
   page: {
     title: "Dla firm",
-    lead: "Hotel albo organizator wydarzenia osadza na swojej stronie aktualną kartę dostępności — z faktami, źródłami i datami. Odwiedzający nie potrzebują konta.",
+    lead: "Aktualna karta dostępności na stronie hotelu lub wydarzenia: fakty, źródła, daty. Odwiedzający nie potrzebują konta.",
     previewTitle: "Podgląd na stronie obiektu",
-    previewNote: "Tak wyglądałaby strona hotelu z naszym widgetem. Poniżej działający widget w ramce iframe — z danymi tego hotelu, ze źródłami i datami.",
+    previewNote: "Strona hotelu z naszym widgetem. Poniżej działający widget (iframe) z danymi tego hotelu.",
     hotelUrl: "strona-hotelu.example",
     showcaseLoading: "Szukamy hotelu z danymi do pokazania…",
     showcaseError: "Nie udało się wczytać hotelu do pokazania.",
@@ -49,7 +49,7 @@ export const business = {
   // Event page generator on `/dla-firm` → `/wydarzenie/[placeId]`.
   event: {
     title: "Strona wydarzenia",
-    lead: "Organizator wydarzenia tworzy link „Dojazd i wejście bez barier” dla miejsca wydarzenia — do maila, biletu albo na plakat (wersja do druku). Uczestnicy nie potrzebują konta.",
+    lead: "Link „Dojazd i wejście bez barier” dla miejsca wydarzenia — do maila, biletu albo na plakat (wersja do druku). Uczestnicy nie potrzebują konta.",
     search: "Szukaj miejsca",
     searchHint: "Nazwa albo ulica, np. „Sukiennice”.",
     place: "Miejsce wydarzenia",

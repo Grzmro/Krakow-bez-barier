@@ -60,7 +60,7 @@ export const nearby: Messages["nearby"] = {
   },
   devPage: {
     title: "Native features",
-    lead: "Mobile app diagnostics: which platform the page runs on and whether location works. The position is requested right after opening.",
+    lead: "Diagnostics: platform and location. The position is requested after the page opens.",
     platform: "Platform",
     platforms: { ios: "iOS app", android: "Android app", web: "browser" },
   },

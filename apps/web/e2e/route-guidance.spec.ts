@@ -102,7 +102,7 @@ test.describe("with location access", () => {
     // route from there, so guidance says the route can't be planned instead of showing the old one)
     expect((await requested).postDataJSON().from.coordinates).toEqual(away);
     await expect(main).toContainText("Twoja pozycja");
-    await expect(main).toContainText("Tej trasy nie wyznaczymy w trybie demonstracyjnym");
+    await expect(main).toContainText("Tryb demonstracyjny: bez klucza openrouteservice");
   });
 });
 
@@ -122,7 +122,7 @@ test("without location access guidance runs by hand, by keyboard", async ({ page
 
   // THEN manual mode says why and starts on step 1 with "Poprzedni krok" disabled
   const main = page.locator("main");
-  await expect(main).toContainText("Brak zgody na lokalizację, więc prowadzimy ręcznie");
+  await expect(main).toContainText("Brak zgody na lokalizację. Przełączaj kroki");
   // The switch to manual mode repeats the current step, so it never replaces step 1 in the live region unheard.
   await expect(page.getByRole("status")).toContainText(/Brak zgody na lokalizację.*Krok 1 z 33/);
   await expect(main).toContainText("Krok 1 z 33");

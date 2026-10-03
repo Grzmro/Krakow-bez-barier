@@ -13,7 +13,7 @@
       - text: ""
     - region "Facts":
       - heading "Facts" [level=2]
-      - paragraph: We show specific data, with no overall rating. Expand a feature to see its source and date.
+      - paragraph: Expand a feature to see its source and date.
       - list:
         - listitem:
           - 'button "Entrance — steps: No steps. Reliability: Confirmed."': Entrance — steps No steps Confirmed
