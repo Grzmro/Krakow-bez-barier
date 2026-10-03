@@ -1,5 +1,6 @@
 import type { MappedPlace, SourceAdapter, SourceMeta } from "./adapter";
 import type { CityConfig } from "./cities/types";
+import { isRetryable, SourceHttpError } from "./errors";
 
 export type RunStatus = "ok" | "partial" | "failed";
 
@@ -28,7 +29,16 @@ export type RunOptions = {
   userAgent: string;
   now?: () => Date;
   log?: (message: string) => void;
+  /** Fetch attempts before the run fails; waits `baseDelayMs * 2^n` between them. Default 3 × 1 s. */
+  retry?: { attempts: number; baseDelayMs: number };
+  /** Source ids that behave as failed without being fetched (demo switch, see `SIMULATE_SOURCE_OUTAGE`). */
+  simulateOutage?: readonly string[];
+  sleep?: (ms: number) => Promise<void>;
 };
+
+export const SIMULATED_OUTAGE_ERROR = "Simulated outage (SIMULATE_SOURCE_OUTAGE)";
+const DEFAULT_RETRY = { attempts: 3, baseDelayMs: 1000 };
+const MAX_WAIT_MS = 30_000;
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -59,8 +69,25 @@ export async function runIngest(options: RunOptions): Promise<RunSummary> {
     return summary;
   };
 
+  if (options.simulateOutage?.includes(meta.id)) return fail(SIMULATED_OUTAGE_ERROR);
+
+  const { attempts, baseDelayMs } = options.retry ?? DEFAULT_RETRY;
+  const sleep = options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+  const fetchWithRetry = async () => {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await adapter.fetch({ city, userAgent });
+      } catch (e) {
+        if (attempt >= attempts || !isRetryable(e)) throw e;
+        log(`fetch attempt ${attempt}/${attempts} failed: ${message(e)}`);
+        const hinted = e instanceof SourceHttpError ? e.retryAfterMs : undefined;
+        await sleep(Math.min(hinted ?? baseDelayMs * 2 ** (attempt - 1), MAX_WAIT_MS));
+      }
+    }
+  };
+
   try {
-    const raw = await adapter.fetch({ city, userAgent });
+    const raw = await fetchWithRetry();
     if (!Array.isArray(raw) || raw.length === 0) return await fail("Source returned no records");
 
     let written = 0;
@@ -90,6 +117,6 @@ export async function runIngest(options: RunOptions): Promise<RunSummary> {
     await store.markSource(meta.id, { ok: true }, now());
     return summary;
   } catch (e) {
-    return fail(message(e));
+    return await fail(message(e));
   }
 }

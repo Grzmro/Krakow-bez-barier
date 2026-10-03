@@ -18,7 +18,7 @@ Background: `.claude/context/accessibility-facts.md`. Requirements: R2, R3, R5 i
 - Map source values to the attribute vocabulary (enum in `packages/contracts/openapi.yaml`); don't invent per-source attributes. An
   unmappable value is skipped and counted in the run log, not guessed.
 - Every run writes an `ingestion_run` row (source, status `ok`/`partial`/`failed`, record count,
-  error). **A failed fetch keeps the previous facts** and marks the source stale — never delete
+  error). **A failed fetch keeps the previous facts** and marks the source `outage` (the API shows it as stale while it still serves the last data) — never delete
   data because a source is down.
 - Idempotent and re-runnable. Unchanged value → refresh `fetchedAt`. Changed value → mark the active
   row `superseded` and insert a new one (unique on `(sourceId, sourceRecordRef, subject, attribute)`
