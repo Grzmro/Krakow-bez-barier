@@ -33,6 +33,8 @@ export const home: Messages["home"] = {
     unavailable: "The map isn't available in this browser. All places are in the list.",
     cluster: (n, parts) => `Group: ${n} ${placesWord(n)}${verdictParts(parts)}`,
     zoomedToCluster: (n, parts) => `Zoomed in: ${n} ${placesWord(n)}${verdictParts(parts)}`,
+    inView: (n) => `In view: ${n} ${placesWord(n)}.`,
+    pin: (name, category, status) => [name, category, status].filter(Boolean).join(" · "),
   },
   list: {
     label: "List of places",

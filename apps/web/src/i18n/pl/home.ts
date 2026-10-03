@@ -34,6 +34,8 @@ export const home = {
     unavailable: "Mapa jest niedostępna w tej przeglądarce. Wszystkie miejsca są na liście.",
     cluster: (n: number, parts: [string, number][]) => `Grupa: ${n} ${placesWord(n)}${verdictParts(parts)}`,
     zoomedToCluster: (n: number, parts: [string, number][]) => `Przybliżono: ${n} ${placesWord(n)}${verdictParts(parts)}`,
+    inView: (n: number) => `W widoku: ${n} ${placesWord(n)}.`,
+    pin: (name: string, category: string, status: string | null) => [name, category, status].filter(Boolean).join(" · "),
   },
   list: {
     label: "Lista miejsc",
