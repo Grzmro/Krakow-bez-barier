@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Outage, Place, ResolvedAttribute } from "@krakow-bez-barier/contracts";
 import { NOW } from "./fixtures";
 import { matchProfile } from "./matcher";
-import { activeOutages, isOutageEquipment, outageExpiresAt, outageState, type OutageRecord } from "./outages";
+import { activeOutages, canReportOutage, isOutageEquipment, outageExpiresAt, outageState, type OutageRecord } from "./outages";
 import { PROFILE_PRESETS } from "./profiles";
 
 const RULES = { confirmationsToConfirm: 2, workingVotesToResolve: 1, expiresAfterHours: 48 };
@@ -77,6 +77,24 @@ describe("activeOutages", () => {
   });
 });
 
+describe("canReportOutage", () => {
+  it("offers a report for a lift that exists or is unknown, never for one the facts say is missing", () => {
+    // GIVEN places with a lift, without one, with an unknown lift and with a ramp nobody described
+    const withLift = { attributes: [known("lift", bool(true))] };
+    const noLift = { attributes: [known("lift", bool(false))] };
+    const staleNoLift = { attributes: [{ ...known("lift", bool(false)), state: "stale" as const }] };
+    const unknown: Pick<Place, "attributes"> = { attributes: [] };
+    // WHEN checking whether the lift (or a door) can be reported broken
+    // THEN only a lift that is not known to be missing can be
+    expect(canReportOutage(withLift, "lift")).toBe(true);
+    expect(canReportOutage(noLift, "lift")).toBe(false);
+    expect(canReportOutage(staleNoLift, "lift")).toBe(false);
+    expect(canReportOutage(unknown, "lift")).toBe(true);
+    expect(canReportOutage(unknown, "ramp")).toBe(true);
+    expect(canReportOutage(withLift, "door_width_cm")).toBe(false);
+  });
+});
+
 function known(attribute: ResolvedAttribute["attribute"], value: ResolvedAttribute["value"]): ResolvedAttribute {
   return { attribute, state: "known", status: "confirmed", value, facts: [] };
 }
@@ -97,6 +115,7 @@ const accessible: Pick<Place, "attributes"> = {
 const listed = (overrides: Partial<Outage> = {}): Outage => ({
   id: "out-1",
   equipment: "lift",
+  reliability: "user_report",
   state: "reported",
   confirmations: 0,
   workingVotes: 0,

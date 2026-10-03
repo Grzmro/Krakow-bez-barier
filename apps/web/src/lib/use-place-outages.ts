@@ -58,6 +58,8 @@ export function usePlaceOutages(placeId: string) {
         });
         if (!data) {
           tell(response.status === 429 ? t.repeat : t.failed, true);
+          // A stale card offered "Zgłoś awarię" for an outage this visitor already reported: show it.
+          if (response.status === 429) await refresh();
           return null;
         }
         remember(data.id, "still_broken");

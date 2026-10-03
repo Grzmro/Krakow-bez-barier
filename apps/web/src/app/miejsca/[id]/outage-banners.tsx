@@ -43,7 +43,7 @@ export const OutageBanners = forwardRef<HTMLElement, Props>(function OutageBanne
                   <time dateTime={outage.lastConfirmedAt}>{relativeTime(outage.lastConfirmedAt, now, locale)}</time>
                 </p>
                 <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-caption text-foreground">
-                  <ReliabilityBadge value={confirmed ? "confirmed" : "unverified"} />
+                  <ReliabilityBadge value="unverified" />
                   {confirmed ? <span className="font-semibold">{t.communityConfirmed}</span> : null}
                 </p>
                 <p className="mt-1 text-caption text-foreground">{t.source}</p>

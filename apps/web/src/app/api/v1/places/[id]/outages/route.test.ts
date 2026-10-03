@@ -66,10 +66,9 @@ describe("POST /api/v1/places/{id}/outages", () => {
     const again = await reportOutage({ equipment: "lift" }, "203.0.113.7");
     const confirm = await voteOn(id, { vote: "still_broken" }, "203.0.113.7");
 
-    // THEN neither counts
-    expect(again.status).toBe(200);
-    expect(await again.json()).toMatchObject({ confirmations: 0 });
-    expect(confirm.status).toBe(429);
+    // THEN neither counts, and both say so instead of answering as if a confirmation was saved
+    expect([again.status, confirm.status]).toEqual([429, 429]);
+    expect(again.headers.get("retry-after")).toBeTruthy();
     expect(memory.votes).toHaveLength(0);
   });
 

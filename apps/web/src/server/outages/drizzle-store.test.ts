@@ -1,5 +1,6 @@
 // Runs only against a migrated database: TEST_DATABASE_URL=postgres://… npx vitest run outages/drizzle-store
-import { createDb, places } from "@krakow-bez-barier/db";
+import { createDb, outages, outageVotes, places } from "@krakow-bez-barier/db";
+import { inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createDbPlaceRepository } from "@/server/places/repository";
@@ -12,13 +13,24 @@ const HOUR = 3_600_000;
 
 describe.skipIf(!url)("Drizzle outages store (database)", () => {
   const handle = url ? createDb(url) : undefined;
-  afterAll(() => handle?.close());
+  const placeIds: string[] = [];
+  afterAll(async () => {
+    if (handle && placeIds.length) {
+      const { db } = handle;
+      const created = db.select({ id: outages.id }).from(outages).where(inArray(outages.placeId, placeIds));
+      await db.delete(outageVotes).where(inArray(outageVotes.outageId, created));
+      await db.delete(outages).where(inArray(outages.placeId, placeIds));
+      await db.delete(places).where(inArray(places.id, placeIds));
+    }
+    await handle?.close();
+  });
 
   async function newPlace() {
     const [place] = await handle!.db
       .insert(places)
       .values({ externalRef: `test:${randomUUID()}`, name: "Test place", category: "museum", location: { x: 19.94, y: 50.06 } })
       .returning();
+    placeIds.push(place.id);
     return place;
   }
 

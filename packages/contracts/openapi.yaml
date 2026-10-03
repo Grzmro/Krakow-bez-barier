@@ -649,6 +649,7 @@ paths:
       responses:
         '200':
           description: An active outage of this equipment was already listed; the report counted as a confirmation.
+            When this client already reported or confirmed that outage today, nothing is counted and the answer is `429`.
           content:
             application/json:
               schema:
@@ -2768,10 +2769,12 @@ components:
       - working
     Outage:
       type: object
-      description: A temporary outage reported by visitors (source kind `user_report`, never moderated).
+      description: A temporary outage reported by anonymous visitors, never moderated. Its provenance is `reliability`
+        (always `user_report`), `reportedAt` and `lastConfirmedAt`; community confirmations never raise it to `confirmed`.
       required:
       - id
       - equipment
+      - reliability
       - state
       - confirmations
       - workingVotes
@@ -2783,6 +2786,9 @@ components:
           type: string
         equipment:
           $ref: '#/components/schemas/OutageEquipment'
+        reliability:
+          $ref: '#/components/schemas/Reliability'
+          description: Always `user_report`.
         state:
           $ref: '#/components/schemas/OutageState'
         confirmations:
@@ -2995,6 +3001,7 @@ components:
       value:
         id: out_01J9Z5LIFT
         equipment: lift
+        reliability: user_report
         state: reported
         confirmations: 0
         workingVotes: 0
@@ -3006,6 +3013,7 @@ components:
       value:
         id: out_01J9Z5LIFT
         equipment: lift
+        reliability: user_report
         state: confirmed
         confirmations: 2
         workingVotes: 0
@@ -3017,6 +3025,7 @@ components:
       value:
         id: out_01J9Z5LIFT
         equipment: lift
+        reliability: user_report
         state: resolved
         confirmations: 0
         workingVotes: 1

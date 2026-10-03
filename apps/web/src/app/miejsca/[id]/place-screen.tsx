@@ -35,7 +35,7 @@ import type { AccessibilityAttribute, Outage, OutageVote, Place, PlaceSummary } 
 import { Button, buttonVariants, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { PlaceMap } from "@/components/home/place-map";
 import { FactRow, ReliabilityBadge, SampleTag } from "@/components/kbb";
-import { isActiveOutage, isOutageEquipment } from "@/domain/outages";
+import { canReportOutage, isActiveOutage, isOutageEquipment } from "@/domain/outages";
 import { useLocale, useMessages } from "@/i18n/client";
 import { api } from "@/lib/api";
 import { useCategoryLookup } from "@/lib/categories";
@@ -407,7 +407,7 @@ function PlaceCard({ place }: { place: Place }) {
               const I = FACT_ICON[fact.attribute];
               const confirmId = fact.pending.some((p) => p.kind === "confirmation") ? undefined : fact.confirmFactId;
               const outageButton =
-                isOutageEquipment(fact.attribute) && !outages.some((o) => o.equipment === fact.attribute) ? (
+                canReportOutage(place, fact.attribute) && !outages.some((o) => o.equipment === fact.attribute) ? (
                   <Button
                     variant="outline"
                     size="sm"

@@ -150,6 +150,10 @@ Cel e2e: będąc na miejscu, poprawiam błędną informację w kilkanaście seku
 - US-4.6 (C) Jako użytkownik chcę dołączyć zdjęcie wejścia jako dowód.
     - Ograniczenie rozmiaru, usuwanie metadanych lokalizacji ze zdjęcia, możliwość usunięcia przez zgłaszającego.
 - US-4.7 (C) Jako użytkownik chcę przejść do edycji obiektu w OpenStreetMap jednym kliknięciem, żeby poprawka trafiła do źródła, z którego korzystają też inni.
+- US-4.8 (C) Jako użytkownik chcę zgłosić tymczasową awarię windy lub podjazdu („Zgłoś awarię”) i zobaczyć awarie zgłoszone przez innych, żeby nie jechać do miejsca, w którym dziś nie wjadę.
+    - Zgłoszona awaria jest od razu widoczna na karcie jako „Niezweryfikowane” (źródło: zgłoszenie odwiedzających, czas) i w werdykcie profilu jako niepotwierdzona bariera; bez moderacji, bez konta.
+    - Inni odpowiadają „Potwierdzam awarię” lub „Działa”; po progu potwierdzeń (konfiguracja, 2) awaria jest „Potwierdzona przez społeczność”, ale nadal ma poziom zgłoszenia użytkownika; „Działa” zdejmuje awarię, a bez potwierdzeń wygasa po 48 h.
+    - Jeden głos danego rodzaju na awarię z urządzenia na dobę; nie można zgłosić awarii urządzenia, którego według faktów nie ma.
 
 ### E5 — Automatyczne pozyskiwanie i odświeżanie danych · M · P1, P7
 

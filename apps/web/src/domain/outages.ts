@@ -1,4 +1,12 @@
-import { outageRules, type Outage, type OutageEquipment, type OutageRules, type OutageState } from "@krakow-bez-barier/contracts";
+import {
+  outageRules,
+  type AccessibilityAttribute,
+  type Outage,
+  type OutageEquipment,
+  type OutageRules,
+  type OutageState,
+  type Place,
+} from "@krakow-bez-barier/contracts";
 
 /** A stored outage with its votes counted; the state is derived from these and the time, never stored. */
 export type OutageRecord = {
@@ -21,6 +29,23 @@ const EQUIPMENT: Record<OutageEquipment, true> = { lift: true, ramp: true };
 /** Whether visitors can report an outage of this attribute (a lift or a ramp). */
 export const isOutageEquipment = (attribute: string): attribute is OutageEquipment => Object.hasOwn(EQUIPMENT, attribute);
 
+/**
+ * Whether the card offers "Zgłoś awarię" for this attribute: a lift or a ramp the facts don't say is missing. An
+ * unknown or conflicting one can still be reported; a known (or stale) "nie ma" cannot break down.
+ */
+export function canReportOutage(
+  place: Pick<Place, "attributes">,
+  attribute: AccessibilityAttribute,
+): attribute is OutageEquipment {
+  if (!isOutageEquipment(attribute)) return false;
+  const resolved = place.attributes.find((a) => a.attribute === attribute);
+  const knownAbsent =
+    (resolved?.state === "known" || resolved?.state === "stale") &&
+    resolved.value?.kind === "boolean" &&
+    !resolved.value.boolean;
+  return !knownAbsent;
+}
+
 export function outageExpiresAt(record: OutageRecord, rules: OutageRules = outageRules): Date {
   return new Date(record.lastConfirmedAt.getTime() + rules.expiresAfterHours * HOUR_MS);
 }
@@ -38,6 +63,7 @@ export function toOutage(record: OutageRecord, now: Date, rules: OutageRules = o
   return {
     id: record.id,
     equipment: record.equipment,
+    reliability: "user_report",
     state: outageState(record, now, rules),
     confirmations: record.confirmations,
     workingVotes: record.workingVotes,
