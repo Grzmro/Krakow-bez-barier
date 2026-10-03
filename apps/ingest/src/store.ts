@@ -25,6 +25,13 @@ function sameValue(a: FactValue, b: FactValue): boolean {
 
 const baseRef = (ref: string) => ref.split("@")[0];
 
+/** The source's fresh evidence, keeping the community confirmation count the web app stores on the same fact. */
+const keepConfirmations = (evidence: MappedFact["evidence"]) => {
+  const fresh = sql`${evidence ? JSON.stringify(evidence) : null}::jsonb`;
+  return sql`case when ${facts.evidence} -> 'confirmations' is null then ${fresh}
+    else coalesce(${fresh}, '{}'::jsonb) || jsonb_build_object('confirmations', ${facts.evidence} -> 'confirmations') end`;
+};
+
 const normalizeName = (name: string) =>
   name.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/ł/gi, "l").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
@@ -100,7 +107,7 @@ export function drizzleStore(db: Db): IngestStore {
             fetchedAt,
             observedAt: f.observedAt,
             sourceRecordRef: f.recordRef,
-            evidence: f.evidence,
+            evidence: keepConfirmations(f.evidence),
             reliability: meta.baseReliability,
           })
           .where(eq(facts.id, existing.id));

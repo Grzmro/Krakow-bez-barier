@@ -40,9 +40,14 @@ export type ApiRequest<K extends OperationId> = {
   body: RequestBody<K>;
 };
 
-export type RouteOptions = {
+export type RouteOptions<P = undefined> = {
   /** Per-client limit; the operation must document a 429 response. */
   rateLimit?: RateLimiter;
+  /**
+   * Authenticates the caller before the request is read or validated (throw `HttpError` 401/429), so an anonymous
+   * caller never learns the request shape. Its result reaches the handler as `principal`.
+   */
+  auth?: (request: Request) => P;
 };
 
 type HandlerContext = { params?: Promise<Record<string, string | string[] | undefined>> };
@@ -58,14 +63,14 @@ function driftResponse(operationId: OperationId, status: number, errors: FieldEr
 }
 
 /**
- * Wraps a Next route handler for one spec operation: rate limit → parse and validate path/query/body
+ * Wraps a Next route handler for one spec operation: rate limit → auth → parse and validate path/query/body
  * (400 `Problem` with `errors[]`) → handler → response validation (non-production) → JSON response.
  * Throw `HttpError` for documented problems; anything else becomes a 500 `Problem`.
  */
-export function defineRoute<K extends OperationId>(
+export function defineRoute<K extends OperationId, P = undefined>(
   operationId: K,
-  handler: (input: ApiRequest<K>) => Promise<ApiResult<K>>,
-  options: RouteOptions = {},
+  handler: (input: ApiRequest<K> & { principal: P }) => Promise<ApiResult<K>>,
+  options: RouteOptions<P> = {},
 ) {
   const op = getOperation(operationId);
   if (options.rateLimit && !op.statuses.includes("429")) {
@@ -88,6 +93,8 @@ export function defineRoute<K extends OperationId>(
         }
       }
 
+      const principal = options.auth?.(request) as P;
+
       const input = {
         path: { ...((await context.params) ?? {}) },
         query: readQuery(op, new URL(request.url).searchParams),
@@ -100,7 +107,7 @@ export function defineRoute<K extends OperationId>(
 
       let result: ApiResult<K>;
       try {
-        result = await handler({ request, ...input } as ApiRequest<K>);
+        result = await handler({ request, principal, ...input } as ApiRequest<K> & { principal: P });
       } catch (error) {
         if (validateResponses && error instanceof HttpError) {
           const errors = validateResponse(operationId, error.problem.status, error.problem);

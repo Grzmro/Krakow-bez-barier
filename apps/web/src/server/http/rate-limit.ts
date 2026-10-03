@@ -12,7 +12,10 @@ export type RateLimitDecision = { allowed: true } | { allowed: false; retryAfter
 
 export type RateLimiter = {
   readonly limit: number;
+  /** Counts one request for `key` and says whether it is within the limit. */
   check(key: string): RateLimitDecision;
+  /** Says whether the next `check(key)` would be allowed, without counting anything. */
+  peek(key: string): RateLimitDecision;
 };
 
 /**
@@ -31,6 +34,11 @@ export function createRateLimiter({ limit, windowMs, now = Date.now }: RateLimit
     }
   }
 
+  const refused = (start: number, time: number): RateLimitDecision => ({
+    allowed: false,
+    retryAfterSeconds: Math.max(1, Math.ceil((start + windowMs - time) / 1000)),
+  });
+
   return {
     limit,
     check(key) {
@@ -45,13 +53,23 @@ export function createRateLimiter({ limit, windowMs, now = Date.now }: RateLimit
         current.count += 1;
         return { allowed: true };
       }
-      return { allowed: false, retryAfterSeconds: Math.max(1, Math.ceil((current.start + windowMs - time) / 1000)) };
+      return refused(current.start, time);
+    },
+    peek(key) {
+      const time = now();
+      const current = windows.get(key);
+      if (!current || time - current.start >= windowMs || current.count < limit) return { allowed: true };
+      return refused(current.start, time);
     },
   };
 }
 
-/** Client key for rate limiting: the first `x-forwarded-for` hop (set by the hosting proxy), else one shared bucket. */
+/**
+ * Client key for rate limits, lockouts and one-confirmation-per-client: the address the hosting proxy saw. Trusts the
+ * proxy in front of the app (Vercel) — `x-vercel-forwarded-for`, else the last `x-forwarded-for` hop, which the nearest
+ * proxy appends; the leftmost hops are whatever the client sent. Without a proxy every request shares one bucket.
+ */
 export function clientKey(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || request.headers.get("x-real-ip") || "anonymous";
+  const lastHop = (header: string) => request.headers.get(header)?.split(",").at(-1)?.trim();
+  return lastHop("x-vercel-forwarded-for") || lastHop("x-forwarded-for") || request.headers.get("x-real-ip") || "anonymous";
 }

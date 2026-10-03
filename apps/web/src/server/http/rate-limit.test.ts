@@ -20,15 +20,47 @@ describe("createRateLimiter", () => {
   });
 });
 
+describe("peek", () => {
+  it("reports the decision without using up the limit", () => {
+    // GIVEN 1 request per 10 s
+    let now = 0;
+    const limiter = createRateLimiter({ limit: 1, windowMs: 10_000, now: () => now });
+
+    // WHEN a client peeks twice, then checks twice
+    const peeks = [limiter.peek("a"), limiter.peek("a")];
+    const checks = [limiter.check("a"), limiter.check("a")];
+
+    // THEN peeking never counted, and once the limit is used up peek refuses too
+    expect(peeks).toEqual([{ allowed: true }, { allowed: true }]);
+    expect(checks.map((d) => d.allowed)).toEqual([true, false]);
+    expect(limiter.peek("a")).toEqual({ allowed: false, retryAfterSeconds: 10 });
+    now = 10_000;
+    expect(limiter.peek("a")).toEqual({ allowed: true });
+  });
+});
+
 describe("clientKey", () => {
-  it("uses the first forwarded hop and falls back to one shared bucket", () => {
-    // GIVEN requests with and without proxy headers
-    const forwarded = new Request("http://x", { headers: { "x-forwarded-for": "203.0.113.7, 10.0.0.1" } });
+  it("uses the hop the proxy appended and falls back to one shared bucket", () => {
+    // GIVEN a client that forges leading x-forwarded-for hops, a Vercel request and a request without proxy headers
+    const forged = new Request("http://x", { headers: { "x-forwarded-for": "1.2.3.4, 203.0.113.7" } });
+    const vercel = new Request("http://x", {
+      headers: { "x-vercel-forwarded-for": "198.51.100.9", "x-forwarded-for": "1.2.3.4, 198.51.100.9" },
+    });
     const bare = new Request("http://x");
 
     // WHEN keys are derived
-    // THEN the client address is used when the proxy provides one
-    expect(clientKey(forwarded)).toBe("203.0.113.7");
+    // THEN the address seen by the proxy is used, never the client-supplied hops
+    expect(clientKey(forged)).toBe("203.0.113.7");
+    expect(clientKey(vercel)).toBe("198.51.100.9");
     expect(clientKey(bare)).toBe("anonymous");
+  });
+
+  it("is not changed by a client rotating a forged leading hop", () => {
+    // GIVEN two requests from one client that only differ in a forged first hop
+    const first = new Request("http://x", { headers: { "x-forwarded-for": "10.0.0.1, 203.0.113.7" } });
+    const second = new Request("http://x", { headers: { "x-forwarded-for": "10.0.0.2, 203.0.113.7" } });
+
+    // WHEN keys are derived THEN they are the same bucket
+    expect(clientKey(first)).toBe(clientKey(second));
   });
 });

@@ -46,9 +46,9 @@ Reference: [`app/api/v1/health/route.ts`](../../app/api/v1/health/route.ts) and 
 
 ## Notes
 
-- Rate limits are in-memory, per server instance, keyed by the first `x-forwarded-for` hop; nothing is
-  stored (R7). They stop bursts, not a global quota. The header is trusted as sent, so this only holds
-  behind a proxy that overwrites it (Vercel does). Locally and in e2e every request shares one bucket
+- Rate limits are in-memory, per server instance, keyed by `clientKey` — `x-vercel-forwarded-for`, else
+  the last `x-forwarded-for` hop (the one the nearest proxy appended); nothing is stored (R7). They stop bursts, not a
+  global quota. This trusts the hosting proxy (Vercel); without one the headers are client-controlled. Locally and in e2e every request shares one bucket
   (`127.0.0.1`): keep limits generous enough for a parallel Playwright run.
 - Only `application/json` request bodies up to 64 KB are supported; extend `openapi.ts` before adding
   another media type. Header and cookie parameters are not validated yet.

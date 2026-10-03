@@ -100,6 +100,23 @@ describe.skipIf(!url)("drizzleStore (needs TEST_DATABASE_URL with migrations app
     expect(rows[0]).toMatchObject({ fetchedAt: at(2), sourceRecordRef: "store-test:node/1@v2" });
   });
 
+  it("keeps the community confirmation count when refreshing an unchanged fact", async () => {
+    // GIVEN the fact was confirmed twice in the web app, which counts confirmations on the fact itself
+    const [fact] = await activeFacts();
+    await db.update(facts).set({ evidence: { confirmations: 2 } }).where(eq(facts.id, fact.id));
+    const withComment = place("yes", "store-test:node/1@v2");
+    withComment.facts[0].evidence = { comment: "Wejście od podwórza" };
+    // WHEN the next run brings the same value
+    const changed = await store.applyPlace(meta, withComment, at(2));
+    // THEN the source's evidence is refreshed and the count survives, so the fact stays community-confirmed
+    expect(changed).toBe(0);
+    const [refreshed] = await activeFacts();
+    expect(refreshed.evidence).toEqual({ comment: "Wejście od podwórza", confirmations: 2 });
+    // WHEN a later run has no evidence at all THEN only the count is kept
+    await store.applyPlace(meta, place("yes", "store-test:node/1@v2"), at(2));
+    expect((await activeFacts())[0].evidence).toEqual({ confirmations: 2 });
+  });
+
   it("supersedes a changed value instead of overwriting it", async () => {
     // GIVEN the value changed at the source
     const changed = await store.applyPlace(meta, place("no", "store-test:node/1@v3"), at(3));

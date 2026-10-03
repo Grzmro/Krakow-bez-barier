@@ -44,6 +44,8 @@ const point4326 = customType<{ data: LonLat; driverData: string }>({
 export type FactEvidence = {
   photoUrl?: string | null;
   comment?: string | null;
+  /** Number of anonymous "still true" confirmations. */
+  confirmations?: number;
 };
 
 export const sources = pgTable("sources", {
@@ -178,5 +180,7 @@ export const moderationLog = pgTable("moderation_log", {
     .references(() => reports.id),
   decision: text("decision").$type<Exclude<ReportStatus, "new">>().notNull(),
   note: text("note"),
+  // Moderator name from server config; reporters stay anonymous.
+  moderator: text("moderator").notNull(),
   createdAt: timestamptz("created_at").notNull().defaultNow(),
 });
