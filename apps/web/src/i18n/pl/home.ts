@@ -1,5 +1,6 @@
 import type { FeatureFilter } from "@krakow-bez-barier/contracts";
 import type { DistanceFrom } from "@/lib/nearby";
+import type { QuickActionId, QuickActionUnavailable } from "@/lib/quick-actions";
 
 const placesWord = (n: number) =>
   n === 1 ? "miejsce" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "miejsca" : "miejsc";
@@ -51,6 +52,29 @@ export const home = {
     zoomedToCluster: (n: number, parts: [string, number][]) => `Przybliżono: ${n} ${placesWord(n)}${verdictParts(parts)}`,
     inView: (n: number) => `W widoku: ${n} ${placesWord(n)}.`,
     pin: (name: string, category: string, status: string | null) => [name, category, status].filter(Boolean).join(" · "),
+  },
+  quick: {
+    label: "Szybkie akcje",
+    actions: {
+      toilet: { label: "Najbliższa toaleta", result: "Najbliższa toaleta dostosowana" },
+      rest: { label: "Miejsce odpoczynku", result: "Najbliższe miejsce z ławką" },
+      lift: { label: "Najbliższa winda", result: "Najbliższe miejsce z windą" },
+      pharmacy: { label: "Najbliższa apteka", result: "Najbliższa apteka bez schodów" },
+      transit_stop: { label: "Najbliższy przystanek", result: "Najbliższy przystanek bez schodów" },
+    } satisfies Record<QuickActionId, { label: string; result: string }>,
+    soon: "wkrótce",
+    unavailable: {
+      awaitingTransitData:
+        "Przystanki pokażemy po włączeniu danych ZTP (czekamy na licencję). To nie znaczy, że w pobliżu nie ma przystanków.",
+    } satisfies Record<QuickActionUnavailable, string>,
+    needLocation: "Żeby znaleźć najbliższe, włącz „W mojej okolicy” albo wybierz dzielnicę.",
+    searching: "Szukam najbliższego…",
+    none: (result: string) => `${result}: brak w okolicy (ok. 2 km) według danych.`,
+    noneHint: "Miejsca bez danych o dostępności nie liczą się jako dostępne. Możesz je pokazać na liście poniżej.",
+    found: (result: string, name: string, distance: string) => `${result}: ${name}, ${distance}`,
+    guide: "Prowadź",
+    details: "Szczegóły",
+    loadingFacts: "Wczytuję fakty…",
   },
   list: {
     label: "Lista miejsc",

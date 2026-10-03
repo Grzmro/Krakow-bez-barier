@@ -17,6 +17,7 @@ import { listedCount } from "@/lib/list-count";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
 import { LIST_PAGE, nextWindow, windowFor } from "@/lib/list-window";
 import { usePlaces } from "@/lib/places";
+import { nearestMatch, QUICK_ACTIONS, quickFilters, quickStillApplies, type QuickAction, type QuickActionId } from "@/lib/quick-actions";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { countByStatus, filterByVerdict, missingNeeds, STATUS_ORDER } from "@/lib/profile/verdict-list";
@@ -25,8 +26,9 @@ import { useDebounced } from "@/lib/use-debounced";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useSessionFlag } from "@/lib/use-session-flag";
 import { PlaceMap } from "./place-map";
-import { NearbyToggle } from "./nearby-toggle";
+import { NearbyToggle, type NearbyToggleHandle } from "./nearby-toggle";
 import { PlaceRow } from "./place-list";
+import { QuickActionRow, QuickResult, type QuickResultState } from "./quick-actions";
 import { SEARCH_INPUT_ID, SearchBox } from "./search-box";
 
 const ALL = "all";
@@ -82,6 +84,8 @@ export function HomeScreen() {
   const [nearby, setNearby] = useState<NearbyOrigin | null>(null);
   const position = nearby?.position ?? null;
   const chosenPlace = nearby?.place;
+  const nearbyRef = useRef<NearbyToggleHandle>(null);
+  const [quickId, setQuickId] = useState<QuickActionId | null>(null);
   const rowRefs = useRef(new Map<string, HTMLAnchorElement>());
   const listRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
@@ -132,6 +136,13 @@ export function HomeScreen() {
   const shown = useMemo(() => filterByVerdict(items, { status: statusFilter, hideFailing }), [items, statusFilter, hideFailing]);
   const mapPlaces = useMemo(() => shown.map(({ place }) => place), [shown]);
   const total = places.data?.total;
+  // A quick action stays on while the list still shows its filters; changing them by hand ends it.
+  const quick =
+    (QUICK_ACTIONS as readonly QuickAction[]).find(
+      (action) =>
+        action.id === quickId &&
+        (action.unavailable || quickStillApplies(action, { category: category === ALL ? null : category, features })),
+    ) ?? null;
   // The API returns only the nearest page: near me of the area, otherwise of the whole city around the Rynek.
   const cutNote =
     places.data?.nextCursor && total !== undefined
@@ -156,11 +167,28 @@ export function HomeScreen() {
   const growWindow = (size: (current: number) => number) =>
     setListWindow((current) => ({ key: windowKey, rendered: size(current.key === windowKey ? current.rendered : LIST_PAGE) }));
   const pending = places.isPlaceholderData || total === undefined;
+  const quickState = useMemo((): QuickResultState | null => {
+    if (!quick) return null;
+    if (quick.unavailable) return { kind: "unavailable" };
+    if (!origin) return { kind: "needLocation" };
+    if (pending || places.isError) return { kind: "searching" };
+    const nearest = nearestMatch(items, quick.features);
+    return nearest ? { kind: "found", ...nearest, from: chosenPlace ? "chosen" : "user" } : { kind: "none" };
+  }, [quick, origin, pending, places.isError, items, chosenPlace]);
+  const quickAnnouncement = quick
+    ? quickState?.kind === "found"
+      ? t.quick.found(t.quick.actions[quick.id].result, quickState.place.name, t.list.distance(quickState.distance, quickState.from))
+      : quickState?.kind === "none"
+        ? t.quick.none(t.quick.actions[quick.id].result)
+        : null
+    : null;
   const listAnnouncement =
     total === undefined ? null : verdicts && profile ? tp.announce(profile, shown.length, items.length, counts) : t.list.announce(listedCount(places.data!, shown.length));
   const announcement =
     listAnnouncement &&
-    [origin ? (chosenPlace ? tn.announceChosen(chosenPlace) : tn.announce) : null, listAnnouncement, cutNote].filter(Boolean).join(". ");
+    [quickAnnouncement, origin ? (chosenPlace ? tn.announceChosen(chosenPlace) : tn.announce) : null, listAnnouncement, cutNote]
+      .filter(Boolean)
+      .join(". ");
   useEffect(() => {
     if (!pending && announcement) announce(announcement);
   }, [announce, pending, announcement, queryKey]);
@@ -188,7 +216,30 @@ export function HomeScreen() {
     if (features.length === 1 && features[0] === feature) setShowUnknown(false);
   }
 
+  function runQuick(action: QuickAction) {
+    if (quick?.id === action.id) {
+      setQuickId(null);
+      if (!action.unavailable) {
+        setCategory(ALL);
+        setFeatures([]);
+        setShowUnknown(false);
+      }
+      return;
+    }
+    setQuickId(action.id);
+    if (action.unavailable) return;
+    const filters = quickFilters(action);
+    setQ("");
+    setCategory(filters.category ?? ALL);
+    setFeatures(filters.features);
+    setShowUnknown(false);
+    setStatusFilter(null);
+    setHideFailing(false);
+    if (!nearby) nearbyRef.current?.locate();
+  }
+
   function searchWider() {
+    setQuickId(null);
     setNearby(null);
     setQ("");
     setCategory(ALL);
@@ -347,8 +398,10 @@ export function HomeScreen() {
         className="mx-auto max-w-xl pb-[env(safe-area-inset-bottom)] lg:static lg:col-start-1 lg:row-start-2 lg:mx-0 lg:h-auto! lg:max-w-none lg:rounded-none lg:border-r lg:border-border lg:pb-0 lg:shadow-none"
       >
         <div className="space-y-2 px-4 pt-1 pb-2">
+          <QuickActionRow active={quick?.id ?? null} onRun={runQuick} className={cn(CHIP_ROW, "-mx-4 pl-4")} />
+          {quick && quickState ? <QuickResult action={quick} state={quickState} /> : null}
           <ProfileSwitch value={profile} onChange={changeProfile} />
-          <NearbyToggle origin={nearby} onChange={setNearby} />
+          <NearbyToggle ref={nearbyRef} origin={nearby} onChange={setNearby} />
           {profile ? (
             <>
               <div className="flex items-center gap-2">

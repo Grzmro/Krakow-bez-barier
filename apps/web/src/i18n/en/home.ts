@@ -51,6 +51,29 @@ export const home: Messages["home"] = {
     inView: (n) => `In view: ${n} ${placesWord(n)}.`,
     pin: (name, category, status) => [name, category, status].filter(Boolean).join(" · "),
   },
+  quick: {
+    label: "Quick actions",
+    actions: {
+      toilet: { label: "Nearest toilet", result: "Nearest accessible toilet" },
+      rest: { label: "Place to rest", result: "Nearest place with a bench" },
+      lift: { label: "Nearest lift", result: "Nearest place with a lift" },
+      pharmacy: { label: "Nearest pharmacy", result: "Nearest step-free pharmacy" },
+      transit_stop: { label: "Nearest stop", result: "Nearest step-free stop" },
+    },
+    soon: "soon",
+    unavailable: {
+      awaitingTransitData:
+        "We will show stops once the ZTP data is switched on (licence pending). This does not mean there are no stops nearby.",
+    },
+    needLocation: "To find the nearest one, turn on “Near me” or choose a district.",
+    searching: "Looking for the nearest one…",
+    none: (result) => `${result}: none nearby (about 2 km) in the data.`,
+    noneHint: "Places without accessibility data don't count as accessible. You can show them in the list below.",
+    found: (result, name, distance) => `${result}: ${name}, ${distance}`,
+    guide: "Guide me",
+    details: "Details",
+    loadingFacts: "Loading facts…",
+  },
   list: {
     label: "List of places",
     stow: { hide: "Hide the list", show: "Show the list" },

@@ -19,7 +19,7 @@
         - button "Winda"
         - button "Toaleta dostosowana"
         - button "Ławki"
-        - button "Parking N"
+        - button "Parking dla niepełnosprawnych"
         - button "Przewijak"
       - heading "9 miejsc" [level=2]
       - list:
@@ -52,6 +52,6 @@
             - /url: /miejsca/toaleta-planty-przyklad
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
   - button "Informacje o źródłach mapy"
-  - paragraph: Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors
+  - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
   - button "Przybliż"
   - button "Oddal"

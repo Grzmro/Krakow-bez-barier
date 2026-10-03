@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useId, useRef, useState } from "react";
+import { type FormEvent, type Ref, useId, useImperativeHandle, useRef, useState } from "react";
 import { ArrowClockwise, CircleNotch, Crosshair } from "@phosphor-icons/react";
 import { Button, Toggle, useAnnounce } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
@@ -9,13 +9,24 @@ import { locateDevice } from "@/lib/native/geolocation";
 import { locationSettings } from "@/lib/native/platform";
 import { locateFailureText, type NearbyOrigin } from "@/lib/nearby";
 
+export type NearbyToggleHandle = { locate: () => void };
+
 /**
  * "W mojej okolicy" on the home list: pressed, it asks for the device position and hands it up so the
  * list sorts from the user; pressed again, the list goes back to distances from Rynek. A failure says
  * why and what to do and offers a retry. A district can always be picked by hand instead, so the list
  * works without sharing the position at all (the picker opens by itself after a failure).
  */
-export function NearbyToggle({ origin, onChange }: { origin: NearbyOrigin | null; onChange: (origin: NearbyOrigin | null) => void }) {
+export function NearbyToggle({
+  origin,
+  onChange,
+  ref,
+}: {
+  origin: NearbyOrigin | null;
+  onChange: (origin: NearbyOrigin | null) => void;
+  /** Lets another control (a quick action) ask for the position the same way, with the same failure help. */
+  ref?: Ref<NearbyToggleHandle>;
+}) {
   const t = useMessages().nearby;
   const announce = useAnnounce();
   const privacyId = useId();
@@ -28,6 +39,8 @@ export function NearbyToggle({ origin, onChange }: { origin: NearbyOrigin | null
   const [error, setError] = useState<{ message: string; help: string | null } | null>(null);
   const [manualOpen, setManualOpen] = useState(false);
   const [district, setDistrict] = useState("");
+
+  useImperativeHandle(ref, () => ({ locate: () => void locate() }));
 
   async function locate() {
     if (locating) return;

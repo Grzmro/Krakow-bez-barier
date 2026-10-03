@@ -38,5 +38,4 @@
       - list:
         - listitem:
           - link /od Rynku/
-  - paragraph:
-    - link "© OpenStreetMap contributors"
+  - paragraph: /© OpenStreetMap contributors/
