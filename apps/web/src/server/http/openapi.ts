@@ -9,7 +9,7 @@ export type OperationId = keyof operations;
 export type FieldError = { field: string; message: string };
 
 type Json = Record<string, unknown>;
-type Parameter = { name: string; in: string; required?: boolean; style?: string; explode?: boolean; schema?: Json };
+type Parameter = { name: string; in: string; required?: boolean; schema?: Json };
 
 type Located<T> = { node: T; pointer: string };
 
@@ -17,11 +17,12 @@ export type CompiledOperation = {
   operationId: OperationId;
   method: string;
   path: string;
-  queryParams: { name: string; isArray: boolean; explode: boolean }[];
+  queryParams: { name: string; isArray: boolean }[];
   hasBody: boolean;
   bodyRequired: boolean;
   statuses: string[];
-  validateRequest: ValidateFunction;
+  validateParams: ValidateFunction;
+  validateBody: ValidateFunction | undefined;
   responseValidators: Map<string, ValidateFunction>;
 };
 
@@ -32,19 +33,22 @@ const JSON_MEDIA = "application/json";
 // OpenAPI 3.1 Schema Objects are JSON Schema 2020-12, so the whole document is registered once and every
 // validator is a `$ref` into it; nested `#/components/...` refs then resolve against the document.
 // strict: false because the document root carries OpenAPI keywords (paths, components) Ajv doesn't know.
-function createAjv(request: boolean): Ajv2020 {
+// Only path/query values arrive as strings and get coerced; a JSON body must match its types exactly.
+function createAjv(mode: "params" | "body" | "response"): Ajv2020 {
   const ajv = new Ajv2020({
     strict: false,
     allErrors: true,
-    ...(request && { coerceTypes: "array", useDefaults: true }),
+    ...(mode === "params" && { coerceTypes: "array", useDefaults: true }),
+    ...(mode === "body" && { useDefaults: true }),
   });
   addFormats(ajv);
   ajv.addSchema(openapiDocument, SPEC_ID);
   return ajv;
 }
 
-const requestAjv = createAjv(true);
-const responseAjv = createAjv(false);
+const paramsAjv = createAjv("params");
+const bodyAjv = createAjv("body");
+const responseAjv = createAjv("response");
 
 const escapePointer = (key: string) => key.replace(/~/g, "~0").replace(/\//g, "~1");
 
@@ -120,14 +124,10 @@ function compileOperation(operationId: OperationId): CompiledOperation {
   }
   const bodyRequired = Boolean(body?.node.required);
 
-  const requestSchema = {
+  const paramsSchema = {
     type: "object",
-    properties: {
-      path: group("path"),
-      query: group("query"),
-      ...(body && { body: ref(`${body.pointer}/content/${escapePointer(JSON_MEDIA)}/schema`) }),
-    },
-    required: ["path", "query", ...(bodyRequired ? ["body"] : [])],
+    properties: { path: group("path"), query: group("query") },
+    required: ["path", "query"],
   };
 
   const responseValidators = new Map<string, ValidateFunction>();
@@ -152,12 +152,12 @@ function compileOperation(operationId: OperationId): CompiledOperation {
       .map(({ node }) => ({
         name: node.name,
         isArray: isArraySchema(node.schema),
-        explode: node.explode ?? (node.style ?? "form") === "form",
       })),
     hasBody: Boolean(body),
     bodyRequired,
     statuses: Object.keys(responses),
-    validateRequest: requestAjv.compile(requestSchema),
+    validateParams: paramsAjv.compile(paramsSchema),
+    validateBody: body && bodyAjv.compile(ref(`${body.pointer}/content/${escapePointer(JSON_MEDIA)}/schema`)),
     responseValidators,
   };
 }
@@ -180,22 +180,41 @@ export function getOperation(operationId: OperationId): CompiledOperation {
   return op;
 }
 
-export function toFieldErrors(errors: ErrorObject[] | null | undefined): FieldError[] {
+export function toFieldErrors(errors: ErrorObject[] | null | undefined, prefix?: string): FieldError[] {
   return (errors ?? []).map((error) => {
     const segments = error.instancePath.split("/").slice(1).map((s) => s.replace(/~1/g, "/").replace(/~0/g, "~"));
     if (error.keyword === "required") segments.push(String(error.params.missingProperty));
-    return { field: segments.join(".") || "(root)", message: error.message ?? "is invalid" };
+    if (error.keyword === "additionalProperties") segments.push(String(error.params.additionalProperty));
+    const field = [prefix, ...segments].filter(Boolean).join(".");
+    return { field: field || "(root)", message: error.message ?? "is invalid" };
   });
+}
+
+export type RequestInput = { path: Record<string, unknown>; query: Record<string, unknown>; body?: unknown };
+
+/** Validates (and coerces/defaults in place) a request's parameters and body; `[]` means valid. */
+export function validateRequest(op: CompiledOperation, input: RequestInput): FieldError[] {
+  const errors = op.validateParams(input) ? [] : toFieldErrors(op.validateParams.errors);
+  if (op.validateBody) {
+    if (input.body === undefined) {
+      if (op.bodyRequired) errors.push({ field: "body", message: "is required" });
+    } else if (!op.validateBody(input.body)) {
+      errors.push(...toFieldErrors(op.validateBody.errors, "body"));
+    }
+  }
+  return errors;
 }
 
 /** Reads query parameters into the shapes the spec declares (arrays from repeated or comma-separated values). */
 export function readQuery(op: CompiledOperation, searchParams: URLSearchParams): Record<string, unknown> {
   const query: Record<string, unknown> = {};
-  for (const { name, isArray, explode } of op.queryParams) {
+  for (const { name, isArray } of op.queryParams) {
     const values = searchParams.getAll(name);
     if (values.length === 0) continue;
-    // Accept both serializations: openapi-fetch repeats keys by default, the spec may declare explode: false.
-    query[name] = isArray ? values.flatMap((v) => (explode ? [v] : v.split(","))) : values[0];
+    // Arrays accept both serializations (repeated keys from openapi-fetch, commas per `explode: false`).
+    // A repeated scalar stays an array so validation rejects it instead of silently taking the first.
+    if (isArray) query[name] = values.flatMap((v) => v.split(","));
+    else query[name] = values.length === 1 ? values[0] : values;
   }
   return query;
 }

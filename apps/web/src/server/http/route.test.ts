@@ -103,6 +103,29 @@ describe("defineRoute — request validation", () => {
     expect(responses.map((r) => r.status)).toEqual([400, 400, 400]);
   });
 
+  it("does not coerce body types the way it coerces query strings", async () => {
+    // WHEN placeId is a number and the fact value a numeric string
+    const res = await createReport(
+      post(JSON.stringify({ ...validReport, placeId: 123, value: { kind: "number", number: "2", unit: "count" } })),
+    );
+
+    // THEN both are rejected rather than silently converted
+    expect(res.status).toBe(400);
+    const problem: Problem = await res.json();
+    expect(problem.errors?.map((e) => e.field)).toContain("body.placeId");
+  });
+
+  it("rejects a repeated scalar query parameter and an oversized body", async () => {
+    // WHEN limit is given twice, and a report body exceeds 64 KB
+    const repeated = await listPlaces()(new Request(`${BASE}/places?limit=5&limit=x`));
+    const huge = await createReport(post(JSON.stringify({ ...validReport, comment: "x".repeat(70_000) })));
+
+    // THEN neither reaches a handler
+    expect(repeated.status).toBe(400);
+    expect(huge.status).toBe(400);
+    expect(await huge.json()).toMatchObject({ detail: expect.stringContaining("64 KB") });
+  });
+
   it("passes a valid body through to the handler", async () => {
     // WHEN a spec-valid report is posted
     const res = await createReport(post(JSON.stringify(validReport)));
@@ -128,6 +151,21 @@ describe("defineRoute — responses and errors", () => {
     expect(res.status).toBe(500);
     const problem: Problem = await res.json();
     expect(problem.errors).toEqual([expect.objectContaining({ field: "total" })]);
+  });
+
+  it("flags a thrown problem whose status the operation does not document", async () => {
+    // GIVEN a handler for an operation without a 404 response that throws one
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const GET = defineRoute("getHealth", async () => {
+      throw new HttpError(404);
+    });
+
+    // WHEN it is called
+    const res = await GET(new Request(`${BASE}/health`));
+
+    // THEN the undocumented status surfaces as a 500 outside production
+    expect(res.status).toBe(500);
+    expect((await res.json()).errors).toEqual([expect.objectContaining({ field: "status" })]);
   });
 
   it("hides unexpected errors behind a generic 500 Problem", async () => {

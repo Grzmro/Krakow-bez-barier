@@ -31,8 +31,12 @@ Reference: [`app/api/v1/health/route.ts`](../../app/api/v1/health/route.ts) and 
    ```
 
    - `path`, `query`, `body` are typed from the spec and already validated; query values are coerced
-     (numbers, booleans, comma-separated or repeated arrays) and spec defaults are applied.
-   - Return with `respond(status, body, headers?)`: the compiler checks the body against that status.
+     (numbers, booleans, comma-separated or repeated arrays) and spec defaults are applied, so a
+     defaulted param like `limit` is always set at runtime even though its type says optional — don't
+     repeat the default in code. JSON bodies are not coerced: `"2"` for a number is a `400`.
+   - Return with `respond(status, body, headers?)`: the compiler checks the body's type against that
+     status. Extra properties slip through the type check (e.g. a DB row), so type your service's return
+     value as the contract type; response validation in dev/tests catches the rest.
    - Throw `HttpError(status, { detail, errors?, headers? })` for documented errors. Anything else
      becomes a generic `500` (details only in the server log).
 4. **Test** next to the route (`route.test.ts`): build a `Request`, call the exported `GET`/`POST`,
@@ -43,7 +47,12 @@ Reference: [`app/api/v1/health/route.ts`](../../app/api/v1/health/route.ts) and 
 ## Notes
 
 - Rate limits are in-memory, per server instance, keyed by the first `x-forwarded-for` hop; nothing is
-  stored (R7). They stop bursts, not a global quota.
-- Only `application/json` request bodies are supported; extend `openapi.ts` before adding another
-  media type. Header and cookie parameters are not validated yet.
-- Wrong content type, malformed JSON and spec mismatches are all `400` (the spec documents no `415`).
+  stored (R7). They stop bursts, not a global quota. The header is trusted as sent, so this only holds
+  behind a proxy that overwrites it (Vercel does). Locally and in e2e every request shares one bucket
+  (`127.0.0.1`): keep limits generous enough for a parallel Playwright run.
+- Only `application/json` request bodies up to 64 KB are supported; extend `openapi.ts` before adding
+  another media type. Header and cookie parameters are not validated yet.
+- Wrong content type, oversized or malformed JSON and spec mismatches are all `400` (the spec documents
+  no `413`/`415`).
+- Outside production, a thrown `HttpError` with a status the operation doesn't document becomes a `500`
+  too — add the response to the spec instead.

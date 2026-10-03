@@ -6,6 +6,8 @@ export type RateLimitOptions = {
   now?: () => number;
 };
 
+const MAX_TRACKED_CLIENTS = 10_000;
+
 export type RateLimitDecision = { allowed: true } | { allowed: false; retryAfterSeconds: number };
 
 export type RateLimiter = {
@@ -22,13 +24,18 @@ export function createRateLimiter({ limit, windowMs, now = Date.now }: RateLimit
 
   function sweep(time: number) {
     for (const [key, w] of windows) if (time - w.start >= windowMs) windows.delete(key);
+    // Still full (many distinct keys in one window): forget the oldest, so memory stays bounded.
+    for (const key of windows.keys()) {
+      if (windows.size < MAX_TRACKED_CLIENTS) break;
+      windows.delete(key);
+    }
   }
 
   return {
     limit,
     check(key) {
       const time = now();
-      if (windows.size > 10_000) sweep(time);
+      if (windows.size >= MAX_TRACKED_CLIENTS) sweep(time);
       const current = windows.get(key);
       if (!current || time - current.start >= windowMs) {
         windows.set(key, { start: time, count: 1 });

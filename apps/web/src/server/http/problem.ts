@@ -8,6 +8,7 @@ const TITLES: Record<number, { slug: string; title: string }> = {
   401: { slug: "unauthorized", title: "Unauthorized" },
   403: { slug: "forbidden", title: "Forbidden" },
   404: { slug: "not-found", title: "Not found" },
+  409: { slug: "conflict", title: "Conflict" },
   422: { slug: "unprocessable", title: "Unprocessable" },
   429: { slug: "rate-limited", title: "Too many requests" },
   500: { slug: "internal", title: "Internal server error" },
@@ -23,7 +24,7 @@ export class HttpError extends Error {
 
   constructor(status: number, init: ProblemInit = {}) {
     const { headers, ...fields } = init;
-    const known = TITLES[status] ?? TITLES[status >= 500 ? 500 : 400];
+    const known = TITLES[status] ?? { slug: "error", title: status >= 500 ? "Server error" : "Client error" };
     const problem: Problem = {
       type: fields.type ?? `${PROBLEM_TYPE_BASE}${known.slug}`,
       title: fields.title ?? known.title,

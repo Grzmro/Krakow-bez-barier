@@ -1,5 +1,12 @@
 import type { operations } from "@krakow-bez-barier/contracts";
-import { getOperation, readQuery, toFieldErrors, validateResponse, type OperationId } from "./openapi";
+import {
+  getOperation,
+  readQuery,
+  validateRequest,
+  validateResponse,
+  type FieldError,
+  type OperationId,
+} from "./openapi";
 import { HttpError, problemResponse } from "./problem";
 import { clientKey, type RateLimiter } from "./rate-limit";
 
@@ -38,10 +45,17 @@ export type RouteOptions = {
   rateLimit?: RateLimiter;
 };
 
-type RouteContext = { params?: Promise<Record<string, string | string[] | undefined>> };
+type HandlerContext = { params?: Promise<Record<string, string | string[] | undefined>> };
 
 // Responses are checked against the spec everywhere except production, so drift fails tests and dev, not users.
 const validateResponses = process.env.NODE_ENV !== "production";
+
+const MAX_BODY_BYTES = 64 * 1024;
+
+function driftResponse(operationId: OperationId, status: number, errors: FieldError[]) {
+  console.error(`[api] ${operationId} answered ${status} in a way the spec does not document`, errors);
+  return problemResponse(new HttpError(500, { detail: "Response does not match the API specification.", errors }).problem);
+}
 
 /**
  * Wraps a Next route handler for one spec operation: rate limit → parse and validate path/query/body
@@ -58,7 +72,7 @@ export function defineRoute<K extends OperationId>(
     throw new Error(`defineRoute(${operationId}): rateLimit is set but the spec documents no 429 response`);
   }
 
-  return async function routeHandler(request: Request, context: RouteContext = {}): Promise<Response> {
+  return async function routeHandler(request: Request, context: HandlerContext = {}): Promise<Response> {
     try {
       if (request.method !== op.method && !(request.method === "HEAD" && op.method === "GET")) {
         throw new Error(`defineRoute(${operationId}) is mounted on ${request.method}, the spec says ${op.method}`);
@@ -79,24 +93,27 @@ export function defineRoute<K extends OperationId>(
         query: readQuery(op, new URL(request.url).searchParams),
         ...(op.hasBody && { body: await readJsonBody(request) }),
       };
-      if (!op.validateRequest(input)) {
-        throw new HttpError(400, {
-          detail: "The request does not match the API specification.",
-          errors: toFieldErrors(op.validateRequest.errors),
-        });
+      const invalid = validateRequest(op, input);
+      if (invalid.length > 0) {
+        throw new HttpError(400, { detail: "The request does not match the API specification.", errors: invalid });
       }
 
-      const result = await handler({ request, ...input } as ApiRequest<K>);
-      const status = Number(result.status);
+      let result: ApiResult<K>;
+      try {
+        result = await handler({ request, ...input } as ApiRequest<K>);
+      } catch (error) {
+        if (validateResponses && error instanceof HttpError) {
+          const errors = validateResponse(operationId, error.problem.status, error.problem);
+          if (errors.length > 0) return driftResponse(operationId, error.problem.status, errors);
+        }
+        throw error;
+      }
 
+      const status = Number(result.status);
+      if (!Number.isInteger(status)) throw new Error(`${operationId}: respond() needs a concrete status code`);
       if (validateResponses) {
         const errors = validateResponse(operationId, status, result.body);
-        if (errors.length > 0) {
-          console.error(`[api] ${operationId} returned a ${status} that does not match the spec`, errors);
-          return problemResponse(
-            new HttpError(500, { detail: "Response does not match the API specification.", errors }).problem,
-          );
-        }
+        if (errors.length > 0) return driftResponse(operationId, status, errors);
       }
 
       if (result.body === undefined) return new Response(null, { status, headers: result.headers });
@@ -112,7 +129,10 @@ export function defineRoute<K extends OperationId>(
 }
 
 async function readJsonBody(request: Request): Promise<unknown> {
+  const tooLarge = new HttpError(400, { detail: `The request body is larger than ${MAX_BODY_BYTES / 1024} KB.` });
+  if (Number(request.headers.get("content-length") ?? 0) > MAX_BODY_BYTES) throw tooLarge;
   const text = await request.text();
+  if (new TextEncoder().encode(text).byteLength > MAX_BODY_BYTES) throw tooLarge;
   if (text.trim() === "") return undefined;
   const type = request.headers.get("content-type") ?? "";
   if (!/^application\/([\w.+-]+\+)?json\b/i.test(type)) {
