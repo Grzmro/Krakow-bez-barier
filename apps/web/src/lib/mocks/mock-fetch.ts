@@ -1,5 +1,5 @@
 import type { FeatureFilter, GetPlaceQuery, Problem, Profile } from "@krakow-bez-barier/contracts";
-import { THRESHOLD_FLAGS, type ThresholdFlag } from "@/server/domain/profiles";
+import { THRESHOLD_FLAGS, type ThresholdFlag } from "@/domain/profiles";
 import { localeFromCookies } from "@/i18n/locale";
 import { mockGetPlace, mockListPlaces } from "./mock-api";
 

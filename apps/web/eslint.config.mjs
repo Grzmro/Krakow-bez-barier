@@ -10,6 +10,16 @@ const eslintConfig = defineConfig([
     files: ["e2e/**"],
     rules: { "react-hooks/rules-of-hooks": "off" },
   },
+  {
+    // Browser and shared code must not pull server modules (DB client, secrets) into the client bundle.
+    files: ["src/lib/**", "src/components/**", "src/domain/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        { patterns: [{ group: ["@/server/*", "**/server/*"], message: "Shared rules live in @/domain." }] },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -14,10 +14,10 @@ import { categories } from "@krakow-bez-barier/contracts";
 import { openapiDocument } from "@krakow-bez-barier/contracts/openapi";
 import { defaultLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
-import { FEATURE_ATTRIBUTES, featureState } from "../domain/features";
-import { matchProfile } from "../domain/matcher";
-import { thresholdsFor } from "../domain/profiles";
-import { isStale, resolveAttribute } from "../domain/resolver";
+import { FEATURE_ATTRIBUTES, featureState } from "@/domain/features";
+import { matchProfile } from "@/domain/matcher";
+import { thresholdsFor } from "@/domain/profiles";
+import { isStale, resolveAttribute } from "@/domain/resolver";
 import {
   createDbPlaceRepository,
   normalizeText,

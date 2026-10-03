@@ -11,7 +11,7 @@ import {
   type ReportCreate,
   type ReportStatus,
 } from "@krakow-bez-barier/contracts";
-import { isStale, resolveAttribute, type AccessibilityFact } from "@/server/domain";
+import { isStale, resolveAttribute, type AccessibilityFact } from "@/domain";
 import { HttpError, type FieldError } from "@/server/http";
 import type { NewFact, QueueCursor, ReportRecord, ReportsStore } from "./store";
 

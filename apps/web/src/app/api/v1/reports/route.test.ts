@@ -1,6 +1,6 @@
 import type { Problem, Report } from "@krakow-bez-barier/contracts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { resolveAttribute } from "@/server/domain";
+import { resolveAttribute } from "@/domain";
 import { validateResponse } from "@/server/http";
 import { pendingReportsByAttribute } from "@/server/reports";
 import { jsonRequest, PLACE_ID, seededReportsStore } from "@/server/reports/testing";

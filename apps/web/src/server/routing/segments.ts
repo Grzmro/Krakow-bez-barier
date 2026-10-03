@@ -1,9 +1,9 @@
 import type { AccessibilityAttribute, AccessibilityFact, Route, RouteSegment } from "@krakow-bez-barier/contracts";
 import type { Locale } from "@/i18n/locale";
 import { messagesFor, type Messages } from "@/i18n/messages";
-import { SMOOTH_SURFACES } from "../domain/matcher";
-import { resolveAttribute } from "../domain/resolver";
-import type { NeedVerdict, ResolvedAttribute } from "../domain/types";
+import { SMOOTH_SURFACES } from "@/domain/matcher";
+import { resolveAttribute } from "@/domain/resolver";
+import type { NeedVerdict, ResolvedAttribute } from "@/domain/types";
 import type { ExtraRange, LonLat, ProviderRoute } from "./provider";
 
 /** Limits a segment is checked against when a profile is on. */

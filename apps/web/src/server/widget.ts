@@ -1,5 +1,5 @@
 import type { components } from "@krakow-bez-barier/contracts";
-import { isStale } from "./domain/resolver";
+import { isStale } from "@/domain/resolver";
 import { getPlace, type PlacesDeps } from "./places/service";
 
 type WidgetCard = components["schemas"]["WidgetCard"];

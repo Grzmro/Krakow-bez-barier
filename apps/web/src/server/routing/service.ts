@@ -1,6 +1,6 @@
 import type { Profile, Route, RouteRequest } from "@krakow-bez-barier/contracts";
 import { defaultLocale, type Locale } from "@/i18n/locale";
-import { PROFILE_PRESETS } from "../domain/profiles";
+import { PROFILE_PRESETS } from "@/domain/profiles";
 import { createOrsProvider } from "./ors";
 import { RoutingError, type LonLat, type ProviderRequest, type ProviderRoute, type RoutingProvider } from "./provider";
 import { createRecordedProvider } from "./recorded-provider";

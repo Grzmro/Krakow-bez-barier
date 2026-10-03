@@ -9,15 +9,14 @@ import {
   type PlaceList,
   type PlaceSummary,
 } from "@krakow-bez-barier/contracts";
-import { FEATURE_ATTRIBUTES, featureState } from "@/server/domain/features";
-import { matchProfile } from "@/server/domain/matcher";
-import { thresholdsFor } from "@/server/domain/profiles";
+import { FEATURE_ATTRIBUTES, featureState } from "@/domain/features";
+import { matchProfile } from "@/domain/matcher";
+import { thresholdsFor } from "@/domain/profiles";
 import { defaultLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
 
-// TODO(KBB-46): delete this layer once the front runs on the real places API by default.
-// In-browser stand-in for the places API (used while NEXT_PUBLIC_API_MOCK is on), built only from the
-// spec's `examples`. Supports `q`, `category`, `feature` + `includeUnknown`, `bbox` and the profile
+// In-browser stand-in for the places API, for tests and the demo recording only (NEXT_PUBLIC_API_MOCK=true),
+// built only from the spec's `examples`. Supports `q`, `category`, `feature` + `includeUnknown`, `bbox` and the profile
 // parameters; verdicts come from the same `matchProfile` the API uses.
 
 function uniqueById<T extends { id: string }>(items: T[]): T[] {

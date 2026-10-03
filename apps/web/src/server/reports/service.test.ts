@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bool, fact, NOW } from "@/server/domain/fixtures";
+import { bool, fact, NOW } from "@/domain/fixtures";
 import { HttpError } from "@/server/http";
 import { createMemoryReportsStore } from "./memory-store";
 import { checkReportValue, currentOf, decodeCursor, encodeCursor, pendingReportsByAttribute, redactContactData } from "./service";

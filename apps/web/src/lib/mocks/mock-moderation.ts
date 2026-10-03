@@ -7,7 +7,7 @@ import {
   type ReportStatus,
 } from "@krakow-bez-barier/contracts";
 
-// TODO(KBB-28): in-browser stand-in for the moderation API while the client runs in mock mode — the queue
+// In-browser stand-in for the moderation API in the example-data mode (tests, demo recording) — the queue
 // starts from the spec's example and decisions change it, so the panel can be demoed without a database.
 
 /** Moderator name recorded in the mock history; the real API takes it from `MODERATOR_TOKENS`. */

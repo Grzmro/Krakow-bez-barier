@@ -7,9 +7,9 @@ Materiał do oceny („Wykaz funkcji już dostępnych i elementów wymagających
 
 ## Jak uruchomić prototyp
 
-- Domyślnie aplikacja webowa działa na **danych przykładowych z kontraktu API** (`NEXT_PUBLIC_API_MOCK=true`,
-  stały baner „PRZYKŁAD”). Z `NEXT_PUBLIC_API_MOCK=false` i bazą PostGIS (`DATABASE_URL`) korzysta z
-  prawdziwego API i danych z [demo-data.md](../demo-data.md).
+- Aplikacja webowa domyślnie korzysta z **prawdziwego API** i bazy PostGIS (`DATABASE_URL`;
+  `npm run db:setup` ładuje dane z [demo-data.md](../demo-data.md), `npm run ingest` — OpenStreetMap).
+  Dane przykładowe z kontraktu API (`NEXT_PUBLIC_API_MOCK=true`) służą tylko testom e2e i nagraniu demo.
 - Cron ingest jest w `main` (`.github/workflows/ingest.yml`, codziennie 03:17 UTC) i działa po
   ustawieniu sekretu `DATABASE_URL`. Publiczne wdrożenie Vercel + Postgres/PostGIS jest w PR #44
   (KBB-21) — **w toku**.

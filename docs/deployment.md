@@ -56,11 +56,11 @@ database tasks on GitHub Actions. Steps marked **owner** need repository admin r
    | Variable | Value |
    |---|---|
    | `DATABASE_URL` | the pooled string |
-   | `NEXT_PUBLIC_API_MOCK` | `false` (read at **build** time; changing it needs a redeploy) |
+   | `NEXT_PUBLIC_API_MOCK` | leave unset: the real API is the default (`true` = example data; read at **build** time) |
    | `MODERATOR_TOKENS` | `name:token`, token from `openssl rand -hex 24`; empty keeps moderation closed |
    | `ORS_API_KEY` | only when routes (KBB-22) are used |
 
-   Leave `SIMULATE_SOURCE_OUTAGE` unset. Previews: leave `NEXT_PUBLIC_API_MOCK` unset (or `true`)
+   Leave `SIMULATE_SOURCE_OUTAGE` unset. Previews: set `NEXT_PUBLIC_API_MOCK=true`
    and `DATABASE_URL` unset in the Preview environment, or point them at a separate Neon branch,
    so previews never write to the production database.
 5. **First ingest.** Actions → *Ingest* → Run workflow. It migrates, then loads OpenStreetMap for
@@ -70,7 +70,7 @@ database tasks on GitHub Actions. Steps marked **owner** need repository admin r
    (it retries the health check while a sleeping Neon database wakes up). It covers the database,
    seeded data, place card, widget, docs and CORS, but not which data the UI uses: also open the
    site and expect real places (`Czarna kaczka`, ...), not the example set. If you see examples,
-   `NEXT_PUBLIC_API_MOCK` was not `false` at build time.
+   `NEXT_PUBLIC_API_MOCK` was `true` at build time.
 7. **Live outage demo.** Set `SIMULATE_SOURCE_OUTAGE=msip-toilets` and `ALLOW_SIMULATED_OUTAGE=true`
    in Vercel, redeploy, show the stale card and *O danych*, then remove both and redeploy.
 
