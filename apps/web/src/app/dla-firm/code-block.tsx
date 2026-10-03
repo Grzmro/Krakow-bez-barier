@@ -3,6 +3,7 @@
 import { Copy } from "@phosphor-icons/react";
 import { Button, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
+import { copyText } from "@/lib/copy-text";
 
 /** Read-only code or link with a copy button; the copy result is shown and announced. */
 export function CodeBlock({
@@ -20,14 +21,9 @@ export function CodeBlock({
   const t = useMessages().business.page;
   const announce = useAnnounce();
   const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(code);
-      toast(t.copied);
-      announce(t.copied);
-    } catch {
-      toast(t.copyFailed);
-      announce(t.copyFailed);
-    }
+    const message = (await copyText(code)) ? t.copied : t.copyFailed;
+    toast(message);
+    announce(message);
   };
   return (
     <div className="relative mt-3 overflow-hidden rounded-[20px] bg-ink text-ink-foreground">
