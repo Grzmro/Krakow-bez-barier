@@ -96,7 +96,7 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
 
   // WHEN they reopen it, type the real width and send it with the keyboard
   await page.keyboard.press("Enter");
-  const width = drawer.getByRole("textbox", { name: /Jak jest naprawdę/ });
+  const width = drawer.getByRole("spinbutton", { name: /Jak jest naprawdę/ });
   await expect(width).toBeFocused();
   await page.keyboard.type("90");
   await tabTo(page, drawer.getByRole("button", { name: "Wyślij" }));
