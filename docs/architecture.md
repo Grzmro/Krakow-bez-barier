@@ -58,3 +58,4 @@ Format: `YYYY-MM-DD — decision — why`.
 - 2026-10-03 — Fast test pipeline: Vitest for logic, Playwright Chromium-only smoke (headless shell, no retries) against the production build made earlier in the same CI job; npm, Next and Playwright caches in CI.
 - 2026-10-03 — `packages/ui` components take all copy as props; `apps/web/src/components/kbb.tsx` binds the Polish strings — the package stays i18n-free, screens get one-line usage and one source of status words.
 - 2026-10-03 — API errors are RFC 9457 `application/problem+json`, lists use cursor pagination, and `FactValue` is a tagged union on `kind` — clients branch on one field, offsets break under live ingest, and problems stay machine-readable.
+- 2026-10-03 — CI runs only lint, typecheck and unit tests; build and Playwright e2e run on the developer machine via `scripts/merge-pr.sh` on the rebased commit — keeps CI ~30 s and uses local hardware for the heavy part.

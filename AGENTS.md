@@ -101,9 +101,10 @@ Planned — add them here when the task lands: `cp .env.example .env` + `docker 
 `npm run db:generate` / `db:migrate` (KBB-10), `npm run contracts:generate` (KBB-8),
 `npm run ingest -- --source <id> --city krakow` (KBB-18).
 
-CI (`.github/workflows/ci.yml`) runs the same steps on every PR; agents merge only on green CI.
+CI (`.github/workflows/ci.yml`) is deliberately tiny — lint, typecheck, unit (~30 s). Build and e2e
+run locally: `scripts/merge-pr.sh` runs the full gate on the rebased commit before merging.
 
-**Keep tests fast** — the whole CI run should stay within a few minutes:
+**Keep tests fast** — local gate within a couple of minutes, CI within ~30 s:
 - unit tests (Vitest) for logic; no network, no DB unless the test is about the DB;
 - e2e = a short smoke per screen (main path + keyboard pass), Chromium only, no `waitForTimeout`,
   no retries — a flaky test gets fixed or deleted, not retried.

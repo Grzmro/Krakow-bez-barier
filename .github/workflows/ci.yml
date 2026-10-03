@@ -1,5 +1,8 @@
 name: CI
 
+# Deliberately small: lint, typecheck and unit tests only (~30 s). Build and Playwright e2e run
+# locally — `scripts/merge-pr.sh` runs the full gate on the rebased commit before it merges.
+
 on:
   pull_request:
   push:
@@ -14,9 +17,9 @@ concurrency:
 
 jobs:
   check:
-    name: lint · typecheck · test · build · e2e
+    name: lint · typecheck · unit
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 5
     env:
       NEXT_TELEMETRY_DISABLED: "1"
     steps:
@@ -27,7 +30,7 @@ jobs:
           node-version: 24
           cache: npm
 
-      - run: npm ci
+      - run: npm ci --no-audit --no-fund
 
       - name: Lint
         run: npm run lint
@@ -37,52 +40,3 @@ jobs:
 
       - name: Unit tests
         run: npm run test
-
-      - name: Cache Next.js build
-        uses: actions/cache@v4
-        with:
-          path: apps/web/.next/cache
-          key: next-${{ hashFiles('package-lock.json') }}-${{ hashFiles('apps/web/src/**', 'packages/*/src/**') }}
-          restore-keys: next-${{ hashFiles('package-lock.json') }}-
-
-      - name: Build
-        run: npm run build
-
-      - name: Playwright version
-        id: pw
-        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Playwright browser
-        id: pw-cache
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}-chromium-shell
-
-      - name: Install Playwright browser
-        if: steps.pw-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps --only-shell chromium
-
-      - name: Install Playwright system deps
-        if: steps.pw-cache.outputs.cache-hit == 'true'
-        run: npx playwright install-deps chromium
-
-      - name: E2E smoke (against the build above)
-        run: npm run test:e2e
-
-      - name: Upload evidence screenshots
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: evidence-screenshots
-          path: apps/web/test-results/evidence/
-          if-no-files-found: ignore
-          retention-days: 7
-
-      - name: Upload Playwright traces
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-traces
-          path: apps/web/test-results/
-          retention-days: 3
