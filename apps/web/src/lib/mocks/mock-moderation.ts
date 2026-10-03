@@ -2,6 +2,7 @@ import {
   responseExamples,
   type DemoModeratorSession,
   type ModerationDecision,
+  type ModerationOutage,
   type ModerationReport,
   type ModeratorSession,
   type Problem,
@@ -34,10 +35,21 @@ const problem = (status: number, title: string, detail: string) =>
 
 export const seedModerationQueue = (): ModerationReport[] => structuredClone(responseExamples.listModerationReports[200].queue.items);
 
+export const seedModerationOutages = (): ModerationOutage[] =>
+  structuredClone(responseExamples.listModerationOutages[200].list.items);
+
 type Fetch = (input: Request) => Promise<Response>;
 
-/** Answers `GET`/`POST /moderation/reports` from an in-memory queue; any bearer token signs in. */
-export function withModerationMocks(fallback: Fetch, reports: ModerationReport[] = seedModerationQueue()): Fetch {
+/**
+ * Answers `GET`/`POST /moderation/reports` and `GET /moderation/outages`, `DELETE /moderation/outages/{id}` from
+ * in-memory lists; any bearer token signs in. The example outages are not on any place card, so a removal changes
+ * only this list.
+ */
+export function withModerationMocks(
+  fallback: Fetch,
+  reports: ModerationReport[] = seedModerationQueue(),
+  outages: ModerationOutage[] = seedModerationOutages(),
+): Fetch {
   return async (input) => {
     const url = new URL(input.url, "http://mock.local");
     const path = url.pathname.replace(/^.*\/api\/v1/, "");
@@ -45,10 +57,21 @@ export function withModerationMocks(fallback: Fetch, reports: ModerationReport[]
       const expiresAt = new Date(Date.now() + 12 * 3_600_000).toISOString();
       return json({ token: MOCK_DEMO_TOKEN, expiresAt, moderator: session(MOCK_DEMO_TOKEN) } satisfies DemoModeratorSession, 201);
     }
-    if (path !== "/moderation/reports") return fallback(input);
+    const outage = path.match(/^\/moderation\/outages(?:\/([^/]+))?$/);
+    if (path !== "/moderation/reports" && !outage) return fallback(input);
 
     const token = /^Bearer\s+(\S.*)$/i.exec(input.headers.get("authorization") ?? "")?.[1]?.trim();
     if (!token) return problem(401, "Unauthorized", "A valid moderator token is required.");
+
+    if (outage) {
+      const outageId = outage[1] && decodeURIComponent(outage[1]);
+      if (!outageId && input.method === "GET") return json({ items: outages, moderator: session(token) });
+      if (!outageId || input.method !== "DELETE") return fallback(input);
+      const index = outages.findIndex((o) => o.id === outageId);
+      if (index < 0) return problem(404, "Not found", `Outage "${outageId}" does not exist.`);
+      const [removed] = outages.splice(index, 1);
+      return json({ ...removed, state: "removed" } satisfies ModerationOutage);
+    }
 
     if (input.method === "GET") {
       const status = url.searchParams.get("status") as ReportStatus | null;

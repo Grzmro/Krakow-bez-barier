@@ -154,6 +154,7 @@ Cel e2e: będąc na miejscu, poprawiam błędną informację w kilkanaście seku
     - Zgłoszona awaria jest od razu widoczna na karcie jako „Niezweryfikowane” (źródło: zgłoszenie odwiedzających, czas) i w werdykcie profilu jako niepotwierdzona bariera; bez moderacji, bez konta.
     - Inni odpowiadają „Potwierdzam awarię” lub „Działa”; po progu potwierdzeń (konfiguracja, 2) awaria jest „Potwierdzona przez społeczność”, ale nadal ma poziom zgłoszenia użytkownika; „Działa” zdejmuje awarię, a bez potwierdzeń wygasa po 48 h.
     - Jeden głos danego rodzaju na awarię z urządzenia na dobę; nie można zgłosić awarii urządzenia, którego według faktów nie ma.
+    - Moderator widzi w panelu (zakładka „Awarie”) aktywne awarie z miejscem i głosami i może usunąć spam lub fałszywe zgłoszenie — znika wtedy z karty i z werdyktów.
 
 ### E5 — Automatyczne pozyskiwanie i odświeżanie danych · M · P1, P7
 

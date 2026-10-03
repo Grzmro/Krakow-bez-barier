@@ -1,9 +1,8 @@
 import type { OutageEquipment } from "@krakow-bez-barier/contracts";
 import { outages, outageVotes, places, type Db } from "@krakow-bez-barier/db";
 import { and, desc, eq, inArray, sql, type SQL } from "drizzle-orm";
-import type { OutageRecord } from "@/domain/outages";
 import { getDb } from "@/server/db";
-import type { OutagesStore } from "./store";
+import type { OutagesStore, PlacedOutageRecord } from "./store";
 
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
@@ -14,7 +13,7 @@ const STILL_BROKEN = sql`${outageVotes.vote} = 'still_broken'`;
 const lastConfirmedAt = sql<string>`greatest(${outages.createdAt}, max(${outageVotes.createdAt}) filter (where ${STILL_BROKEN}))`;
 
 /** Outages matching `where` with their votes counted, newest first; `since` keeps those confirmed at or after it. */
-async function selectRecords(db: Db | Tx, where: SQL | undefined, since?: Date): Promise<OutageRecord[]> {
+async function selectRecords(db: Db | Tx, where: SQL | undefined, since?: Date): Promise<PlacedOutageRecord[]> {
   const rows = await db
     .select({
       id: outages.id,
@@ -24,11 +23,15 @@ async function selectRecords(db: Db | Tx, where: SQL | undefined, since?: Date):
       confirmations: sql<number>`count(${outageVotes.id}) filter (where ${STILL_BROKEN})`,
       workingVotes: sql<number>`count(${outageVotes.id}) filter (where ${outageVotes.vote} = 'working')`,
       lastConfirmedAt,
+      removedAt: outages.removedAt,
+      removalEndsAt: outages.removalEndsAt,
+      placeName: places.name,
     })
     .from(outages)
+    .innerJoin(places, eq(places.id, outages.placeId))
     .leftJoin(outageVotes, eq(outageVotes.outageId, outages.id))
     .where(where)
-    .groupBy(outages.id)
+    .groupBy(outages.id, places.name)
     .having(since ? sql`${lastConfirmedAt} >= ${since.toISOString()}` : undefined)
     .orderBy(desc(outages.createdAt), desc(outages.id));
   return rows.map((row) => ({
@@ -97,6 +100,29 @@ export function createDrizzleOutagesStore(db: Db): OutagesStore {
     async listRecent(placeIds, since) {
       if (placeIds.length === 0) return [];
       return selectRecords(db, inArray(outages.placeId, placeIds), since);
+    },
+
+    async listRecentEverywhere(since) {
+      return selectRecords(db, undefined, since);
+    },
+
+    async remove({ outageId, moderator, at, endsAt, isActive }) {
+      if (!isUuid(outageId)) return { kind: "not_found" };
+      return db.transaction(async (tx) => {
+        const [outage] = await tx
+          .select({ placeId: outages.placeId, equipment: outages.equipment })
+          .from(outages)
+          .where(eq(outages.id, outageId));
+        if (!outage) return { kind: "not_found" } as const;
+        await lock(tx, outage.placeId, outage.equipment);
+        const current = await byId(tx, outageId);
+        if (!isActive(current)) return { kind: "inactive", record: current } as const;
+        await tx
+          .update(outages)
+          .set({ removedAt: at, removedBy: moderator, removalEndsAt: endsAt })
+          .where(eq(outages.id, outageId));
+        return { kind: "removed", record: await byId(tx, outageId) } as const;
+      });
     },
   };
 }

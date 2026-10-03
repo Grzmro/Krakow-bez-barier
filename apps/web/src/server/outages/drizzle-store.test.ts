@@ -1,12 +1,12 @@
 // Runs only against a migrated database: TEST_DATABASE_URL=postgres://… npx vitest run outages/drizzle-store
 import { createDb, outages, outageVotes, places } from "@krakow-bez-barier/db";
-import { inArray } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { createDbPlaceRepository } from "@/server/places/repository";
 import { getPlace } from "@/server/places/service";
 import { createDrizzleOutagesStore } from "./drizzle-store";
-import { reportOutage, voteOutage } from "./service";
+import { listModerationOutages, removeOutage, reportOutage, voteOutage } from "./service";
 
 const url = process.env.TEST_DATABASE_URL;
 const HOUR = 3_600_000;
@@ -64,6 +64,28 @@ describe.skipIf(!url)("Drizzle outages store (database)", () => {
     expect(fixed.state).toBe("resolved");
     expect((await card()).outages).toEqual([]);
     expect(await reportOutage(store, place.id, { equipment: "lift" })).toMatchObject({ created: true });
+  });
+
+  it("takes a removed outage off the card and the moderator's list, keeping who removed it", async () => {
+    // GIVEN a reported ramp outage
+    const { db } = handle!;
+    const store = createDrizzleOutagesStore(db);
+    const place = await newPlace();
+    const { outage } = await reportOutage(store, place.id, { equipment: "ramp" });
+    expect((await listModerationOutages(store)).map((o) => o.id)).toContain(outage.id);
+
+    // WHEN a moderator removes it, then tries again
+    const removed = await removeOutage(store, outage.id, { name: "anna", demo: false });
+    const again = removeOutage(store, outage.id, { name: "anna", demo: false });
+
+    // THEN it is removed with the place name, off the card and the list, and the second removal is a 409
+    expect(removed).toMatchObject({ state: "removed", placeName: "Test place" });
+    await expect(again).rejects.toMatchObject({ problem: { status: 409 } });
+    const read = await getPlace(place.id, {}, { repository: createDbPlaceRepository(db) });
+    expect(read?.outages).toEqual([]);
+    expect((await listModerationOutages(store)).map((o) => o.id)).not.toContain(outage.id);
+    const [row] = await db.select().from(outages).where(eq(outages.id, outage.id));
+    expect(row).toMatchObject({ removedBy: "anna", removalEndsAt: null });
   });
 
   it("expires an outage nobody confirms for 48 hours", async () => {

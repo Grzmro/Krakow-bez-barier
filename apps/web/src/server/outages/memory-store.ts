@@ -1,17 +1,24 @@
 import type { OutageEquipment, OutageVote } from "@krakow-bez-barier/contracts";
 import { randomUUID } from "node:crypto";
-import type { OutageRecord } from "@/domain/outages";
-import type { OutagesStore } from "./store";
+import type { OutagesStore, PlacedOutageRecord } from "./store";
 
-type MemoryOutage = { id: string; placeId: string; equipment: OutageEquipment; createdAt: Date };
+type MemoryOutage = {
+  id: string;
+  placeId: string;
+  equipment: OutageEquipment;
+  createdAt: Date;
+  removedAt?: Date;
+  removedBy?: string;
+  removalEndsAt?: Date | null;
+};
 type MemoryVote = { outageId: string; vote: OutageVote; createdAt: Date };
 
 /** In-memory `OutagesStore` for tests — same contract as the Drizzle store, no database. */
-export function createMemoryOutagesStore(seed: { places: { id: string; externalRef?: string }[] }) {
+export function createMemoryOutagesStore(seed: { places: { id: string; externalRef?: string; name?: string }[] }) {
   const outages: MemoryOutage[] = [];
   const votes: MemoryVote[] = [];
 
-  const record = (outage: MemoryOutage): OutageRecord => {
+  const record = (outage: MemoryOutage): PlacedOutageRecord => {
     const own = votes.filter((v) => v.outageId === outage.id);
     const confirmations = own.filter((v) => v.vote === "still_broken");
     const lastConfirmedAt = Math.max(outage.createdAt.getTime(), ...confirmations.map((v) => v.createdAt.getTime()));
@@ -23,6 +30,9 @@ export function createMemoryOutagesStore(seed: { places: { id: string; externalR
       confirmations: confirmations.length,
       workingVotes: own.length - confirmations.length,
       lastConfirmedAt: new Date(lastConfirmedAt),
+      removedAt: outage.removedAt ?? null,
+      removalEndsAt: outage.removalEndsAt ?? null,
+      placeName: seed.places.find((p) => p.id === outage.placeId)?.name ?? outage.placeId,
     };
   };
 
@@ -57,6 +67,19 @@ export function createMemoryOutagesStore(seed: { places: { id: string; externalR
         .sort(newestFirst)
         .map(record)
         .filter((r) => r.lastConfirmedAt.getTime() >= since.getTime());
+    },
+    async listRecentEverywhere(since) {
+      return outages
+        .toSorted(newestFirst)
+        .map(record)
+        .filter((r) => r.lastConfirmedAt.getTime() >= since.getTime());
+    },
+    async remove({ outageId, moderator, at, endsAt, isActive }) {
+      const outage = outages.find((o) => o.id === outageId);
+      if (!outage) return { kind: "not_found" };
+      if (!isActive(record(outage))) return { kind: "inactive", record: record(outage) };
+      Object.assign(outage, { removedAt: at, removedBy: moderator, removalEndsAt: endsAt });
+      return { kind: "removed", record: record(outage) };
     },
   };
 

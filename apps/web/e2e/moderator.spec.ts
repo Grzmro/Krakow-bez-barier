@@ -198,3 +198,43 @@ test("the session survives a reload and ends with Wyloguj", async ({ page }) => 
   await expect(page.getByRole("main")).toContainText("Wylogowano.");
   await expect(page.getByLabel("Token moderatora")).toBeVisible();
 });
+
+test("a moderator removes a false outage from the Awarie tab, keyboard only", async ({ page, expectAccessible, evidence }) => {
+  // GIVEN a signed-in moderator (the mock lists the spec's two example outages)
+  await page.goto("/moderator");
+  await page.getByLabel("Token moderatora").fill("demo-token-1234567890");
+  await page.keyboard.press("Enter");
+  const reportsTab = page.getByRole("tab", { name: "Zgłoszenia (2)" });
+  await expect(reportsTab).toHaveAttribute("aria-selected", "true");
+
+  // WHEN the moderator moves to the "Awarie" tab with the arrow key
+  await reportsTab.focus();
+  await page.keyboard.press("ArrowRight");
+  const outagesTab = page.getByRole("tab", { name: "Awarie (2)" });
+  await expect(outagesTab).toBeFocused();
+  await page.keyboard.press("Enter");
+
+  // THEN every active outage is listed with its place, equipment, votes and time
+  const panel = page.getByRole("tabpanel");
+  await expect(panel.getByRole("heading", { name: "Aktywne awarie (2)" })).toBeVisible();
+  const hotel = panel.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "Hotel Przykład · Winda" }) });
+  await expect(hotel).toContainText("Potwierdzona przez społeczność");
+  await expect(hotel).toContainText("2 potwierdzenia · „Działa”: 0 · Zgłoszona");
+  await expect(panel).toContainText("Podziemia Rynku · Podjazd");
+  await expect(page.locator("main")).toMatchAriaSnapshot({ name: "moderator-outages.aria.yml" });
+  await expectAccessible();
+  await evidence("moderator-outages");
+
+  // WHEN the ramp outage is removed with the keyboard
+  const remove = panel.getByRole("button", { name: "Usuń awarię: Podziemia Rynku · Podjazd" });
+  await remove.focus();
+  await page.keyboard.press("Enter");
+
+  // THEN the removal is announced, the outage leaves the list and focus returns to the list heading
+  await expect(page.getByRole("status").filter({ hasText: /^Usunięto \(tryb przykładowy/ })).toBeAttached();
+  await expect(page.getByRole("heading", { name: "Aktywne awarie (1)" })).toBeFocused();
+  await expect(page.getByRole("tab", { name: "Awarie (1)" })).toBeVisible();
+  await expect(remove).toHaveCount(0);
+  await expect(page.locator("[data-sonner-toast]")).toHaveCount(0, { timeout: 8_000 });
+  await expectAccessible();
+});

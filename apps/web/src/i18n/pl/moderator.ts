@@ -82,6 +82,31 @@ export const moderator = {
     body: (minutes: number) =>
       `To konto do wypróbowania panelu. Decyzje działają naprawdę: zatwierdzone zgłoszenie od razu zmienia kartę miejsca, ze źródłem „Konto demonstracyjne moderatora (zmiana tymczasowa)”. Po ${minutes} min każdą decyzję tego konta cofamy automatycznie, więc dane miejsc nie zmieniają się na stałe.`,
   },
+  // Tabs of the signed-in panel and the "Awarie" tab: active visitor outages a moderator can take down.
+  tabs: {
+    label: "Sekcje panelu moderatora",
+    reports: (count: number) => `Zgłoszenia (${count})`,
+    outages: (count: number | null) => (count === null ? "Awarie" : `Awarie (${count})`),
+  },
+  outages: {
+    heading: (count: number) => `Aktywne awarie (${count})`,
+    lead: "Awarie wind i podjazdów zgłaszają odwiedzający bez moderacji — od razu widać je na karcie miejsca i w werdyktach. Usuń oczywisty spam albo fałszywe zgłoszenie.",
+    loading: "Wczytuję awarie…",
+    loadFailed: "Nie udało się wczytać awarii.",
+    empty: "Nie ma aktywnych awarii.",
+    title: (equipment: string, place: string) => `${place} · ${equipment}`,
+    working: (n: number) => `„Działa”: ${n}`,
+    reported: (time: string) => `Zgłoszona ${time}`,
+    remove: "Usuń",
+    removeLabel: (equipment: string, place: string) => `Usuń awarię: ${place} · ${equipment}`,
+    removing: "Usuwam awarię…",
+    removed: "Usunięto. Awaria zniknęła z karty miejsca i z werdyktów.",
+    removedMock: "Usunięto (tryb przykładowy — karta miejsca się nie zmieni).",
+    removedDemo: (minutes: number) =>
+      `Usunięto na koncie demonstracyjnym. Po ${minutes} min awaria wróci na kartę, jeśli nadal będzie aktywna.`,
+    gone: "Ta awaria jest już nieaktualna. Odświeżyłem listę.",
+    failed: "Nie udało się usunąć awarii. Spróbuj ponownie.",
+  },
   showOnCard: "Zobacz na karcie",
   showOnCardLabel: (place: string) => `Zobacz na karcie: ${place}`,
   alreadyDecided: "Ktoś już podjął decyzję w tej sprawie. Odświeżyłem kolejkę.",

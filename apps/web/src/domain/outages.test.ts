@@ -51,6 +51,17 @@ describe("outageState", () => {
     expect(outageState(refreshed, NOW, RULES)).toBe("reported");
     expect(outageState(outage({ lastConfirmedAt: ago(48) }), NOW, RULES)).toBe("expired");
   });
+
+  it("is removed while a moderator's removal holds, and counts again once a time-limited one ends", () => {
+    // GIVEN a confirmed outage removed for good, and one whose removal ended an hour ago
+    const lasting = outage({ confirmations: 2, removedAt: ago(1), removalEndsAt: null });
+    const lapsed = outage({ confirmations: 2, removedAt: ago(1), removalEndsAt: ago(0.5) });
+    // WHEN their state is read
+    // THEN the first is removed and leaves the active list; the second is confirmed again
+    expect(outageState(lasting, NOW, RULES)).toBe("removed");
+    expect(activeOutages([lasting], NOW, RULES)).toEqual([]);
+    expect(outageState(lapsed, NOW, RULES)).toBe("confirmed");
+  });
 });
 
 describe("activeOutages", () => {

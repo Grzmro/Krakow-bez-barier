@@ -23,6 +23,24 @@ export type VoteInput = {
 
 export type VoteResult = { kind: "voted"; record: OutageRecord } | { kind: "not_found" } | { kind: "inactive"; record: OutageRecord };
 
+/** An outage with the name of its place, for the moderator's list. */
+export type PlacedOutageRecord = OutageRecord & { placeName: string };
+
+export type RemoveInput = {
+  outageId: string;
+  /** Moderator name, kept with the removal. */
+  moderator: string;
+  at: Date;
+  /** When the removal stops counting (the demo account's); `null` for a lasting one. */
+  endsAt: Date | null;
+  isActive: (record: OutageRecord) => boolean;
+};
+
+export type RemoveResult =
+  | { kind: "removed"; record: PlacedOutageRecord }
+  | { kind: "not_found" }
+  | { kind: "inactive"; record: OutageRecord };
+
 /** Persistence for outages and their votes; `drizzle-store.ts` in the app, `memory-store.ts` in tests. */
 export interface OutagesStore {
   /** Finds a place by its id or external reference (e.g. `osm:node/123`). */
@@ -36,4 +54,8 @@ export interface OutagesStore {
   vote(input: VoteInput): Promise<VoteResult>;
   /** Outages of these places reported or confirmed at or after `since`, with their votes counted. */
   listRecent(placeIds: string[], since: Date): Promise<OutageRecord[]>;
+  /** Outages of every place reported or confirmed at or after `since`, newest first, with their place names. */
+  listRecentEverywhere(since: Date): Promise<PlacedOutageRecord[]>;
+  /** Marks an outage removed by a moderator if it is still active, under the same lock as `report` and `vote`. */
+  remove(input: RemoveInput): Promise<RemoveResult>;
 }
