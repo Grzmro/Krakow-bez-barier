@@ -4,7 +4,8 @@ import { PROFILE_PRESETS, THRESHOLD_FLAGS, type Thresholds } from "@/server/doma
 export { THRESHOLD_FLAGS };
 export type { Thresholds };
 
-export const PROFILES = ["wheelchair", "stroller"] as const satisfies readonly Profile[];
+/** Selectable profiles in preset order — derived from the presets so a new preset can't be left out. */
+export const PROFILES = Object.keys(PROFILE_PRESETS) as readonly Profile[];
 
 export const THRESHOLD_LIMITS = {
   maxThresholdCm: { min: 0, max: 10, step: 1 },

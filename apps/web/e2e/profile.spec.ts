@@ -140,7 +140,8 @@ test("thresholds change verdicts, persist in the browser and reset to defaults",
 });
 
 test("a facility need switched on in the thresholds drawer joins the verdict", async ({ page, expectAccessible, evidence }) => {
-  // GIVEN the wheelchair profile, under which the hotel meets every need
+  // GIVEN the wheelchair profile on a small 360 px phone, under which the hotel meets every need
+  await page.setViewportSize({ width: 360, height: 640 });
   await page.goto("/");
   await page.getByRole("radio", { name: "Wózek", exact: true }).check();
   await expect(row(page, "Hotel Przykład")).toContainText("Spełnia · niepotwierdzone");
@@ -154,8 +155,10 @@ test("a facility need switched on in the thresholds drawer joins the verdict", a
   await expect(bench).toBeChecked();
   await expect(drawer).toMatchAriaSnapshot({ name: "profile-thresholds.aria.yml" });
   await expectAccessible();
+  const done = drawer.getByRole("button", { name: "Gotowe" });
+  await expect(done).toBeInViewport();
   await evidence("home-profile-bench");
-  await drawer.getByRole("button", { name: "Gotowe" }).click();
+  await done.click();
 
   // THEN the hotel, with no bench data, is "can't say" instead of met, and says what is missing
   await expect(row(page, "Hotel Przykład")).toContainText("Brak danych · ławka");

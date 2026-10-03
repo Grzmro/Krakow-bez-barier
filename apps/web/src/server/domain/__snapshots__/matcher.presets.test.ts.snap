@@ -1,6 +1,6 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`existing presets > give the same verdicts as before needs became configuration 1`] = `
+exports[`profile presets > keep their verdicts over every facility-data combination 1`] = `
 {
   "stroller hotel-przyklad": "unknown | przewijak |  | changing_table | entrance:step_count:met,door:door_width_cm:met,lift:lift:met?,changing_table:changing_table:unknown",
   "stroller kawiarnia-przyklad": "unknown | wejście;drzwi;winda;przewijak |  | step_count,door_width_cm,lift,changing_table | entrance:step_count:unknown,door:door_width_cm:unknown,lift:lift:unknown,changing_table:changing_table:unknown",

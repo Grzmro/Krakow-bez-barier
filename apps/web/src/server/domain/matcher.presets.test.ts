@@ -37,8 +37,8 @@ function combinations(): [string, Pick<Place, "attributes">][] {
 
 const examples = Object.values(responseExamples.getPlace[200]).map((place): [string, Pick<Place, "attributes">] => [place.id, place]);
 
-describe("existing presets", () => {
-  it("give the same verdicts as before needs became configuration", () => {
+describe("profile presets", () => {
+  it("keep their verdicts over every facility-data combination", () => {
     // GIVEN the spec's example places and every combination of facility data
     const places = [...examples, ...combinations()];
     // WHEN each is matched against the wheelchair and stroller presets

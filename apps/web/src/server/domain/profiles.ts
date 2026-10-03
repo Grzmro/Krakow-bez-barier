@@ -28,7 +28,9 @@ export type Thresholds = Required<Pick<GetPlaceQuery, "maxThresholdCm" | "minDoo
 
 /**
  * Presets proposed in docs/requirements.md (US-2.1, US-2.2); users can change every value. A new profile
- * is a new entry here plus its `Profile` value in the spec; a new facility need is one `OPTIONAL_NEEDS` row.
+ * needs no matcher change: an entry here (which also makes it selectable), its `Profile` value in the spec,
+ * and its `profileName` / `switch.short` labels in `i18n/pl/profile.ts` — the compiler flags each one missing.
+ * A new facility need is one `OPTIONAL_NEEDS` row.
  */
 export const PROFILE_PRESETS: Record<Profile, Thresholds> = {
   wheelchair: {
