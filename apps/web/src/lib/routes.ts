@@ -19,3 +19,7 @@ export const routes = {
 
 /** The embeddable widget renders inside venue websites, without the app's chrome. */
 export const isWidgetRoute = (pathname: string) => pathname.startsWith(routes.widget(""));
+
+/** Pages opened from another one or from a shared link (a place card, an event page): the header shows "back". */
+export const isDetailRoute = (pathname: string) =>
+  pathname.startsWith(routes.place("")) || pathname.startsWith(routes.event(""));

@@ -1,7 +1,6 @@
 - main:
   - link "Wstecz":
     - /url: /miejsca/kawiarnia-przyklad
-    - img
   - paragraph: "Start: Dworzec Główny"
   - paragraph: "Cel: Kawiarnia Przykład"
   - button "Zamień start i cel":

@@ -74,3 +74,39 @@ test("the place card's back button returns to the list, or to the home screen fr
   await expect(page).toHaveURL(/\/$/);
   await expect(page.getByRole("heading", { level: 1, name: "Mapa i lista miejsc" })).toBeAttached();
 });
+
+test("back from the route screen returns to the card and then the list, without looping", async ({ page, expectAccessible }) => {
+  // GIVEN a place opened from the home screen's list, then its route
+  await page.goto("/");
+  await page.getByRole("region", { name: "Lista miejsc" }).getByRole("link", { name: /Sukiennice/ }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "Sukiennice" })).toBeVisible();
+  await page.getByRole("link", { name: "Prowadź" }).click();
+  await expect(page).toHaveURL(/\/trasa\?do=sukiennice$/);
+  await expectAccessible();
+
+  // WHEN a keyboard user presses the route screen's "Wstecz"
+  await page.locator("main").getByRole("link", { name: "Wstecz" }).press("Enter");
+
+  // THEN the card is back, and the browser's back now leads to the list, not to the route again
+  await expect(page.getByRole("heading", { level: 1, name: "Sukiennice" })).toBeVisible();
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Mapa i lista miejsc" })).toBeAttached();
+});
+
+test("an event page opened from a shared link has a back button to the home screen", async ({ page, expectAccessible, evidence }) => {
+  // GIVEN an event page opened straight from a link
+  await page.goto("/wydarzenie/palac-krzysztofory?nazwa=Koncert+jesienny");
+  await expect(page.getByRole("heading", { level: 1, name: "Koncert jesienny" })).toBeVisible();
+  const back = page.getByRole("banner").getByRole("link", { name: "Wstecz" });
+  await expect(back).toBeVisible();
+  await expectAccessible();
+  await evidence("event-back");
+
+  // WHEN the guest presses "Wstecz" in the header
+  await back.click();
+
+  // THEN the home screen opens instead of leaving the app
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Mapa i lista miejsc" })).toBeAttached();
+});

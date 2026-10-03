@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
-import { ArrowsDownUp, CaretLeft, CaretRight, CloudSlash, MapPin, NavigationArrow, Train, WarningCircle } from "@phosphor-icons/react";
+import { ArrowsDownUp, CaretRight, CloudSlash, MapPin, NavigationArrow, Train, WarningCircle } from "@phosphor-icons/react";
 import type { Place, Route } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, StatusIcon, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
 import { BottomPanel, FactRow, StatusBadge } from "@/components/kbb";
+import { BackButton } from "@/components/layout/back-button";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
 import { RouteMap } from "@/components/route/route-map";
 import { useLocale, useMessages } from "@/i18n/client";
@@ -167,13 +168,11 @@ export function RouteScreen({ to }: { to?: string }) {
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 px-4 pt-3 lg:pointer-events-auto lg:static lg:col-start-1 lg:row-start-1 lg:max-h-[45dvh] lg:overflow-y-auto lg:border-r lg:border-border lg:bg-card lg:pt-4">
         <div className="mx-auto flex max-w-xl items-start gap-2 *:pointer-events-auto">
-          <Link
-            href={to ? routes.place(to) : routes.home}
-            aria-label={t.back}
-            className={cn(buttonVariants({ variant: "outline", size: "icon" }), "mt-1 shrink-0 border-0 shadow-float lg:border lg:shadow-none")}
-          >
-            <CaretLeft weight="bold" />
-          </Link>
+          <BackButton
+            label={t.back}
+            fallback={to ? routes.place(to) : routes.home}
+            className="mt-1 border-0 shadow-float lg:border lg:shadow-none"
+          />
           <div className="relative min-w-0 flex-1 rounded-[20px] bg-card p-1 shadow-float lg:shadow-none lg:ring-1 lg:ring-border">
             <p className="flex h-12 items-center gap-3 px-3">
               <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-ink-foreground">
