@@ -103,6 +103,7 @@ for (const [name, device] of [
       await expect(show).toBeFocused();
       const bar = await settledHeight(page);
       expect(bar).toBeLessThan(half / 3);
+      await expect(page.locator("main")).toMatchAriaSnapshot({ name: "home-swipe-stowed.aria.yml" });
       await expectAccessible();
       await evidence(`home-swipe-stowed-${slug}`);
     });
@@ -141,6 +142,59 @@ for (const [name, device] of [
       // AND the buttons still work after a swipe
       await panel(page).getByRole("button", { name: "Zwiń arkusz" }).press("Enter");
       await expect(panel(page)).toHaveAttribute("data-expanded", "false");
+    });
+
+    test("the arrow keys on the grabber step between the states", async ({ page }) => {
+      // GIVEN the list at half height, the grabber focused
+      await openHome(page);
+      await panel(page).getByRole("button", { name: "Rozwiń arkusz" }).focus();
+
+      // WHEN ArrowUp is pressed
+      await page.keyboard.press("ArrowUp");
+
+      // THEN the panel is expanded and the grabber keeps focus
+      await expect(panel(page)).toHaveAttribute("data-expanded", "true");
+      await expect(panel(page).getByRole("button", { name: "Zwiń arkusz" })).toBeFocused();
+
+      // WHEN ArrowDown is pressed twice
+      await page.keyboard.press("ArrowDown");
+      await expect(panel(page)).toHaveAttribute("data-expanded", "false");
+      await page.keyboard.press("ArrowDown");
+
+      // THEN only the bar is left, with its "show" button focused
+      await expect(panel(page)).toHaveAttribute("data-stowed", "true");
+      const show = panel(page).getByRole("button", { name: "Pokaż listę" });
+      await expect(show).toBeFocused();
+
+      // WHEN ArrowUp is pressed on it
+      await page.keyboard.press("ArrowUp");
+
+      // THEN the list is back at half height
+      await expect(panel(page)).toHaveAttribute("data-stowed", "false");
+      await expect(panel(page)).toHaveAttribute("data-expanded", "false");
+    });
+
+    test("the list shows while the bar is pulled up, but stays inert until release", async ({ page }) => {
+      // GIVEN the list stowed to the bar
+      await page.addInitScript(() => sessionStorage.setItem("kbb-list-stowed", "1"));
+      await page.goto("/");
+      await expect(panel(page)).toHaveAttribute("data-stowed", "true");
+      await settledHeight(page);
+      const touch = await finger(page);
+      const scroller = panel(page).locator("> [role=group]");
+
+      // WHEN a finger pulls the bar up without lifting
+      await touch.press(await topRow(page), -150);
+
+      // THEN the list is already visible under the bar, yet still hidden from assistive tech
+      await expect(scroller).toBeVisible();
+      expect((await scroller.boundingBox())!.height).toBeGreaterThan(40);
+      await expect(scroller).toHaveAttribute("aria-hidden", "true");
+
+      // AND after the finger lifts the list is a normal part of the page again
+      await touch.lift();
+      await expect(panel(page)).toHaveAttribute("data-stowed", "false");
+      await expect(scroller).not.toHaveAttribute("aria-hidden");
     });
 
     test("a slow drag settles on the nearest height; a short one springs back", async ({ page }) => {

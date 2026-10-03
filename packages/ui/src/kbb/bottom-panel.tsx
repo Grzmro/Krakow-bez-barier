@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties, type MouseEvent, type PointerEvent, type ReactNode, type RefObject } from "react";
+import { useEffect, useRef, type CSSProperties, type KeyboardEvent, type MouseEvent, type PointerEvent, type ReactNode, type RefObject } from "react";
 import { CaretDown } from "@phosphor-icons/react";
 import { cn } from "../cn";
 import { Button } from "../components/button";
@@ -35,7 +35,8 @@ export interface BottomPanelProps {
 }
 
 /**
- * Non-modal bottom sheet for map screens: two heights (three with `stowed`), switched by buttons.
+ * Non-modal bottom sheet for map screens: two heights (three with `stowed`), switched by buttons;
+ * the arrow keys on the grabber (and ArrowUp on the stowed bar's button) step between them.
  * A vertical swipe on the grabber row or the stowed bar is a shortcut on top of them, never the only
  * way (WCAG 2.5.7); the scrolling content never swipes the panel. Absolutely positioned — put it
  * inside a `relative` container. The content scrolls and the map behind stays interactive.
@@ -78,6 +79,13 @@ export function BottomPanel({
     if (isStowed) onStowedChange?.(false);
   }
 
+  function onArrowKey(event: KeyboardEvent<HTMLElement>) {
+    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+    event.preventDefault();
+    const next = order[order.indexOf(current) + (event.key === "ArrowUp" ? 1 : -1)];
+    if (next) settle(next);
+  }
+
   const panelRef = useRef<HTMLElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
   const swipeHandlers = usePanelSwipe({ panelRef, probeRef, heights, order, current, settle });
@@ -91,7 +99,7 @@ export function BottomPanel({
         data-stowed={isStowed}
         style={style}
         className={cn(
-          "absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-(--radius-sheet) bg-card text-card-foreground shadow-sheet transition-[height] duration-[420ms] ease-(--ease-out-soft)",
+          "group/panel absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-(--radius-sheet) bg-card text-card-foreground shadow-sheet transition-[height] duration-[420ms] ease-(--ease-out-soft)",
           className,
         )}
       >
@@ -102,7 +110,13 @@ export function BottomPanel({
           >
             <span aria-hidden className="absolute top-2 left-1/2 h-1 w-9 -translate-x-1/2 rounded-full bg-border-strong" />
             <p className="min-w-0 flex-1 truncate pt-1 text-body font-semibold">{stowedSummary}</p>
-            <Button ref={showRef} aria-expanded={false} onClick={() => onStowedChange?.(false)}>
+            <Button
+              ref={showRef}
+              aria-expanded={false}
+              aria-keyshortcuts="ArrowUp"
+              onClick={() => onStowedChange?.(false)}
+              onKeyDown={onArrowKey}
+            >
               {stowLabels.show}
             </Button>
           </div>
@@ -114,7 +128,9 @@ export function BottomPanel({
             <button
               type="button"
               aria-expanded={expanded}
+              aria-keyshortcuts="ArrowUp ArrowDown"
               onClick={() => onExpandedChange(!expanded)}
+              onKeyDown={onArrowKey}
               className="flex h-10 w-32 items-center justify-center rounded-full hover:bg-muted focus-visible:outline-offset-0"
             >
               <span aria-hidden className="h-1 w-9 rounded-full bg-border-strong" />
@@ -147,14 +163,18 @@ export function BottomPanel({
           aria-label={label}
           inert={isStowed}
           aria-hidden={isStowed || undefined}
-          className={cn("relative min-h-0 flex-1 overflow-y-auto overscroll-contain", isStowed && "invisible h-0 flex-none")}
+          className={cn(
+            "relative min-h-0 flex-1 overflow-y-auto overscroll-contain",
+            isStowed &&
+              "invisible h-0 flex-none group-data-dragging/panel:visible group-data-dragging/panel:h-auto group-data-dragging/panel:flex-1",
+          )}
         >
           {children}
         </div>
         {footer}
       </section>
       {/* Resolves the state heights (%, calc, env) in the panel's container, without the panel's transition. */}
-      <div ref={probeRef} aria-hidden className="pointer-events-none invisible absolute bottom-0 left-0 w-px transition-none" />
+      <div ref={probeRef} aria-hidden className={cn("pointer-events-none invisible absolute bottom-0 left-0 w-px transition-none", headerClassName)} />
     </>
   );
 }
@@ -219,6 +239,7 @@ function usePanelSwipe({
     // React skips the style write when the state does not change, so the dragged px height is reset here.
     panel.style.transition = "";
     panel.style.height = heights[next];
+    delete panel.dataset.dragging;
     settle(next);
   }
 
@@ -246,6 +267,8 @@ function usePanelSwipe({
         d.stops = measure();
         event.currentTarget.setPointerCapture?.(event.pointerId);
         if (d.follow) panel.style.transition = "none";
+        // Lets the list show while the stowed bar is pulled up; it stays inert until the panel settles.
+        if (d.follow && current === "stowed") panel.dataset.dragging = "";
       }
       d.samples.push({ t: event.timeStamp, y: event.clientY });
       if (d.samples.length > 20) d.samples.shift();
