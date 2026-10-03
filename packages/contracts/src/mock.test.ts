@@ -56,6 +56,19 @@ describe("createMockFetch", () => {
     expect(data?.sources.map((s) => s.refreshStatus)).toEqual(["outage"]);
   });
 
+  it("matches the widget card by placeId and 404s an unknown place", async () => {
+    // GIVEN a client backed by the mock
+    const api = createApiClient({ baseUrl: BASE_URL, fetch: createMockFetch() });
+
+    // WHEN the demo hotel's widget card and an unknown place's card are requested
+    const hotel = await api.GET("/widget/{placeId}", { params: { path: { placeId: "hotel-przyklad" } } });
+    const missing = await api.GET("/widget/{placeId}", { params: { path: { placeId: "nie-ma-takiego" } } });
+
+    // THEN the hotel example comes back and the unknown place is a 404, not the hotel
+    expect(hotel.data?.name).toBe("Hotel Przykład");
+    expect(missing.response.status).toBe(404);
+  });
+
   it("returns a chosen example or error status per operation", async () => {
     // GIVEN overrides for two operations
     const api = createApiClient({

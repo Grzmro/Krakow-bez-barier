@@ -14,7 +14,7 @@ export type MockChoice = {
   /** Response status to return, e.g. "500". Defaults to the operation's first 2xx response. */
   status?: string;
   /**
-   * Named example to return. Defaults to the one whose `id` matches the last path parameter; when the examples carry ids
+   * Named example to return. Defaults to the one whose `id` (or `placeId`) matches the last path parameter; when the examples carry ids
    * and none matches, the operation's documented 404 (if any). Otherwise `default`, then the first.
    */
   example?: string;
@@ -39,13 +39,19 @@ function compile(spec: SpecExamples): Route[] {
   }));
 }
 
+/** The id an example answers to: `id`, or `placeId` for place-scoped resources such as the widget card. */
+function exampleId(value: unknown): unknown {
+  const v = value as { id?: unknown; placeId?: unknown } | null;
+  return v?.id ?? v?.placeId;
+}
+
 function pickExample(examples: Record<string, unknown>, params: string[], wanted?: string): unknown {
   if (wanted !== undefined) {
     if (!(wanted in examples)) throw new Error(`Mock API: no example named "${wanted}"`);
     return examples[wanted];
   }
   const id = params.at(-1);
-  const byId = id && Object.values(examples).find((v) => (v as { id?: unknown } | null)?.id === id);
+  const byId = id && Object.values(examples).find((v) => exampleId(v) === id);
   if (byId) return byId;
   return "default" in examples ? examples.default : Object.values(examples)[0];
 }
@@ -53,7 +59,7 @@ function pickExample(examples: Record<string, unknown>, params: string[], wanted
 function isUnknownId(examples: Record<string, unknown>, params: string[]): boolean {
   const id = params.at(-1);
   if (id === undefined) return false;
-  const ids = Object.values(examples).map((v) => (v as { id?: unknown } | null)?.id);
+  const ids = Object.values(examples).map(exampleId);
   return ids.some((v) => typeof v === "string") && !ids.includes(id);
 }
 

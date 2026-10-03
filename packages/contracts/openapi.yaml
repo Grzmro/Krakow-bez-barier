@@ -341,6 +341,9 @@ paths:
                 sukiennice:
                   $ref: '#/components/examples/PlaceSukiennice'
                   summary: Home-screen demo place (search "Sukiennice")
+                hotel:
+                  $ref: '#/components/examples/PlaceHotel'
+                  summary: Demo hotel behind the embeddable widget (owner data, changing table unknown)
         '404':
           $ref: '#/components/responses/NotFound'
         '429':
@@ -770,14 +773,33 @@ paths:
                       reasons:
                       - Brak danych o przewijaku
                     facts:
+                    - attribute: step_count
+                      state: known
+                      value:
+                        kind: number
+                        number: 0
+                        unit: count
+                      reliability: sample
+                      status: confirmed
+                      sourceName: Dane obiektu
+                      fetchedAt: '2026-09-12T08:00:00Z'
                     - attribute: door_width_cm
                       state: known
                       value:
                         kind: number
                         number: 90
                         unit: cm
-                      reliability: confirmed
+                      reliability: sample
                       status: confirmed
+                      sourceName: Dane obiektu
+                      fetchedAt: '2026-09-12T08:00:00Z'
+                    - attribute: toilet_accessible
+                      state: known
+                      value:
+                        kind: boolean
+                        boolean: true
+                      reliability: sample
+                      status: unverified
                       sourceName: Dane obiektu
                       fetchedAt: '2026-09-12T08:00:00Z'
                     - attribute: changing_table
@@ -2206,6 +2228,134 @@ components:
           statusNote: null
           isSample: true
         updatedAt: '2026-10-03T03:00:00Z'
+        isSample: true
+    PlaceHotel:
+      value:
+        id: hotel-przyklad
+        name: Hotel Przykład
+        category: hotel
+        location:
+          type: Point
+          coordinates:
+          - 19.9412
+          - 50.0587
+        address:
+          street: ul. Przykładowa
+          houseNumber: '1'
+          postalCode: 31-000
+          city: Kraków
+        contact:
+          phone: null
+          website: null
+          email: null
+        entranceHint: Wejście główne od ulicy, bez stopni.
+        attributes:
+        - attribute: step_count
+          state: known
+          status: confirmed
+          value:
+            kind: number
+            number: 0
+            unit: count
+          facts:
+          - id: fact_sample_hotel_steps
+            attribute: step_count
+            value:
+              kind: number
+              number: 0
+              unit: count
+            unit: count
+            source:
+              id: sample
+              name: Dane obiektu
+              kind: sample
+              recordRef: null
+            fetchedAt: '2026-09-12T08:00:00Z'
+            observedAt: null
+            confirmedAt: '2026-09-12T08:00:00Z'
+            reliability: sample
+            evidence: null
+            status: active
+            stale: false
+        - attribute: door_width_cm
+          state: known
+          status: confirmed
+          value:
+            kind: number
+            number: 90
+            unit: cm
+          facts:
+          - id: fact_sample_hotel_door
+            attribute: door_width_cm
+            value:
+              kind: number
+              number: 90
+              unit: cm
+            unit: cm
+            source:
+              id: sample
+              name: Dane obiektu
+              kind: sample
+              recordRef: null
+            fetchedAt: '2026-09-12T08:00:00Z'
+            observedAt: null
+            confirmedAt: '2026-09-12T08:00:00Z'
+            reliability: sample
+            evidence: null
+            status: active
+            stale: false
+        - attribute: toilet_accessible
+          state: known
+          status: unverified
+          value:
+            kind: boolean
+            boolean: true
+          facts:
+          - id: fact_sample_hotel_toilet
+            attribute: toilet_accessible
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: sample
+              name: Dane obiektu
+              kind: sample
+              recordRef: null
+            fetchedAt: '2026-09-12T08:00:00Z'
+            observedAt: null
+            confirmedAt: null
+            reliability: sample
+            evidence: null
+            status: active
+            stale: false
+        - attribute: changing_table
+          state: unknown
+          status: no_data
+          value: null
+          facts: []
+        verdict:
+          state: unknown
+          unconfirmed: false
+          reasons:
+          - Brak danych o przewijaku
+          blockers: []
+          unknowns:
+          - changing_table
+        sources:
+        - id: sample
+          name: Dane obiektu
+          kind: sample
+          license: CC BY 4.0
+          attribution: null
+          url: null
+          refreshInterval: monthly
+          refreshStatus: ok
+          lastSuccessAt: '2026-09-12T08:00:00Z'
+          lastAttemptAt: '2026-09-12T08:00:00Z'
+          statusNote: null
+          isSample: true
+        updatedAt: '2026-09-12T08:00:00Z'
         isSample: true
     PlaceSourceUnavailable:
       value:
