@@ -226,6 +226,7 @@ export function RouteMap({
       if (!youRef.current) {
         const element = document.createElement("div");
         element.setAttribute("aria-hidden", "true");
+        element.dataset.you = "true";
         element.className =
           "grid size-9 place-items-center rounded-full bg-ink text-[11px] font-bold text-ink-foreground shadow-float ring-4 ring-card";
         youRef.current = new Marker({ element }).setLngLat([lon, lat]).addTo(map);
