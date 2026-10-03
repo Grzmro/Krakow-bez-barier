@@ -111,13 +111,12 @@ function watchNative(onPosition: OnPosition, onFailure: OnFailure): () => void {
       const id = await Geolocation.watchPosition(WATCH, (position, error) => {
         if (stopped) return;
         if (position) onPosition(toPosition(position.coords));
-        else if (error) onFailure("unavailable");
+        else if (error) onFailure(nativeFailure(error));
       });
       clear = () => void Geolocation.clearWatch({ id });
       if (stopped) clear();
-    } catch {
-      // Thrown when location services are off.
-      if (!stopped) onFailure("unavailable");
+    } catch (error) {
+      if (!stopped) onFailure(nativeFailure(error));
     }
   })();
   return () => {
@@ -127,6 +126,10 @@ function watchNative(onPosition: OnPosition, onFailure: OnFailure): () => void {
 }
 
 function watchInBrowser(onPosition: OnPosition, onFailure: OnFailure): () => void {
+  if (typeof window !== "undefined" && window.isSecureContext === false) {
+    onFailure("insecure");
+    return () => {};
+  }
   const geolocation = typeof navigator === "undefined" ? undefined : navigator.geolocation;
   if (!geolocation) {
     onFailure("unsupported");
@@ -134,7 +137,7 @@ function watchInBrowser(onPosition: OnPosition, onFailure: OnFailure): () => voi
   }
   const id = geolocation.watchPosition(
     ({ coords }) => onPosition(toPosition(coords)),
-    (error) => onFailure(error.code === error.PERMISSION_DENIED ? "denied" : "unavailable"),
+    (error) => onFailure(BROWSER_CODES[error.code] ?? "unavailable"),
     WATCH,
   );
   return () => geolocation.clearWatch(id);
