@@ -1,0 +1,68 @@
+- main:
+  - article "Koncert jesienny":
+    - paragraph: Dojazd i wejście bez barier
+    - heading "Koncert jesienny" [level=1]
+    - text: Dane przykładowe
+    - term: Miejsce
+    - definition: /Pałac Krzysztofory · Rynek Główny \d+, Kraków/
+    - term: Termin
+    - definition: /sobota, \d+ października \d+/
+    - paragraph: "Fakty o dostępności miejsca wydarzenia — każdy ze źródłem i datą. Bez zbiorczej oceny: sprawdź cechy ważne dla Ciebie."
+    - paragraph: Dane oznaczone PRZYKŁAD są przykładowe — nie planuj na ich podstawie wizyty.
+    - region "Wejście":
+      - heading "Wejście" [level=2]
+      - paragraph: "Jak wejść: Wejście główne od Rynku, bez stopni."
+      - list "Wejście":
+        - listitem:
+          - paragraph: "Wejście — stopnie: Bez stopni"
+          - text: Potwierdzone
+          - list:
+            - listitem: /OpenStreetMap · \d+\.\d+\.\d+/
+        - listitem:
+          - paragraph: "Próg: Brak danych"
+          - text: Brak danych
+          - paragraph: Nikt jeszcze nie sprawdził.
+        - listitem:
+          - paragraph: "Szerokość drzwi: Brak danych"
+          - text: Brak danych
+          - paragraph: Nikt jeszcze nie sprawdził.
+        - listitem:
+          - paragraph: "Winda: Brak danych"
+          - text: Brak danych
+          - paragraph: Nikt jeszcze nie sprawdził.
+        - listitem:
+          - paragraph: "Nawierzchnia dojścia: Brak danych"
+          - text: Brak danych
+          - paragraph: Nikt jeszcze nie sprawdził.
+    - region "Toaleta":
+      - heading "Toaleta" [level=2]
+      - list "Toaleta":
+        - listitem:
+          - paragraph: "Toaleta dostosowana: Jest / Nie ma"
+          - text: Sprzeczne
+          - list:
+            - listitem: "/Jest — MSIP: Toalety publiczne · \\d+\\.\\d+\\.\\d+ · Może być nieaktualne · \\d+\\.\\d+\\.\\d+/"
+            - listitem: /Nie ma — OpenStreetMap · \d+\.\d+\.\d+/
+        - listitem:
+          - paragraph: "Przewijak: Brak danych"
+          - text: Brak danych
+          - paragraph: Nikt jeszcze nie sprawdził.
+    - region "Parking":
+      - heading "Parking" [level=2]
+      - list "Parking":
+        - listitem:
+          - paragraph: "Parking dla osób z niepełnosprawnościami: Brak danych"
+          - text: Brak danych
+          - paragraph: Nikt jeszcze nie sprawdził.
+    - region "Przystanki w pobliżu":
+      - heading "Przystanki w pobliżu" [level=2]
+      - paragraph: Brak danych o dostępności przystanków w pobliżu — dane ZTP czekają na potwierdzenie licencji.
+    - region "Źródła danych":
+      - heading "Źródła danych" [level=2]
+      - list:
+        - listitem: /OpenStreetMap · ostatnie pobranie \d+\.\d+\.\d+ · © OpenStreetMap contributors/
+        - listitem: "/MSIP: Toalety publiczne · ostatnie pobranie \\d+\\.\\d+\\.\\d+/"
+      - paragraph: /Stan na \d+\.\d+\.\d+\./
+    - link "Pełna karta miejsca":
+      - /url: /miejsca/palac-krzysztofory
+    - button "Drukuj"

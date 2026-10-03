@@ -3,6 +3,7 @@
 import { business } from "./pl/business";
 import { common } from "./pl/common";
 import { dev } from "./pl/dev";
+import { event } from "./pl/event";
 import { home } from "./pl/home";
 import { moderator } from "./pl/moderator";
 import { nearby } from "./pl/nearby";
@@ -12,4 +13,4 @@ import { profile } from "./pl/profile";
 import { pwa } from "./pl/pwa";
 import { summary } from "./pl/summary";
 
-export const pl = { common, home, place, profile, pages, moderator, nearby, business, dev, pwa, summary } as const;
+export const pl = { common, home, place, profile, pages, moderator, nearby, business, event, dev, pwa, summary } as const;

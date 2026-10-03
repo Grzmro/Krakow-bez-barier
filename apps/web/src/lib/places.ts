@@ -23,6 +23,19 @@ export function usePlaces(query: ListPlacesQuery, { allPages = false }: { allPag
   });
 }
 
+/** `GET /places/{id}` for a shared link; `null` when the place doesn't exist (404), so the page can say so. */
+export function usePlaceOrNull(id: string) {
+  return useQuery({
+    queryKey: ["place", id],
+    queryFn: async () => {
+      const { data, response } = await api.GET("/places/{id}", { params: { path: { id } } });
+      if (response.status === 404) return null;
+      if (!data) throw new Error(`getPlace ${response.status}`);
+      return data;
+    },
+  });
+}
+
 /** `GET /places/{id}`; pass `enabled: false` to defer loading until it's needed. */
 export function usePlace(id: string, query: GetPlaceQuery, { enabled = true }: { enabled?: boolean } = {}) {
   return useQuery({

@@ -44,4 +44,23 @@ export const business = {
     pricingAuditPrice: "od 590 zł",
     pricingNote: "Ceny orientacyjne. Dane o dostępności pozostają otwarte i bezpłatne dla mieszkańców.",
   },
+  // Event page generator on `/dla-firm` → `/wydarzenie/[placeId]`.
+  event: {
+    title: "Strona wydarzenia",
+    lead: "Organizator wydarzenia tworzy link „Dojazd i wejście bez barier” dla miejsca wydarzenia — do maila, biletu albo na plakat (wersja do druku). Uczestnicy nie potrzebują konta.",
+    search: "Szukaj miejsca",
+    searchHint: "Nazwa albo ulica, np. „Sukiennice”.",
+    place: "Miejsce wydarzenia",
+    placesLoading: "Wczytujemy miejsca…",
+    placesError: "Nie udało się wczytać miejsc.",
+    noPlaces: "Nie znaleźliśmy takiego miejsca.",
+    sampleOption: (name: string) => `${name} (PRZYKŁAD)`,
+    name: "Nazwa wydarzenia",
+    namePlaceholder: "np. Koncert jesienny",
+    date: "Data wydarzenia",
+    linkLabel: "Link do strony wydarzenia",
+    copyLink: "Kopiuj link do strony wydarzenia",
+    preview: "Podgląd strony wydarzenia",
+    newTab: "(otwiera się w nowej karcie)",
+  },
 } as const;
