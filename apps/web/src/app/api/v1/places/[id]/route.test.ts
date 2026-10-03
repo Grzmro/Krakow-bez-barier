@@ -27,6 +27,7 @@ const palac = placeRecord({ name: "Pałac Krzysztofory", website: "https://muzeu
 const teatr = placeRecord({ name: "Teatr", website: "not a url" });
 const hotel = placeRecord({ name: "Hotel Dostępny", category: "hotel" });
 const parking = placeRecord({ name: "Miejsce postojowe: Sebastiana 7", category: "parking" });
+const hostel = placeRecord({ name: "Hostel z windą", category: "hotel" });
 
 const facts = [
   factRecord(palac, "toilet_accessible", bool(true)),
@@ -38,9 +39,36 @@ const facts = [
   factRecord(hotel, "door_width_cm", num(95), { source: city, reliability: "confirmed" }),
   factRecord(hotel, "lift", bool(true)),
   factRecord(hotel, "toilet_accessible", bool(true), { source: city, reliability: "confirmed" }),
+  factRecord(hostel, "step_count", num(0, "count"), { source: city, reliability: "confirmed" }),
+  factRecord(hostel, "threshold_cm", num(1), { source: city, reliability: "confirmed" }),
+  factRecord(hostel, "door_width_cm", num(95), { source: city, reliability: "confirmed" }),
+  factRecord(hostel, "lift", bool(true), { source: city, reliability: "confirmed" }),
+  factRecord(hostel, "toilet_accessible", bool(true), { source: city, reliability: "confirmed" }),
 ];
 
-const repository = createFakePlaceRepository([palac, teatr, hotel, parking], facts);
+const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60_000);
+const outages = [
+  {
+    id: "7c1d2e3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f",
+    placeId: hostel.id,
+    equipment: "lift" as const,
+    reportedAt: minutesAgo(20),
+    confirmations: 1,
+    lastConfirmedAt: minutesAgo(5),
+    workingVotes: 0,
+  },
+  {
+    id: "8d2e3f4a-5b6c-4d7e-9f8a-0b1c2d3e4f5a",
+    placeId: hostel.id,
+    equipment: "ramp" as const,
+    reportedAt: minutesAgo(30),
+    confirmations: 0,
+    lastConfirmedAt: minutesAgo(30),
+    workingVotes: 1,
+  },
+];
+
+const repository = createFakePlaceRepository([palac, teatr, hotel, parking, hostel], facts, outages);
 
 vi.mock("@/server/places/repository", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/server/places/repository")>()),
@@ -130,6 +158,21 @@ describe("GET /api/v1/places/{id}", () => {
     expect(preset.body.verdict.needs.find((n: { need: string }) => n.need === "lift")).toMatchObject({ state: "met", unconfirmed: true });
     expect(strict.body.verdict).toMatchObject({ state: "barrier", blockers: ["threshold_cm"], reasons: ["próg 1 cm"] });
     expect(none.body.verdict).toBeNull();
+  });
+
+  it("lists an active outage on the card and counts it in the verdict as an unconfirmed barrier", async () => {
+    // GIVEN a hostel that meets the wheelchair profile on facts, with its lift reported broken (once confirmed) and
+    // a ramp outage someone already marked as working
+    // WHEN the card is read with the wheelchair profile
+    const { body } = await get(hostel.id, "?profile=wheelchair");
+
+    // THEN only the lift outage is listed, unverified, and it blocks the lift need without changing the lift fact
+    expect(body.outages).toEqual([
+      expect.objectContaining({ equipment: "lift", state: "reported", confirmations: 1, workingVotes: 0 }),
+    ]);
+    expect(attribute(body, "lift")).toMatchObject({ state: "known", value: bool(true) });
+    expect(body.verdict).toMatchObject({ state: "barrier", unconfirmed: true, blockers: ["lift"], reasons: ["zgłoszona awaria windy"] });
+    expect(body.verdict.needs.find((n: { need: string }) => n.need === "lift")).toMatchObject({ outage: true, unconfirmed: true });
   });
 
   it("answers 404 with a Problem for an unknown id", async () => {

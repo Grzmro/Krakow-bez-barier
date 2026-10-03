@@ -171,6 +171,35 @@ describe("GET /api/v1/places", () => {
     expect(strict.body.items[0].verdict).toMatchObject({ state: "barrier", blockers: ["door_width_cm"], reasons: ["drzwi 95 cm"] });
   });
 
+  it("counts a reported lift outage in the list verdict, and the place is met again once it works", async () => {
+    // GIVEN the hotel, which meets the wheelchair profile, with its lift reported broken 10 minutes ago
+    const outage = {
+      id: "7c1d2e3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f",
+      placeId: hotel.id,
+      equipment: "lift" as const,
+      reportedAt: new Date(Date.now() - 10 * 60_000),
+      confirmations: 0,
+      lastConfirmedAt: new Date(Date.now() - 10 * 60_000),
+      workingVotes: 0,
+    };
+    const previous = repository.current;
+    try {
+      repository.current = createFakePlaceRepository(world.places, world.facts, [outage]);
+      // WHEN listing with the wheelchair profile
+      const broken = await list("?q=hotel&profile=wheelchair");
+      // THEN the lift blocks, marked unconfirmed
+      expect(broken.body.items[0].verdict).toMatchObject({ state: "barrier", unconfirmed: true, reasons: ["zgłoszona awaria windy"] });
+
+      // WHEN someone has marked it as working
+      repository.current = createFakePlaceRepository(world.places, world.facts, [{ ...outage, workingVotes: 1 }]);
+      const fixed = await list("?q=hotel&profile=wheelchair");
+      // THEN the hotel meets the profile again
+      expect(fixed.body.items[0].verdict).toMatchObject({ state: "met", unconfirmed: false });
+    } finally {
+      repository.current = previous;
+    }
+  });
+
   it("checks a facility need the profile switches on through its query parameter", async () => {
     // GIVEN the wheelchair profile, which doesn't ask for a bench by default
     // WHEN listing with requireBench=true

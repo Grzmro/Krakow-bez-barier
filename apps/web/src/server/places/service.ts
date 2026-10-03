@@ -3,6 +3,7 @@ import type {
   AccessibilityFact,
   GetPlaceQuery,
   ListPlacesQuery,
+  Outage,
   Place,
   PlaceList,
   PlaceSummary,
@@ -18,6 +19,7 @@ import { FEATURE_ATTRIBUTES, featureState } from "@/domain/features";
 import { matchProfile } from "@/domain/matcher";
 import { thresholdsFor } from "@/domain/profiles";
 import { isStale, resolveAttribute } from "@/domain/resolver";
+import { activeOutagesByPlace } from "@/server/outages/service";
 import { pendingReportsByAttribute, type ReportsStore } from "@/server/reports";
 import {
   createDbPlaceRepository,
@@ -255,6 +257,7 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
     remaining = matching.filter(({ place }) => byNameThenId(place, after) > 0);
   }
   const page = remaining.slice(0, limit);
+  const outages = thresholds ? await outagesOf(repository, page.map(({ place }) => place.id), now) : new Map<string, Outage[]>();
   // entrance_level only ever proves step_free, so its missing data isn't worth a "brak danych" chip.
   const featureAttributes = features.flatMap((f) => FEATURE_ATTRIBUTES[f]).filter((a) => a !== "entrance_level");
 
@@ -266,7 +269,7 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
     address: address(place),
     summary: summaryChips(attributes, featureAttributes, locale),
     ...(features.length ? { features: matches } : {}),
-    verdict: thresholds ? matchProfile({ attributes }, thresholds, locale) : null,
+    verdict: thresholds ? matchProfile({ attributes, outages: outages.get(place.id) }, thresholds, locale) : null,
     isSample: isSample(place, records),
   }));
 
@@ -283,6 +286,19 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
   };
 }
 
+/**
+ * Active outages per place. They only add barriers on top of the facts, so if they can't be read the places are
+ * served without them rather than not at all.
+ */
+async function outagesOf(repository: PlaceRepository, placeIds: string[], now: Date): Promise<Map<string, Outage[]>> {
+  try {
+    return await activeOutagesByPlace((ids, since) => repository.recentOutages(ids, since), placeIds, now);
+  } catch (error) {
+    console.error("[places] outages could not be read", error);
+    return new Map();
+  }
+}
+
 function contact(place: PlaceRecord): Place["contact"] {
   // OSM websites are free text; only a parseable URL fits the spec's `format: uri`.
   const website = place.website && URL.canParse(place.website) ? place.website : null;
@@ -290,7 +306,10 @@ function contact(place: PlaceRecord): Place["contact"] {
   return { phone: place.phone, website, email: place.email };
 }
 
-/** One place with every attribute resolved, all active facts behind each, its sources and an optional verdict. */
+/**
+ * One place with every attribute resolved, all active facts behind each, its sources, its active outages and an
+ * optional verdict that counts them.
+ */
 export async function getPlace(id: string, query: GetPlaceQuery = {}, deps: PlacesDeps = {}): Promise<Place | null> {
   const { repository = createDbPlaceRepository(), now = new Date(), locale = defaultLocale } = deps;
   const place = await repository.findPlace(id);
@@ -300,6 +319,7 @@ export async function getPlace(id: string, query: GetPlaceQuery = {}, deps: Plac
   const attributes = resolvePlace(records, now);
   const thresholds = thresholdsFor(query);
   const sources = [...new Map(records.map((r) => [r.source.id, r.source])).values()].map(toSource);
+  const outages = (await outagesOf(repository, [place.id], now)).get(place.id) ?? [];
 
   return {
     id: place.id,
@@ -310,7 +330,8 @@ export async function getPlace(id: string, query: GetPlaceQuery = {}, deps: Plac
     contact: contact(place),
     entranceHint: place.entranceHint,
     attributes,
-    verdict: thresholds ? matchProfile({ attributes }, thresholds, locale) : null,
+    verdict: thresholds ? matchProfile({ attributes, outages }, thresholds, locale) : null,
+    outages,
     sources,
     updatedAt: place.updatedAt.toISOString(),
     isSample: isSample(place, records),

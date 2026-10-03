@@ -1,4 +1,4 @@
-import type { Need, Profile } from "@krakow-bez-barier/contracts";
+import type { Need, OutageEquipment, Profile } from "@krakow-bez-barier/contracts";
 import type { Status } from "@krakow-bez-barier/ui";
 
 function plural(n: number, one: string, few: string, many: string) {
@@ -71,6 +71,7 @@ export const profile = {
     liftFloorsConflict: "winda: brak, piętra: sprzeczne dane",
     unresolved: (need: Need) => needName[need].toLowerCase(),
     conflictElsewhere: "sprzeczne dane o miejscu",
+    outage: (equipment: OutageEquipment): string => (equipment === "lift" ? "zgłoszona awaria windy" : "zgłoszona awaria podjazdu"),
   },
   groups: {
     barrier: "Blokuje",

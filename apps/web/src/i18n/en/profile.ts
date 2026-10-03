@@ -1,4 +1,4 @@
-import type { Need, Profile } from "@krakow-bez-barier/contracts";
+import type { Need, OutageEquipment, Profile } from "@krakow-bez-barier/contracts";
 import type { Status } from "@krakow-bez-barier/ui";
 import type { Messages } from "../messages";
 
@@ -66,6 +66,7 @@ export const profile: Messages["profile"] = {
     liftFloorsConflict: "lift: none, floors: conflicting data",
     unresolved: (need: Need) => needName[need].toLowerCase(),
     conflictElsewhere: "conflicting data about the place",
+    outage: (equipment: OutageEquipment) => (equipment === "lift" ? "lift reported out of order" : "ramp reported out of order"),
   },
   groups: {
     barrier: "Blocks",
