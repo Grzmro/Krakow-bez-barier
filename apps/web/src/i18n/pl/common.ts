@@ -20,8 +20,6 @@ export const common = {
   menu: {
     title: "Menu",
     description: "Strony dodatkowe",
-    profile: "Profil potrzeb",
-    profileSub: "Wózek, wózek dziecięcy, progi",
     aboutData: "O danych",
     aboutDataSub: "Źródła, licencje, wiarygodność",
     business: "Dla firm: widget i API",

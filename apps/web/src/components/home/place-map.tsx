@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
+import { createRoot, type Root } from "react-dom/client";
 import { Minus, Plus } from "@phosphor-icons/react";
 import type { PlaceSummary } from "@krakow-bez-barier/contracts";
 import { cn } from "@krakow-bez-barier/ui";
@@ -8,11 +10,32 @@ import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { pl } from "@/i18n/pl";
 import { config, mapAttribution } from "@/lib/config";
+import { PlacePin } from "./place-pin";
 
 const t = pl.home.map;
 
-const PIN_CLASS =
-  "grid size-8 cursor-pointer place-items-center rounded-full border-[3px] border-card bg-primary shadow-float transition-transform duration-150 data-[selected=true]:z-10 data-[selected=true]:scale-125 data-[selected=true]:bg-ink";
+const PIN_CLASS = "group relative size-9 cursor-pointer data-[selected=true]:z-10";
+
+function pinElement(place: PlaceSummary) {
+  const element = document.createElement("div");
+  element.className = PIN_CLASS;
+  element.setAttribute("aria-hidden", "true");
+  element.dataset.placeId = place.id;
+  if (place.verdict) element.dataset.status = place.verdict.state;
+  const root = createRoot(element);
+  flushSync(() => root.render(<PlacePin status={place.verdict?.state ?? null} />));
+  return { element, root };
+}
+
+function removeMarkers(markers: Map<string, { marker: Marker; root: Root }>) {
+  const roots = [...markers.values()].map(({ marker, root }) => {
+    marker.remove();
+    return root;
+  });
+  markers.clear();
+  // Unmounting synchronously from inside a React commit warns; defer it.
+  queueMicrotask(() => roots.forEach((root) => root.unmount()));
+}
 
 export interface PlaceMapProps {
   places: PlaceSummary[];
@@ -24,14 +47,15 @@ export interface PlaceMapProps {
 }
 
 /**
- * MapLibre map with neutral pins (no profile → no verdict colours). Pins are mouse shortcuts only
+ * MapLibre map with neutral pins, or verdict pins when a profile is on. Pins are mouse shortcuts only
  * and hidden from assistive tech: the list next to the map holds the same places.
  */
 export function PlaceMap({ places, selectedId, onSelect, padding, className }: PlaceMapProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [unavailable, setUnavailable] = useState(false);
-  const markersRef = useRef(new Map<string, Marker>());
+  const markersRef = useRef(new Map<string, { marker: Marker; root: Root }>());
+  const fittedRef = useRef<string | null>(null);
   const onSelectRef = useRef(onSelect);
   useEffect(() => {
     onSelectRef.current = onSelect;
@@ -40,6 +64,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, className }: P
   useEffect(() => {
     let disposed = false;
     let instance: MapLibreMap | null = null;
+    const markers = markersRef.current;
     import("maplibre-gl")
       .then(({ Map, setWorkerUrl }) => {
         if (disposed || !containerRef.current) return;
@@ -62,6 +87,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, className }: P
       });
     return () => {
       disposed = true;
+      removeMarkers(markers);
       instance?.remove();
     };
   }, []);
@@ -72,22 +98,19 @@ export function PlaceMap({ places, selectedId, onSelect, padding, className }: P
     const markers = markersRef.current;
     import("maplibre-gl").then(({ Marker, LngLatBounds }) => {
       if (cancelled) return;
-      for (const marker of markers.values()) marker.remove();
-      markers.clear();
+      removeMarkers(markers);
       for (const place of places) {
-        const element = document.createElement("div");
-        element.className = PIN_CLASS;
-        element.setAttribute("aria-hidden", "true");
-        element.dataset.placeId = place.id;
-        element.innerHTML = '<span class="size-2.5 rounded-full bg-card"></span>';
+        const { element, root } = pinElement(place);
         element.addEventListener("click", (event) => {
           event.stopPropagation();
           onSelectRef.current(place.id);
         });
         const [lon, lat] = place.location.coordinates;
-        markers.set(place.id, new Marker({ element }).setLngLat([lon, lat]).addTo(map));
+        markers.set(place.id, { marker: new Marker({ element }).setLngLat([lon, lat]).addTo(map), root });
       }
-      if (!places.length) return;
+      const key = places.map((place) => place.id).toSorted().join(",");
+      if (!places.length || key === fittedRef.current) return;
+      fittedRef.current = key;
       const bounds = new LngLatBounds();
       for (const place of places) bounds.extend(place.location.coordinates as [number, number]);
       map.fitBounds(bounds, {
@@ -102,7 +125,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, className }: P
   }, [map, places, padding.top, padding.bottom]);
 
   useEffect(() => {
-    for (const [id, marker] of markersRef.current) {
+    for (const [id, { marker }] of markersRef.current) {
       marker.getElement().dataset.selected = String(id === selectedId);
     }
   }, [selectedId, places, map]);

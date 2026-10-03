@@ -1,55 +1,83 @@
 - main:
-  - heading "Profil potrzeb" [level=1]
-  - paragraph: Włącz profil, a przy każdym miejscu zobaczysz, czy pasuje do Twoich progów — i dlaczego.
-  - text: Szukaj miejsca
-  - searchbox "Szukaj miejsca": przyk
-  - group "Profil potrzeb":
-    - text: ""
-    - radio "Profil wyłączony, widok dla każdego"
-    - text: Dla każdego
-    - radio "Wózek" [checked]
-    - text: Wózek
-    - radio "Wózek dziecięcy"
-    - text: Dziecięcy
-  - list "Liczba miejsc według wyniku":
-    - listitem: 1 Spełnia
-    - listitem: 0 Sprzeczne
-    - listitem: 3 Brak danych
-    - listitem: 0 Nie spełnia
-  - button "Progi profilu":
-    - img
-  - text: Ukryj niespełniające
-  - switch "Ukryj niespełniające" [checked]
-  - region "Miejsca · 4 miejsca":
-    - heading "Miejsca · 4 miejsca" [level=2]
-    - list:
-      - listitem:
-        - text: Spełnia · niepotwierdzone
-        - heading "Hotel Przykład" [level=3]
-        - paragraph: ul. Sienna 5
-        - text: Dane przykładowe
-        - button "Ukryj szczegóły" [expanded]
-        - heading "Pasuje (4)" [level=4]
-        - list:
-          - listitem: Wejście Spełnia
-          - listitem: Drzwi Spełnia
-          - listitem: Winda Spełnia · niepotwierdzone
-          - listitem: Toaleta dostosowana Spełnia
-      - listitem:
-        - text: Brak danych · wejście
-        - heading "Kawiarnia Przykład" [level=3]
-        - paragraph: /ul\. Floriańska \d+/
-        - text: Dane przykładowe
-        - button "Dlaczego?"
-      - listitem:
-        - text: Brak danych · wejście
-        - heading "Bistro Przykład" [level=3]
-        - paragraph: /ul\. Grodzka \d+/
-        - text: Dane przykładowe
-        - button "Dlaczego?"
-      - listitem:
-        - text: Brak danych · wejście
-        - heading "Toaleta publiczna Planty (przykład)" [level=3]
-        - paragraph: ul. Basztowa 1
-        - text: Dane przykładowe
-        - button "Dlaczego?"
+  - heading "Mapa i lista miejsc" [level=1]
+  - link "Przejdź do listy":
+    - /url: "#lista"
+  - search:
+    - text: Wyszukaj miejsce
+    - combobox "Wyszukaj miejsce": przyk
+    - button "Wyczyść wyszukiwanie"
+  - group "Kategorie":
+    - button "Wszystko" [pressed]
+    - button "Restauracje"
+    - button "Muzea"
+    - button "Toalety"
+    - button "Hotele"
+  - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
+  - paragraph:
+    - link "OpenFreeMap":
+      - /url: https://openfreemap.org
+    - text: ·
+    - link "© OpenMapTiles":
+      - /url: https://www.openmaptiles.org/
+    - text: ·
+    - link "© OpenStreetMap contributors":
+      - /url: https://www.openstreetmap.org/copyright
+  - button "Przybliż"
+  - button "Oddal"
+  - region "Lista miejsc":
+    - button "Rozwiń arkusz"
+    - group "Lista miejsc":
+      - group "Profil potrzeb":
+        - text: ""
+        - radio "Profil wyłączony, widok dla każdego"
+        - text: Dla każdego
+        - radio "Wózek" [checked]
+        - text: Wózek
+        - radio "Wózek dziecięcy"
+        - text: Dziecięcy
+      - group "Pokaż tylko miejsca z wynikiem":
+        - button "1 spełnia"
+        - button "0 sprzeczne"
+        - button "3 brak danych"
+        - button "1 nie spełnia"
+      - button "Progi profilu":
+        - img
+      - text: Ukryj niespełniające
+      - switch "Ukryj niespełniające"
+      - group "Filtry cech":
+        - button "Bez schodów"
+        - button "Winda"
+        - button "Toaleta dostosowana" [pressed]
+        - button "Ławki"
+        - button "Parking N"
+        - button "Przewijak"
+      - text: Pokaż też miejsca bez danych
+      - switch "Pokaż też miejsca bez danych" [checked]
+      - heading "5 miejsc" [level=2]
+      - list:
+        - listitem:
+          - link /Spełnia · niepotwierdzone Hotel Przykład ul\. Sienna 5, Kraków Dane przykładowe \d+ m od Rynku/:
+            - /url: /miejsca/hotel-przyklad
+          - 'button "Ukryj szczegóły: Hotel Przykład" [expanded]'
+          - heading "Pasuje (4)" [level=3]
+          - list:
+            - listitem: Wejście Spełnia
+            - listitem: Drzwi Spełnia
+            - listitem: Winda Spełnia · niepotwierdzone
+            - listitem: Toaleta dostosowana Spełnia
+        - listitem:
+          - link /Brak danych · wejście Brak danych · Toaleta dostosowana Bistro Przykład ul\. Grodzka \d+, Kraków Dane przykładowe \d+ m od Rynku/:
+            - /url: /miejsca/bistro-przyklad
+          - button "Dlaczego? Bistro Przykład"
+        - listitem:
+          - link /Brak danych · wejście Brak danych · Toaleta dostosowana Kawiarnia Przykład ul\. Floriańska \d+, Kraków Dane przykładowe \d+ m od Rynku/:
+            - /url: /miejsca/kawiarnia-przyklad
+          - button "Dlaczego? Kawiarnia Przykład"
+        - listitem:
+          - link /Brak danych · wejście Toaleta publiczna Planty \(przykład\) ul\. Basztowa 1, Kraków Dane przykładowe \d+ m od Rynku/:
+            - /url: /miejsca/toaleta-planty-przyklad
+          - button "Dlaczego? Toaleta publiczna Planty (przykład)"
+        - listitem:
+          - link /Nie spełnia · 2 stopnie Brak danych · Toaleta dostosowana Restauracja Przykład ul\. Szewska 8, Kraków Dane przykładowe \d+ m od Rynku/:
+            - /url: /miejsca/restauracja-przyklad
+          - button "Dlaczego? Restauracja Przykład"

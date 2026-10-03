@@ -2,24 +2,37 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { FeatureFilter } from "@krakow-bez-barier/contracts";
-import { Button, Switch, Toggle, ToggleGroup, useAnnounce } from "@krakow-bez-barier/ui";
-import { MagnifyingGlass } from "@phosphor-icons/react";
+import { Button, cn, LabeledSwitch, StatusIcon, Switch, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
+import { MagnifyingGlass, SlidersHorizontal } from "@phosphor-icons/react";
 import { BottomPanel } from "@/components/kbb";
+import { ProfileSwitch } from "@/components/profile/profile-switch";
+import { ThresholdsDrawer } from "@/components/profile/thresholds-drawer";
 import { pl } from "@/i18n/pl";
 import type { HomeCategory } from "@/i18n/pl/home";
 import { config } from "@/lib/config";
 import { distanceMeters } from "@/lib/place-features";
 import { usePlaces } from "@/lib/places";
+import { profileQuery } from "@/lib/profile/thresholds";
+import { useProfile } from "@/lib/profile/use-profile";
+import { countByStatus, filterByVerdict, STATUS_ORDER } from "@/lib/profile/verdict-list";
 import { PlaceMap } from "./place-map";
 import { PlaceRow } from "./place-list";
 import { SearchBox } from "./search-box";
 
 const t = pl.home;
+const tp = pl.profile;
 
 const CATEGORIES: HomeCategory[] = ["all", "restaurant", "museum", "toilet", "hotel"];
 const FEATURES: FeatureFilter[] = ["step_free", "lift", "toilet_accessible", "bench", "disabled_parking", "changing_table"];
 const LIST_ID = "lista";
 const MAP_PADDING = { top: 150, bottom: 100 };
+
+const COUNTER_PRESSED: Record<Status, string> = {
+  met: "aria-pressed:bg-status-met-bg aria-pressed:ring-status-met",
+  barrier: "aria-pressed:bg-status-barrier-bg aria-pressed:ring-status-barrier",
+  conflict: "aria-pressed:bg-status-conflict-bg aria-pressed:ring-status-conflict",
+  unknown: "aria-pressed:bg-status-unknown-bg aria-pressed:ring-status-unknown",
+};
 
 function useDebounced<T>(value: T, delay = 200): T {
   const [debounced, setDebounced] = useState(value);
@@ -32,6 +45,11 @@ function useDebounced<T>(value: T, delay = 200): T {
 
 export function HomeScreen() {
   const announce = useAnnounce();
+  const { settings, setProfile } = useProfile();
+  const profile = settings.profile;
+  const [statusFilter, setStatusFilter] = useState<Status | null>(null);
+  const [hideFailing, setHideFailing] = useState(false);
+  const [thresholdsOpen, setThresholdsOpen] = useState(false);
   const [q, setQ] = useState("");
   const [category, setCategory] = useState<HomeCategory>("all");
   const [features, setFeatures] = useState<FeatureFilter[]>([]);
@@ -48,6 +66,7 @@ export function HomeScreen() {
     feature: features.length ? features : undefined,
     includeUnknown: features.length ? showUnknown : undefined,
     limit: 100,
+    ...profileQuery(settings),
   });
   const items = useMemo(
     () =>
@@ -56,8 +75,11 @@ export function HomeScreen() {
         .sort((a, b) => a.distance - b.distance),
     [places.data],
   );
-  const mapPlaces = useMemo(() => items.map(({ place }) => place), [items]);
+  const counts = useMemo(() => countByStatus(items), [items]);
+  const shown = useMemo(() => filterByVerdict(items, { status: statusFilter, hideFailing }), [items, statusFilter, hideFailing]);
+  const mapPlaces = useMemo(() => shown.map(({ place }) => place), [shown]);
   const total = places.data?.total;
+  const verdicts = Boolean(profile && items.some(({ place }) => place.verdict));
   const settled = query.q === q.trim() && !places.isPlaceholderData;
   const suggestions = useMemo(
     () => (settled && query.q ? [...new Set(items.map(({ place }) => place.name))] : []),
@@ -66,9 +88,27 @@ export function HomeScreen() {
 
   const queryKey = JSON.stringify(query);
   const pending = places.isPlaceholderData || total === undefined;
+  const announcement =
+    total === undefined ? null : verdicts && profile ? tp.announce(profile, shown.length, items.length, counts) : t.list.announce(total);
   useEffect(() => {
-    if (!pending && total !== undefined) announce(t.list.announce(total));
-  }, [announce, pending, total, queryKey]);
+    if (!pending && announcement) announce(announcement);
+  }, [announce, pending, announcement, queryKey]);
+
+  function changeProfile(next: typeof profile) {
+    if (next !== profile) setStatusFilter(null);
+    if (!next) setHideFailing(false);
+    setProfile(next);
+  }
+
+  function toggleStatus(status: Status) {
+    setStatusFilter((current) => (current === status ? null : status));
+    if (status === "barrier") setHideFailing(false);
+  }
+
+  function changeHideFailing(hide: boolean) {
+    setHideFailing(hide);
+    if (hide && statusFilter === "barrier") setStatusFilter(null);
+  }
 
   function toggleFeature(feature: FeatureFilter) {
     setFeatures((current) =>
@@ -82,6 +122,8 @@ export function HomeScreen() {
     setCategory("all");
     setFeatures([]);
     setShowUnknown(false);
+    setStatusFilter(null);
+    setHideFailing(false);
   }
 
   function selectFromMap(id: string) {
@@ -130,7 +172,7 @@ export function HomeScreen() {
       </div>
 
       <div className="absolute inset-x-0 top-0 bottom-[calc(50%-24px)]">
-        <PlaceMap places={mapPlaces}selectedId={selectedId} onSelect={selectFromMap} padding={MAP_PADDING} />
+        <PlaceMap places={mapPlaces} selectedId={selectedId} onSelect={selectFromMap} padding={MAP_PADDING} />
       </div>
 
       <BottomPanel
@@ -141,6 +183,37 @@ export function HomeScreen() {
         className="mx-auto max-w-xl pb-[env(safe-area-inset-bottom)]"
       >
         <div className="space-y-2 px-4 pt-1 pb-2">
+          <ProfileSwitch value={profile} onChange={changeProfile} />
+          {profile ? (
+            <>
+              <div className="flex items-center gap-2">
+                <div role="group" aria-label={tp.countersLabel} className="flex min-w-0 items-center gap-2">
+                  {STATUS_ORDER.map((status) => (
+                    <Toggle
+                      key={status}
+                      pressed={statusFilter === status}
+                      onPressedChange={() => toggleStatus(status)}
+                      aria-label={tp.counter(counts[status], pl.common.status[status])}
+                      className={cn("h-11 min-w-0 gap-1.5 px-3 aria-pressed:ring-2", COUNTER_PRESSED[status])}
+                    >
+                      <StatusIcon status={status} className="size-5!" />
+                      <span className="font-num text-[17px] text-foreground">{counts[status]}</span>
+                    </Toggle>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label={tp.settings}
+                  onClick={() => setThresholdsOpen(true)}
+                  className="ml-auto size-11 shrink-0"
+                >
+                  <SlidersHorizontal weight="bold" />
+                </Button>
+              </div>
+              <LabeledSwitch label={tp.hideFailing} checked={hideFailing} onCheckedChange={changeHideFailing} className="-my-1" />
+            </>
+          ) : null}
           <div role="group" aria-label={t.filtersLabel} className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-1.5">
             {FEATURES.map((feature) => (
               <Toggle key={feature} pressed={features.includes(feature)} onPressedChange={() => toggleFeature(feature)}>
@@ -158,7 +231,7 @@ export function HomeScreen() {
 
         <div ref={listRef} id={LIST_ID} tabIndex={-1} className="scroll-mt-2 px-4 pt-1 pb-8 outline-none">
           <h2 className="mb-2 text-caption font-semibold text-muted-foreground">
-            {total === undefined ? t.list.loading : t.list.results(total)}
+            {total === undefined ? t.list.loading : t.list.results(shown.length === items.length ? total : shown.length)}
           </h2>
           {places.isError ? (
             <div className="grid justify-items-start gap-3">
@@ -167,27 +240,45 @@ export function HomeScreen() {
                 {t.list.retry}
               </Button>
             </div>
-          ) : total === 0 ? (
+          ) : total !== undefined && shown.length === 0 ? (
             <div className="grid place-items-center gap-3 py-8 text-center">
               <span className="grid size-16 place-items-center rounded-full bg-primary-container text-primary">
                 <MagnifyingGlass weight="bold" className="size-8" aria-hidden />
               </span>
-              <p className="text-title font-semibold">{t.list.empty}</p>
-              <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>
-              <div className="flex flex-wrap justify-center gap-2">
-                <Button variant="outline" onClick={searchWider}>
-                  {t.list.searchWider}
-                </Button>
-                {features.length && !showUnknown ? (
-                  <Button variant="ghost" onClick={() => setShowUnknown(true)}>
-                    {t.showUnknown}
+              {items.length ? (
+                <>
+                  <p className="text-title font-semibold">{tp.list.filteredEmpty}</p>
+                  <p className="text-body-sm text-muted-foreground">{tp.list.filteredEmptyHint}</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setStatusFilter(null);
+                      setHideFailing(false);
+                    }}
+                  >
+                    {tp.list.showAll}
                   </Button>
-                ) : null}
-              </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-title font-semibold">{t.list.empty}</p>
+                  <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button variant="outline" onClick={searchWider}>
+                      {t.list.searchWider}
+                    </Button>
+                    {features.length && !showUnknown ? (
+                      <Button variant="ghost" onClick={() => setShowUnknown(true)}>
+                        {t.showUnknown}
+                      </Button>
+                    ) : null}
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <ul className="space-y-2.5">
-              {items.map(({ place, distance }) => (
+              {shown.map(({ place, distance }) => (
                 <PlaceRow
                   distance={distance}
                   key={place.id}
@@ -205,6 +296,7 @@ export function HomeScreen() {
           )}
         </div>
       </BottomPanel>
+      <ThresholdsDrawer open={thresholdsOpen} onOpenChange={setThresholdsOpen} />
     </main>
   );
 }
