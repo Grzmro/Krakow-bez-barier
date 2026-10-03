@@ -1,9 +1,8 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
 
-// The default project emulates a phone; these specs look at the route screen as a laptop or monitor does.
-// The route is the recorded Dworzec Główny → Rynek answer (see route.spec.ts).
-test.use({ isMobile: false, hasTouch: false, deviceScaleFactor: 1 });
+// The route screen as a laptop or monitor shows it (the desktop project). The route is the recorded
+// Dworzec Główny → Rynek answer (see route.spec.ts).
 
 // POST /routes allows 30 requests a minute per client; its own client key keeps this file from using up route.spec's share.
 test.beforeEach(async ({ page }) => {

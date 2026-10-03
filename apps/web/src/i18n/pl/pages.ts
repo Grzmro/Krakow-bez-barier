@@ -102,8 +102,8 @@ export const pages = {
     title: "Deklaracja dostępności",
     lead: "Prototyp „Kraków bez barier” (HackYeah 2026) ma spełniać WCAG 2.2 na poziomie AA. Główny scenariusz sprawdziliśmy automatycznie i samą klawiaturą, ale nie przeprowadziliśmy jeszcze pełnego audytu ani testów z czytnikami ekranu.",
     updatedLabel: "Ostatnia aktualizacja",
-    updated: "3 października 2026",
-    updatedIso: "2026-10-03",
+    updated: "4 października 2026",
+    updatedIso: "2026-10-04",
     tocTitle: "Spis treści",
     statusLabel: {
       done: "Zrobione",
@@ -118,7 +118,7 @@ export const pages = {
       target: "WCAG 2.2, poziom AA",
       stateLabel: "Stan dziś",
       state: "Zgodność częściowa — nie potwierdzona audytem",
-      body: "Ekrany głównego scenariusza (strona główna, karta miejsca, strony informacyjne) przechodzą automatyczne testy axe (reguły WCAG 2.2 A i AA) bez naruszeń, na danych przykładowych. Takie testy wykrywają tylko część problemów, więc nie twierdzimy, że aplikacja jest w pełni zgodna. Poniżej opisujemy, co działa, co jest ograniczone i czego jeszcze nie sprawdziliśmy.",
+      body: "Ekrany głównego scenariusza (strona główna, karta miejsca, strony informacyjne) przechodzą automatyczne testy axe (reguły WCAG 2.2 A i AA) bez naruszeń, na danych przykładowych, w widoku telefonu i na komputerze (okno 1440×900). Takie testy wykrywają tylko część problemów, więc nie twierdzimy, że aplikacja jest w pełni zgodna. Poniżej opisujemy, co działa, co jest ograniczone i czego jeszcze nie sprawdziliśmy.",
     },
     works: {
       id: "dziala",
@@ -127,7 +127,7 @@ export const pages = {
       items: [
         [
           "Klawiatura",
-          "Cały główny scenariusz działa samą klawiaturą: wyszukanie miejsca, profil, karta miejsca i zgłoszenie. Po zamknięciu okna fokus wraca na przycisk, który je otworzył.",
+          "Cały główny scenariusz działa samą klawiaturą, na telefonie i na komputerze: wyszukanie miejsca, profil, karta miejsca i zgłoszenie. Po zamknięciu okna fokus wraca na przycisk, który je otworzył.",
         ],
         [
           "Czytnik ekranu — struktura",
@@ -143,7 +143,7 @@ export const pages = {
         ],
         [
           "Powiększenie i wąski ekran",
-          "Główne ekrany mieszczą się bez przewijania w poziomie w oknie 640 px (jak 200% na ekranie 1280 px) i 320 px (jak 400%). To emulacja szerokości okna, nie powiększenie w przeglądarce.",
+          "Główne ekrany mieszczą się bez przewijania w poziomie w oknie 640 px (jak 200% na ekranie 1280 px) i 320 px (jak 400%), a na komputerze 1440×900 także przy powiększeniu przeglądarki 200% i 400%. Przy 400% mapa zajmuje wąski pas nad listą — wszystkie miejsca są wtedy na liście. Powiększenie emulujemy w Chromium (węższe okno i większa gęstość pikseli).",
         ],
         [
           "Status nie tylko kolorem",
@@ -171,9 +171,9 @@ export const pages = {
           "Pinezki są ukryte przed czytnikami ekranu i nie da się do nich dojść klawiszem Tab — te same miejsca są na liście. Planujemy połączyć mapę z listą i ocenić dostępność pinezek w audycie.",
         ],
         [
-          "planned",
+          "inProgress",
           "Kontrola na komputerze",
-          "Testy dostępności uruchamiamy głównie w widoku telefonu; na komputerze sprawdzamy tylko wybrane ekrany. Planujemy rozszerzyć testy na cały główny scenariusz i skontrolować jego nagranie.",
+          "Na komputerze (okno 1440×900) główny scenariusz przechodzi testy axe, przejście samą klawiaturą, sprawdzenie mapy jako tekstu oraz powiększenie 200% i 400% bez przewijania w poziomie. Na komputerze nie sprawdziliśmy jeszcze czytnika ekranu (VoiceOver, NVDA) ani nagrania demo — to kolejny krok.",
         ],
         [
           "planned",
@@ -206,7 +206,7 @@ export const pages = {
         "Ręczny przebieg z czytnikami ekranu: VoiceOver (iOS i macOS), TalkBack i NVDA.",
         "Przeglądarki inne niż Chromium (Firefox, Safari). Testy automatyczne uruchamiamy tylko w Chromium.",
         "Natywna aplikacja na iOS lub Androida — nie istnieje; sprawdzamy tylko stronę w przeglądarce.",
-        "Powiększenie 200% i 400% w przeglądarce na komputerze. Sprawdzamy tylko wąskie okno.",
+        "Powiększenie ręcznie w przeglądarce (Ctrl +) — test je emuluje w Chromium.",
         "Tryb wysokiego kontrastu systemu.",
         "Testy z użytkownikami z niepełnosprawnościami i pełny audyt WCAG 2.2 AA.",
       ],

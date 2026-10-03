@@ -7,20 +7,20 @@
   - paragraph: /The “Kraków bez barier” prototype \(HackYeah \d+\) aims to meet WCAG 2\.2 level AA\. We checked the main scenario with automated tests and with the keyboard alone, but we haven't done a full audit or tested with screen readers yet\./
   - paragraph:
     - text: "Last updated:"
-    - time: /3 October \d+/
+    - time: /4 October \d+/
   - heading "Conformity status" [level=2]
   - term: Target
   - definition: WCAG 2.2, level AA
   - term: Status today
   - definition: Partial conformity — not confirmed by an audit
-  - paragraph: The screens of the main scenario (home, place card, info pages) pass automated axe tests (WCAG 2.2 A and AA rules) with no violations, on sample data. Such tests catch only some issues, so we don't claim the app fully conforms. Below we describe what works, what is limited and what we haven't checked yet.
+  - paragraph: /The screens of the main scenario \(home, place card, info pages\) pass automated axe tests \(WCAG 2\.2 A and AA rules\) with no violations, on sample data, in the phone view and on a desktop \(a \d+×\d+ window\)\. Such tests catch only some issues, so we don't claim the app fully conforms\. Below we describe what works, what is limited and what we haven't checked yet\./
   - heading "What works" [level=2]
   - paragraph: Each point is backed by an automated test unless stated otherwise.
   - list:
     - listitem:
       - heading "Keyboard" [level=3]
       - text: Done
-      - paragraph: "The whole main scenario works with the keyboard alone: searching for a place, the profile, the place card and a report. After a dialog closes, focus returns to the button that opened it."
+      - paragraph: "The whole main scenario works with the keyboard alone, on a phone and on a desktop: searching for a place, the profile, the place card and a report. After a dialog closes, focus returns to the button that opened it."
     - listitem:
       - heading "Screen reader — structure" [level=3]
       - text: Done
@@ -36,7 +36,7 @@
     - listitem:
       - heading "Zoom and narrow screens" [level=3]
       - text: Done
-      - paragraph: /The main screens fit without horizontal scrolling in a \d+ px window \(like \d+% on a \d+ px screen\) and a \d+ px window \(like \d+%\)\. This emulates the window width; it isn't browser zoom\./
+      - paragraph: /The main screens fit without horizontal scrolling in a \d+ px window \(like \d+% on a \d+ px screen\) and a \d+ px window \(like \d+%\), and on a \d+×\d+ desktop also at \d+% and \d+% browser zoom\. At \d+% the map is a narrow strip above the list — every place is in the list then\. We emulate the zoom in Chromium \(a narrower window at a higher pixel density\)\./
     - listitem:
       - heading "Status never by colour alone" [level=3]
       - text: Done
@@ -58,8 +58,8 @@
       - paragraph: Pins are hidden from screen readers and can't be reached with Tab — the same places are in the list. We plan to link the map with the list and to assess pin accessibility in the audit.
     - listitem:
       - heading "Desktop check" [level=3]
-      - text: Planned
-      - paragraph: We mostly run accessibility tests in the phone view; on desktop we only check selected screens. We plan to extend the tests to the whole main scenario and to check its recording.
+      - text: In progress
+      - paragraph: /On a desktop \(a \d+×\d+ window\) the main scenario passes axe, a keyboard-only run, the map-as-text check and \d+% and \d+% zoom without horizontal scrolling\. We haven't checked a screen reader \(VoiceOver, NVDA\) or the demo recording on a desktop yet — that's the next step\./
     - listitem:
       - heading "Tests with screen readers and users" [level=3]
       - text: Planned
@@ -82,7 +82,7 @@
     - listitem: "Not checked A manual run with screen readers: VoiceOver (iOS and macOS), TalkBack and NVDA."
     - listitem: Not checked Browsers other than Chromium (Firefox, Safari). Automated tests run only in Chromium.
     - listitem: Not checked A native iOS or Android app — there isn't one; we only check the website in a browser.
-    - listitem: /Not checked \d+% and \d+% browser zoom on a desktop\. We only check a narrow window\./
+    - listitem: Not checked Zooming by hand in a browser (Ctrl +) — the test emulates it in Chromium.
     - listitem: Not checked The system high-contrast mode.
     - listitem: Not checked Tests with users with disabilities and a full WCAG 2.2 AA audit.
   - heading "Report a barrier" [level=2]

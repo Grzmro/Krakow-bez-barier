@@ -1,7 +1,6 @@
 import { expect, test } from "./fixtures";
 
-// The default project emulates a phone; these specs look at the home screen as a laptop or monitor does.
-test.use({ isMobile: false, hasTouch: false });
+// The home screen as a laptop or monitor shows it (the desktop project).
 
 const WIDTHS = [1024, 1440, 1920];
 

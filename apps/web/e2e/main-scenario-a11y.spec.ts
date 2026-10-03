@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { horizontalOverflow, SCREENS, tabTo } from "./a11y";
 import { expandClusters, placesOnMap, verdictsOnMap } from "./map";
 
 // Accessibility check of the demo's main scenario (docs/demo-script.md, scene 8): every screen the
@@ -7,23 +8,6 @@ import { expandClusters, placesOnMap, verdictsOnMap } from "./map";
 // Results feed the "Deklaracja dostępności" page.
 
 const list = (page: Page) => page.getByRole("region", { name: "Lista miejsc" });
-
-async function tabTo(page: Page, target: ReturnType<Page["getByRole"]>, maxTabs = 40) {
-  for (let i = 0; i < maxTabs && !(await target.evaluate((el) => el === document.activeElement)); i++) {
-    await page.keyboard.press("Tab");
-  }
-  await expect(target).toBeFocused();
-}
-
-const SCREENS: { name: string; url: string; heading: RegExp }[] = [
-  { name: "home", url: "/", heading: /Mapa i lista miejsc/ },
-  { name: "place", url: "/miejsca/hotel-przyklad", heading: /Hotel Przykład/ },
-  { name: "place-conflict", url: "/miejsca/palac-krzysztofory", heading: /Pałac Krzysztofory/ },
-  { name: "place-incomplete", url: "/miejsca/kawiarnia-przyklad", heading: /Kawiarnia Przykład/ },
-  { name: "about-data", url: "/o-danych", heading: /O danych/ },
-  { name: "business", url: "/dla-firm", heading: /Dla firm/ },
-  { name: "accessibility-statement", url: "/deklaracja-dostepnosci", heading: /Deklaracja dostępności/ },
-];
 
 test("the demo scenario works from the keyboard alone, with axe passing on every step", async ({
   page,
@@ -165,8 +149,7 @@ for (const zoom of [
         await expect(page.getByRole("heading", { level: 1, name: screen.heading })).toBeAttached();
 
         // THEN the content fits the width — nothing needs sideways scrolling
-        const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
-        expect(overflow).toBeLessThanOrEqual(0);
+        expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
 
         // AND it has no WCAG 2.2 AA violations axe can detect
         await expectAccessible();

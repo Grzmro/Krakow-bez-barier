@@ -7,20 +7,20 @@
   - paragraph: /Prototyp „Kraków bez barier” \(HackYeah \d+\) ma spełniać WCAG 2\.2 na poziomie AA\. Główny scenariusz sprawdziliśmy automatycznie i samą klawiaturą, ale nie przeprowadziliśmy jeszcze pełnego audytu ani testów z czytnikami ekranu\./
   - paragraph:
     - text: "Ostatnia aktualizacja:"
-    - time: /3 października \d+/
+    - time: /4 października \d+/
   - heading "Stan zgodności" [level=2]
   - term: Cel
   - definition: WCAG 2.2, poziom AA
   - term: Stan dziś
   - definition: Zgodność częściowa — nie potwierdzona audytem
-  - paragraph: Ekrany głównego scenariusza (strona główna, karta miejsca, strony informacyjne) przechodzą automatyczne testy axe (reguły WCAG 2.2 A i AA) bez naruszeń, na danych przykładowych. Takie testy wykrywają tylko część problemów, więc nie twierdzimy, że aplikacja jest w pełni zgodna. Poniżej opisujemy, co działa, co jest ograniczone i czego jeszcze nie sprawdziliśmy.
+  - paragraph: /Ekrany głównego scenariusza \(strona główna, karta miejsca, strony informacyjne\) przechodzą automatyczne testy axe \(reguły WCAG 2\.2 A i AA\) bez naruszeń, na danych przykładowych, w widoku telefonu i na komputerze \(okno \d+×\d+\)\. Takie testy wykrywają tylko część problemów, więc nie twierdzimy, że aplikacja jest w pełni zgodna\. Poniżej opisujemy, co działa, co jest ograniczone i czego jeszcze nie sprawdziliśmy\./
   - heading "Co działa" [level=2]
   - paragraph: Każdy punkt ma sprawdzający go test automatyczny, chyba że napisano inaczej.
   - list:
     - listitem:
       - heading "Klawiatura" [level=3]
       - text: Zrobione
-      - paragraph: "Cały główny scenariusz działa samą klawiaturą: wyszukanie miejsca, profil, karta miejsca i zgłoszenie. Po zamknięciu okna fokus wraca na przycisk, który je otworzył."
+      - paragraph: "Cały główny scenariusz działa samą klawiaturą, na telefonie i na komputerze: wyszukanie miejsca, profil, karta miejsca i zgłoszenie. Po zamknięciu okna fokus wraca na przycisk, który je otworzył."
     - listitem:
       - heading "Czytnik ekranu — struktura" [level=3]
       - text: Zrobione
@@ -36,7 +36,7 @@
     - listitem:
       - heading "Powiększenie i wąski ekran" [level=3]
       - text: Zrobione
-      - paragraph: /Główne ekrany mieszczą się bez przewijania w poziomie w oknie \d+ px \(jak \d+% na ekranie \d+ px\) i \d+ px \(jak \d+%\)\. To emulacja szerokości okna, nie powiększenie w przeglądarce\./
+      - paragraph: /Główne ekrany mieszczą się bez przewijania w poziomie w oknie \d+ px \(jak \d+% na ekranie \d+ px\) i \d+ px \(jak \d+%\), a na komputerze \d+×\d+ także przy powiększeniu przeglądarki \d+% i \d+%\. Przy \d+% mapa zajmuje wąski pas nad listą — wszystkie miejsca są wtedy na liście\. Powiększenie emulujemy w Chromium \(węższe okno i większa gęstość pikseli\)\./
     - listitem:
       - heading "Status nie tylko kolorem" [level=3]
       - text: Zrobione
@@ -58,8 +58,8 @@
       - paragraph: Pinezki są ukryte przed czytnikami ekranu i nie da się do nich dojść klawiszem Tab — te same miejsca są na liście. Planujemy połączyć mapę z listą i ocenić dostępność pinezek w audycie.
     - listitem:
       - heading "Kontrola na komputerze" [level=3]
-      - text: Planowane
-      - paragraph: Testy dostępności uruchamiamy głównie w widoku telefonu; na komputerze sprawdzamy tylko wybrane ekrany. Planujemy rozszerzyć testy na cały główny scenariusz i skontrolować jego nagranie.
+      - text: W toku
+      - paragraph: /Na komputerze \(okno \d+×\d+\) główny scenariusz przechodzi testy axe, przejście samą klawiaturą, sprawdzenie mapy jako tekstu oraz powiększenie \d+% i \d+% bez przewijania w poziomie\. Na komputerze nie sprawdziliśmy jeszcze czytnika ekranu \(VoiceOver, NVDA\) ani nagrania demo — to kolejny krok\./
     - listitem:
       - heading "Testy z czytnikami i użytkownikami" [level=3]
       - text: Planowane
@@ -82,7 +82,7 @@
     - listitem: "Niesprawdzone Ręczny przebieg z czytnikami ekranu: VoiceOver (iOS i macOS), TalkBack i NVDA."
     - listitem: Niesprawdzone Przeglądarki inne niż Chromium (Firefox, Safari). Testy automatyczne uruchamiamy tylko w Chromium.
     - listitem: Niesprawdzone Natywna aplikacja na iOS lub Androida — nie istnieje; sprawdzamy tylko stronę w przeglądarce.
-    - listitem: /Niesprawdzone Powiększenie \d+% i \d+% w przeglądarce na komputerze\. Sprawdzamy tylko wąskie okno\./
+    - listitem: Niesprawdzone Powiększenie ręcznie w przeglądarce (Ctrl +) — test je emuluje w Chromium.
     - listitem: Niesprawdzone Tryb wysokiego kontrastu systemu.
     - listitem: Niesprawdzone Testy z użytkownikami z niepełnosprawnościami i pełny audyt WCAG 2.2 AA.
   - heading "Zgłoś barierę" [level=2]

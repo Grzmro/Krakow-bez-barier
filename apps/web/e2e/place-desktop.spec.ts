@@ -1,7 +1,6 @@
 import { expect, test } from "./fixtures";
 
-// The default project emulates a phone; these specs look at the place card as a laptop or monitor does.
-test.use({ isMobile: false, hasTouch: false });
+// The place card as a laptop or monitor shows it (the desktop project).
 
 const WIDTHS = [1280, 1440, 1920];
 
