@@ -2,12 +2,12 @@
 
 import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bank, Bed, Bus, Car, Church, ForkKnife, MapPin, MaskHappy, Pill, ShoppingBag, Toilet, type Icon } from "@phosphor-icons/react";
+import { Armchair, Bank, Bed, Bus, Car, Church, Elevator, ForkKnife, MapPin, MaskHappy, Pill, ShoppingBag, Toilet, type Icon } from "@phosphor-icons/react";
 import type { Category, CategoryDefinition } from "@krakow-bez-barier/contracts";
 import { useMessages } from "@/i18n/client";
 import { api } from "./api";
 
-/** Icon keys the category config may use (`packages/contracts/src/categories.ts`); an unknown key shows a pin. */
+/** Icon keys the category and quick action configs may use (`packages/contracts/src/categories.ts`, `quick-actions.ts`); an unknown key shows a pin. */
 const ICONS: Record<string, Icon> = {
   "fork-knife": ForkKnife,
   bank: Bank,
@@ -20,6 +20,8 @@ const ICONS: Record<string, Icon> = {
   car: Car,
   bus: Bus,
   "map-pin": MapPin,
+  armchair: Armchair,
+  elevator: Elevator,
 };
 
 /** Icon keys the web UI can draw. */
