@@ -157,3 +157,37 @@ test("a long source URL wraps inside its card, so the page and the report form k
   // THEN the form's send button is on screen
   await expect(drawer.getByRole("button", { name: "Wyślij" })).toBeInViewport();
 });
+
+test("with a profile on, the card shows its verdict and the Blokuje / Pasuje / Nie wiadomo groups", async ({
+  page,
+  expectAccessible,
+  evidence,
+}) => {
+  // GIVEN a visitor whose wheelchair profile is stored in this browser
+  await page.addInitScript(() => {
+    if (window.sessionStorage.getItem("seeded")) return;
+    window.sessionStorage.setItem("seeded", "1");
+    window.localStorage.setItem("kbb.profile.v1", JSON.stringify({ profile: "wheelchair" }));
+  });
+
+  // WHEN they open a place that has a barrier for the profile
+  await page.goto("/miejsca/restauracja-przyklad");
+  const verdict = page.getByRole("region", { name: "Twój profil: Wózek" });
+
+  // THEN the verdict and the need groups are shown above the facts, as text
+  await expect(verdict).toContainText("Nie spełnia");
+  await expect(verdict.getByRole("heading", { level: 3, name: /Blokuje/ })).toBeVisible();
+  await expect(verdict).toContainText(/Pasuje \d z \d potrzeb profilu/);
+  await expect(page.locator("main")).toMatchAriaSnapshot({ name: "place-profile.aria.yml" });
+
+  await expectAccessible();
+  await evidence("place-profile");
+
+  // WHEN the profile is turned off
+  await page.evaluate(() => window.localStorage.removeItem("kbb.profile.v1"));
+  await page.reload();
+
+  // THEN the card shows only the facts
+  await expect(page.getByRole("heading", { level: 2, name: "Fakty" })).toBeVisible();
+  await expect(page.getByRole("region", { name: /Twój profil/ })).toHaveCount(0);
+});

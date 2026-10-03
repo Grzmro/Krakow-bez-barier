@@ -83,6 +83,11 @@ export const place = {
       parkingYes: "Jest miejsce N",
     },
   },
+  profileVerdict: {
+    title: (profile: string) => `Twój profil: ${profile}`,
+    needsMet: (met: number, total: number) => `Pasuje ${met} z ${total} ${plural(total, "potrzeby", "potrzeb", "potrzeb")} profilu`,
+    hint: "Wynik według progów Twojego profilu. Źródła i daty znajdziesz w faktach poniżej.",
+  },
   facts: "Fakty",
   factsHint: "Pokazujemy konkretne dane, bez zbiorczej oceny. Rozwiń cechę, aby zobaczyć źródło i datę.",
   sourcesCount: (n: number, latest?: string) =>

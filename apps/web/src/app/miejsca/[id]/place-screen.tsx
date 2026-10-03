@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import {
   ArrowSquareOut,
   ArrowsHorizontal,
@@ -32,13 +31,16 @@ import {
   Wrench,
   type Icon,
 } from "@phosphor-icons/react";
-import type { AccessibilityAttribute, Outage, OutageEquipment, OutageVote, Place, PlaceSummary } from "@krakow-bez-barier/contracts";
+import type { AccessibilityAttribute, Outage, OutageEquipment, OutageVote, Place, PlaceSummary, Profile, Verdict } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { PlaceMap } from "@/components/home/place-map";
-import { FactRow, ReliabilityBadge, SampleTag } from "@/components/kbb";
+import { FactRow, ReliabilityBadge, SampleTag, VerdictBlock } from "@/components/kbb";
+import { NeedGroups } from "@/components/profile/need-groups";
 import { canReportOutage, isActiveOutage, isOutageEquipment } from "@/domain/outages";
 import { useLocale, useMessages } from "@/i18n/client";
-import { api } from "@/lib/api";
+import { usePlace } from "@/lib/places";
+import { profileQuery } from "@/lib/profile/thresholds";
+import { useProfile } from "@/lib/profile/use-profile";
 import { useCategoryLookup } from "@/lib/categories";
 import { CARD_ATTRIBUTES, factViews, failedSources, formatDate, latestSourceDate, osmEditUrl } from "@/lib/place-facts";
 import { pendingEntries, servedReportIds, withPending, type PendingEntry } from "@/lib/reports";
@@ -74,16 +76,8 @@ const FACT_ICON: Partial<Record<AccessibilityAttribute, Icon>> = {
 
 export function PlaceScreen({ id }: { id: string }) {
   const t = useMessages().place;
-  const locale = useLocale();
-  const query = useQuery({
-    queryKey: ["place", locale, id],
-    queryFn: async () => {
-      const { data, response } = await api.GET("/places/{id}", { params: { path: { id } } });
-      if (response.status === 404) return null;
-      if (!data) throw new Error(`getPlace ${response.status}`);
-      return data;
-    },
-  });
+  const { settings } = useProfile();
+  const query = usePlace(id, profileQuery(settings));
 
   if (query.isPending) {
     return (
@@ -113,10 +107,10 @@ export function PlaceScreen({ id }: { id: string }) {
       </div>
     );
   }
-  return <PlaceCard place={query.data} />;
+  return <PlaceCard place={query.data} profile={settings.profile} />;
 }
 
-function PlaceCard({ place }: { place: Place }) {
+function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }) {
   const m = useMessages();
   const t = m.place;
   const locale = useLocale();
@@ -410,6 +404,7 @@ function PlaceCard({ place }: { place: Place }) {
       </div>
 
       <div className="lg:col-start-1">
+        {profile && place.verdict ? <ProfileVerdict verdict={place.verdict} profile={profile} /> : null}
         <section aria-labelledby="place-facts">
           <h2 id="place-facts" ref={factsHeadingRef} tabIndex={-1} className="mt-6 mb-1 text-title font-semibold">
             {t.facts}
@@ -611,6 +606,30 @@ function PlaceCard({ place }: { place: Place }) {
         onConfirm={reportOutage}
       />
     </article>
+  );
+}
+
+function ProfileVerdict({ verdict, profile }: { verdict: Verdict; profile: Profile }) {
+  const m = useMessages();
+  const t = m.place.profileVerdict;
+  const needs = verdict.needs ?? [];
+  const met = needs.filter((n) => n.state === "met").length;
+  return (
+    <section aria-labelledby="place-profile" className="mt-6">
+      <h2 id="place-profile" className="mb-1 text-title font-semibold">
+        {t.title(m.profile.name[profile])}
+      </h2>
+      <p className="mb-3 text-caption text-muted-foreground">{t.hint}</p>
+      <VerdictBlock
+        status={verdict.state}
+        reason={verdict.state === "met" ? undefined : verdict.reasons[0]}
+        unconfirmed={verdict.unconfirmed}
+        sub={needs.length ? t.needsMet(met, needs.length) : undefined}
+      />
+      {needs.length ? (
+        <NeedGroups verdict={verdict} headingLevel={3} className="mt-4 rounded-[20px] bg-surface-raised p-4 shadow-soft ring-1 ring-border" />
+      ) : null}
+    </section>
   );
 }
 

@@ -74,6 +74,11 @@ export const place: Messages["place"] = {
       parkingYes: "There's a disabled space",
     },
   },
+  profileVerdict: {
+    title: (profile: string) => `Your profile: ${profile}`,
+    needsMet: (met: number, total: number) => `Fits ${met} of ${total} profile ${plural(total, "need", "needs")}`,
+    hint: "Result based on your profile's thresholds. Sources and dates are in the facts below.",
+  },
   facts: "Facts",
   factsHint: "We show specific data, with no overall rating. Expand a feature to see its source and date.",
   sourcesCount: (n: number, latest?: string) =>
