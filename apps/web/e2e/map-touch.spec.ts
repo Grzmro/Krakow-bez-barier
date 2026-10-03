@@ -1,5 +1,6 @@
 import { devices, type CDPSession, type Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { expandClusters, pins } from "./map";
 
 type Point = { x: number; y: number };
 
@@ -36,7 +37,6 @@ async function touchscreen(page: Page) {
   };
 }
 
-const pins = (page: Page) => page.locator("[data-place-id]");
 
 /** Screen position of two pins: their midpoint follows a pan, their gap follows the zoom. */
 async function view(page: Page) {
@@ -85,7 +85,10 @@ async function freeMapArea(page: Page) {
 async function openHome(page: Page) {
   await page.goto("/");
   await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
-  await expect(pins(page)).toHaveCount(9);
+  // Zoomed out, the sample pins merge into clusters; one level past the split keeps them apart during a pinch.
+  await expandClusters(page);
+  expect(await pins(page).count()).toBeGreaterThan(1);
+  await page.getByRole("button", { name: "Przybliż" }).click();
   await settledView(page);
 }
 
@@ -100,7 +103,7 @@ for (const [name, device] of [
     test.describe.configure({ timeout: 30_000 });
 
     test("ten drags anywhere on the visible map each pan it, also after the sheet is toggled", async ({ page, evidence }) => {
-      // GIVEN the home screen with every sample pin
+      // GIVEN the home screen zoomed in to single sample pins
       await openHome(page);
       const touch = await touchscreen(page);
       const area = await freeMapArea(page);

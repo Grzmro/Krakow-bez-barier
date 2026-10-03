@@ -28,6 +28,9 @@ export const home: Messages["home"] = {
     zoomIn: "Zoom in",
     zoomOut: "Zoom out",
     unavailable: "The map isn't available in this browser. All places are in the list.",
+    cluster: (n, parts) =>
+      `Group: ${n} ${placesWord(n)}${parts.length ? ` (${parts.map(([label, count]) => `${label}: ${count}`).join(", ")})` : ""}`,
+    zoomedToCluster: (n) => `Zoomed in: ${n} ${placesWord(n)}`,
   },
   list: {
     label: "List of places",

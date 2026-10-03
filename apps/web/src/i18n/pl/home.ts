@@ -29,6 +29,9 @@ export const home = {
     zoomIn: "Przybliż",
     zoomOut: "Oddal",
     unavailable: "Mapa jest niedostępna w tej przeglądarce. Wszystkie miejsca są na liście.",
+    cluster: (n: number, parts: [string, number][]) =>
+      `Grupa: ${n} ${placesWord(n)}${parts.length ? ` (${parts.map(([label, count]) => `${label}: ${count}`).join(", ")})` : ""}`,
+    zoomedToCluster: (n: number) => `Przybliżono: ${n} ${placesWord(n)}`,
   },
   list: {
     label: "Lista miejsc",

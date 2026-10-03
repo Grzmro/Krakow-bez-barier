@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { expandClusters, placesOnMap, verdictsOnMap } from "./map";
 
 // Accessibility check of the demo's main scenario (docs/demo-script.md, scene 8): every screen the
 // jury sees, with axe, the keyboard alone, 200% zoom / 320 px reflow, and the map available as text.
@@ -109,28 +110,38 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
 });
 
 test("everything pinned on the map is also on the text list", async ({ page }) => {
-  // GIVEN the home screen with the stroller profile, so pins carry verdicts
+  // GIVEN the home screen with the stroller profile, so pins and clusters carry verdicts
   await page.goto("/");
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
   await page.getByRole("radio", { name: "Wózek dziecięcy" }).check();
 
-  // WHEN every pin and every row has its verdict for the new profile
-  await expect(page.locator("[data-place-id][data-status]")).toHaveCount(9);
+  // WHEN every row has its verdict for the new profile
   await expect(list(page).getByRole("listitem").filter({ has: page.locator("[data-verdict]") })).toHaveCount(9);
-  const pins = await page.locator("[data-place-id]").evaluateAll((els) =>
-    els.map((el) => `${el.getAttribute("data-place-id")}:${el.getAttribute("data-status")}`).sort(),
-  );
   const rows = await list(page)
     .getByRole("listitem")
     .evaluateAll((items) =>
-      items.map((li) => {
-        const id = li.querySelector("a")?.getAttribute("href")?.split("/").pop();
-        return `${id}:${li.querySelector("[data-verdict]")?.getAttribute("data-verdict")}`;
-      }),
+      items.reduce<Record<string, number>>((tally, li) => {
+        const verdict = li.querySelector("[data-verdict]")!.getAttribute("data-verdict")!;
+        return { ...tally, [verdict]: (tally[verdict] ?? 0) + 1 };
+      }, {}),
     );
 
-  // THEN every pin, with its verdict, has a row on the list
-  expect(rows.sort()).toEqual(pins);
+  // THEN the map's pins and clusters hold the same places with the same verdicts
+  await expect.poll(() => placesOnMap(page)).toBe(9);
+  await expect.poll(() => verdictsOnMap(page)).toEqual(rows);
+
+  // AND once zoomed in, each pin has a row with its verdict
+  await expandClusters(page);
+  const pinned = await page.locator("[data-place-id]").evaluateAll((els) =>
+    els.map((el) => `${el.getAttribute("data-place-id")}:${el.getAttribute("data-status")}`),
+  );
+  const listed = await list(page)
+    .getByRole("listitem")
+    .evaluateAll((items) =>
+      items.map((li) => `${li.querySelector("a")?.getAttribute("href")?.split("/").pop()}:${li.querySelector("[data-verdict]")?.getAttribute("data-verdict")}`),
+    );
+  expect(pinned.length).toBeGreaterThan(0);
+  expect(listed).toEqual(expect.arrayContaining(pinned));
 });
 
 for (const zoom of [

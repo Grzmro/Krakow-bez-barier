@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
 import type { PlaceSummary } from "@krakow-bez-barier/contracts";
-import { cn } from "@krakow-bez-barier/ui";
+import { cn, useAnnounce } from "@krakow-bez-barier/ui";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useMessages } from "@/i18n/client";
 import { config } from "@/lib/config";
+import { buildClusterIndex, expansionZoom, mapItems, verdictBreakdown, type MapItem } from "@/lib/map-clusters";
 import { MapControls } from "../map/map-controls";
+import { clusterSize, PlaceCluster } from "./place-cluster";
 import { PlacePin } from "./place-pin";
 
 const PIN_CLASS = "group relative size-9 cursor-pointer data-[selected=true]:z-10";
@@ -22,6 +24,23 @@ function pinElement(place: PlaceSummary) {
   if (place.verdict) element.dataset.status = place.verdict.state;
   const root = createRoot(element);
   flushSync(() => root.render(<PlacePin status={place.verdict?.state ?? null} />));
+  return { element, root };
+}
+
+function clusterElement(item: Extract<MapItem, { kind: "cluster" }>, label: string) {
+  const element = document.createElement("div");
+  const size = clusterSize(item.count);
+  element.className = "relative cursor-pointer";
+  element.style.width = element.style.height = `${size}px`;
+  // Not a tab stop, like the pins: keyboard users zoom with +/- or the arrows, and the list holds every place.
+  element.setAttribute("role", "img");
+  element.setAttribute("aria-label", label);
+  element.title = label;
+  const breakdown = verdictBreakdown(item.counts);
+  element.dataset.clusterCount = String(item.count);
+  element.dataset.verdicts = breakdown.map(([status, n]) => `${status}:${n}`).join(" ");
+  const root = createRoot(element);
+  flushSync(() => root.render(<PlaceCluster count={item.count} breakdown={breakdown} />));
   return { element, root };
 }
 
@@ -39,12 +58,17 @@ function youElement(you: string) {
   return element;
 }
 
-function removeMarkers(markers: Map<string, { marker: Marker; root: Root }>) {
-  const roots = [...markers.values()].map(({ marker, root }) => {
-    marker.remove();
-    return root;
-  });
-  markers.clear();
+type Markers = Map<string, { marker: Marker; root: Root }>;
+
+function removeMarkers(markers: Markers, keys: Iterable<string> = [...markers.keys()]) {
+  const roots: Root[] = [];
+  for (const key of [...keys]) {
+    const entry = markers.get(key);
+    if (!entry) continue;
+    entry.marker.remove();
+    roots.push(entry.root);
+    markers.delete(key);
+  }
   // Unmounting synchronously from inside a React commit warns; defer it.
   queueMicrotask(() => roots.forEach((root) => root.unmount()));
 }
@@ -63,17 +87,21 @@ export interface PlaceMapProps {
 }
 
 /**
- * MapLibre map with neutral pins, or verdict pins when a profile is on. Pins are mouse shortcuts only
- * and hidden from assistive tech: the list next to the map holds the same places.
+ * MapLibre map with neutral pins, or verdict pins when a profile is on. Nearby pins merge into clusters
+ * (a verdict donut with a profile); only what is in or near the viewport gets a DOM marker. Pins are
+ * mouse shortcuts only and hidden from assistive tech: the list next to the map holds the same places.
  */
 export function PlaceMap({ places, selectedId, onSelect, padding, you = null, label, className }: PlaceMapProps) {
   const messages = useMessages();
   const t = messages.home.map;
+  const statusWords = messages.common.status;
+  const announce = useAnnounce();
   const youLabel = messages.nearby.home.you;
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [unavailable, setUnavailable] = useState(false);
-  const markersRef = useRef(new Map<string, { marker: Marker; root: Root }>());
+  const markersRef = useRef<Markers>(new Map());
+  const index = useMemo(() => buildClusterIndex(places), [places]);
   const fittedRef = useRef<string | null>(null);
   const onSelectRef = useRef(onSelect);
   const paddingRef = useRef(padding);
@@ -124,20 +152,69 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
   useEffect(() => {
     if (!map) return;
     let cancelled = false;
+    let update: (() => void) | null = null;
     const markers = markersRef.current;
-    import("maplibre-gl").then(({ Marker, LngLatBounds }) => {
+    import("maplibre-gl").then(({ Marker }) => {
       if (cancelled) return;
       removeMarkers(markers);
-      for (const place of places) {
-        const { element, root } = pinElement(place);
-        element.addEventListener("click", (event) => {
-          event.stopPropagation();
-          onSelectRef.current(place.id);
-        });
-        const [lon, lat] = place.location.coordinates;
-        element.dataset.selected = String(place.id === selectedIdRef.current);
-        markers.set(place.id, { marker: new Marker({ element }).setLngLat([lon, lat]).addTo(map), root });
-      }
+      update = () => {
+        const bounds = map.getBounds();
+        const padLon = bounds.getEast() - bounds.getWest();
+        const padLat = bounds.getNorth() - bounds.getSouth();
+        // One viewport of margin on each side: a pan reveals pins that are already there.
+        const bbox: [number, number, number, number] = [
+          Math.max(-180, bounds.getWest() - padLon),
+          Math.max(-85, bounds.getSouth() - padLat),
+          Math.min(180, bounds.getEast() + padLon),
+          Math.min(85, bounds.getNorth() + padLat),
+        ];
+        const items = mapItems(index, bbox, map.getZoom());
+        const keys = new Set(items.map((item) => item.key));
+        removeMarkers(markers, [...markers.keys()].filter((key) => !keys.has(key)));
+        for (const item of items) {
+          if (markers.has(item.key)) continue;
+          if (item.kind === "place") {
+            const { place } = item;
+            const { element, root } = pinElement(place);
+            element.dataset.selected = String(place.id === selectedIdRef.current);
+            element.addEventListener("click", (event) => {
+              event.stopPropagation();
+              onSelectRef.current(place.id);
+            });
+            const marker = new Marker({ element, offset: item.offset }).setLngLat(item.coordinates).addTo(map);
+            markers.set(item.key, { marker, root });
+          } else {
+            const parts = verdictBreakdown(item.counts).map(([status, n]) => [statusWords[status], n] as [string, number]);
+            const { element, root } = clusterElement(item, t.cluster(item.count, parts));
+            element.addEventListener("click", (event) => {
+              event.stopPropagation();
+              map.easeTo({
+                center: item.coordinates,
+                zoom: Math.min(expansionZoom(index, item.clusterId), map.getMaxZoom()),
+                padding: { ...paddingRef.current, left: 0, right: 0 },
+                duration: 400,
+              });
+              announce(t.zoomedToCluster(item.count));
+            });
+            const marker = new Marker({ element }).setLngLat(item.coordinates).addTo(map);
+            markers.set(item.key, { marker, root });
+          }
+        }
+      };
+      update();
+      map.on("moveend", update);
+    });
+    return () => {
+      cancelled = true;
+      if (update) map.off("moveend", update);
+    };
+  }, [map, index, announce, t, statusWords]);
+
+  useEffect(() => {
+    if (!map) return;
+    let cancelled = false;
+    import("maplibre-gl").then(({ LngLatBounds }) => {
+      if (cancelled) return;
       if (centered) {
         fittedRef.current = null;
         return;
@@ -184,10 +261,11 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
   }, [map, centered, padding.top, padding.bottom]);
 
   useEffect(() => {
-    for (const [id, { marker }] of markersRef.current) {
-      marker.getElement().dataset.selected = String(id === selectedId);
+    for (const { marker } of markersRef.current.values()) {
+      const element = marker.getElement();
+      if (element.dataset.placeId) element.dataset.selected = String(element.dataset.placeId === selectedId);
     }
-  }, [selectedId, places, map]);
+  }, [selectedId]);
 
   return (
     <div

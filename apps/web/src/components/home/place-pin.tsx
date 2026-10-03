@@ -5,7 +5,7 @@ const SIZE = 36;
 const R = SIZE / 2;
 const VIEW = R + 9;
 const GLYPH: Record<Status, Icon> = { met: Check, barrier: Minus, conflict: ExclamationMark, unknown: Question };
-const SHADOW = "drop-shadow(0 2px 3px rgb(22 20 31 / .18)) drop-shadow(0 6px 10px rgb(91 61 245 / .12))";
+export const PIN_SHADOW = "drop-shadow(0 2px 3px rgb(22 20 31 / .18)) drop-shadow(0 6px 10px rgb(91 61 245 / .12))";
 const OCTAGON = Array.from({ length: 8 }, (_, i) => {
   const a = (Math.PI / 8) * (2 * i + 1);
   return `${(Math.cos(a) * R).toFixed(2)},${(Math.sin(a) * R).toFixed(2)}`;
@@ -62,7 +62,7 @@ export function PlacePin({ status }: { status: Status | null }) {
         strokeWidth={3}
         className="hidden group-data-[selected=true]:block"
       />
-      <g style={{ filter: SHADOW }} className="pointer-events-auto">
+      <g style={{ filter: PIN_SHADOW }} className="pointer-events-auto">
         <Shape status={status} />
       </g>
       {I ? (
