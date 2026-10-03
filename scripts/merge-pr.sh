@@ -79,11 +79,15 @@ CHECKS_WAIT="${CHECKS_WAIT:-180}"
 # Waits for the PR's CI on $1 and returns its result. Right after a push `gh pr checks` says
 # "no checks reported" until GitHub registers the run — that means "not yet", not red.
 wait_for_ci() {
-  local head="$1" deadline
+  local head="$1" deadline seen=""
   for _ in $(seq 1 60); do
-    [ "$(gh pr view "$PR" --json headRefOid -q .headRefOid)" = "$head" ] && break
+    [ "$(gh pr view "$PR" --json headRefOid -q .headRefOid)" = "$head" ] && seen=1 && break
     sleep 5
   done
+  if [ -z "$seen" ]; then
+    echo "GitHub still doesn't show $head as the PR head after 5 min"
+    return 1
+  fi
   deadline=$((SECONDS + CHECKS_WAIT))
   # Not a pipe into grep: with pipefail gh's own exit code (non-zero here) would decide the loop.
   while [[ "$(gh pr checks "$PR" 2>&1 || true)" == *"no checks reported"* ]]; do
@@ -146,7 +150,7 @@ for round in $(seq 1 "$MAX_ROUNDS"); do
   fi
 
   if ! wait_for_ci "$head"; then
-    echo "CI red on $head — fix it, then run this script again"
+    echo "CI not green on $head — fix it (or rerun if CI never started), then run this script again"
     exit 1
   fi
 

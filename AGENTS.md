@@ -146,8 +146,9 @@ The worktree guard rejects commands it can't verify, and every rejection costs a
 - One simple command per Bash call, with absolute paths (`git -C <path> …`) — no `cd … &&`, no
   chains of `git` commands.
 - Edit files with Edit/Write, not heredocs or inline Python/sed scripts.
-- Run `scripts/merge-pr.sh` in the foreground with `timeout: 600000` (or in the background plus a
-  Monitor until-loop) — never background plus `sleep` polling.
+- Run `scripts/merge-pr.sh` in the foreground with `timeout: 600000` (one round fits; killed by the
+  timeout → run it again) or in the background plus a Monitor until-loop — never background plus
+  `sleep` polling.
 
 ## Working with tasks (Linear)
 
@@ -175,7 +176,7 @@ The worktree guard rejects commands it can't verify, and every rejection costs a
 - Update a feature branch with `git rebase origin/main`, not by merging `main` into it.
 - `docs/architecture.md` merges as `merge=union` (`.gitattributes`): rebases keep both sides' lines
   instead of conflicting — append your Decisions line, don't rewrite others'; if a rebase touched it,
-  check it for a doubled line.
+  check it for a doubled or contradictory line.
 - **Agents merge their own PRs** once the gates in the `task` skill are green (review fixed, checks
   pass, rebased on `main`) — no waiting for a human. `main` must always build and run.
 - Never `--no-verify`, never force-push `main`.
@@ -205,8 +206,8 @@ The worktree guard rejects commands it can't verify, and every rejection costs a
 
 ## Definition of done
 
-1. The affected app builds, and lint + typecheck + tests pass (run only what you touched).
-   If the build breaks, fix it before moving on.
+1. Lint + typecheck + tests pass (run only what you touched). Build yourself only when the `task`
+   skill's step 5 says so — `merge-pr.sh` always builds; if the build breaks, fix it before moving on.
 2. Tests for business logic and endpoints, structured `// GIVEN` / `// WHEN` / `// THEN`.
    UI gets a Playwright smoke spec (`apps/web/e2e/`) for its main path.
 3. Independent review (a separate subagent running the `review` skill), findings fixed.
