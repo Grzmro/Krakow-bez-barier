@@ -159,7 +159,7 @@ function ReportForm({
                 onChange={() => pickAttribute(a)}
                 className="sr-only"
               />
-              {t.attribute[a]}
+              {pl.common.attribute[a]}
             </label>
           ))}
         </div>
