@@ -909,6 +909,129 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /moderation/outages:
+    get:
+      operationId: listModerationOutages
+      summary: List active outages for moderation
+      description: 'Every active temporary outage (`reported` or `confirmed`) of every place, newest first, with the place
+        name, so a moderator can spot spam or a false report. Outages are published without moderation; this list is
+        the moderator''s way to take one down. Requires a moderator bearer token (lockout as for the moderation queue).
+
+        '
+      tags:
+      - moderation
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Active outages.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - items
+                - moderator
+                properties:
+                  moderator:
+                    $ref: '#/components/schemas/ModeratorSession'
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModerationOutage'
+              examples:
+                list:
+                  value:
+                    items:
+                    - id: out_01J9Z5LIFT
+                      placeId: hotel-przyklad
+                      placeName: Hotel Przykład
+                      equipment: lift
+                      reliability: user_report
+                      state: confirmed
+                      confirmations: 2
+                      workingVotes: 0
+                      reportedAt: '2026-10-03T09:40:00Z'
+                      lastConfirmedAt: '2026-10-03T10:00:00Z'
+                      expiresAt: '2026-10-05T10:00:00Z'
+                    - id: out_01J9Z6RAMP
+                      placeId: podziemia-rynku
+                      placeName: Podziemia Rynku
+                      equipment: ramp
+                      reliability: user_report
+                      state: reported
+                      confirmations: 0
+                      workingVotes: 0
+                      reportedAt: '2026-10-03T08:15:00Z'
+                      lastConfirmedAt: '2026-10-03T08:15:00Z'
+                      expiresAt: '2026-10-05T08:15:00Z'
+                    moderator:
+                      name: anna
+                      demo: false
+                      revertsAfterMinutes: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /moderation/outages/{outageId}:
+    delete:
+      operationId: removeModerationOutage
+      summary: Remove a false or spam outage
+      description: 'Marks an active outage as `removed`: it is no longer listed on the place card (`Place.outages`) and no
+        longer counts in any verdict. Nothing is deleted: the outage and its votes stay stored with who removed it and
+        when. A new report of the same equipment opens a fresh outage. An outage that is no longer active answers
+        `409`. Requires a moderator bearer token (lockout as for the moderation queue). A removal by the demo account
+        lasts `revertsAfterMinutes`; afterwards the outage counts again, unless it expired or was resolved meanwhile.
+
+        '
+      tags:
+      - moderation
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: outageId
+        in: path
+        required: true
+        description: Outage identifier from `listModerationOutages`.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: The outage, now `removed`.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModerationOutage'
+              examples:
+                removed:
+                  value:
+                    id: out_01J9Z6RAMP
+                    placeId: podziemia-rynku
+                    placeName: Podziemia Rynku
+                    equipment: ramp
+                    reliability: user_report
+                    state: removed
+                    confirmations: 0
+                    workingVotes: 0
+                    reportedAt: '2026-10-03T08:15:00Z'
+                    lastConfirmedAt: '2026-10-03T08:15:00Z'
+                    expiresAt: '2026-10-05T08:15:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /moderation/demo-session:
     post:
       operationId: createDemoModeratorSession
@@ -2917,12 +3040,14 @@ components:
     OutageState:
       type: string
       description: '`reported` (unverified), `confirmed` (enough visitors confirmed it), `resolved` (marked working
-        again), `expired` (no confirmation for `expiresAfterHours`).'
+        again), `expired` (no confirmation for `expiresAfterHours`), `removed` (taken down by a moderator as false or
+        spam, `removeModerationOutage`).'
       enum:
       - reported
       - confirmed
       - resolved
       - expired
+      - removed
     OutageVote:
       type: string
       enum:
@@ -2970,6 +3095,19 @@ components:
           type: string
           format: date-time
           description: When the outage expires unless someone confirms it again.
+    ModerationOutage:
+      description: An outage as the moderator sees it, with the place it was reported for.
+      allOf:
+      - $ref: '#/components/schemas/Outage'
+      - type: object
+        required:
+        - placeId
+        - placeName
+        properties:
+          placeId:
+            type: string
+          placeName:
+            type: string
     OutageCreate:
       type: object
       required:

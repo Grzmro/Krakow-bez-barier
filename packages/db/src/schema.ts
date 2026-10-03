@@ -198,6 +198,11 @@ export const outages = pgTable(
       .references(() => places.id),
     equipment: text("equipment").$type<OutageEquipment>().notNull(),
     createdAt: timestamptz("created_at").notNull().defaultNow(),
+    // Taken down by a moderator as false or spam; kept, not deleted. A removal with an end time (the demo
+    // account's) stops counting at `removal_ends_at`.
+    removedAt: timestamptz("removed_at"),
+    removedBy: text("removed_by"),
+    removalEndsAt: timestamptz("removal_ends_at"),
   },
   (t) => [index("outages_place_idx").on(t.placeId, t.equipment, t.createdAt)],
 );

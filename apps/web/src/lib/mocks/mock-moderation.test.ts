@@ -89,6 +89,23 @@ describe("withModerationMocks", () => {
     expect(response.status).toBe(409);
   });
 
+  it("lists the example outages and removes one, then answers 404 for it", async () => {
+    // GIVEN the mock with the spec's example outages
+    const fetch = withModerationMocks(passThrough, queue());
+    const OUTAGES_URL = "http://mock.local/api/v1/moderation/outages";
+    const [first, second] = (await (await fetch(new Request(OUTAGES_URL, { headers: auth }))).json()).items;
+
+    // WHEN a moderator removes the first, twice
+    const removed = await fetch(new Request(`${OUTAGES_URL}/${first.id}`, { method: "DELETE", headers: auth }));
+    const again = await fetch(new Request(`${OUTAGES_URL}/${first.id}`, { method: "DELETE", headers: auth }));
+
+    // THEN it comes back removed, leaves the list, and the second removal is a 404
+    expect(await removed.json()).toMatchObject({ id: first.id, state: "removed" });
+    expect((await (await fetch(new Request(OUTAGES_URL, { headers: auth }))).json()).items).toEqual([second]);
+    expect(again.status).toBe(404);
+    expect((await fetch(new Request(OUTAGES_URL))).status).toBe(401);
+  });
+
   it("passes other paths to the fallback", async () => {
     // GIVEN the mock queue
     const fetch = withModerationMocks(passThrough, queue());

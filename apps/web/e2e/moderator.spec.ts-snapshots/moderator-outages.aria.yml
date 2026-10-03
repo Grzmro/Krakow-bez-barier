@@ -1,0 +1,33 @@
+- main:
+  - link "Wróć na stronę główną":
+    - /url: /
+  - heading "Panel moderatora" [level=1]
+  - text: Dane przykładowe
+  - button "Wyloguj"
+  - tablist "Sekcje panelu moderatora":
+    - tab "Zgłoszenia (2)"
+    - tab "Awarie (2)" [selected]
+  - tabpanel "Awarie (2)":
+    - heading "Aktywne awarie (2)" [level=2]
+    - paragraph: Awarie wind i podjazdów zgłaszają odwiedzający bez moderacji — od razu widać je na karcie miejsca i w werdyktach. Usuń oczywisty spam albo fałszywe zgłoszenie.
+    - list:
+      - listitem:
+        - heading "Hotel Przykład · Winda" [level=3]
+        - paragraph: Niezweryfikowane Potwierdzona przez społeczność
+        - paragraph:
+          - text: "2 potwierdzenia · „Działa”: 0 ·"
+          - time: /Zgłoszona .+/
+        - 'button "Usuń awarię: Hotel Przykład · Winda"'
+        - 'link "Zobacz na karcie: Hotel Przykład"':
+          - /url: /miejsca/hotel-przyklad
+          - text: ""
+      - listitem:
+        - heading "Podziemia Rynku · Podjazd" [level=3]
+        - paragraph: Niezweryfikowane
+        - paragraph:
+          - text: "0 potwierdzeń · „Działa”: 0 ·"
+          - time: /Zgłoszona .+/
+        - 'button "Usuń awarię: Podziemia Rynku · Podjazd"'
+        - 'link "Zobacz na karcie: Podziemia Rynku"':
+          - /url: /miejsca/podziemia-rynku
+          - text: ""

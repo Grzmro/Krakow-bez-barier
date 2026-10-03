@@ -19,6 +19,10 @@ export type OutageRecord = {
   /** The latest report or confirmation; `reportedAt` without confirmations. */
   lastConfirmedAt: Date;
   workingVotes: number;
+  /** When a moderator took it down as false or spam; `null` or absent while it stands. */
+  removedAt?: Date | null;
+  /** When that removal stops counting (the demo account's removals); `null` for a lasting one. */
+  removalEndsAt?: Date | null;
 };
 
 const HOUR_MS = 3_600_000;
@@ -50,8 +54,18 @@ export function outageExpiresAt(record: OutageRecord, rules: OutageRules = outag
   return new Date(record.lastConfirmedAt.getTime() + rules.expiresAfterHours * HOUR_MS);
 }
 
-/** "Działa" wins over confirmations; an outage nobody confirms for `expiresAfterHours` expires. */
+/** Whether a moderator's removal holds at `now`: from `removedAt` until `removalEndsAt`, if it has one. */
+export function isRemoved(record: Pick<OutageRecord, "removedAt" | "removalEndsAt">, now: Date): boolean {
+  if (!record.removedAt || record.removedAt.getTime() > now.getTime()) return false;
+  return !record.removalEndsAt || now.getTime() < record.removalEndsAt.getTime();
+}
+
+/**
+ * A moderator's removal wins over everything; then "Działa" wins over confirmations; an outage nobody confirms for
+ * `expiresAfterHours` expires.
+ */
 export function outageState(record: OutageRecord, now: Date, rules: OutageRules = outageRules): OutageState {
+  if (isRemoved(record, now)) return "removed";
   if (record.workingVotes >= rules.workingVotesToResolve) return "resolved";
   if (now.getTime() >= outageExpiresAt(record, rules).getTime()) return "expired";
   return record.confirmations >= rules.confirmationsToConfirm ? "confirmed" : "reported";

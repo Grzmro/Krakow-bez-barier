@@ -54,6 +54,7 @@ export type PriorityCriterion = Schemas["PriorityCriterion"];
 export type PriorityItem = Schemas["PriorityItem"];
 export type PriorityAction = Schemas["PriorityAction"];
 export type Outage = Schemas["Outage"];
+export type ModerationOutage = Schemas["ModerationOutage"];
 export type OutageEquipment = Schemas["OutageEquipment"];
 export type OutageState = Schemas["OutageState"];
 export type OutageVote = Schemas["OutageVote"];

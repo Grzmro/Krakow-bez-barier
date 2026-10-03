@@ -8,6 +8,7 @@ export { Button, buttonVariants } from "./components/button";
 export { LabeledSwitch, type LabeledSwitchProps } from "./components/labeled-switch";
 export { Toaster, toast } from "./components/sonner";
 export { Switch } from "./components/switch";
+export { Tabs, TabsContent, TabsList, TabsTrigger } from "./components/tabs";
 export { Toggle, ToggleGroup, toggleVariants } from "./components/toggle";
 export {
   VaulDrawer,

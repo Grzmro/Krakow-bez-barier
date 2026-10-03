@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle, Flask, Question, SignOut, XCircle } from "@phosphor-icons/react";
 import type { ModerationDecisionKind, ModerationReport, ModeratorSession } from "@krakow-bez-barier/contracts";
-import { Button, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
+import { Button, cn, Tabs, TabsContent, TabsList, TabsTrigger, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge } from "@/components/kbb";
 import { bearer, DemoSignIn, ModeratorSignIn, StatusError, useModeratorSession } from "@/components/moderator/moderator-session";
 import { InfoSection } from "@/components/layout/info-page";
@@ -14,6 +14,7 @@ import { api, isMockApi } from "@/lib/api";
 import { changePreview, formatDateTime, isOpen, moderationHistory, retryMinutes } from "@/lib/moderation";
 import { formatDate } from "@/lib/place-facts";
 import { routes } from "@/lib/routes";
+import { OutagesTab, useModerationOutages } from "./outages-tab";
 
 const PAGE_SIZE = 100;
 
@@ -71,6 +72,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
   const queryKey = ["moderation", "reports"];
 
   const query = useQuery({ queryKey, queryFn: () => fetchReports(token), retry: false });
+  const outages = useModerationOutages(token);
   const expired = query.error instanceof StatusError && query.error.status === 401;
 
   useEffect(() => {
@@ -181,175 +183,186 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
         </aside>
       ) : null}
 
-      <section className="mt-2">
-        <h2
-          ref={queueHeading}
-          tabIndex={-1}
-          className="mb-2 text-caption font-semibold tracking-[0.06em] text-muted-foreground uppercase outline-none"
-        >
-          {t.queueCount(open.length)}
-        </h2>
-        {open.length ? (
-          <ul className="space-y-2">
-            {open.map((report) => {
-              const item = changePreview(report, locale);
-              const active = report.id === current?.id;
-              return (
-                <li key={report.id}>
-                  <button
-                    type="button"
-                    aria-current={active ? "true" : undefined}
-                    onClick={() => setSelected(report.id)}
-                    className={cn(
-                      "press flex min-h-12 w-full items-center gap-3 rounded-2xl bg-surface-raised p-3 text-left ring-1 ring-border/70 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring",
-                      active && "ring-2 ring-primary",
-                    )}
-                  >
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-body-sm font-semibold">{report.placeName}</span>
-                      <span className="block text-caption text-muted-foreground">
-                        {item.attribute} → {item.after} · {formatDate(report.createdAt, locale)}
-                      </span>
-                    </span>
-                    <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-caption font-semibold text-secondary-foreground">
-                      {t.status[report.status]}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : (
-          <p className="text-body-sm text-muted-foreground">{t.empty}</p>
-        )}
-      </section>
+      <Tabs defaultValue="reports" className="mt-3">
+        <TabsList aria-label={t.tabs.label}>
+          <TabsTrigger value="reports">{t.tabs.reports(open.length)}</TabsTrigger>
+          <TabsTrigger value="outages">{t.tabs.outages(outages.data?.length ?? null)}</TabsTrigger>
+        </TabsList>
+        <TabsContent value="reports">
+          <section>
+            <h2
+              ref={queueHeading}
+              tabIndex={-1}
+              className="mb-2 text-caption font-semibold tracking-[0.06em] text-muted-foreground uppercase outline-none"
+            >
+              {t.queueCount(open.length)}
+            </h2>
+            {open.length ? (
+              <ul className="space-y-2">
+                {open.map((report) => {
+                  const item = changePreview(report, locale);
+                  const active = report.id === current?.id;
+                  return (
+                    <li key={report.id}>
+                      <button
+                        type="button"
+                        aria-current={active ? "true" : undefined}
+                        onClick={() => setSelected(report.id)}
+                        className={cn(
+                          "press flex min-h-12 w-full items-center gap-3 rounded-2xl bg-surface-raised p-3 text-left ring-1 ring-border/70 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                          active && "ring-2 ring-primary",
+                        )}
+                      >
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-body-sm font-semibold">{report.placeName}</span>
+                          <span className="block text-caption text-muted-foreground">
+                            {item.attribute} → {item.after} · {formatDate(report.createdAt, locale)}
+                          </span>
+                        </span>
+                        <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-caption font-semibold text-secondary-foreground">
+                          {t.status[report.status]}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="text-body-sm text-muted-foreground">{t.empty}</p>
+            )}
+          </section>
 
-      {current && preview ? (
-        <InfoSection title={t.preview}>
-          <div className="rounded-[20px] bg-surface-raised p-4 shadow-soft ring-1 ring-border/70">
-            <h3 className="text-body-sm font-semibold">
-              {current.placeName} · {preview.attribute}
-            </h3>
-            <p className="text-caption text-muted-foreground">{t.reportedOn(formatDate(current.createdAt, locale))}</p>
-            <dl className="mt-3 grid grid-cols-2 gap-2">
-              <div className="rounded-2xl bg-muted p-3">
-                <dt className="text-caption text-muted-foreground">{t.before}</dt>
-                <dd className={cn("mt-1 text-body-sm font-semibold", !preview.beforeKnown && "text-muted-foreground")}>
-                  {preview.before}
-                  {preview.beforeSource ? (
-                    <span className="mt-1 block text-caption font-normal text-muted-foreground">{preview.beforeSource}</span>
-                  ) : null}
-                </dd>
+          {current && preview ? (
+            <InfoSection title={t.preview}>
+              <div className="rounded-[20px] bg-surface-raised p-4 shadow-soft ring-1 ring-border/70">
+                <h3 className="text-body-sm font-semibold">
+                  {current.placeName} · {preview.attribute}
+                </h3>
+                <p className="text-caption text-muted-foreground">{t.reportedOn(formatDate(current.createdAt, locale))}</p>
+                <dl className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="rounded-2xl bg-muted p-3">
+                    <dt className="text-caption text-muted-foreground">{t.before}</dt>
+                    <dd className={cn("mt-1 text-body-sm font-semibold", !preview.beforeKnown && "text-muted-foreground")}>
+                      {preview.before}
+                      {preview.beforeSource ? (
+                        <span className="mt-1 block text-caption font-normal text-muted-foreground">{preview.beforeSource}</span>
+                      ) : null}
+                    </dd>
+                  </div>
+                  <div className="rounded-2xl bg-card p-3 ring-2 ring-primary">
+                    <dt className="text-caption text-muted-foreground">{t.after}</dt>
+                    <dd className="mt-1 text-body-sm font-semibold">
+                      {preview.after}
+                      <ReliabilityBadge value="confirmed" className="mt-1 flex w-fit" />
+                    </dd>
+                  </div>
+                </dl>
+                <p className="mt-2 text-caption text-muted-foreground">{session?.demo ? t.afterSourceDemo : t.afterSource}</p>
+                {current.comment ? (
+                  <figure className="mt-3">
+                    <figcaption className="text-caption text-muted-foreground">{t.comment}</figcaption>
+                    <blockquote className="text-body-sm text-foreground/85">„{current.comment}”</blockquote>
+                  </figure>
+                ) : null}
+                {current.history.length ? (
+                  <ul className="mt-3 space-y-1 text-caption">
+                    {current.history.map((event, i) => (
+                      <li key={i}>
+                        <span className="font-semibold">{t.decision[event.decision]}</span> ·{" "}
+                        {t.historyEntry(event.moderator, formatDateTime(event.decidedAt, locale))}
+                        {event.note ? <span className="block text-foreground/85">„{event.note}”</span> : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+
+                <label htmlFor={noteId} className="mt-4 mb-2 block text-body-sm font-semibold">
+                  {t.note}
+                </label>
+                <textarea
+                  id={noteId}
+                  value={note}
+                  maxLength={500}
+                  rows={2}
+                  onChange={(e) => setNote(e.target.value)}
+                  aria-describedby={noteHintId}
+                  className="min-h-16 w-full rounded-2xl border border-input bg-card px-4 py-3 text-body-sm outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                />
+                <p id={noteHintId} className="mt-1.5 text-caption text-muted-foreground">
+                  {t.noteHint}
+                </p>
+
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <Button
+                    className="col-span-2"
+                    disabled={decide.isPending}
+                    onClick={() => decide.mutate({ report: current, decision: "accepted" })}
+                  >
+                    <CheckCircle weight="fill" aria-hidden />
+                    {t.approve}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={decide.isPending}
+                    onClick={() => decide.mutate({ report: current, decision: "rejected" })}
+                  >
+                    <XCircle weight="bold" aria-hidden />
+                    {t.reject}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    disabled={decide.isPending}
+                    onClick={() => decide.mutate({ report: current, decision: "needs_info" })}
+                  >
+                    <Question weight="bold" aria-hidden />
+                    {t.clarify}
+                  </Button>
+                </div>
+                {decide.isPending ? (
+                  <p className="mt-2 text-caption text-muted-foreground" aria-busy="true">
+                    {t.deciding}
+                  </p>
+                ) : null}
               </div>
-              <div className="rounded-2xl bg-card p-3 ring-2 ring-primary">
-                <dt className="text-caption text-muted-foreground">{t.after}</dt>
-                <dd className="mt-1 text-body-sm font-semibold">
-                  {preview.after}
-                  <ReliabilityBadge value="confirmed" className="mt-1 flex w-fit" />
-                </dd>
-              </div>
-            </dl>
-            <p className="mt-2 text-caption text-muted-foreground">{session?.demo ? t.afterSourceDemo : t.afterSource}</p>
-            {current.comment ? (
-              <figure className="mt-3">
-                <figcaption className="text-caption text-muted-foreground">{t.comment}</figcaption>
-                <blockquote className="text-body-sm text-foreground/85">„{current.comment}”</blockquote>
-              </figure>
-            ) : null}
-            {current.history.length ? (
-              <ul className="mt-3 space-y-1 text-caption">
-                {current.history.map((event, i) => (
-                  <li key={i}>
-                    <span className="font-semibold">{t.decision[event.decision]}</span> ·{" "}
-                    {t.historyEntry(event.moderator, formatDateTime(event.decidedAt, locale))}
-                    {event.note ? <span className="block text-foreground/85">„{event.note}”</span> : null}
+            </InfoSection>
+          ) : null}
+
+          <InfoSection title={t.history}>
+            {history.length ? (
+              <ul className="divide-y divide-border rounded-[20px] bg-surface-raised ring-1 ring-border/70">
+                {history.map((entry) => (
+                  <li key={entry.key} className="flex items-start gap-3 px-4 py-3 text-caption">
+                    <span className="min-w-0 flex-1">
+                      <span className="block font-semibold text-foreground">
+                        {entry.summary}
+                      </span>
+                      <span className="block text-muted-foreground">
+                        {t.historyEntry(entry.moderator, formatDateTime(entry.decidedAt, locale))}
+                      </span>
+                      {entry.note ? <span className="block text-foreground/85">„{entry.note}”</span> : null}
+                      {entry.decision === "accepted" ? (
+                        <Link
+                          href={routes.place(entry.placeId)}
+                          aria-label={t.showOnCardLabel(entry.placeName)}
+                          className="mt-1 inline-flex min-h-6 items-center font-semibold text-primary underline underline-offset-2 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                        >
+                          {t.showOnCard}
+                        </Link>
+                      ) : null}
+                    </span>
+                    <span className="shrink-0 font-semibold">{t.decision[entry.decision]}</span>
                   </li>
                 ))}
               </ul>
-            ) : null}
-
-            <label htmlFor={noteId} className="mt-4 mb-2 block text-body-sm font-semibold">
-              {t.note}
-            </label>
-            <textarea
-              id={noteId}
-              value={note}
-              maxLength={500}
-              rows={2}
-              onChange={(e) => setNote(e.target.value)}
-              aria-describedby={noteHintId}
-              className="min-h-16 w-full rounded-2xl border border-input bg-card px-4 py-3 text-body-sm outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            />
-            <p id={noteHintId} className="mt-1.5 text-caption text-muted-foreground">
-              {t.noteHint}
-            </p>
-
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <Button
-                className="col-span-2"
-                disabled={decide.isPending}
-                onClick={() => decide.mutate({ report: current, decision: "accepted" })}
-              >
-                <CheckCircle weight="fill" aria-hidden />
-                {t.approve}
-              </Button>
-              <Button
-                variant="outline"
-                disabled={decide.isPending}
-                onClick={() => decide.mutate({ report: current, decision: "rejected" })}
-              >
-                <XCircle weight="bold" aria-hidden />
-                {t.reject}
-              </Button>
-              <Button
-                variant="outline"
-                disabled={decide.isPending}
-                onClick={() => decide.mutate({ report: current, decision: "needs_info" })}
-              >
-                <Question weight="bold" aria-hidden />
-                {t.clarify}
-              </Button>
-            </div>
-            {decide.isPending ? (
-              <p className="mt-2 text-caption text-muted-foreground" aria-busy="true">
-                {t.deciding}
-              </p>
-            ) : null}
-          </div>
-        </InfoSection>
-      ) : null}
-
-      <InfoSection title={t.history}>
-        {history.length ? (
-          <ul className="divide-y divide-border rounded-[20px] bg-surface-raised ring-1 ring-border/70">
-            {history.map((entry) => (
-              <li key={entry.key} className="flex items-start gap-3 px-4 py-3 text-caption">
-                <span className="min-w-0 flex-1">
-                  <span className="block font-semibold text-foreground">
-                    {entry.summary}
-                  </span>
-                  <span className="block text-muted-foreground">
-                    {t.historyEntry(entry.moderator, formatDateTime(entry.decidedAt, locale))}
-                  </span>
-                  {entry.note ? <span className="block text-foreground/85">„{entry.note}”</span> : null}
-                  {entry.decision === "accepted" ? (
-                    <Link
-                      href={routes.place(entry.placeId)}
-                      aria-label={t.showOnCardLabel(entry.placeName)}
-                      className="mt-1 inline-flex min-h-6 items-center font-semibold text-primary underline underline-offset-2 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                    >
-                      {t.showOnCard}
-                    </Link>
-                  ) : null}
-                </span>
-                <span className="shrink-0 font-semibold">{t.decision[entry.decision]}</span>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-body-sm text-muted-foreground">{t.historyEmpty}</p>
-        )}
-      </InfoSection>
+            ) : (
+              <p className="text-body-sm text-muted-foreground">{t.historyEmpty}</p>
+            )}
+          </InfoSection>
+        </TabsContent>
+        <TabsContent value="outages">
+          <OutagesTab token={token} query={outages} session={session} onSignOut={onSignOut} />
+        </TabsContent>
+      </Tabs>
     </>
   );
 }
