@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
 
 const WAWEL = { latitude: 50.0541, longitude: 19.9354, accuracy: 20 };
+const NOWA_HUTA = { latitude: 50.0722, longitude: 20.0375, accuracy: 20 };
 
 function metres(text: string) {
   const match = /([\d,]+) (m|km) od Ciebie/.exec(text);
@@ -50,6 +51,34 @@ test.describe("with location access granted", () => {
     await expect(nearby).toHaveAttribute("aria-pressed", "false");
     await expect(rows.first()).toContainText("od Rynku");
     await expect(page.locator("[data-you]")).toHaveCount(0);
+  });
+});
+
+test.describe("far from every listed place", () => {
+  test.use({ geolocation: NOWA_HUTA, permissions: ["geolocation"] });
+
+  test("'W mojej okolicy' narrows the list to the user's area and says why it is empty", async ({ page, expectAccessible }) => {
+    // GIVEN the home screen listing all 9 places, none of them near Nowa Huta
+    await page.goto("/");
+    const list = page.getByRole("region", { name: "Lista miejsc" });
+    await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+
+    // WHEN the user in Nowa Huta turns on "W mojej okolicy"
+    await list.getByRole("button", { name: "W mojej okolicy" }).click();
+
+    // THEN only their area is searched: the heading and the list agree, and the empty state names the area
+    await expect(list.getByRole("heading", { level: 2 })).toHaveText("0 miejsc");
+    await expect(list.getByRole("listitem")).toHaveCount(0);
+    await expect(list.getByText("Szukasz tylko w Twojej okolicy (w promieniu ok. 2 km).")).toBeVisible();
+    await expect(page.getByRole("status").filter({ hasText: "W Twojej okolicy, od najbliższych. Nie znaleziono miejsc" })).toBeAttached();
+    await expectAccessible();
+
+    // WHEN they search the whole city instead
+    await list.getByRole("button", { name: "Szukaj w całym Krakowie" }).click();
+
+    // THEN "W mojej okolicy" is off and all places are back
+    await expect(list.getByRole("button", { name: "W mojej okolicy" })).toHaveAttribute("aria-pressed", "false");
+    await expect(list.getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
   });
 });
 

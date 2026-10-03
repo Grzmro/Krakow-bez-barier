@@ -38,7 +38,11 @@ export const withPlacesMocks = (fallback: Fetch): Fetch => async (input) => {
   const params = url.searchParams;
 
   if (input.method === "GET" && path === "/places") {
-    const list = (key: string) => params.get(key)?.split(",").filter(Boolean);
+    // openapi-fetch explodes arrays (`bbox=1&bbox=2…`); the spec's form style joins them with commas. Accept both.
+    const list = (key: string) => {
+      const values = params.getAll(key).flatMap((v) => v.split(",").filter(Boolean));
+      return values.length ? values : undefined;
+    };
     const bbox = list("bbox")?.map(Number);
     return json(
       mockListPlaces({

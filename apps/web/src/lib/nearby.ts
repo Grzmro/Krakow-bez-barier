@@ -35,3 +35,26 @@ export function byDistance<T extends { location: { coordinates: number[] } }>(
     .map((place) => ({ place, distance: distanceMeters(origin, place.location.coordinates) }))
     .sort((a, b) => a.distance - b.distance);
 }
+
+/** Most pages "W mojej okolicy" fetches for one area (100 places each). */
+export const MAX_AREA_PAGES = 10;
+
+type Page<T> = { items: T[]; nextCursor: string | null; total: number };
+
+/**
+ * Every page of a bounded search, so sorting by distance on the device sees the whole area, not just the
+ * first page in name order. Stops after `maxPages`; a non-null `nextCursor` then says the list is cut short.
+ */
+export async function collectPages<T>(
+  fetchPage: (cursor: string | undefined) => Promise<Page<T>>,
+  maxPages = MAX_AREA_PAGES,
+): Promise<Page<T>> {
+  // TODO(KBB-59): replace paging with a server-side `near` sort.
+  let page = await fetchPage(undefined);
+  const items = [...page.items];
+  for (let fetched = 1; page.nextCursor && fetched < maxPages; fetched++) {
+    page = await fetchPage(page.nextCursor);
+    items.push(...page.items);
+  }
+  return { items, nextCursor: page.nextCursor, total: page.total };
+}

@@ -16,9 +16,13 @@ export const nearby = {
   home: {
     sortOff: "Pokaż miejsca od najbliższych",
     sortOn: "Od najbliższych, odległość od Ciebie",
-    privacy: "Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar (ok. 2 km), którego nie zapisujemy.",
+    privacy:
+      "Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.",
     announce: "W Twojej okolicy, od najbliższych",
     you: "Ty",
+    emptyHint: "Szukasz tylko w Twojej okolicy (w promieniu ok. 2 km).",
+    truncated: (shown: number, total: number) =>
+      `Lista obejmuje ${shown} z ${total} pasujących miejsc w okolicy, więc najbliższe mogą w niej nie być. Zawęź wyszukiwanie nazwą, kategorią lub filtrem.`,
   },
   devPage: {
     title: "Funkcje natywne",

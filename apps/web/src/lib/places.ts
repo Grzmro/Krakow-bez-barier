@@ -3,16 +3,22 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { GetPlaceQuery, ListPlacesQuery } from "@krakow-bez-barier/contracts";
 import { api } from "./api";
+import { collectPages } from "./nearby";
 
-/** `GET /places`. Keeps the previous list while a new profile or query loads, so nothing flickers. */
-export function usePlaces(query: ListPlacesQuery) {
+async function listPlaces(query: ListPlacesQuery) {
+  const { data, error } = await api.GET("/places", { params: { query } });
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * `GET /places`. Keeps the previous list while a new profile or query loads, so nothing flickers. With
+ * `allPages`, follows `nextCursor` (up to a cap) — only for a bounded `bbox`.
+ */
+export function usePlaces(query: ListPlacesQuery, { allPages = false }: { allPages?: boolean } = {}) {
   return useQuery({
-    queryKey: ["places", query],
-    queryFn: async () => {
-      const { data, error } = await api.GET("/places", { params: { query } });
-      if (error) throw error;
-      return data;
-    },
+    queryKey: ["places", query, allPages],
+    queryFn: () => (allPages ? collectPages((cursor) => listPlaces({ ...query, cursor })) : listPlaces(query)),
     placeholderData: keepPreviousData,
   });
 }
@@ -22,7 +28,9 @@ export function usePlace(id: string, query: GetPlaceQuery, { enabled = true }: {
   return useQuery({
     queryKey: ["place", id, query],
     queryFn: async () => {
-      const { data, error } = await api.GET("/places/{id}", { params: { path: { id }, query } });
+      const { data, error } = await api.GET("/places/{id}", {
+        params: { path: { id }, query },
+      });
       if (error) throw error;
       return data;
     },
