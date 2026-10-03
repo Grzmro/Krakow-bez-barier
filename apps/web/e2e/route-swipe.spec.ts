@@ -60,6 +60,8 @@ test.describe("route panel swipe on iPhone 15", () => {
     await expect(show).toHaveAttribute("aria-expanded", "false");
     await expect(panel(page)).toContainText("19 min");
     await expect(panel(page).getByRole("button", { name: "Ruszamy" })).toHaveCount(0);
+    // AND the page keeps a title for screen readers while the panel's own heading is hidden
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Trasa");
     const bar = await settledHeight(page);
     expect(bar).toBeLessThan(half / 2);
 

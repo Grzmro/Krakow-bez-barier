@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
-import { panelInset } from "../home/map-padding";
+import { panelInset } from "./map-padding";
 
 // Waits for the panel to stop moving (a swipe, the height transition) before the map's padding follows it.
 const SETTLE_MS = 120;

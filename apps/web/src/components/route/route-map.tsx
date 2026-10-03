@@ -8,7 +8,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useMessages } from "@/i18n/client";
 import { config } from "@/lib/config";
 import { blankMissingImages } from "@/lib/map-images";
-import { mapPadding, type VerticalPadding } from "../home/map-padding";
+import { mapPadding, type VerticalPadding } from "../map/map-padding";
 import { MapControls } from "../map/map-controls";
 
 const SOURCE = "route";
@@ -127,9 +127,19 @@ export function RouteMap({
   const [unavailable, setUnavailable] = useState(false);
   const onSelectRef = useRef(onSelect);
   const fittedRef = useRef<{ route: Route; padding: string } | null>(null);
+  // Whether the visitor moved the map with a gesture (it carries `originalEvent`) since the route was last fitted.
+  const movedRef = useRef(false);
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
+  useEffect(() => {
+    if (!map) return;
+    const onMove = (event: { originalEvent?: unknown }) => {
+      if (event.originalEvent) movedRef.current = true;
+    };
+    map.on("movestart", onMove);
+    return () => void map.off("movestart", onMove);
+  }, [map]);
 
   useEffect(() => {
     let disposed = false;
@@ -188,12 +198,13 @@ export function RouteMap({
       }
     }
     // A new route, or a panel that settled at another height: the whole route is fitted into what stays visible.
-    // Not while the map follows the walker.
+    // Not while the map follows the walker, nor once the visitor has panned or zoomed this route themselves.
     const pad = mapPadding(padding, inset, map.getContainer().clientHeight);
     const key = `${pad.top},${pad.bottom}`;
     const fitted = fittedRef.current;
-    if (fitted?.route === route && (fitted.padding === key || follow)) return;
+    if (fitted?.route === route && (fitted.padding === key || follow || movedRef.current)) return;
     fittedRef.current = { route, padding: key };
+    movedRef.current = false;
     import("maplibre-gl").then(({ LngLatBounds }) => {
       const bounds = new LngLatBounds();
       for (const point of route.geometry.coordinates) bounds.extend(point as [number, number]);

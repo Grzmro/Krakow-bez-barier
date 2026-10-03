@@ -1,4 +1,5 @@
 - main:
+  - heading "Trasa" [level=1]
   - link "Wstecz":
     - /url: /
   - text: Start
