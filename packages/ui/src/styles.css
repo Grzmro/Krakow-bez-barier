@@ -234,6 +234,12 @@
   }
 }
 
+/* "Brak danych" fill for bars and route segments: hatched, never a solid status colour. */
+@utility stripes-unknown {
+  background-image: repeating-linear-gradient(-45deg, var(--status-unknown) 0 3px, transparent 3px 7px);
+  background-color: var(--status-unknown-bg);
+}
+
 @utility press {
   transition: transform 150ms var(--ease-out-soft), background-color 150ms, box-shadow 200ms, color 150ms, border-color 150ms;
   &:active {

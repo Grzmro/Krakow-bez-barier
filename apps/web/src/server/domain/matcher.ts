@@ -7,7 +7,7 @@ const t = pl.profile.reasons;
 
 type PlaceFacts = { attributes: ResolvedAttribute[] };
 
-const SMOOTH_SURFACES = new Set(["asphalt", "concrete", "paving_stones", "paved", "flat"]);
+export const SMOOTH_SURFACES = new Set(["asphalt", "concrete", "paving_stones", "paved", "flat"]);
 
 type Resolved =
   | { kind: "known"; attribute: ResolvedAttribute }

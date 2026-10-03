@@ -1,4 +1,11 @@
+import { existsSync } from "node:fs";
+import path from "node:path";
 import type { NextConfig } from "next";
+
+// Next reads env files only from apps/web; the repo's shared secrets (ORS_API_KEY, DATABASE_URL) live in the root
+// .env. Variables already set (shell, apps/web/.env*, Vercel) win: loadEnvFile never overrides them.
+const rootEnv = path.join(__dirname, "../../.env");
+if (existsSync(rootEnv)) process.loadEnvFile(rootEnv);
 
 const corsRead = [
   { key: "Access-Control-Allow-Origin", value: "*" },

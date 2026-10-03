@@ -1,0 +1,955 @@
+{
+  "request": {
+    "profile": "wheelchair",
+    "body": {
+      "coordinates": [
+        [
+          19.9461,
+          50.0668
+        ],
+        [
+          19.9373,
+          50.0617
+        ]
+      ],
+      "extra_info": [
+        "surface",
+        "steepness",
+        "waytype"
+      ],
+      "instructions": true,
+      "language": "pl",
+      "units": "m",
+      "options": {
+        "profile_params": {
+          "restrictions": {
+            "maximum_incline": 8,
+            "maximum_sloped_kerb": 0.03
+          }
+        }
+      }
+    }
+  },
+  "recordedAt": "2026-10-03T16:29:11.507Z",
+  "status": 200,
+  "response": {
+    "type": "FeatureCollection",
+    "bbox": [
+      19.937314,
+      50.061604,
+      19.946701,
+      50.068476
+    ],
+    "features": [
+      {
+        "bbox": [
+          19.937314,
+          50.061604,
+          19.946701,
+          50.068476
+        ],
+        "type": "Feature",
+        "properties": {
+          "segments": [
+            {
+              "distance": 1592.1,
+              "duration": 1192.2,
+              "steps": [
+                {
+                  "distance": 62.1,
+                  "duration": 55.9,
+                  "type": 11,
+                  "instruction": "Kieruj się na południe",
+                  "name": "-",
+                  "way_points": [
+                    0,
+                    3
+                  ]
+                },
+                {
+                  "distance": 256.5,
+                  "duration": 230.8,
+                  "type": 1,
+                  "instruction": "Skręć w prawo",
+                  "name": "-",
+                  "way_points": [
+                    3,
+                    10
+                  ]
+                },
+                {
+                  "distance": 39.5,
+                  "duration": 28.4,
+                  "type": 0,
+                  "instruction": "Skręć w lewo",
+                  "name": "-",
+                  "way_points": [
+                    10,
+                    13
+                  ]
+                },
+                {
+                  "distance": 34,
+                  "duration": 24.5,
+                  "type": 0,
+                  "instruction": "Skręć w lewo",
+                  "name": "-",
+                  "way_points": [
+                    13,
+                    14
+                  ]
+                },
+                {
+                  "distance": 5.1,
+                  "duration": 3.6,
+                  "type": 0,
+                  "instruction": "Skręć w lewo",
+                  "name": "-",
+                  "way_points": [
+                    14,
+                    15
+                  ]
+                },
+                {
+                  "distance": 2.5,
+                  "duration": 1.8,
+                  "type": 4,
+                  "instruction": "Skręć łagodnie w lewo",
+                  "name": "-",
+                  "way_points": [
+                    15,
+                    16
+                  ]
+                },
+                {
+                  "distance": 2.5,
+                  "duration": 1.8,
+                  "type": 0,
+                  "instruction": "Skręć w lewo",
+                  "name": "-",
+                  "way_points": [
+                    16,
+                    17
+                  ]
+                },
+                {
+                  "distance": 63.7,
+                  "duration": 45.9,
+                  "type": 1,
+                  "instruction": "Skręć w prawo",
+                  "name": "-",
+                  "way_points": [
+                    17,
+                    21
+                  ]
+                },
+                {
+                  "distance": 7.9,
+                  "duration": 5.7,
+                  "type": 1,
+                  "instruction": "Skręć w prawo",
+                  "name": "-",
+                  "way_points": [
+                    21,
+                    23
+                  ]
+                },
+                {
+                  "distance": 10.1,
+                  "duration": 7.3,
+                  "type": 0,
+                  "instruction": "Skręć w lewo",
+                  "name": "-",
+                  "way_points": [
+                    23,
+                    24
+                  ]
+                },
+                {
+                  "distance": 28.6,
+                  "duration": 15.3,
+                  "type": 1,
+                  "instruction": "Skręć w prawo",
+                  "name": "-",
+                  "way_points": [
+                    24,
+                    33
+                  ]
+                },
+                {
+                  "distance": 98,
+                  "duration": 70.5,
+                  "type": 0,
+                  "instruction": "Skręć w lewo",
+                  "name": "-",
+                  "way_points": [
+                    33,
+                    36
+                  ]
+                },
+                {
+                  "distance": 11.9,
+                  "duration": 6.6,
+                  "type": 4,
+                  "instruction": "Skręć łagodnie w lewo",
+                  "name": "-",
+                  "way_points": [
+                    36,
+                    40
+                  ]
+                },
+                {
+                  "distance": 319.7,
+                  "duration": 230.2,
+                  "type": 1,
+                  "instruction": "Skręć w prawo",
+                  "name": "-",
+                  "way_points": [
+                    40,
+                    50
+                  ]
+                },
+                {
+                  "distance": 17.3,
+                  "duration": 8.3,
+                  "type": 5,
+                  "instruction": "Skręć łagodnie w prawo",
+                  "name": "-",
+                  "way_points": [
+                    50,
+                    54
+                  ]
+                },
+                {
+                  "distance": 17.3,
+                  "duration": 12.5,
+                  "type": 0,
+                  "instruction": "Skręć w lewo",
+                  "name": "-",
+                  "way_points": [
+                    54,
+                    55
+                  ]
+                },
+                {
+                  "distance": 10.3,
+                  "duration": 7.4,
+                  "type": 1,
+                  "instruction": "Skręć w prawo",
+                  "name": "-",
+                  "way_points": [
+                    55,
+                    57
+                  ]
+                },
+                {
+                  "distance": 53.5,
+                  "duration": 38.5,
+                  "type": 5,
+                  "instruction": "Skręć łagodnie w prawo",
+                  "name": "-",
+                  "way_points": [
+                    57,
+                    59
+                  ]
+                },
+                {
+                  "distance": 34.9,
+                  "duration": 25.1,
+                  "type": 4,
+                  "instruction": "Skręć łagodnie w lewo",
+                  "name": "-",
+                  "way_points": [
+                    59,
+                    64
+                  ]
+                },
+                {
+                  "distance": 6.6,
+                  "duration": 4.8,
+                  "type": 1,
+                  "instruction": "Skręć w prawo na Pijarska",
+                  "name": "Pijarska",
+                  "way_points": [
+                    64,
+                    65
+                  ]
+                },
+                {
+                  "distance": 345.7,
+                  "duration": 248.9,
+                  "type": 0,
+                  "instruction": "Skręć w lewo na Floriańska",
+                  "name": "Floriańska",
+                  "way_points": [
+                    65,
+                    85
+                  ]
+                },
+                {
+                  "distance": 22.2,
+                  "duration": 16,
+                  "type": 1,
+                  "instruction": "Skręć w prawo na Rynek Główny",
+                  "name": "Rynek Główny",
+                  "way_points": [
+                    85,
+                    86
+                  ]
+                },
+                {
+                  "distance": 50.2,
+                  "duration": 36.1,
+                  "type": 7,
+                  "instruction": "Na rondzie zjedź 1. zjazdem",
+                  "name": "-",
+                  "exit_number": 1,
+                  "way_points": [
+                    86,
+                    87
+                  ]
+                },
+                {
+                  "distance": 91.9,
+                  "duration": 66.2,
+                  "type": 6,
+                  "instruction": "Kontynuuj prosto",
+                  "name": "-",
+                  "way_points": [
+                    87,
+                    93
+                  ]
+                },
+                {
+                  "distance": 0,
+                  "duration": 0,
+                  "type": 10,
+                  "instruction": "Dotrzesz do celu po lewej stronie",
+                  "name": "-",
+                  "way_points": [
+                    93,
+                    93
+                  ]
+                }
+              ]
+            }
+          ],
+          "extras": {
+            "waytype": {
+              "values": [
+                [
+                  0,
+                  10,
+                  3
+                ],
+                [
+                  10,
+                  85,
+                  7
+                ],
+                [
+                  85,
+                  87,
+                  3
+                ],
+                [
+                  87,
+                  93,
+                  7
+                ]
+              ],
+              "summary": [
+                {
+                  "value": 7,
+                  "distance": 1201.1,
+                  "amount": 75.44
+                },
+                {
+                  "value": 3,
+                  "distance": 391,
+                  "amount": 24.56
+                }
+              ]
+            },
+            "surface": {
+              "values": [
+                [
+                  0,
+                  3,
+                  14
+                ],
+                [
+                  3,
+                  9,
+                  0
+                ],
+                [
+                  9,
+                  10,
+                  14
+                ],
+                [
+                  10,
+                  13,
+                  1
+                ],
+                [
+                  13,
+                  16,
+                  14
+                ],
+                [
+                  16,
+                  22,
+                  0
+                ],
+                [
+                  22,
+                  28,
+                  14
+                ],
+                [
+                  28,
+                  29,
+                  3
+                ],
+                [
+                  29,
+                  30,
+                  14
+                ],
+                [
+                  30,
+                  32,
+                  3
+                ],
+                [
+                  32,
+                  37,
+                  14
+                ],
+                [
+                  37,
+                  39,
+                  3
+                ],
+                [
+                  39,
+                  51,
+                  14
+                ],
+                [
+                  51,
+                  53,
+                  1
+                ],
+                [
+                  53,
+                  55,
+                  14
+                ],
+                [
+                  55,
+                  59,
+                  3
+                ],
+                [
+                  59,
+                  65,
+                  14
+                ],
+                [
+                  65,
+                  85,
+                  0
+                ],
+                [
+                  85,
+                  93,
+                  14
+                ]
+              ],
+              "summary": [
+                {
+                  "value": 14,
+                  "distance": 965.3,
+                  "amount": 60.63
+                },
+                {
+                  "value": 0,
+                  "distance": 498.4,
+                  "amount": 31.3
+                },
+                {
+                  "value": 3,
+                  "distance": 77.3,
+                  "amount": 4.85
+                },
+                {
+                  "value": 1,
+                  "distance": 51.1,
+                  "amount": 3.21
+                }
+              ]
+            },
+            "steepness": {
+              "values": [
+                [
+                  0,
+                  93,
+                  0
+                ]
+              ],
+              "summary": [
+                {
+                  "value": 0,
+                  "distance": 1592.1,
+                  "amount": 100
+                }
+              ]
+            }
+          },
+          "warnings": [
+            {
+              "code": 4,
+              "message": "Extra info requested but not available: roadaccessrestrictions"
+            }
+          ],
+          "way_points": [
+            0,
+            93
+          ],
+          "summary": {
+            "distance": 1592.1,
+            "duration": 1192.2
+          }
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              19.946065,
+              50.066799
+            ],
+            [
+              19.946078,
+              50.066491
+            ],
+            [
+              19.946256,
+              50.066494
+            ],
+            [
+              19.946467,
+              50.066498
+            ],
+            [
+              19.946493,
+              50.066217
+            ],
+            [
+              19.946536,
+              50.06619
+            ],
+            [
+              19.946603,
+              50.066186
+            ],
+            [
+              19.946661,
+              50.066206
+            ],
+            [
+              19.946701,
+              50.066272
+            ],
+            [
+              19.946693,
+              50.066561
+            ],
+            [
+              19.946638,
+              50.068102
+            ],
+            [
+              19.946275,
+              50.068097
+            ],
+            [
+              19.946273,
+              50.068169
+            ],
+            [
+              19.946351,
+              50.06817
+            ],
+            [
+              19.946337,
+              50.068476
+            ],
+            [
+              19.946266,
+              50.068475
+            ],
+            [
+              19.94624,
+              50.068461
+            ],
+            [
+              19.946243,
+              50.068438
+            ],
+            [
+              19.945946,
+              50.068432
+            ],
+            [
+              19.945587,
+              50.068426
+            ],
+            [
+              19.945589,
+              50.068379
+            ],
+            [
+              19.945594,
+              50.068275
+            ],
+            [
+              19.945573,
+              50.068274
+            ],
+            [
+              19.945482,
+              50.068272
+            ],
+            [
+              19.945487,
+              50.068181
+            ],
+            [
+              19.94544,
+              50.068182
+            ],
+            [
+              19.945345,
+              50.068183
+            ],
+            [
+              19.945309,
+              50.068184
+            ],
+            [
+              19.945249,
+              50.068185
+            ],
+            [
+              19.945197,
+              50.068186
+            ],
+            [
+              19.945166,
+              50.068186
+            ],
+            [
+              19.945136,
+              50.068187
+            ],
+            [
+              19.945107,
+              50.068187
+            ],
+            [
+              19.945086,
+              50.068187
+            ],
+            [
+              19.945047,
+              50.067573
+            ],
+            [
+              19.945032,
+              50.067344
+            ],
+            [
+              19.944994,
+              50.067316
+            ],
+            [
+              19.944994,
+              50.067301
+            ],
+            [
+              19.944994,
+              50.067281
+            ],
+            [
+              19.944993,
+              50.067251
+            ],
+            [
+              19.944991,
+              50.06721
+            ],
+            [
+              19.944534,
+              50.067211
+            ],
+            [
+              19.943701,
+              50.067215
+            ],
+            [
+              19.94364,
+              50.067217
+            ],
+            [
+              19.943062,
+              50.067215
+            ],
+            [
+              19.943018,
+              50.067193
+            ],
+            [
+              19.942971,
+              50.067123
+            ],
+            [
+              19.942243,
+              50.066126
+            ],
+            [
+              19.942219,
+              50.06607
+            ],
+            [
+              19.94199,
+              50.065765
+            ],
+            [
+              19.941995,
+              50.065738
+            ],
+            [
+              19.941962,
+              50.065699
+            ],
+            [
+              19.94192,
+              50.065647
+            ],
+            [
+              19.941886,
+              50.065606
+            ],
+            [
+              19.941882,
+              50.065601
+            ],
+            [
+              19.942096,
+              50.065526
+            ],
+            [
+              19.9421,
+              50.065498
+            ],
+            [
+              19.942111,
+              50.065434
+            ],
+            [
+              19.941973,
+              50.065317
+            ],
+            [
+              19.94158,
+              50.065097
+            ],
+            [
+              19.941515,
+              50.065027
+            ],
+            [
+              19.941459,
+              50.064886
+            ],
+            [
+              19.941448,
+              50.06486
+            ],
+            [
+              19.941435,
+              50.064824
+            ],
+            [
+              19.941427,
+              50.064802
+            ],
+            [
+              19.941334,
+              50.064809
+            ],
+            [
+              19.941185,
+              50.064628
+            ],
+            [
+              19.941102,
+              50.064514
+            ],
+            [
+              19.941042,
+              50.064431
+            ],
+            [
+              19.940958,
+              50.06432
+            ],
+            [
+              19.940698,
+              50.063977
+            ],
+            [
+              19.940621,
+              50.063875
+            ],
+            [
+              19.940452,
+              50.063652
+            ],
+            [
+              19.940433,
+              50.063627
+            ],
+            [
+              19.940415,
+              50.063605
+            ],
+            [
+              19.940282,
+              50.063437
+            ],
+            [
+              19.940198,
+              50.063331
+            ],
+            [
+              19.940176,
+              50.063303
+            ],
+            [
+              19.940104,
+              50.063212
+            ],
+            [
+              19.939848,
+              50.062891
+            ],
+            [
+              19.939823,
+              50.062859
+            ],
+            [
+              19.939806,
+              50.062836
+            ],
+            [
+              19.93973,
+              50.062733
+            ],
+            [
+              19.939626,
+              50.062597
+            ],
+            [
+              19.939227,
+              50.062085
+            ],
+            [
+              19.939193,
+              50.062022
+            ],
+            [
+              19.938883,
+              50.062014
+            ],
+            [
+              19.938551,
+              50.061615
+            ],
+            [
+              19.938408,
+              50.06164
+            ],
+            [
+              19.938209,
+              50.061638
+            ],
+            [
+              19.937686,
+              50.061604
+            ],
+            [
+              19.937574,
+              50.061621
+            ],
+            [
+              19.937354,
+              50.061701
+            ],
+            [
+              19.937314,
+              50.061716
+            ]
+          ]
+        }
+      }
+    ],
+    "metadata": {
+      "attribution": "openrouteservice.org | OpenStreetMap contributors",
+      "service": "routing",
+      "timestamp": 1791044951592,
+      "query": {
+        "coordinates": [
+          [
+            19.9461,
+            50.0668
+          ],
+          [
+            19.9373,
+            50.0617
+          ]
+        ],
+        "profile": "wheelchair",
+        "profileName": "wheelchair",
+        "format": "geojson",
+        "units": "m",
+        "language": "pl",
+        "instructions": true,
+        "extra_info": [
+          "surface",
+          "steepness",
+          "waytype"
+        ],
+        "options": {
+          "profile_params": {
+            "restrictions": {
+              "maximum_sloped_kerb": 0.03,
+              "maximum_incline": 8
+            },
+            "surface_quality_known": false,
+            "allow_unsuitable": false
+          }
+        }
+      },
+      "engine": {
+        "version": "9.10.0",
+        "build_date": "2026-07-28T16:17:20Z",
+        "graph_date": "2026-09-20T13:06:26Z",
+        "osm_date": "2026-09-13T23:59:59Z"
+      }
+    }
+  }
+}

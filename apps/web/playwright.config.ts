@@ -22,6 +22,8 @@ const runProdSpecs = process.env.E2E_PROD === "1" || !!process.env.E2E_PROD_BASE
 const startProdServer = runProdSpecs && !isCI && !process.env.E2E_PROD_BASE_URL;
 
 const device = { ...devices["Pixel 7"], browserName: "chromium" as const };
+// Routes come from the recorded openrouteservice answers, never the live API (the root .env may hold a key).
+const env = { ORS_API_KEY: "" };
 const servers: PlaywrightTestConfig["webServer"] = [
   ...(process.env.E2E_BASE_URL
     ? []
@@ -31,10 +33,11 @@ const servers: PlaywrightTestConfig["webServer"] = [
           url: baseURL,
           reuseExistingServer: !isCI,
           timeout: 60_000,
+          env,
         },
       ]),
   ...(startProdServer
-    ? [{ command: `npm run start -- --port ${prodPort}`, url: prodURL, reuseExistingServer: false, timeout: 60_000 }]
+    ? [{ command: `npm run start -- --port ${prodPort}`, url: prodURL, reuseExistingServer: false, timeout: 60_000, env }]
     : []),
 ];
 

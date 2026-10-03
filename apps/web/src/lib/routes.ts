@@ -3,6 +3,8 @@ import { eventPath } from "./event-link";
 export const routes = {
   home: "/",
   place: (id: string) => `/miejsca/${encodeURIComponent(id)}`,
+  /** Route screen; `to` is a place id, without it the route ends at Rynek Główny. */
+  route: (to?: string) => (to ? `/trasa?do=${encodeURIComponent(to)}` : "/trasa"),
   aboutData: "/o-danych",
   privacy: "/prywatnosc",
   accessibility: "/deklaracja-dostepnosci",

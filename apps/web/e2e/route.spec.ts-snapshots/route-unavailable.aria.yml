@@ -1,0 +1,55 @@
+- main:
+  - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
+  - paragraph:
+    - link "OpenFreeMap":
+      - /url: https://openfreemap.org
+    - text: ·
+    - link "© OpenMapTiles":
+      - /url: https://www.openmaptiles.org/
+    - text: ·
+    - link "© OpenStreetMap contributors":
+      - /url: https://www.openstreetmap.org/copyright
+  - button "Przybliż"
+  - button "Oddal"
+  - link "Wstecz":
+    - /url: /miejsca/kawiarnia-przyklad
+    - img
+  - paragraph: "Start: Dworzec Główny"
+  - paragraph: "Cel: Kawiarnia Przykład"
+  - button "Zamień start i cel":
+    - img
+  - group "Rodzaj trasy":
+    - button "Unikaj schodów" [pressed]
+    - button "Najkrótsza"
+  - region "Odcinki trasy":
+    - button "Rozwiń arkusz"
+    - group "Odcinki trasy":
+      - heading "Trasa" [level=1]
+      - group "Profil potrzeb":
+        - text: ""
+        - radio "Profil wyłączony, widok dla każdego" [checked]
+        - text: Dla każdego
+        - radio "Wózek"
+        - text: Wózek
+        - radio "Wózek dziecięcy"
+        - text: Dziecięcy
+      - paragraph: Bez profilu sprawdzamy schody i nawierzchnię. Włącz profil, by ocenić krawężniki i nachylenie.
+      - paragraph: Wyznaczanie tras jest chwilowo niedostępne. Reszta aplikacji działa — sprawdź miejsca na liście.
+      - button "Spróbuj ponownie"
+      - 'region "Cel: wejście · Kawiarnia Przykład"':
+        - 'heading "Cel: wejście · Kawiarnia Przykład" [level=2]'
+        - paragraph: Fakty z karty miejsca.
+        - list:
+          - listitem:
+            - 'button "Wejście — stopnie: Brak danych. Wiarygodność: Brak danych."': Wejście — stopnie Brak danych Brak danych
+          - listitem:
+            - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych Brak danych
+          - listitem:
+            - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych Brak danych
+          - listitem:
+            - 'button "Podjazd: Brak danych. Wiarygodność: Brak danych."': Podjazd Brak danych Brak danych
+        - link "Otwórz kartę miejsca":
+          - /url: /miejsca/kawiarnia-przyklad
+    - button "Ruszamy" [disabled]:
+      - img
+      - text: ""

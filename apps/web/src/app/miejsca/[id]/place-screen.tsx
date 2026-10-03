@@ -19,6 +19,7 @@ import {
   HandPalm,
   Info,
   MapPin,
+  NavigationArrow,
   PencilSimple,
   Phone,
   Plus,
@@ -198,6 +199,10 @@ function PlaceCard({ place }: { place: Place }) {
       </p>
 
       <div className="mt-3 flex flex-wrap gap-2">
+        <Link href={routes.route(place.id)} className={buttonVariants({ size: "sm" })}>
+          <NavigationArrow weight="fill" />
+          {t.route}
+        </Link>
         <Button variant="outline" size="sm" onClick={share}>
           <ShareNetwork weight="bold" />
           {t.share}

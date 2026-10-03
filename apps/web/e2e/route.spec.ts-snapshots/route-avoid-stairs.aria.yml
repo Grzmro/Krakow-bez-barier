@@ -1,0 +1,113 @@
+- main:
+  - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
+  - paragraph:
+    - link "OpenFreeMap":
+      - /url: https://openfreemap.org
+    - text: ·
+    - link "© OpenMapTiles":
+      - /url: https://www.openmaptiles.org/
+    - text: ·
+    - link "© OpenStreetMap contributors":
+      - /url: https://www.openstreetmap.org/copyright
+    - text: · openrouteservice
+  - button "Przybliż"
+  - button "Oddal"
+  - link "Wstecz":
+    - /url: /
+    - img
+  - paragraph: "Start: Dworzec Główny"
+  - paragraph: "Cel: Rynek Główny"
+  - button "Zamień start i cel":
+    - img
+  - group "Rodzaj trasy":
+    - button "Unikaj schodów" [pressed]
+    - button "Najkrótsza"
+  - region "Odcinki trasy":
+    - button "Rozwiń arkusz"
+    - group "Odcinki trasy":
+      - 'heading /Trasa: \d+ minut, \d+,\d+ km/ [level=1]'
+      - group "Profil potrzeb":
+        - text: ""
+        - radio "Profil wyłączony, widok dla każdego" [checked]
+        - text: Dla każdego
+        - radio "Wózek"
+        - text: Wózek
+        - radio "Wózek dziecięcy"
+        - text: Dziecięcy
+      - paragraph: Bez profilu sprawdzamy schody i nawierzchnię. Włącz profil, by ocenić krawężniki i nachylenie.
+      - paragraph: Trasa nie zawiera znanych barier
+      - paragraph: /brak danych na 5 odcinkach \(\d+ m\)/
+      - paragraph: Pasek pokazuje odcinki w skali długości. Szczegóły w liście „Krok po kroku”.
+      - button /Najkrótsza · \d+ min Nie spełnia · schody/
+      - heading "Krok po kroku" [level=2]
+      - list "Odcinki trasy, tekstowa wersja mapy":
+        - listitem:
+          - 'button /Odcinek 1 z \d+\. Kieruj się na południe, \d+ metry\. Spełnia: płyty chodnikowe\./': "/Kieruj się na południe Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek 2 z \d+\. Skręć w prawo, \d+ metrów\. Brak danych: brak danych o nawierzchni na części odcinka\./': "/Skręć w prawo Brak danych: brak danych o nawierzchni na części odcinka \\d+ m/"
+        - listitem:
+          - 'button /Odcinek 3 z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: utwardzona\./': "/Skręć w lewo Spełnia: utwardzona \\d+ m/"
+        - listitem:
+          - 'button /Odcinek 4 z \d+\. Skręć w lewo, \d+ metry\. Spełnia: płyty chodnikowe\./': "/Skręć w lewo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek 5 z \d+\. Skręć w lewo, 5 metrów\. Spełnia: płyty chodnikowe\./': "Skręć w lewo Spełnia: płyty chodnikowe 5 m"
+        - listitem:
+          - 'button /Odcinek 6 z \d+\. Skręć łagodnie w lewo, 3 metry\. Spełnia: płyty chodnikowe\./': "Skręć łagodnie w lewo Spełnia: płyty chodnikowe 3 m"
+        - listitem:
+          - 'button /Odcinek 7 z \d+\. Skręć w lewo, 3 metry\. Brak danych: brak danych o nawierzchni\./': "Skręć w lewo Brak danych: brak danych o nawierzchni 3 m"
+        - listitem:
+          - 'button /Odcinek 8 z \d+\. Skręć w prawo, \d+ metry\. Brak danych: brak danych o nawierzchni\./': "/Skręć w prawo Brak danych: brak danych o nawierzchni \\d+ m/"
+        - listitem:
+          - 'button /Odcinek 9 z \d+\. Skręć w prawo, 8 metrów\. Brak danych: brak danych o nawierzchni na części odcinka\./': "Skręć w prawo Brak danych: brak danych o nawierzchni na części odcinka 8 m"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w lewo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w prawo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w lewo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w prawo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w lewo, 4 metry\. Brak danych: brak danych o nawierzchni\./': "Skręć w lewo Brak danych: brak danych o nawierzchni 4 m"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo na Kurniki, \d+ metrów\. Spełnia: asfalt\./': "/Skręć w prawo na Kurniki Kurniki · Spełnia: asfalt \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w lewo na Zacisze, 7 metrów\. Spełnia: asfalt\./': "Skręć w lewo na Zacisze Zacisze · Spełnia: asfalt 7 m"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w prawo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć łagodnie w prawo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć łagodnie w prawo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w lewo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, \d+ metrów\. Spełnia: asfalt\./': "/Skręć w prawo Spełnia: asfalt \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć łagodnie w prawo, \d+ metry\. Spełnia: asfalt\./': "/Skręć łagodnie w prawo Spełnia: asfalt \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć łagodnie w lewo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć łagodnie w lewo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo na Pijarska, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w prawo na Pijarska Pijarska · Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w lewo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, 6 metrów\. Spełnia: płyty chodnikowe\./': "Skręć w prawo Spełnia: płyty chodnikowe 6 m"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Kontynuuj prosto na Zaułek Niewiernego Tomasza, 1 metr\. Spełnia: płyty chodnikowe\./': "Kontynuuj prosto na Zaułek Niewiernego Tomasza Zaułek Niewiernego Tomasza · Spełnia: płyty chodnikowe 1 m"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, \d+ metry\. Spełnia: płyty chodnikowe\./': "/Skręć w prawo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, 3 metry\. Spełnia: płyty chodnikowe\./': "Skręć w prawo Spełnia: płyty chodnikowe 3 m"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w lewo na Świętego Jana, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w lewo na Świętego Jana Świętego Jana · Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Kieruj się w lewo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Kieruj się w lewo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w lewo, 2 metry\. Spełnia: płyty chodnikowe\./': "Skręć w lewo Spełnia: płyty chodnikowe 2 m"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w prawo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, 3 metry\. Spełnia: płyty chodnikowe\./': "Skręć w prawo Spełnia: płyty chodnikowe 3 m"
+      - paragraph: "Trasa: © OpenStreetMap contributors, openrouteservice"
+    - button "Ruszamy":
+      - img
+      - text: ""
