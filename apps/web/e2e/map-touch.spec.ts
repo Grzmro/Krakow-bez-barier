@@ -50,7 +50,7 @@ async function freeMapArea(page: Page) {
   const box = async (selector: Parameters<Page["locator"]>[0]) => (await page.locator(selector).first().boundingBox())!;
   const chips = await box('[aria-label="Kategorie"]');
   const zoom = (await page.getByRole("button", { name: "Przybliż" }).boundingBox())!;
-  const attribution = await box("main p:has(> span > a[href*='openstreetmap'])");
+  const attribution = await box('main button[aria-label="Informacje o źródłach mapy"]');
   const panel = (await page.getByRole("region", { name: "Lista miejsc" }).boundingBox())!;
   return {
     left: 16,

@@ -31,6 +31,8 @@ export const home: Messages["home"] = {
     label: "Map of places. Arrow keys move the view, plus and minus change the zoom. The list has the same places.",
     zoomIn: "Zoom in",
     zoomOut: "Zoom out",
+    sources: "Map sources",
+    sourcesLabel: "Information about the map sources",
     unavailable: "The map isn't available in this browser. All places are in the list.",
     cluster: (n, parts) => `Group: ${n} ${placesWord(n)}${verdictParts(parts)}`,
     zoomedToCluster: (n, parts) => `Zoomed in: ${n} ${placesWord(n)}${verdictParts(parts)}`,

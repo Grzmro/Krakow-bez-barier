@@ -74,14 +74,7 @@
   - 'img "Grupa: 4 miejsca"'
   - 'img "Grupa: 2 miejsca"'
   - 'img "Grupa: 2 miejsca"'
-  - paragraph:
-    - link "OpenFreeMap":
-      - /url: https://openfreemap.org
-    - text: ·
-    - link "© OpenMapTiles":
-      - /url: https://www.openmaptiles.org/
-    - text: ·
-    - link "© OpenStreetMap contributors":
-      - /url: https://www.openstreetmap.org/copyright
+  - button "Informacje o źródłach mapy"
+  - paragraph: Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors
   - button "Przybliż"
   - button "Oddal"

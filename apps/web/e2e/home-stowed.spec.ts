@@ -32,7 +32,7 @@ test("the list panel collapses to a bar, leaves the map in view and brings the l
   const viewport = page.viewportSize()!;
   expect(bar.y + bar.height).toBeGreaterThanOrEqual(viewport.height - 1);
   const zoomIn = (await page.getByRole("button", { name: "Przybliż" }).boundingBox())!;
-  const attribution = (await page.getByRole("link", { name: /OpenStreetMap/ }).first().boundingBox())!;
+  const attribution = (await page.getByRole("button", { name: "Informacje o źródłach mapy" }).boundingBox())!;
   for (const box of [zoomIn, attribution]) expect(box.y + box.height).toBeLessThanOrEqual(bar.y);
   await expect(page.getByRole("button", { name: "Przybliż" })).toBeInViewport();
   await expect(page.locator("[data-place-id]").first()).toBeVisible();
