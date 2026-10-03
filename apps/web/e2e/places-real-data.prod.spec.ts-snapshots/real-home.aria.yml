@@ -43,6 +43,6 @@
       - list
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
   - button "Informacje o źródłach mapy"
-  - paragraph: Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors
+  - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
   - button "Przybliż"
   - button "Oddal"
