@@ -28,6 +28,16 @@ describe("StatusBadge", () => {
     expect(html).toContain("border-dashed");
     expect(html).not.toContain("status-met");
   });
+
+  it("keeps the full label with its qualifier", () => {
+    // GIVEN a met verdict with the "niepotwierdzone" qualifier
+    // WHEN rendered
+    const html = renderToStaticMarkup(<StatusBadge status="met" label="Spełnia" note="niepotwierdzone" />);
+
+    // THEN both the word and the qualifier are in the markup
+    expect(html).toContain("Spełnia");
+    expect(html).toContain("niepotwierdzone");
+  });
 });
 
 describe("ReliabilityBadge", () => {

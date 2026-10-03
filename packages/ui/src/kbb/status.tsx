@@ -61,13 +61,15 @@ export function StatusBadge({ status, label, reason, note, size = "md", classNam
       variant={status}
       data-status={status}
       className={cn(
-        "rounded-full font-semibold",
-        size === "md" ? "h-7 gap-1.5 px-2.5 text-[13px] [&>svg]:size-4!" : "h-6 gap-1 px-2 text-xs [&>svg]:size-3.5!",
+        "h-auto max-w-full justify-start overflow-visible font-semibold whitespace-normal",
+        size === "md"
+          ? "min-h-7 gap-1.5 rounded-[14px] px-2.5 py-1 text-[13px] leading-[18px] [&>svg]:size-4!"
+          : "min-h-6 gap-1 rounded-xl px-2 py-1 text-xs leading-4 [&>svg]:size-3.5!",
         className,
       )}
     >
-      <StatusIcon status={status} />
-      <span>
+      <StatusIcon status={status} className="mt-px self-start" />
+      <span className="min-w-0 [overflow-wrap:break-word]">
         {label}
         {reason ? <span className="font-medium"> · {reason}</span> : null}
         {note ? <span className="font-medium"> · {note}</span> : null}
