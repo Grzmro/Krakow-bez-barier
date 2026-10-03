@@ -43,6 +43,9 @@ jobs:
         if: steps.deps.outputs.cache-hit != 'true'
         run: npm ci --no-audit --no-fund
 
+      - name: Generate contracts
+        run: npm run contracts:generate
+
       - name: Lint
         run: npm run lint
 
