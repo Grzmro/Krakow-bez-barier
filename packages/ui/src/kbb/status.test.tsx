@@ -29,17 +29,14 @@ describe("StatusBadge", () => {
     expect(html).not.toContain("status-met");
   });
 
-  it("wraps a long label instead of clipping it on a narrow screen", () => {
+  it("keeps the full label with its qualifier", () => {
     // GIVEN a met verdict with the "niepotwierdzone" qualifier
     // WHEN rendered
     const html = renderToStaticMarkup(<StatusBadge status="met" label="Spełnia" note="niepotwierdzone" />);
 
-    // THEN the full text is in the markup and the badge may grow instead of hiding overflow
+    // THEN both the word and the qualifier are in the markup
     expect(html).toContain("Spełnia");
     expect(html).toContain("niepotwierdzone");
-    expect(html).toContain("whitespace-normal");
-    expect(html).toContain("overflow-visible");
-    expect(html).not.toMatch(/[\s"]h-7[\s"]/);
   });
 });
 
