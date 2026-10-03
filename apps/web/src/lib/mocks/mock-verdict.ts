@@ -10,7 +10,8 @@ import type {
 import { pl } from "@/i18n/pl";
 import type { Thresholds } from "@/lib/profile/thresholds";
 
-// TODO(KBB-28): stand-in for the API's matcher (KBB-17) so the UI can be built on spec examples.
+// TODO(KBB-28): stand-in for the places API so the UI can be built on spec examples. The API should
+// use `matchProfile` (server/domain) with the user's thresholds and these rules (docs/architecture.md).
 // Delete with the mock layer once `GET /places` returns verdicts for the requested thresholds.
 
 const t = pl.profile.reasons;
