@@ -11,6 +11,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useMessages } from "@/i18n/client";
 import { useCategoryLookup } from "@/lib/categories";
 import { config } from "@/lib/config";
+import { blankMissingImages } from "@/lib/map-images";
 import {
   buildClusterIndex,
   clusterPlaceIds,
@@ -233,6 +234,7 @@ export function PlaceMap({
           pixelRatio: Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO),
         });
         instance.touchZoomRotate.disableRotation();
+        blankMissingImages(instance);
         setMap(instance);
       })
       .catch(() => {
