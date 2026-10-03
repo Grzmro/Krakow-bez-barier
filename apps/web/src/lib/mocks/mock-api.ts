@@ -1,12 +1,14 @@
 import {
   responseExamples,
+  type FeatureFilter,
+  type FeatureMatch,
   type GetPlaceQuery,
   type ListPlacesQuery,
   type Place,
   type PlaceList,
   type PlaceSummary,
 } from "@krakow-bez-barier/contracts";
-import { featureState } from "@/server/domain/features";
+import { FEATURE_ATTRIBUTES, featureState } from "@/server/domain/features";
 import { matchProfile } from "@/server/domain/matcher";
 import { thresholdsFor } from "@/server/domain/profiles";
 
@@ -43,11 +45,22 @@ function inBbox(summary: PlaceSummary, bbox?: number[]) {
 
 const factsOf = (summary: PlaceSummary) => PLACES.find((p) => p.id === summary.id) ?? { attributes: [] };
 
+// List-only examples have no facts; their hand-written chips mark only present features as known.
+function stateFromChips(summary: PlaceSummary, feature: FeatureFilter): FeatureMatch["state"] {
+  const chips = summary.summary.filter((chip) => FEATURE_ATTRIBUTES[feature].includes(chip.attribute));
+  if (chips.some((chip) => chip.state === "known")) return "met";
+  return chips.some((chip) => chip.state === "conflict") ? "conflict" : "unknown";
+}
+
 /** Answers each feature filter from the example's facts, like the API does. */
 function withFeatures(summary: PlaceSummary, query: ListPlacesQuery): PlaceSummary {
   if (!query.feature?.length) return summary;
-  const { attributes } = factsOf(summary);
-  return { ...summary, features: query.feature.map((feature) => ({ feature, state: featureState(attributes, feature) })) };
+  const place = PLACES.find((p) => p.id === summary.id);
+  const features = query.feature.map((feature) => ({
+    feature,
+    state: place ? featureState(place.attributes, feature) : stateFromChips(summary, feature),
+  }));
+  return { ...summary, features };
 }
 
 /** Feature filters hide places that don't have every feature by known data, unless `includeUnknown`. */
