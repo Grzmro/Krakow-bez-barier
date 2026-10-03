@@ -1,0 +1,10 @@
+- group "Profil potrzeb":
+  - text: ""
+  - radio "Profil wyłączony, widok dla każdego"
+  - text: Dla każdego
+  - radio "Wózek"
+  - text: Wózek
+  - radio "Wózek dziecięcy"
+  - text: Dziecięcy
+  - radio "Senior" [checked]
+  - text: Senior

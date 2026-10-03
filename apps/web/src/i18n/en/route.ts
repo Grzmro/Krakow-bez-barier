@@ -3,7 +3,7 @@ import type { Messages } from "../messages";
 
 const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 
-const profileName = { wheelchair: "wheelchair", stroller: "pushchair" } satisfies Record<Profile, string>;
+const profileName = { wheelchair: "wheelchair", stroller: "pushchair", senior: "senior" } satisfies Record<Profile, string>;
 
 const km = (meters: number) => `${(meters / 1000).toFixed(1)} km`;
 

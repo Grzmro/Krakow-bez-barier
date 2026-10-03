@@ -19,14 +19,14 @@ const needName = {
 const counts = (byStatus: Record<Status, number>) =>
   `${byStatus.met} meet, ${byStatus.barrier} don't meet, ${byStatus.unknown} no data, ${byStatus.conflict} conflicting`;
 
-const profileName = { wheelchair: "Wheelchair", stroller: "Pushchair" } satisfies Record<Profile, string>;
+const profileName = { wheelchair: "Wheelchair", stroller: "Pushchair", senior: "Senior" } satisfies Record<Profile, string>;
 
 export const profile: Messages["profile"] = {
   switch: {
     label: "Needs profile",
     off: "For everyone",
     offAria: "Profile off, view for everyone",
-    short: { wheelchair: "Wheelchair", stroller: "Pushchair" },
+    short: { wheelchair: "Wheelchair", stroller: "Pushchair", senior: "Senior" },
   },
   name: profileName,
   settings: "Profile thresholds",

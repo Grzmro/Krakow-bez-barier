@@ -9,8 +9,8 @@ Source: team document by Bartłomiej Leśniewski, 3 Oct 2026 (copied verbatim, P
 Budujemy aplikację webową dla każdego, kto chce sprawdzić, czy do miejsca da się wygodnie dotrzeć, a osoby z utrudnieniami dostają dodatkowo profil, który dopasowuje wyniki do ich potrzeb.
 - Dla kogo: dla wszystkich użytkowników: mieszkańców i turystów, w tym osób z bagażem, seniorów, osób po urazie, rodziców z wózkami i osób na wózkach. Nikt nie musi niczego deklarować ani zakładać profilu.
 - Warstwa podstawowa („Dla każdego”): wyszukanie miejsca, szybkie filtry cech (np. bez schodów, winda, toaleta, ławki) i karta konkretnych faktów ze źródłem, datą i wiarygodnością.
-- Warstwa dodatkowa („Profile potrzeb”): opcjonalne profile porównują fakty z progami użytkownika i pokazują, co spełnia, co blokuje i czego nie wiadomo. W prototypie są dwa: „Wózek” i „Wózek dziecięcy”.
-- Zgodność z dokumentem wyzwania: dokument wymaga ograniczenia prototypu do wybranej grupy lub rodzaju potrzeb. Spełniamy to dwoma profilami, które pokazujemy w demo; kolejne profile to konfiguracja na później. Do potwierdzenia, że takie ujęcie jest akceptowalne.
+- Warstwa dodatkowa („Profile potrzeb”): opcjonalne profile porównują fakty z progami użytkownika i pokazują, co spełnia, co blokuje i czego nie wiadomo. W prototypie są trzy: „Wózek”, „Wózek dziecięcy” i „Senior”.
+- Zgodność z dokumentem wyzwania: dokument wymaga ograniczenia prototypu do wybranej grupy lub rodzaju potrzeb. Spełniamy to dwoma profilami, które pokazujemy w demo („Wózek” i „Wózek dziecięcy”); profil „Senior” (US-2.8) jest dodatkiem ponad to ograniczenie, a kolejne profile to konfiguracja na później. Do potwierdzenia, że takie ujęcie jest akceptowalne.
 - Główny scenariusz na żywo: wyszukuję miejsce, widzę fakty ze źródłem, datą i wiarygodnością, włączam profil i widzę, co mnie blokuje, zgłaszam poprawkę.
 - Zasada nadrzędna: brak informacji nigdy nie jest pokazywany jako dostępność.
 - Dane: OpenStreetMap, Otwarte Dane Krakowa, MSIP, dane.gov.pl, informacje od właścicieli obiektów i zgłoszenia użytkowników. Bez dostępu do systemów UMK/MJO i bez ręcznie utrzymywanej bazy po stronie Miasta.
@@ -19,7 +19,7 @@ Budujemy aplikację webową dla każdego, kto chce sprawdzić, czy do miejsca da
 
 ## Musimy, możemy, nie możemy
 
-Musimy dowieźć jeden scenariusz dla każdego użytkownika z opcjonalną warstwą profili dla wózka i wózka dziecięcego (E1–E3, E5, E6, E8, E9); trasy i pozostałe profile to wartość dodana.
+Musimy dowieźć jeden scenariusz dla każdego użytkownika z opcjonalną warstwą profili dla wózka i wózka dziecięcego (E1–E3, E5, E6, E8, E9); trasy, dodatkowy profil „Senior” (US-2.8) i pozostałe profile to wartość dodana.
 
 ### Musimy
 
@@ -38,7 +38,7 @@ Musimy dowieźć jeden scenariusz dla każdego użytkownika z opcjonalną warstw
 
 ### Możemy (wartość dodana, nie wymóg)
 
-- Kolejne profile: senior, osoba z bagażem, osoba po urazie (E2).
+- Kolejne profile: osoba z bagażem, osoba po urazie (E2).
 - Dostępne trasy: dla każdego z opcją „unikaj schodów”, a z profilem z pełnymi progami (E7). Dokument wymaga miejsca lub trasy, więc to największa pozycja do świadomego wyboru.
 - Panel właściciela obiektu z potwierdzaniem danych (E10).
 - Wersja angielska dla turystów, geolokalizacja za zgodą, zdjęcia przy zgłoszeniach, lekkie konta.

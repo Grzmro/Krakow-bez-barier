@@ -15,10 +15,11 @@ export interface RouteFactsSource {
 }
 
 /**
- * Route presets next to the place presets: kerb = the profile's max threshold. Inclines are proposals
- * (wheelchair 6% as in common ramp guidance, strollers manage a bit more); users can change both.
+ * Route presets next to the place presets: kerb = the profile's max threshold. Inclines are proposals, not
+ * researched values: wheelchair 6% as in common ramp guidance; strollers and seniors get 8%, a bit more
+ * than a wheelchair ramp. Users can change both.
  */
-const MAX_INCLINE_PCT: Record<Profile, number> = { wheelchair: 6, stroller: 8 };
+const MAX_INCLINE_PCT: Record<Profile, number> = { wheelchair: 6, stroller: 8, senior: 8 };
 
 export function routeThresholds(request: RouteRequest): RouteThresholds | null {
   if (!request.profile) return null;

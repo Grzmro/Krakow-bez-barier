@@ -8,7 +8,7 @@ describe("parseSettings", () => {
     // THEN the defaults are used — the app never requires a profile
     expect(parseSettings(null)).toEqual(DEFAULT_SETTINGS);
     expect(parseSettings("{not json")).toEqual(DEFAULT_SETTINGS);
-    expect(parseSettings(JSON.stringify({ profile: "senior" })).profile).toBeNull();
+    expect(parseSettings(JSON.stringify({ profile: "luggage" })).profile).toBeNull();
   });
 
   it("keeps valid values, clamps numbers and fills missing ones from the preset", () => {

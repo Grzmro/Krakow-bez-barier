@@ -1395,6 +1395,7 @@ components:
       enum:
       - wheelchair
       - stroller
+      - senior
     Reliability:
       type: string
       description: Grade of the underlying fact, strongest first.

@@ -23,15 +23,15 @@ const needName = {
 const counts = (byStatus: Record<Status, number>) =>
   `${byStatus.met} spełnia, ${byStatus.barrier} nie spełnia, ${byStatus.unknown} brak danych, ${byStatus.conflict} sprzeczne`;
 
-const profileName = { wheelchair: "Wózek", stroller: "Wózek dziecięcy" } satisfies Record<Profile, string>;
+const profileName = { wheelchair: "Wózek", stroller: "Wózek dziecięcy", senior: "Senior" } satisfies Record<Profile, string>;
 
-// Needs profiles (E2). Every label names a barrier or facility — never a disability (R4).
+// Needs profiles (E2). Labels never name a disability or health condition (R4); „Senior” names an age group, as US-2.8 does.
 export const profile = {
   switch: {
     label: "Profil potrzeb",
     off: "Dla każdego",
     offAria: "Profil wyłączony, widok dla każdego",
-    short: { wheelchair: "Wózek", stroller: "Dziecięcy" } satisfies Record<Profile, string>,
+    short: { wheelchair: "Wózek", stroller: "Dziecięcy", senior: "Senior" } satisfies Record<Profile, string>,
   },
   name: profileName,
   settings: "Progi profilu",

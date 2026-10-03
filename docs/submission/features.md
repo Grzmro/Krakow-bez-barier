@@ -29,7 +29,7 @@ Materiał do oceny („Wykaz funkcji już dostępnych i elementów wymagających
 | Kontakt do obiektu (telefon, strona, e-mail), gdy jest w danych | US-1.6 | #16, #36 |
 | Stały link do karty miejsca (udostępnianie) | US-1.7 | #16 |
 
-### Profile potrzeb „Wózek” i „Wózek dziecięcy” (E2, R4)
+### Profile potrzeb „Wózek”, „Wózek dziecięcy” i „Senior” (E2, R4)
 
 | Funkcja | US | PR |
 |---|---|---|
@@ -39,6 +39,7 @@ Materiał do oceny („Wykaz funkcji już dostępnych i elementów wymagających
 | Grupy „Blokuje”, „Pasuje”, „Nie wiadomo” na karcie | US-2.5 | #18 |
 | Przełączanie i wyłączanie profilu bez przeładowania | US-2.6, US-2.7 | #35 |
 | Jedna implementacja werdyktu (Resolver + Matcher) z testami jednostkowymi | US-3.3, US-3.4 | #21, #36 |
+| Gotowy profil „Senior”: bez stopni, winda, ławka | US-2.8 | #60 |
 
 ### Wiarygodność danych (E3, R2)
 
@@ -101,7 +102,7 @@ Materiał do oceny („Wykaz funkcji już dostępnych i elementów wymagających
 | Publiczne wdrożenie: Vercel + Postgres/PostGIS (cron ingest jest już w `main`) | KBB-21 (PR #44) |
 | „W mojej okolicy” na ekranie głównym: sortowanie i mapa wg pozycji | KBB-54 (US-6.6, PR #47) |
 | Strona „Dojazd i wejście bez barier” dla organizatora wydarzenia | KBB-55 (US-9.4, PR #49) |
-| Nowy profil (np. senior) z samej konfiguracji | KBB-48 (US-2.8, PR #46) |
+| Nowy profil z samej konfiguracji (gotowy profil „Senior”: KBB-58, PR #60) | KBB-48 (US-2.8, PR #46), KBB-58 (PR #60) |
 | Scenariusz demo, automatyczne nagranie i kontrola dostępności | KBB-50 (PR #45) |
 | Dostępne trasy: openrouteservice, bariery wzdłuż trasy, ekran trasy | KBB-22 (E7) |
 

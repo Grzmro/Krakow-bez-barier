@@ -18,7 +18,7 @@ Kraków bez barier — każde miejsce ma drugą stronę
 
 Kraków bez barier to aplikacja webowa — także instalowalna PWA z trybem offline i aplikacja iOS/Android z tego samego kodu — w której mieszkańcy i turyści sprawdzają, czy miejsce pasuje do ich potrzeb. Zamiast etykiety „dostępne / niedostępne” pokazujemy konkretne fakty: stopnie, próg, szerokość drzwi, windę, nawierzchnię, toaletę dostosowaną, przewijak, miejsca odpoczynku i parking. Każdy fakt ma „drugą stronę” (przycisk „Skąd wiemy?”): źródło, datę pozyskania lub potwierdzenia i poziom wiarygodności.
 
-Bez konta i bez pytań o zdrowie: użytkownik może jednym kliknięciem włączyć profil potrzeb („Wózek” albo „Wózek dziecięcy”). Profil porównuje fakty z progami użytkownika i pokazuje werdykt: „Spełnia”, „Nie spełnia”, „Sprzeczne” albo „Brak danych”. Brak informacji nigdy nie jest pokazywany jako dostępność. Brakujące lub błędne dane można uzupełnić albo potwierdzić bez konta; zgłoszenie trafia do panelu moderatora (kolejka, decyzja, historia „kto, co, kiedy”) i nigdy nie nadpisuje danych innego źródła — po zatwierdzeniu różnica z aktualnym faktem innego źródła jest pokazywana jako „Sprzeczne” (fakt starszy niż 12 miesięcy ustępuje świeżemu).
+Bez konta i bez pytań o zdrowie: użytkownik może jednym kliknięciem włączyć profil potrzeb („Wózek”, „Wózek dziecięcy” albo „Senior”). Profil porównuje fakty z progami użytkownika i pokazuje werdykt: „Spełnia”, „Nie spełnia”, „Sprzeczne” albo „Brak danych”. Brak informacji nigdy nie jest pokazywany jako dostępność. Brakujące lub błędne dane można uzupełnić albo potwierdzić bez konta; zgłoszenie trafia do panelu moderatora (kolejka, decyzja, historia „kto, co, kiedy”) i nigdy nie nadpisuje danych innego źródła — po zatwierdzeniu różnica z aktualnym faktem innego źródła jest pokazywana jako „Sprzeczne” (fakt starszy niż 12 miesięcy ustępuje świeżemu).
 
 Te same dane trafiają do partnerów: hotel lub organizator osadza kartę dostępności na swojej stronie jako widget (`<iframe>`, bez konta), a aplikacje turystyczne i systemy rezerwacji pobierają je przez publiczne API tylko do odczytu (OpenAPI 3.1, dokumentacja pod `/api/docs`) — każda cecha ze źródłem, datą, statusem i licencją.
 
@@ -76,7 +76,7 @@ Motywacja klientów: 42% klientów z potrzebami dostępności rezygnuje bez info
 
 Szacunek: ok. 450 tys. zł przychodu w 2. roku (Kraków + 2 miasta white-label), próg rentowności ok. 24. miesiąca, marża brutto na kliencie „Karta” ok. 80%.
 
-Kierunki rozwoju: kolejne profile (senior, osoba z bagażem, osoby niewidome), dostępne trasy piesze, panel właściciela obiektu, integracje z systemami rezerwacji, kolejne miasta w Polsce i regionie V4.
+Kierunki rozwoju: kolejne profile (osoba z bagażem, osoby niewidome), dostępne trasy piesze, panel właściciela obiektu, integracje z systemami rezerwacji, kolejne miasta w Polsce i regionie V4.
 
 ## Plan utrzymania poza infrastrukturą miasta
 
