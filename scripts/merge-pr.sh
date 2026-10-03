@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 # Soft merge queue for agents (GitHub's merge queue isn't available on this repo).
-# Merges the current branch's PR only when CI is green on a commit that already contains the
-# latest origin/main. Exit codes: 0 merged, 1 CI red / conflict / gave up (PR stays open).
+# Runs the full gate LOCALLY (lint, typecheck, unit, build, e2e) on the rebased commit, then merges
+# only when the fast CI is green on that same commit and main hasn't moved.
+# Exit codes: 0 merged, 1 local gate / CI red / conflict / gave up (PR stays open).
 set -euo pipefail
 
 MAX_ROUNDS="${MAX_ROUNDS:-3}"
+log="$(mktemp)"
+trap 'rm -f "$log"' EXIT
 
 for round in $(seq 1 "$MAX_ROUNDS"); do
   echo "── round $round/$MAX_ROUNDS"
@@ -16,8 +19,16 @@ for round in $(seq 1 "$MAX_ROUNDS"); do
     exit 1
   fi
   head="$(git rev-parse HEAD)"
-  if [ "$head" != "$before" ] || [ "$(git rev-parse "@{u}" 2>/dev/null)" != "$head" ]; then
-    echo "rebased onto new main — rerun local checks before trusting CI" >&2
+  [ "$head" != "$before" ] && npm install --no-audit --no-fund --silent
+
+  echo "local gate on $head"
+  if ! { npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e; } >"$log" 2>&1; then
+    tail -40 "$log"
+    echo "local gate red on $head — fix it, then run this script again"
+    exit 1
+  fi
+
+  if [ "$(git rev-parse "@{u}" 2>/dev/null)" != "$head" ]; then
     git push --force-with-lease --quiet
   fi
 

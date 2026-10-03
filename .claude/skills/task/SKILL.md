@@ -104,18 +104,19 @@ Merge only when **all** gates are green; otherwise leave the PR open and say why
 GitHub's merge queue isn't available on this repo, so use the soft queue script:
 
 ```bash
-scripts/merge-pr.sh   # rebase → push → CI green on that exact commit → main unchanged? → merge
+scripts/merge-pr.sh   # rebase → full local gate (lint, typecheck, unit, build, e2e) → push
+                      # → fast CI green on that exact commit → main unchanged? → merge
 ```
 
-It retries up to 3 rounds when `main` moves during CI and exits non-zero (PR stays open) on a
-rebase conflict or red CI. After a conflict: resolve it, rerun step 5, run the script again. If it
-rebased onto new commits, rerun step 5 locally too. Don't merge by hand around it.
+CI only runs lint, typecheck and unit tests (fast); build and e2e run on this machine inside the
+script, on the rebased commit. It retries up to 3 rounds when `main` moves and exits non-zero (PR
+stays open) on a rebase conflict, a red local gate or red CI. Fix, then run it again. Don't merge
+by hand around it.
 
 **Evidence:** before merging, attach the main evidence screenshot(s) from
 `apps/web/test-results/evidence/` to the Linear task (`prepare_attachment_upload` →
-`create_attachment_from_upload`) and mention it in the PR body. CI also keeps them as the
-`evidence-screenshots` artifact — if Linear tools aren't available to you, link that artifact in
-the Linear comment instead.
+`create_attachment_from_upload`) and mention it in the PR body. If Linear tools aren't available
+to you, say in the PR that evidence exists locally and describe what it shows.
 
 If the rebase conflicts with someone else's recent work in a way you can't resolve confidently,
 stop and report instead of merging.
