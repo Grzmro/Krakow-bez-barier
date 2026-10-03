@@ -39,7 +39,7 @@ test("home page works offline after the first visit and says so", async ({
   await page.reload();
 
   // THEN the home page comes from the cache with the offline notice and the date of the data
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Kraków bez barier");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Mapa i lista miejsc");
   await expect(page.getByRole("note").filter({ hasText: "Jesteś offline" })).toHaveText(
     /^Jesteś offline — pokazujemy dane z \d{1,2} \S+ \d{4} \d{1,2}:\d{2}\.$/,
   );
