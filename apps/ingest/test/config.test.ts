@@ -107,6 +107,27 @@ describe("city config", () => {
     expect(noSource).toMatchObject({ error: expect.stringContaining("msip-toilets") });
   });
 
+  it("ingests the whole of Kraków by default and the demo area only when a run asks for it", async () => {
+    // GIVEN the shipped cities
+    const cities = await loadCities();
+
+    // WHEN a run is resolved without an area, with the demo area and with an unknown area
+    const whole = resolveTarget(cities, "krakow", "osm");
+    const demo = resolveTarget(cities, "krakow", "osm", "demo");
+    const unknown = resolveTarget(cities, "krakow", "osm", "nowhere");
+
+    // THEN the default box reaches Nowa Huta and Podgórze, the demo box is the old-town one, and an unknown area is an error
+    if (!("city" in whole) || !("city" in demo)) throw new Error("expected both runs to resolve");
+    const covers = (b: typeof krakow.bbox, lat: number, lon: number) =>
+      lat >= b.south && lat <= b.north && lon >= b.west && lon <= b.east;
+    expect(covers(whole.city.bbox, 50.0719, 20.0378)).toBe(true); // plac Centralny, Nowa Huta
+    expect(covers(whole.city.bbox, 50.0215, 19.9485)).toBe(true); // Rynek Podgórski
+    expect(demo.city.bbox).toEqual({ south: 50.045, west: 19.925, north: 50.06, east: 19.96 });
+    expect(covers(demo.city.bbox, 50.0719, 20.0378)).toBe(false);
+    expect(demo.city.sourceConfig).toBe(krakow.sourceConfig);
+    expect(unknown).toMatchObject({ error: expect.stringContaining("known: demo") });
+  });
+
   it("rejects a city that lists an unknown category or reuses an id", async () => {
     // GIVEN fixture directories with a broken city
     const bad = fileURLToPath(new URL("./fixtures/cities-invalid/", import.meta.url));

@@ -64,9 +64,11 @@ database tasks on GitHub Actions. Steps marked **owner** need repository admin r
    Leave `SIMULATE_SOURCE_OUTAGE` unset. Previews: set `NEXT_PUBLIC_API_MOCK=true`
    and `DATABASE_URL` unset in the Preview environment, or point them at a separate Neon branch,
    so previews never write to the production database.
-5. **First ingest.** Actions → *Ingest* → Run workflow. It migrates, then loads OpenStreetMap for
-   the city config. The cron then runs daily at 03:17 UTC. MSIP/ZDMK/ZTP sources are skipped until
-   their licences are confirmed (`docs/data-sources.md`).
+5. **First ingest (owner).** Actions → *Ingest* → Run workflow, *area* left empty. It migrates, then
+   loads OpenStreetMap for the whole city (about 4,600 OSM objects, see *City-wide data* below;
+   expect 5–15 minutes, the job allows 30). Typing `demo` as *area* loads only the Stare Miasto
+   box. The cron then runs daily at 03:17 UTC for the whole city. MSIP/ZDMK/ZTP sources are skipped
+   until their licences are confirmed (`docs/data-sources.md`).
 6. **Check.** `scripts/smoke-deploy.sh https://<project>.vercel.app` must print "All checks passed"
    (it retries the health check while a sleeping Neon database wakes up). It covers the database,
    seeded data, place card, widget, docs and CORS, but not which data the UI uses: also open the
@@ -77,6 +79,42 @@ database tasks on GitHub Actions. Steps marked **owner** need repository admin r
 
 Cost: Vercel Hobby and Neon Free are enough for the demo; the plan for running costs after the
 hackathon is in the submission documents.
+
+## City-wide data
+
+The Kraków config ingests the bounding box of the whole city (`bbox` in
+`apps/ingest/src/cities/krakow.ts`, 49.967,19.792 – 50.126,20.217). Smaller named boxes live under
+`areas` (today `demo`, Stare Miasto + Kazimierz + Stradom); a run takes one with `--area <name>`,
+`INGEST_AREA=<name>` or the *area* input of the Ingest workflow. No code change either way.
+
+Measured on 2026-10-03, local run from the Geofabrik extract of 2026-10-02 (Overpass unreachable,
+so the fallback of KBB-70 was used), on top of the 19 seeded demo places:
+
+| Measure | Value |
+|---|---|
+| OSM objects read in the box | 4,592 |
+| places stored | 4,305 (restaurants, cafés and bars 2,491; hotels 425; monuments 396; pharmacies 308; other 276; toilets 270; museums 98; theatres 41) |
+| outside the demo box | 3,347 (e.g. east of 20.00° — Nowa Huta: 569; south of 50.04° — Podgórze and further: 734) |
+| active facts | 1,440 — `wheelchair_overall` on 815 places (468 yes, 117 limited, 230 no), `levels` 457, `changing_table` 96, `toilet_accessible` 48; the other ~3,500 places show "Brak danych" |
+| size in the database | `places` + `facts` 3 MB; the whole database 21 MB (7 MB of it is PostGIS's `spatial_ref_sys`), well inside Neon Free's 0.5 GB |
+
+**Run time.** Reading the 200 MB extract and writing locally takes under a minute. Writing is a few round trips per record,
+so the distance to the database decides: the CLI writes 16 records at a time
+(`INGEST_CONCURRENCY`). A re-run through a proxy adding 90 ms per round trip (roughly GitHub's
+runners to Neon Frankfurt) took 287 s with 16 writers and 560 s with 8, which puts one at a
+time above an hour. When Overpass is down it costs up to ~8 minutes of retries before the
+extract is used, so the job's `timeout-minutes` is 30.
+
+**`GET /places` latency** on these 4,305 places (`next start`, local Postgres, median of 9):
+first page near the Rynek 0.19 s, with a profile 0.13 s, with a feature filter 0.12 s, one
+category (restaurants) 0.06 s, "W mojej okolicy" in Nowa Huta 0.014 s, text search 0.018 s. The
+list API resolves every candidate's facts before paging (`docs/architecture.md`); at this size it
+stays far under the 1 s budget, and Vercel and Neon in the same region add little to it.
+
+**Refresh.** The daily cron re-reads the whole city; unchanged facts only get a new `fetchedAt`.
+To refresh by hand: Actions → *Ingest* → Run workflow, or from a laptop with the production
+`DATABASE_URL` exported: `npm run ingest -- --city krakow --source osm`. A failed source keeps
+its last data and is shown as stale.
 
 ## Licences
 
@@ -111,7 +149,7 @@ No code depends on Vercel-only features; the ingest never runs at request time (
 
 A city is configuration only, in `apps/ingest/src/cities/<city>.ts`:
 
-1. Create `apps/ingest/src/cities/<city>.ts` exporting a `CityConfig`: id, name, language, bbox,
+1. Create `apps/ingest/src/cities/<city>.ts` exporting a `CityConfig`: id, name, language, bbox (plus optional named `areas`),
    map defaults, enabled sources, optional category subset and the endpoint per source (OSM
    needs only the bbox). `wroclaw.ts` is a minimal example. Files in that directory are
    discovered at start-up, there is nothing to register.

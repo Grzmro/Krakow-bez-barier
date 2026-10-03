@@ -83,7 +83,8 @@ export function HomeScreen() {
   const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown, area };
   const places = usePlaces({
     bbox: area,
-    near: position ? searchCentre(position) : undefined,
+    // Without a position, the page holds the places nearest the initial map view, not the city's first names.
+    near: position ? searchCentre(position) : config.cityCenter,
     q: query.q || undefined,
     category: category === ALL ? undefined : [category],
     feature: features.length ? features : undefined,

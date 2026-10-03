@@ -1,5 +1,6 @@
 import type { Place, PlaceList } from "@krakow-bez-barier/contracts";
 import { pl } from "../src/i18n/pl";
+import { config } from "../src/lib/config";
 import { CARD_ATTRIBUTES } from "../src/lib/place-facts";
 import { expect, test } from "./fixtures";
 import { clusters, pins } from "./map";
@@ -80,4 +81,19 @@ test("list, map and card show seeded places from the real API with their sources
   await expect(drawer).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(drawer).toBeHidden();
+});
+
+test("without a position the list starts with the places nearest the Rynek, not the city's first names", async ({ page }) => {
+  // GIVEN a database with places across the city
+  test.skip(!process.env.DATABASE_URL, "DATABASE_URL is unset — no database to read real places from (npm run db:setup)");
+  const firstPage = page.waitForRequest((r) => new URL(r.url()).pathname === "/api/v1/places");
+
+  // WHEN the visitor opens the home screen without sharing their location
+  await page.goto("/");
+
+  // THEN the list asks for the places nearest the map's starting point, and the first one is a short walk from it
+  const near = new URL((await firstPage).url()).searchParams.getAll("near").map(Number);
+  expect(near).toEqual(config.cityCenter);
+  const list = page.getByRole("region", { name: "Lista miejsc" });
+  await expect(list.getByRole("listitem").first()).toContainText(/\d+ m od Rynku/);
 });

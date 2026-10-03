@@ -1,9 +1,14 @@
+export type Bbox = { south: number; west: number; north: number; east: number };
+
 export type CityConfig = {
   id: string;
   name: string;
   /** UI language of the city (BCP 47). */
   language: string;
-  bbox: { south: number; west: number; north: number; east: number };
+  /** The area ingested by default, WGS84. */
+  bbox: Bbox;
+  /** Smaller named areas a run can be limited to with `--area <name>` or `INGEST_AREA`, e.g. a demo district. */
+  areas?: Record<string, Bbox>;
   /** Default map view for the city, `[lon, lat]`. */
   defaults: { center: [number, number]; zoom: number };
   /** Source ids enabled for this city. */

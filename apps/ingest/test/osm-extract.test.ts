@@ -11,6 +11,8 @@ import { isRetryable } from "../src/errors";
 import { mapOsmElement, type OsmElement } from "../src/adapters/osm-map";
 import { writeOsmPbf } from "./helpers/write-osm-pbf";
 
+const demo = { ...krakow, bbox: krakow.areas!.demo };
+
 // Inside the Kraków demo box (50.045–50.06, 19.925–19.96) unless said otherwise.
 const REPLICATED_AT = Date.UTC(2026, 9, 2, 20, 21, 34) / 1000;
 const fixturePbf = () =>
@@ -58,7 +60,7 @@ describe("readOsmExtract", () => {
     const file = path.join(dir, "fixture.osm.pbf");
     await writeFile(file, fixturePbf());
     // WHEN reading it for the Kraków box
-    const { elements, replicatedAt } = await readOsmExtract(file, krakow.bbox, categories);
+    const { elements, replicatedAt } = await readOsmExtract(file, demo.bbox, categories);
     // THEN only tagged category elements in the box come out, ways/relations centred on their bounding box
     expect(replicatedAt).toEqual(new Date("2026-10-02T20:21:34Z"));
     expect(elements).toEqual([
@@ -79,7 +81,7 @@ describe("readOsmExtract", () => {
     const file = path.join(dir, "fixture.osm.pbf");
     await writeFile(file, fixturePbf());
     // WHEN reading only museums
-    const { elements } = await readOsmExtract(file, krakow.bbox, categories.filter((c) => c.id === "museum"));
+    const { elements } = await readOsmExtract(file, demo.bbox, categories.filter((c) => c.id === "museum"));
     // THEN the restaurant and the theatre are left out
     expect(elements.map((e) => `${e.type}/${e.id}`)).toEqual(["way/10"]);
   });
@@ -105,7 +107,7 @@ describe("osm adapter fallback", () => {
     vi.stubEnv("OVERPASS_URL", "https://overpass.invalid/api/interpreter");
     const calls = stubNetwork({ extract: "ok" });
     // WHEN fetching OSM for Kraków
-    const result = (await osm.fetch({ city: krakow, userAgent: "test" })) as FetchedRecords<OsmElement>;
+    const result = (await osm.fetch({ city: demo, userAgent: "test" })) as FetchedRecords<OsmElement>;
     // THEN the records come from the extract with a note and record refs naming it
     expect(calls).toEqual(["https://overpass.invalid/api/interpreter", extractUrl]);
     expect(result.note).toBe("OSM (Geofabrik, ekstrakt z 2026-10-02)");
@@ -120,10 +122,10 @@ describe("osm adapter fallback", () => {
     vi.stubEnv("INGEST_CACHE_DIR", dir);
     vi.stubEnv("OVERPASS_URL", "https://overpass.invalid/api/interpreter");
     stubNetwork({ extract: "ok" });
-    await osm.fetch({ city: krakow, userAgent: "test" });
+    await osm.fetch({ city: demo, userAgent: "test" });
     // WHEN running again
     const calls = stubNetwork({ extract: "ok" });
-    const result = (await osm.fetch({ city: krakow, userAgent: "test" })) as FetchedRecords<OsmElement>;
+    const result = (await osm.fetch({ city: demo, userAgent: "test" })) as FetchedRecords<OsmElement>;
     // THEN only Overpass is tried and the extract is read from the cache
     expect(calls).toEqual(["https://overpass.invalid/api/interpreter"]);
     expect(result.records).toHaveLength(3);
@@ -136,7 +138,7 @@ describe("osm adapter fallback", () => {
     stubNetwork({ extract: "down" });
     // WHEN fetching
     // THEN the error names both failures
-    await expect(osm.fetch({ city: krakow, userAgent: "test" })).rejects.toThrow(
+    await expect(osm.fetch({ city: demo, userAgent: "test" })).rejects.toThrow(
       "Overpass failed: fetch failed; extract failed: fetch failed",
     );
   });
@@ -150,11 +152,11 @@ describe("osm adapter fallback", () => {
       return new Response("not found", { status: 404, statusText: "Not Found" });
     });
     // WHEN fetching
-    const notFound = await osm.fetch({ city: krakow, userAgent: "test" }).catch((e: unknown) => e);
+    const notFound = await osm.fetch({ city: demo, userAgent: "test" }).catch((e: unknown) => e);
     // THEN the combined error is final, while a network failure of both stays worth another attempt
     expect(isRetryable(notFound)).toBe(false);
     stubNetwork({ extract: "down" });
-    const offline = await osm.fetch({ city: krakow, userAgent: "test" }).catch((e: unknown) => e);
+    const offline = await osm.fetch({ city: demo, userAgent: "test" }).catch((e: unknown) => e);
     expect(isRetryable(offline)).toBe(true);
   });
 });
@@ -249,7 +251,7 @@ describe("loadOsmExtract", () => {
     await writeFile(`${file}.meta.json`, JSON.stringify({ url: extractUrl, lastModified: null, checkedAt: Date.now() }));
     // WHEN loading the extract
     // THEN reading fails and the copy and its metadata are gone
-    await expect(loadOsmExtract(extractUrl, { city: krakow, userAgent: "test" }, categories)).rejects.toThrow();
+    await expect(loadOsmExtract(extractUrl, { city: demo, userAgent: "test" }, categories)).rejects.toThrow();
     expect(await readdir(dir)).toEqual([]);
   });
 });

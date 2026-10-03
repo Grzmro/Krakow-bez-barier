@@ -36,11 +36,14 @@ export type RunOptions = {
   /** Source ids that behave as failed without being fetched (demo switch, see `SIMULATE_SOURCE_OUTAGE`). */
   simulateOutage?: readonly string[];
   sleep?: (ms: number) => Promise<void>;
+  /** Records written at the same time, each in its own transaction (one DB connection each). Default 1: one after another. */
+  concurrency?: number;
 };
 
 export const SIMULATED_OUTAGE_ERROR = "Simulated outage (SIMULATE_SOURCE_OUTAGE)";
 const DEFAULT_RETRY = { attempts: 3, baseDelayMs: 1000 };
 const MAX_WAIT_MS = 30_000;
+const DEFAULT_CONCURRENCY = 1;
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -101,16 +104,24 @@ export async function runIngest(options: RunOptions): Promise<RunSummary> {
     let written = 0;
     let skipped = 0;
     const failures: string[] = [];
-    for (const record of raw) {
-      try {
-        const result = adapter.map(record as never);
-        skipped += result.skipped.length;
-        if (result.skipped.length > 0) log(`skipped: ${result.skipped.join(", ")}`);
-        if (result.place) written += await store.applyPlace(meta, result.place, startedAt);
-      } catch (e) {
-        failures.push(message(e));
+    let next = 0;
+    const worker = async () => {
+      while (next < raw.length) {
+        const record = raw[next++];
+        try {
+          const result = adapter.map(record as never);
+          skipped += result.skipped.length;
+          if (result.skipped.length > 0) log(`skipped: ${result.skipped.join(", ")}`);
+          // Not `written += await`: that reads `written` before another worker adds to it.
+          const changed = result.place ? await store.applyPlace(meta, result.place, startedAt) : 0;
+          written += changed;
+        } catch (e) {
+          failures.push(message(e));
+        }
       }
-    }
+    };
+    const workers = Math.max(1, Math.min(options.concurrency ?? DEFAULT_CONCURRENCY, raw.length));
+    await Promise.all(Array.from({ length: workers }, worker));
 
     if (failures.length === raw.length) return await fail(`All records failed, first: ${failures[0]}`, raw.length);
 

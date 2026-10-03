@@ -94,6 +94,8 @@ test("'W mojej okolicy' on the list explains a refusal and the list keeps workin
       fail?.({ code: 1, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 } as GeolocationPositionError);
   });
   const list = page.getByRole("region", { name: "Lista miejsc" });
+  // The list's own "Znaleziono…" announcement must come first, or it can replace the refusal in the live region.
+  await expect(page.getByRole("status")).toHaveText("Znaleziono 9 miejsc");
 
   // WHEN the user turns on "W mojej okolicy"
   await list.getByRole("button", { name: "W mojej okolicy" }).click();

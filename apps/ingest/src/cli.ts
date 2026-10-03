@@ -10,7 +10,7 @@ function arg(name: string): string | undefined {
 }
 
 const requested = arg("source");
-const target = resolveTarget(cities, arg("city"), requested);
+const target = resolveTarget(cities, arg("city"), requested, arg("area") ?? (process.env.INGEST_AREA || undefined));
 if ("error" in target) {
   console.error(target.error);
   process.exit(2);
@@ -34,14 +34,16 @@ const nonNegativeInt = (name: string, fallback: number) => {
   return Number.isInteger(n) && n >= 0 && process.env[name] ? n : fallback;
 };
 const retry = { attempts: Math.max(1, nonNegativeInt("INGEST_FETCH_ATTEMPTS", 3)), baseDelayMs: nonNegativeInt("INGEST_RETRY_BASE_MS", 1000) };
+// Records written in parallel: a city-wide run is thousands of records, each a few round trips to the database.
+const concurrency = Math.max(1, nonNegativeInt("INGEST_CONCURRENCY", 16));
 const simulateOutage = (process.env.SIMULATE_SOURCE_OUTAGE ?? "").split(",").map((id) => id.trim()).filter(Boolean);
 
-const { db, close } = createDb();
+const { db, close } = createDb(undefined, { max: concurrency + 1 });
 const store = drizzleStore(db);
 let failed = false;
 try {
   for (const id of sourceIds) {
-    const summary = await runIngest({ adapter: adapters[id], city, store, userAgent, retry, simulateOutage, log: console.log });
+    const summary = await runIngest({ adapter: adapters[id], city, store, userAgent, retry, simulateOutage, concurrency, log: console.log });
     console.log(
       `${id}/${city.id}: ${summary.status} — seen ${summary.recordsSeen}, written ${summary.recordsWritten}, skipped values ${summary.recordsSkipped}${summary.note ? `, from ${summary.note}` : ""}${summary.error ? `, error: ${summary.error}` : ""}`,
     );
