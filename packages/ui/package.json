@@ -1,41 +1,33 @@
 {
   "name": "@krakow-bez-barier/ui",
   "version": "0.1.0",
-  "description": "Front-end UI library for Kraków bez barier: MUI theme and app providers.",
+  "private": true,
+  "description": "Shared UI for Kraków bez barier: \"Fiolet\" design tokens, shadcn/ui components and app providers.",
   "license": "MIT",
   "type": "module",
-  "sideEffects": false,
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "sideEffects": ["*.css"],
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
-    }
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "build": "tsup",
-    "dev": "tsup --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.7.0"
   },
   "peerDependencies": {
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/material": "^9.4.0",
-    "@mui/material-nextjs": "^9.4.0",
-    "@tanstack/react-query": "^5.104.1",
+    "@tanstack/react-query": "^5.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@tanstack/react-query": "^5.104.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "tsup": "^8.0.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3"
   }
 }

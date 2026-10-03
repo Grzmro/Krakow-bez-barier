@@ -1,0 +1,6 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@krakow-bez-barier/ui/styles.css";
+
+@source "../../../../packages/ui/src";

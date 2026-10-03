@@ -23,6 +23,9 @@ create new Linear tasks without asking.
   gh pr list --head "$(git rev-parse --abbrev-ref HEAD)"
   ```
   Skip the phases that are already done.
+- **First action once the task is known: set it to `In Progress`** (`save_issue`, `state: "In Progress"`)
+  — before reading or planning, so the other person and other agents see it's taken. If it's
+  already `In Progress` and assigned to someone else, stop and ask.
 
 ## 1. Understand
 
@@ -30,7 +33,6 @@ create new Linear tasks without asking.
 - Read `docs/challenge.md` (requirements this task serves), `docs/architecture.md`, and the files listed for your area in `AGENTS.md` → *Read before you start*
   (rules and context files).
 - If the task is ambiguous or its acceptance criteria contradict the code, ask — don't guess.
-- Set the task to `In Progress`.
 
 ## 2. Branch
 
