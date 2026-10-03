@@ -58,4 +58,6 @@ copy and interactions; requirements in `docs/requirements.md` win where they dif
   their sources. Read `.claude/context/accessibility-facts.md` before building place or route views.
 - Sample/demo data is labeled "PRZYKŁAD" wherever it appears.
 - Map attribution (© OpenStreetMap contributors) always visible.
-- UI may be verified manually (keyboard + VoiceOver) — say so in the PR.
+- Every screen has an e2e spec using `e2e/fixtures.ts`: aria snapshot of `main`, `expectAccessible()`
+  (axe WCAG 2.2 A/AA, zero violations) and an `evidence()` screenshot. axe catches roughly a third of
+  issues — still do a keyboard pass; VoiceOver checks are manual, say so in the PR.

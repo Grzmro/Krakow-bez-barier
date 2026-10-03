@@ -1,6 +1,10 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 
-test("component preview shows every status as text and works from the keyboard", async ({ page }) => {
+test("component preview shows every status as text and works from the keyboard", async ({
+  page,
+  expectAccessible,
+  evidence,
+}) => {
   // GIVEN the component preview page
   await page.goto("/dev/components");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Podgląd komponentów");
@@ -28,7 +32,13 @@ test("component preview shows every status as text and works from the keyboard",
   await page.keyboard.press("Space");
 
   // THEN it expands without a drag gesture
-  await expect(page.getByRole("button", { name: "Zwiń arkusz" })).toHaveAttribute("aria-expanded", "true");
+  const collapse = page.getByRole("button", { name: "Zwiń arkusz" });
+  await expect(collapse).toHaveAttribute("aria-expanded", "true");
+
+  // AND its scrollable content is the next tab stop, so it can be scrolled from the keyboard
+  await collapse.focus();
+  await page.keyboard.press("Tab");
+  await expect(page.locator('section[data-expanded="true"] [role="group"][tabindex="0"]')).toBeFocused();
 
   // WHEN they ask for an announcement
   await page.getByRole("button", { name: "Ogłoś wynik" }).click();
@@ -36,7 +46,9 @@ test("component preview shows every status as text and works from the keyboard",
   // THEN the app-wide live region speaks it
   await expect(page.locator('[role="status"][aria-live="polite"]')).toHaveText("Znaleziono 12 miejsc");
 
-  await page.screenshot({ path: "test-results/components.png", fullPage: true });
+  // AND the preview has no WCAG 2.2 AA violations axe can detect
+  await expectAccessible();
+  await evidence("components");
 });
 
 test("menu opens as a dialog with the extra pages and closes with Escape", async ({ page }) => {
