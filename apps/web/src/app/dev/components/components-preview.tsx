@@ -11,6 +11,7 @@ import {
   VaulDrawerContent,
   VaulDrawerDescription,
   VaulDrawerTitle,
+  VaulDrawerTrigger,
   toast,
   useAnnounce,
 } from "@krakow-bez-barier/ui";
@@ -40,7 +41,6 @@ function Section({ id, title, children }: { id: string; title: string; children:
 
 export function ComponentsPreview() {
   const [expanded, setExpanded] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
   const [found, setFound] = useState(12);
   const announce = useAnnounce();
   const f = t.facts;
@@ -107,7 +107,7 @@ export function ComponentsPreview() {
             icon={<Stairs />}
             label={f.entrance}
             value={f.entranceValue}
-            unit="cm"
+            unit={f.unitCm}
             status="barrier"
             reliability="confirmed"
             sources={[{ name: f.sourceCity, date: "12.09.2026" }]}
@@ -122,7 +122,7 @@ export function ComponentsPreview() {
             icon={<ArrowsHorizontal />}
             label={f.door}
             value="90"
-            unit="cm"
+            unit={f.unitCm}
             limit={f.doorLimit}
             status="met"
             reliability="outdated"
@@ -173,9 +173,6 @@ export function ComponentsPreview() {
 
       <Section id="sec-feedback" title={t.sections.feedback}>
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => setDrawerOpen(true)}>
-            {t.feedback.openDrawer}
-          </Button>
           <Button variant="outline" onClick={() => toast(t.feedback.toastText)}>
             {t.feedback.toast}
           </Button>
@@ -189,7 +186,10 @@ export function ComponentsPreview() {
             {t.feedback.announce}
           </Button>
         </div>
-        <VaulDrawer open={drawerOpen} onOpenChange={setDrawerOpen}>
+        <VaulDrawer>
+          <VaulDrawerTrigger asChild>
+            <Button variant="outline">{t.feedback.openDrawer}</Button>
+          </VaulDrawerTrigger>
           <VaulDrawerContent>
             <div className="space-y-3 px-4 pt-3 pb-6">
               <VaulDrawerTitle className="font-display text-h2 font-bold">{t.feedback.drawerTitle}</VaulDrawerTitle>

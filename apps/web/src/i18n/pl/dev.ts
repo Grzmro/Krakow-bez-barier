@@ -25,6 +25,7 @@ export const dev = {
     entranceValue: "3 stopnie po 17",
     door: "Drzwi",
     doorLimit: "min. 80 cm",
+    unitCm: "cm",
     toilet: "Toaleta dostosowana",
     toiletConflict: "jest / brak",
     ramp: "Podjazd",

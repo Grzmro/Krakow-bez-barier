@@ -57,6 +57,7 @@ test("menu opens as a dialog with the extra pages and closes with Escape", async
   // WHEN Escape is pressed
   await page.keyboard.press("Escape");
 
-  // THEN the dialog closes
+  // THEN the dialog closes and focus returns to the menu button
   await expect(dialog).toBeHidden();
+  await expect(menu).toBeFocused();
 });

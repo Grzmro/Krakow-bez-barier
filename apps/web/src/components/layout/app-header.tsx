@@ -10,6 +10,7 @@ import {
   VaulDrawerContent,
   VaulDrawerDescription,
   VaulDrawerTitle,
+  VaulDrawerTrigger,
 } from "@krakow-bez-barier/ui";
 import { pl } from "@/i18n/pl";
 import { routes } from "@/lib/routes";
@@ -27,30 +28,24 @@ export function AppHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background">
-      <nav aria-label={t.layout.mainNav} className="mx-auto flex h-16 w-full max-w-5xl items-center gap-3 px-4">
-        <Link
-          href={routes.home}
-          aria-label={t.layout.homeLink}
-          className="flex min-h-12 items-center gap-2.5 rounded-full pr-2"
-        >
-          <LogoMark className="size-9" />
-          <span aria-hidden className="font-display text-title font-extrabold">
-            {t.app.name}
-          </span>
-        </Link>
-        <Button
-          variant="outline"
-          size="icon"
-          className="ml-auto"
-          aria-label={t.layout.openMenu}
-          aria-haspopup="dialog"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen(true)}
-        >
-          <List weight="bold" />
-        </Button>
-      </nav>
       <VaulDrawer open={menuOpen} onOpenChange={setMenuOpen}>
+        <nav aria-label={t.layout.mainNav} className="mx-auto flex h-16 w-full max-w-5xl items-center gap-3 px-4">
+          <Link
+            href={routes.home}
+            aria-label={t.layout.homeLink}
+            className="flex min-h-12 items-center gap-2.5 rounded-full pr-2"
+          >
+            <LogoMark className="size-9" />
+            <span aria-hidden className="font-display text-title font-extrabold">
+              {t.app.name}
+            </span>
+          </Link>
+          <VaulDrawerTrigger asChild>
+            <Button variant="outline" size="icon" className="ml-auto" aria-label={t.layout.openMenu}>
+              <List weight="bold" />
+            </Button>
+          </VaulDrawerTrigger>
+        </nav>
         <VaulDrawerContent>
           <div className="overflow-y-auto px-3 pt-3 pb-5">
             <VaulDrawerTitle className="px-1 font-display text-h2 font-bold">{t.menu.title}</VaulDrawerTitle>

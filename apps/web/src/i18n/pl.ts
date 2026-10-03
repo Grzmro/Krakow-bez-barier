@@ -9,5 +9,3 @@ import { place } from "./pl/place";
 import { profile } from "./pl/profile";
 
 export const pl = { common, home, place, profile, pages, moderator, dev } as const;
-
-export type Messages = typeof pl;
