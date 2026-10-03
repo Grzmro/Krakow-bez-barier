@@ -1,0 +1,19 @@
+/**
+ * Brings `element` into view by scrolling only its nearest scrolling ancestor. Unlike
+ * `scrollIntoView`, the page itself never moves, so a map laid out next to that ancestor stays put.
+ */
+export function scrollIntoViewWithin(element: HTMLElement, behavior: ScrollBehavior = "smooth") {
+  let scroller = element.parentElement;
+  while (scroller && !/auto|scroll/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
+  const view = scroller?.getBoundingClientRect();
+  // No scroller, or it lies entirely below the fold (landscape phone): only moving the page can show the element.
+  if (!scroller || !view || view.top >= window.innerHeight) {
+    element.scrollIntoView({ block: "nearest", behavior });
+    return;
+  }
+  const box = element.getBoundingClientRect();
+  // On a short phone the scroller can reach below the fold; only its on-screen part counts as visible.
+  const bottom = Math.min(view.bottom, window.innerHeight);
+  const delta = box.top < view.top ? box.top - view.top : box.bottom > bottom ? Math.min(box.bottom - bottom, box.top - view.top) : 0;
+  if (delta) scroller.scrollBy({ top: delta, behavior });
+}

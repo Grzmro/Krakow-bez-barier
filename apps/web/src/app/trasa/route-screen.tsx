@@ -132,7 +132,7 @@ export function RouteScreen({ to }: { to?: string }) {
       </div>
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 px-4 pt-3">
-        <div className="pointer-events-auto mx-auto flex max-w-xl items-start gap-2">
+        <div className="mx-auto flex max-w-xl items-start gap-2 *:pointer-events-auto">
           <Link
             href={to ? routes.place(to) : routes.home}
             aria-label={t.back}
@@ -174,10 +174,10 @@ export function RouteScreen({ to }: { to?: string }) {
           aria-label={t.kind}
           value={[kind]}
           onValueChange={(value) => value[0] && switchKind(value[0] as RouteKind)}
-          className="pointer-events-auto mx-auto mt-3 max-w-xl pl-14"
+          className="mx-auto mt-3 max-w-xl pl-14"
         >
           {KINDS.map((k) => (
-            <Toggle key={k} value={k} className="shadow-soft">
+            <Toggle key={k} value={k} className="pointer-events-auto shadow-soft">
               {k === "avoid_stairs" ? t.avoidStairs : t.shortest}
             </Toggle>
           ))}

@@ -13,6 +13,7 @@ import { config } from "@/lib/config";
 import type { DevicePosition } from "@/lib/native/geolocation";
 import { byDistance, searchArea, toLonLat } from "@/lib/nearby";
 import { usePlaces } from "@/lib/places";
+import { scrollIntoViewWithin } from "@/lib/scroll-within";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
@@ -144,7 +145,7 @@ export function HomeScreen() {
   function selectFromMap(id: string) {
     setSelectedId(id);
     const row = rowRefs.current.get(id);
-    row?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    if (row) scrollIntoViewWithin(row);
     row?.focus({ preventScroll: true });
   }
 
@@ -170,20 +171,20 @@ export function HomeScreen() {
       </a>
 
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 pt-3 lg:pointer-events-auto lg:static lg:col-start-1 lg:row-start-1 lg:max-h-[45dvh] lg:overflow-y-auto lg:border-r lg:border-border lg:bg-card lg:pt-4">
-        <div className="pointer-events-auto mx-auto flex max-w-xl px-4">
+        <div className="mx-auto flex max-w-xl px-4 *:pointer-events-auto">
           <SearchBox value={q} onValueChange={setQ} suggestions={suggestions} />
         </div>
         <ToggleGroup
           aria-label={t.categoriesLabel}
           value={[category]}
           onValueChange={(value) => value[0] && setCategory(value[0])}
-          className="no-scrollbar pointer-events-auto mx-auto mt-1.5 max-w-xl overflow-x-auto px-4 py-1.5 lg:flex-wrap lg:overflow-visible"
+          className="no-scrollbar mx-auto mt-1.5 max-w-xl overflow-x-auto px-4 py-1.5 lg:flex-wrap lg:overflow-visible"
         >
-          <Toggle value={ALL} className="shadow-soft lg:h-8 lg:px-3 lg:text-[13px]">
+          <Toggle value={ALL} className="pointer-events-auto shadow-soft lg:h-8 lg:px-3 lg:text-[13px]">
             {t.categoryAll}
           </Toggle>
           {categories.data?.map((c) => (
-            <Toggle key={c.id} value={c.id} className="shadow-soft lg:h-8 lg:px-3 lg:text-[13px]">
+            <Toggle key={c.id} value={c.id} className="pointer-events-auto shadow-soft lg:h-8 lg:px-3 lg:text-[13px]">
               {c.label}
             </Toggle>
           ))}
