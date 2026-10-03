@@ -137,6 +137,9 @@ a change to `apps/web`, `packages/ui` or `packages/contracts` with no spec selec
 - **unit tests always, e2e only for the screens your change touches** — while working and in
   `merge-pr.sh` alike. Never the full suite by default (parallel agents share this machine); run more
   only deliberately, e.g. a `packages/ui` change → the specs of the screens that use the component.
+- **one device is enough:** a spec runs on one phone viewport (plus desktop only where the screen has
+  a desktop layout) — no per-device matrix (Pixel 7 + iPhone 15). No stress runs: no `--repeat-each`,
+  no `--workers` above the default 3. A flaky test is fixed by reading the failure, not by hammering it.
 - npm blocks dependency install scripts; a new dependency that needs one goes through
   `npm approve-scripts <pkg>` (recorded in root `package.json` → `allowScripts`).
 
