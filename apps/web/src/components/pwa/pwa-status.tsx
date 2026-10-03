@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { CloudSlash, DeviceMobile, X } from "@phosphor-icons/react";
 import { Button, useAnnounce } from "@krakow-bez-barier/ui";
 import { pl } from "@/i18n/pl";
-import { appPlatform } from "@/lib/native/geolocation";
+import { appPlatform } from "@/lib/native/platform";
 import { installOffer } from "@/lib/pwa/install-offer";
 import { offlineMessage } from "@/lib/pwa/offline-message";
 
