@@ -8,6 +8,7 @@ import { useLocale, useMessages } from "@/i18n/client";
 import type { Locale } from "@/i18n/locale";
 import type { Messages } from "@/i18n/messages";
 import { formatDate, formatValue, joinValue } from "@/lib/place-facts";
+import { segmentStatusLabel } from "@/lib/route-speech";
 
 const STEP_DOT: Record<Status, string> = {
   met: "bg-status-met-bg",
@@ -22,11 +23,6 @@ export const STATUS_TEXT: Record<Status, string> = {
   conflict: "text-status-conflict",
   unknown: "text-status-unknown",
 };
-
-/** A segment's state label; an unknown segment with some facts says it is only partly unknown. */
-export function segmentStatusLabel(m: Messages, segment: RouteSegment) {
-  return segment.state === "unknown" && segment.facts.length ? m.route.partlyUnknown : m.common.status[segment.state];
-}
 
 /** The "Krok po kroku" list: the text version of the map, one expandable item per segment. */
 export function StepList({

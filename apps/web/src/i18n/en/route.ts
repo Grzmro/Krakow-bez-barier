@@ -63,6 +63,18 @@ export const route: Messages["route"] = {
   meters: (m: number) => `${Math.round(m)} m`,
   nobody: "Nobody has checked this segment yet.",
   sourceLine: (name: string, date: string) => `${name} · ${date}`,
+  speech: {
+    play: "Read aloud",
+    pause: "Pause",
+    resume: "Resume reading",
+    stop: "Stop reading",
+    step: (i: number, n: number, instruction: string, m: number) =>
+      `Step ${i} of ${n}. ${instruction}, ${Math.round(m)} ${plural(Math.round(m), "metre", "metres")}.`,
+    state: (status: string, note: string) => `${status}${note ? `: ${note}` : ""}.`,
+    surface: (value: string) => `Surface: ${value}.`,
+    noSurface: "Surface: no data.",
+    nobody: "Nobody has checked this segment yet.",
+  },
   destination: {
     title: "Destination: entrance",
     hint: "Facts from the place card.",
