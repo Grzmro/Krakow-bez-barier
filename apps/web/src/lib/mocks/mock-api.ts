@@ -4,9 +4,11 @@ import {
   type FeatureFilter,
   type FeatureMatch,
   type GetPlaceQuery,
+  type ListPlacePointsQuery,
   type ListPlacesQuery,
   type Place,
   type PlaceList,
+  type PlacePointList,
   type PlaceSummary,
 } from "@krakow-bez-barier/contracts";
 import { FEATURE_ATTRIBUTES, featureState } from "@/domain/features";
@@ -124,6 +126,16 @@ export function mockListPlaces(query: ListPlacesQuery = {}, locale: Locale = def
   const [lon, lat] = query.near ?? [];
   const ordered = lon === undefined || lat === undefined ? items : byDistance(items, [lon, lat]).map(({ place }) => place);
   return { items: ordered, nextCursor: null, total: ordered.length };
+}
+
+/** `GET /places/points` from the same filtered examples as the list, so map and list always hold the same places. */
+export function mockListPlacePoints(query: ListPlacePointsQuery, locale: Locale = defaultLocale): PlacePointList {
+  const { items } = mockListPlaces(query, locale);
+  return {
+    items: items.map(({ id, name, category, location, verdict }) => ({ id, name, category, location, verdict: verdict?.state ?? null })),
+    total: items.length,
+    truncated: false,
+  };
 }
 
 export function mockGetPlace(id: string, query: GetPlaceQuery = {}, locale: Locale = defaultLocale): Place | null {

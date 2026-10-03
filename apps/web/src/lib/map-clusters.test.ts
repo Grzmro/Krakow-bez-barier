@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { PlaceSummary } from "@krakow-bez-barier/contracts";
+import type { PlacePoint } from "@krakow-bez-barier/contracts";
 import type { Status } from "@krakow-bez-barier/ui";
 import {
   buildClusterIndex,
@@ -16,12 +16,8 @@ import {
 
 const KRAKOW: [number, number, number, number] = [19.7, 49.9, 20.2, 50.2];
 
-function place(id: string, lon: number, lat: number, status?: Status): PlaceSummary {
-  return {
-    id,
-    location: { type: "Point", coordinates: [lon, lat] },
-    ...(status ? { verdict: { state: status } } : {}),
-  } as PlaceSummary;
+function place(id: string, lon: number, lat: number, status?: Status): PlacePoint {
+  return { id, name: id, category: "museum", location: { type: "Point", coordinates: [lon, lat] }, verdict: status ?? null };
 }
 
 describe("map clusters", () => {
@@ -126,8 +122,8 @@ describe("map clusters", () => {
 
   it("turns places into GeoJSON points with what a pin needs", () => {
     // GIVEN a museum with a 3D location and a verdict, and a toilet without one
-    const museum = { ...place("m", 19.9373, 50.0617, "barrier"), category: "museum", location: { type: "Point", coordinates: [19.9373, 50.0617, 210] } } as PlaceSummary;
-    const toilet = { ...place("t", 19.94, 50.06), category: "toilet" } as PlaceSummary;
+    const museum: PlacePoint = { ...place("m", 19.9373, 50.0617, "barrier"), location: { type: "Point", coordinates: [19.9373, 50.0617, 210] } };
+    const toilet: PlacePoint = { ...place("t", 19.94, 50.06), category: "toilet" };
 
     // WHEN they become features
     const features = placeFeatures([museum, toilet]);

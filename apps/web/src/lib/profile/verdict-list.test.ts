@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { NeedResult, PlaceSummary, Verdict } from "@krakow-bez-barier/contracts";
-import { countByStatus, filterByVerdict, missingNeeds } from "./verdict-list";
+import { countByStatus, filterByVerdict, filterPointsByVerdict, missingNeeds } from "./verdict-list";
 
 function item(id: string, state: Verdict["state"] | null) {
   const place = {
@@ -84,5 +84,30 @@ describe("missingNeeds", () => {
     // WHEN counting
     // THEN nothing is missing
     expect(missingNeeds([item("a", "met"), item("b", "barrier")])).toEqual([]);
+  });
+});
+
+describe("filterPointsByVerdict", () => {
+  const point = (id: string, verdict: Verdict["state"] | null) => ({ id, verdict });
+
+  it("applies the same status filters to map points as to the list", () => {
+    // GIVEN points with every verdict
+    const points = [point("met", "met"), point("barrier", "barrier"), point("unknown", "unknown"), point("conflict", "conflict")];
+
+    // WHEN one status is pressed, then failing places are hidden
+    const onlyUnknown = filterPointsByVerdict(points, { status: "unknown", hideFailing: false });
+    const noBarriers = filterPointsByVerdict(points, { status: null, hideFailing: true });
+
+    // THEN the map keeps exactly the matching points
+    expect(onlyUnknown.map((p) => p.id)).toEqual(["unknown"]);
+    expect(noBarriers.map((p) => p.id)).toEqual(["met", "unknown", "conflict"]);
+  });
+
+  it("leaves points without verdicts untouched", () => {
+    // GIVEN points loaded without a profile
+    const points = [point("a", null), point("b", null)];
+
+    // WHEN / THEN a leftover status filter hides nothing
+    expect(filterPointsByVerdict(points, { status: "met", hideFailing: true })).toBe(points);
   });
 });

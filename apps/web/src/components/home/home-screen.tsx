@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import type { FeatureFilter } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, LabeledSwitch, StatusIcon, Switch, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
 import { CaretLeft, MagnifyingGlass, SlidersHorizontal } from "@phosphor-icons/react";
@@ -20,11 +21,12 @@ import { listedCount } from "@/lib/list-count";
 import { parseNearestCommand } from "@/lib/nearest-command";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
 import { LIST_PAGE, nextWindow, windowFor } from "@/lib/list-window";
-import { usePlaces } from "@/lib/places";
+import { nextPointsArea, type Bbox } from "@/lib/map-points";
+import { usePlacePoints, usePlaces } from "@/lib/places";
 import { nearestMatch, QUICK_ACTIONS, quickFilters, quickStillApplies, type QuickAction, type QuickActionId } from "@/lib/quick-actions";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
-import { countByStatus, filterByVerdict, missingNeeds, STATUS_ORDER } from "@/lib/profile/verdict-list";
+import { countByStatus, filterByVerdict, filterPointsByVerdict, missingNeeds, STATUS_ORDER } from "@/lib/profile/verdict-list";
 import { scrollIntoViewWithin, scrollParent } from "@/lib/scroll-within";
 import { useDebounced } from "@/lib/use-debounced";
 import { useGrantedPosition } from "@/lib/use-granted-position";
@@ -55,6 +57,8 @@ const COLLAPSED_HEIGHT = "var(--list-collapsed)";
 const PEEK_HEIGHT = "calc(14.5rem + env(safe-area-inset-bottom))";
 const NO_HIGHLIGHT = () => {};
 const DESKTOP = "(min-width: 64rem)";
+// Waits out a run of quick pans and zooms before loading points for where the map ended up.
+const POINTS_DEBOUNCE_MS = 300;
 
 const COUNTER_PRESSED: Record<Status, string> = {
   met: "aria-pressed:bg-status-met-bg aria-pressed:ring-status-met",
@@ -69,6 +73,7 @@ export function HomeScreen() {
   const tp = m.profile;
   const tn = m.nearby.home;
   const announce = useAnnounce();
+  const router = useRouter();
   const { settings, setProfile } = useProfile();
   const profile = settings.profile;
   const [statusFilter, setStatusFilter] = useState<Status | null>(null);
@@ -127,20 +132,16 @@ export function HomeScreen() {
   const searchFrom = useMemo(() => searchOrigin(nearby, config.cityCenter), [nearby]);
   const area = searchFrom.area;
   const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown, area };
-  const placesQuery = usePlaces(
-    {
-      bbox: area,
-      // TODO(KBB-88): load places for the map viewport; until then the map shows the 100 nearest the Rynek.
-      near: searchFrom.centre,
-      q: query.q || undefined,
-      category: category === ALL ? undefined : [category],
-      feature: features.length ? features : undefined,
-      includeUnknown: features.length ? showUnknown : undefined,
-      limit: 100,
-      ...profileQuery(settings),
-    },
-    { enabled: searching },
-  );
+  const filters = {
+    q: query.q || undefined,
+    category: category === ALL ? undefined : [category],
+    feature: features.length ? features : undefined,
+    includeUnknown: features.length ? showUnknown : undefined,
+    ...profileQuery(settings),
+  };
+  // The list is one page of the nearest places; the map shows every match in the area it has loaded, or in the
+  // "W mojej okolicy" area like the list.
+  const placesQuery = usePlaces({ ...filters, bbox: area, near: searchFrom.centre, limit: 100 }, { enabled: searching });
   // Keep-previous-data would otherwise leave the last results standing after the search is cleared.
   const places = {
     data: searching ? placesQuery.data : undefined,
@@ -148,11 +149,22 @@ export function HomeScreen() {
     isPlaceholderData: searching && placesQuery.isPlaceholderData,
     refetch: placesQuery.refetch,
   };
+  const [loadedArea, setLoadedArea] = useState<Bbox | null>(null);
+  const pointsBbox = useDebounced(area ?? loadedArea, POINTS_DEBOUNCE_MS);
+  const points = usePlacePoints(searching && pointsBbox ? { ...filters, bbox: pointsBbox } : null);
+  const followView = useCallback((view: Bbox) => setLoadedArea((loaded) => nextPointsArea(loaded, view)), []);
   const origin = searchFrom.from;
   const items = useMemo(() => byDistance(places.data?.items ?? [], origin ?? config.cityCenter), [places.data, origin]);
   const counts = useMemo(() => countByStatus(items), [items]);
   const shown = useMemo(() => filterByVerdict(items, { status: statusFilter, hideFailing }), [items, statusFilter, hideFailing]);
   const mapPlaces = useMemo(() => shown.map(({ place }) => place), [shown]);
+  const mapPoints = useMemo(
+    () =>
+      searching && points.data && !points.isError
+        ? filterPointsByVerdict(points.data.items, { status: statusFilter, hideFailing })
+        : undefined,
+    [searching, points.data, points.isError, statusFilter, hideFailing],
+  );
   const total = places.data?.total;
   // A quick action stays on while the list still shows its filters; changing them by hand ends it.
   const quick =
@@ -333,6 +345,11 @@ export function HomeScreen() {
   }
 
   function selectFromMap(id: string) {
+    // The map shows more places than the list's page: one that isn't on the list opens its card.
+    if (!shown.some(({ place }) => place.id === id)) {
+      router.push(routes.place(id));
+      return;
+    }
     setSelectedId(id);
     const needed = windowFor(shown.findIndex(({ place }) => place.id === id), rendered);
     if (stowed || needed !== rendered) {
@@ -661,6 +678,8 @@ export function HomeScreen() {
       <div className="absolute inset-0 lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0">
         <PlaceMap
           places={mapPlaces}
+          points={mapPoints}
+          onViewChange={followView}
           selectedId={selectedId}
           onSelect={selectFromMap}
           padding={desktop ? MAP_PADDING_DESKTOP : MAP_PADDING}

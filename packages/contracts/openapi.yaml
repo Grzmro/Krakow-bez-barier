@@ -390,6 +390,115 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /places/points:
+    get:
+      operationId: listPlacePoints
+      summary: Map points of the places in a bounding box
+      description: 'Every place inside `bbox` that `GET /places` would list for the same filters, as a light point for a
+        map: id, name, category, location and the profile verdict. No facts, no paging. Feature filters, `includeUnknown`
+        and the categories hidden by default work exactly as in `GET /places`; `verdict` is `null` without a profile and,
+        like the list, is never better than the data behind it (`unknown` for missing data).
+
+        At most 20 000 points come back; `truncated` says when more matched (`total`). Clients that need a place''s facts
+        read it from `GET /places/{id}`.
+
+        '
+      tags:
+      - places
+      parameters:
+      - name: bbox
+        in: query
+        required: true
+        description: Bounding box `minLon,minLat,maxLon,maxLat` (WGS84), e.g. the map's viewport with a margin.
+        schema:
+          type: array
+          items:
+            type: number
+          minItems: 4
+          maxItems: 4
+        style: form
+        explode: false
+      - name: q
+        in: query
+        description: Free text matched against name and address, as in `GET /places`.
+        schema:
+          type: string
+          maxLength: 200
+      - name: category
+        in: query
+        description: Categories to return; without it the categories hidden by default are left out, as in `GET /places`.
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        style: form
+        explode: false
+      - name: feature
+        in: query
+        description: Feature filters, as in `GET /places`.
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeatureFilter'
+        style: form
+        explode: false
+      - name: includeUnknown
+        in: query
+        description: Also return places with no data for the requested features.
+        schema:
+          type: boolean
+          default: false
+      - name: profile
+        in: query
+        description: Optional needs profile; adds `verdict` to every point. Thresholds default to the profile's presets.
+        schema:
+          $ref: '#/components/schemas/Profile'
+      - $ref: '#/components/parameters/MaxThresholdCm'
+      - $ref: '#/components/parameters/MinDoorWidthCm'
+      - $ref: '#/components/parameters/RequireStepFree'
+      - $ref: '#/components/parameters/RequireLift'
+      - $ref: '#/components/parameters/RequireAccessibleToilet'
+      - $ref: '#/components/parameters/RequireSmoothSurface'
+      - $ref: '#/components/parameters/RequireChangingTable'
+      - $ref: '#/components/parameters/RequireBench'
+      responses:
+        '200':
+          description: The matching places' points (possibly empty).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlacePointList'
+              examples:
+                oldTown:
+                  summary: Two Old Town places with the wheelchair profile (sample data)
+                  value:
+                    items:
+                    - id: sukiennice
+                      name: Sukiennice
+                      category: museum
+                      location:
+                        type: Point
+                        coordinates:
+                        - 19.9373
+                        - 50.0617
+                      verdict: met
+                    - id: bistro-przyklad
+                      name: Bistro Przykład
+                      category: restaurant
+                      location:
+                        type: Point
+                        coordinates:
+                        - 19.9378
+                        - 50.0585
+                      verdict: unknown
+                    total: 2
+                    truncated: false
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /places/{id}:
     get:
       operationId: getPlace
@@ -2554,6 +2663,48 @@ components:
         total:
           type: integer
           minimum: 0
+    PlacePoint:
+      type: object
+      description: A place as a map point. Its facts are in `GET /places/{id}`.
+      required:
+      - id
+      - name
+      - category
+      - location
+      - verdict
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        category:
+          $ref: '#/components/schemas/Category'
+        location:
+          $ref: '#/components/schemas/Point'
+        verdict:
+          description: The profile verdict's state (`Verdict.state`); `null` when no profile was requested.
+          oneOf:
+          - $ref: '#/components/schemas/NeedVerdict'
+          - type: 'null'
+    PlacePointList:
+      type: object
+      required:
+      - items
+      - total
+      - truncated
+      properties:
+        items:
+          type: array
+          maxItems: 20000
+          items:
+            $ref: '#/components/schemas/PlacePoint'
+        total:
+          type: integer
+          minimum: 0
+          description: Places that matched, including any left out by the limit.
+        truncated:
+          type: boolean
+          description: True when more places matched than `items` holds (the 20 000 limit).
     ReportCreate:
       type: object
       description: 'A numeric `value` must lie within `x-value-ranges` for its attribute (inclusive), otherwise the

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import type { Icon } from "@phosphor-icons/react";
 import { flushSync } from "react-dom";
 import { createRoot, type Root } from "react-dom/client";
-import type { PlaceSummary } from "@krakow-bez-barier/contracts";
+import type { PlacePoint, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { cn, useAnnounce } from "@krakow-bez-barier/ui";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -21,6 +21,7 @@ import {
   verdictBreakdown,
   type MapItem,
 } from "@/lib/map-clusters";
+import { toPoint, type Bbox } from "@/lib/map-points";
 import { MapControls } from "../map/map-controls";
 import { insidePadding, mapPadding, paddedCentre, type Padding } from "../map/map-padding";
 import { clusterSize, PlaceCluster } from "./place-cluster";
@@ -30,16 +31,16 @@ import { PlacePin } from "./place-pin";
 const MAX_PIXEL_RATIO = 2;
 const PIN_CLASS = "group relative size-9 cursor-pointer data-[selected=true]:z-10";
 
-function pinElement(place: PlaceSummary, icon: Icon, title: string) {
+function pinElement(place: PlacePoint, icon: Icon, title: string) {
   const element = document.createElement("div");
   element.className = PIN_CLASS;
   element.setAttribute("aria-hidden", "true");
   element.title = title;
   element.dataset.placeId = place.id;
   element.dataset.category = place.category;
-  if (place.verdict) element.dataset.status = place.verdict.state;
+  if (place.verdict) element.dataset.status = place.verdict;
   const root = createRoot(element);
-  flushSync(() => root.render(<PlacePin status={place.verdict?.state ?? null} icon={icon} />));
+  flushSync(() => root.render(<PlacePin status={place.verdict} icon={icon} />));
   return { element, root };
 }
 
@@ -142,7 +143,12 @@ function revealPoint(map: MapLibreMap, target: [number, number]) {
 }
 
 export interface PlaceMapProps {
+  /** The places of the list: the map fits them when they change and eases to the selected one. */
   places: PlaceSummary[];
+  /** What the pins and clusters show, e.g. every place in the viewport; `places` themselves when left out. */
+  points?: PlacePoint[];
+  /** The whole map's view (`[west, south, east, north]`) after each move, to load the points for it. */
+  onViewChange?: (view: Bbox) => void;
   selectedId: string | null;
   onSelect: (id: string) => void;
   /** Space covered by overlays (search on top, map controls at the bottom), in px. */
@@ -170,6 +176,8 @@ export interface PlaceMapProps {
  */
 export function PlaceMap({
   places,
+  points,
+  onViewChange,
   selectedId,
   onSelect,
   padding,
@@ -193,9 +201,11 @@ export function PlaceMap({
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const markersRef = useRef<Markers>(new Map());
-  const index = useMemo(() => buildClusterIndex(places), [places]);
+  const pinned = useMemo(() => points ?? places.map(toPoint), [points, places]);
+  const index = useMemo(() => buildClusterIndex(pinned), [pinned]);
   const fittedRef = useRef<string | null>(null);
   const onSelectRef = useRef(onSelect);
+  const onViewChangeRef = useRef(onViewChange);
   const paddingRef = useRef(padding);
   const insetRef = useRef(inset);
   const selectedIdRef = useRef(selectedId);
@@ -204,6 +214,7 @@ export function PlaceMap({
   const centered = Boolean(you);
   useEffect(() => {
     onSelectRef.current = onSelect;
+    onViewChangeRef.current = onViewChange;
     paddingRef.current = padding;
     insetRef.current = inset;
     selectedIdRef.current = selectedId;
@@ -278,6 +289,7 @@ export function PlaceMap({
       removeMarkers(markers);
       update = () => {
         const bounds = map.getBounds();
+        onViewChangeRef.current?.([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]);
         const padLon = bounds.getEast() - bounds.getWest();
         const padLat = bounds.getNorth() - bounds.getSouth();
         // One viewport of margin on each side: a pan reveals pins that are already there.
@@ -301,7 +313,7 @@ export function PlaceMap({
           if (item.kind === "place") {
             const { place } = item;
             const { label: categoryLabel, icon } = category(place.category);
-            const status = place.verdict ? statusWords[place.verdict.state] : null;
+            const status = place.verdict ? statusWords[place.verdict] : null;
             const { element, root } = pinElement(place, icon, t.pin(place.name, categoryLabel, status));
             element.addEventListener("click", (event) => {
               event.stopPropagation();
