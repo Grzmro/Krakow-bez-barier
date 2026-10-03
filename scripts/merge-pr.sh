@@ -18,7 +18,12 @@ for round in $(seq 1 "$MAX_ROUNDS"); do
     exit 1
   fi
   head="$(git rev-parse HEAD)"
-  npm install --no-audit --no-fund --prefer-offline --silent   # cheap when nothing changed
+  # Reinstall only when the lockfile changed; `npm ci` never rewrites package-lock.json.
+  lock_hash="$(git hash-object package-lock.json)"
+  if [ "$(cat node_modules/.lock-hash 2>/dev/null)" != "$lock_hash" ]; then
+    npm ci --no-audit --no-fund --silent
+    echo "$lock_hash" > node_modules/.lock-hash
+  fi
 
   echo "local gate on $head"
   if ! { npm run lint && npm run typecheck && npm run test && npm run build && npm run test:e2e; } >"$log" 2>&1; then
