@@ -45,6 +45,33 @@ door width and ramp. The demo must say this out loud rather than hide it: the pr
 showing what we know, from where, and what we don't. Toilets are the one category where concrete,
 sourced facts exist (city dataset + OSM).
 
+### Coverage after our own OSM ingest
+
+The same bbox, as stored by `npm run ingest` (OSM adapter, wider category set since KBB-52; local run of
+2026-10-03 17:40 UTC from the Geofabrik extract of 2026-10-02, after Overpass failed):
+
+| Measure | Places |
+|---|---|
+| OSM places stored | 960 |
+| with `wheelchair_overall` (`wheelchair=*`) | 130 (13.5%): 64 yes, 20 limited, 46 no |
+| ... of which with an observation date (`check_date`) | 42 |
+| with `toilet_accessible` / `changing_table` | 7 / 9 |
+| with `step_count`, `door_width_cm`, `ramp`, `lift` | 0 |
+
+The OSM mapper reads `step_count`, `door:width`, `entrance:width` and `ramp:wheelchair`
+and `elevator` (`apps/ingest/src/adapters/osm-map.ts`), so the zeros are the data, not a missing mapping. To
+reproduce on a database after ingest (read-only):
+
+```sql
+SELECT attribute, count(DISTINCT place_id)
+FROM facts WHERE status = 'active' AND source_id = 'osm'
+GROUP BY attribute ORDER BY 2 DESC;
+```
+
+City-wide we have only a preliminary count (2,674 of 30,573 Kraków POIs, 8.7%, with `wheelchair=*`
+in the Geofabrik extract of 2026-10-03); the script for it is not in the repository, so the pitch
+labels it "analiza własna".
+
 ## Demo places
 
 `W` = OSM `wheelchair`. Refs are OSM element ids (`n` node, `w` way, `r` relation). Dates are the

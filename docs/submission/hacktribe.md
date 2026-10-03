@@ -21,12 +21,22 @@ Kraków bez barier to aplikacja webowa — także instalowalna PWA z trybem offl
 
 Bez konta i bez pytań o zdrowie: użytkownik może jednym kliknięciem włączyć profil potrzeb („Wózek”, „Wózek dziecięcy” albo „Senior”). Profil porównuje fakty z progami użytkownika i pokazuje werdykt: „Spełnia”, „Nie spełnia”, „Sprzeczne” albo „Brak danych”. Brak informacji nigdy nie jest pokazywany jako dostępność. Brakujące lub błędne dane można uzupełnić albo potwierdzić bez konta; zgłoszenie trafia do panelu moderatora (kolejka, decyzja, historia „kto, co, kiedy”) i nigdy nie nadpisuje danych innego źródła — po zatwierdzeniu różnica z aktualnym faktem innego źródła jest pokazywana jako „Sprzeczne” (fakt starszy niż 12 miesięcy ustępuje świeżemu).
 
-Te same dane trafiają do partnerów: hotel lub organizator osadza kartę dostępności na swojej stronie jako widget (`<iframe>`, bez konta), a aplikacje turystyczne i systemy rezerwacji pobierają je przez publiczne API tylko do odczytu (OpenAPI 3.1, dokumentacja pod `/api/docs`) — każda cecha ze źródłem, datą, statusem i licencją.
+Z karty miejsca można też wyznaczyć trasę („Prowadź”): openrouteservice z profilem wózka i opcją „Unikaj schodów”, a na każdym odcinku nawierzchnia, schody i nachylenie ze źródłem i datą („Krok po kroku”) — odcinek bez danych jest pokazany jako „brak danych”, nigdy jako spełniający potrzeby.
+
+Te same dane trafiają do partnerów: hotel osadza kartę dostępności na swojej stronie jako widget (`<iframe>`, bez konta), organizator wydarzenia generuje stronę „Dojazd i wejście bez barier” dla swojego obiektu, a aplikacje turystyczne i systemy rezerwacji pobierają dane przez publiczne API tylko do odczytu (OpenAPI 3.1, dokumentacja pod `/api/docs`) — każda cecha ze źródłem, datą, statusem i licencją.
+
+**Co nas wyróżnia** (wszystko poniżej jest w kodzie, wykaz z numerami PR: `docs/submission/features.md`):
+- **Prawdziwe dane miejskie, nie tylko OSM.** Adaptery do trzech warstw miasta — toalety MSIP, miejsca postojowe OZN, przystanki ZTP — przetestowane na zapisanych odczytach z 3.10.2026. Toalety MSIP (9 w obszarze demo) są w danych demo; pozostałe warstwy kod ładuje dopiero po potwierdzeniu licencji z miastem.
+- **Konflikty i awarie źródeł obsłużone, nie ukryte.** Sprzeczne źródła pokazujemy obok siebie; gdy źródło nie odpowiada, zostaje ostatnia dobra kopia z datą, a OSM ma zapasowy kanał (ekstrakt Geofabrik, gdy Overpass zawodzi).
+- **Trzy kanały B2B już działają:** widget dla hotelu, strona wydarzenia dla organizatora, publiczne API z dokumentacją.
+- **Jeden kod → web, PWA z trybem offline i aplikacja iOS/Android**, po polsku i angielsku.
+- **WCAG 2.2 sprawdzany automatycznie:** audyt axe i snapshot ARIA w teście e2e każdego ekranu.
+- **Dostępne trasy** z barierami i lukami w danych na każdym odcinku.
 
 ## Problem
 
 - Etykieta „dostępne” nie pozwala ocenić, czy konkretna osoba wjedzie, wejdzie i skorzysta z toalety.
-- Danych szczegółowych prawie nie ma: w centrum (Stare Miasto + Kazimierz + Stradom) tylko 99 z 649 miejsc w OpenStreetMap (15%) ma jakąkolwiek informację o dostępności dla wózków, a żadne nie ma liczby stopni ani szerokości drzwi (odczyt Overpass z 3.10.2026, opis w `docs/demo-data.md`). Dla całego Krakowa nasza analiza wstępna daje 8,7% (2 674 z 30 573 POI, ekstrakt Geofabrik z 3.10.2026) — analiza własna, skrypt i metoda nie są jeszcze w repozytorium.
+- Danych szczegółowych prawie nie ma. Po naszym imporcie OpenStreetMap dla centrum (Stare Miasto + Kazimierz + Stradom, ekstrakt Geofabrik z 2.10.2026) tylko 130 z 960 miejsc (13,5%) ma jakąkolwiek informację o dostępności dla wózków, 42 z nich mają datę sprawdzenia, a **żadne** nie ma liczby stopni, szerokości drzwi, podjazdu ani windy (zapytanie i tabela w `docs/demo-data.md`). Dla całego Krakowa nasza analiza wstępna daje 8,7% (2 674 z 30 573 POI, ekstrakt Geofabrik z 3.10.2026) — analiza własna, skrypt nie jest jeszcze w repozytorium. Dlatego nie polegamy na jednym źródle: łączymy OSM z danymi miasta i moderowanymi zgłoszeniami, a brak danych mówimy wprost.
 - 42% osób z potrzebami dostępności rezygnuje z miejsca, jeśli nie znajdzie informacji, a tylko 13% czuje się pewnie, idąc w nowe miejsce (Euan’s Guide Access Survey 2025, UK).
 - Dane, które istnieją, są rozproszone (OSM, MSIP, ZTP), mają różną świeżość i często sobie przeczą. Miasto nie chce utrzymywać własnej bazy ręcznie.
 
@@ -34,9 +44,9 @@ Te same dane trafiają do partnerów: hotel lub organizator osadza kartę dostę
 
 Prototyp skupia się na dwóch grupach: **osobach poruszających się na wózku** i **rodzicach z wózkami dziecięcymi**. Z tej samej karty korzystają też seniorzy (co piąty krakowianin ma 60+, Radio Kraków), osoby po urazie i turyści z walizką. Kraków odwiedziło w 2025 r. 16,25 mln osób (MOT/UMK, Badanie ruchu turystycznego 2025).
 
-Scenariusz: użytkownik wyszukuje miejsce (mapa + równoważna lista tekstowa), włącza profil „Wózek”, widzi werdykt z konkretem (np. „Nie spełnia” z grupą „Blokuje”: „Wejście: 3 stopnie”), otwiera „Skąd wiemy?”, żeby sprawdzić źródło i datę, a gdy czegoś brakuje — uzupełnia informację w kilku krokach, bez konta. Kartę miejsca można udostępnić linkiem. Hotel lub organizator osadza tę samą kartę na swojej stronie jako widget (strona „Dla firm” daje gotowy kod), a moderator zatwierdza zgłoszenia w panelu `/moderator`. Na telefonie aplikację można zainstalować jako PWA albo aplikację iOS/Android; „W mojej okolicy” ustala pozycję na urządzeniu i nie wysyła jej na serwer.
+Scenariusz: użytkownik wyszukuje miejsce (mapa + równoważna lista tekstowa), włącza profil „Wózek”, widzi werdykt z konkretem (np. „Nie spełnia” z grupą „Blokuje”: „Wejście: 3 stopnie”), otwiera „Skąd wiemy?”, żeby sprawdzić źródło i datę, a gdy czegoś brakuje — uzupełnia informację w kilku krokach, bez konta; zgłoszenie od razu widać na karcie jako „Niezweryfikowane”. Z karty wyznacza trasę („Prowadź”) z barierami na odcinkach. Kartę miejsca można udostępnić linkiem. Hotel osadza tę samą kartę na swojej stronie jako widget, a organizator generuje stronę wydarzenia (strona „Dla firm” daje gotowy kod i link). Moderator zatwierdza zgłoszenia w panelu `/moderator`. Na telefonie aplikację można zainstalować jako PWA albo aplikację iOS/Android; „W mojej okolicy” ustala pozycję na urządzeniu i nie wysyła jej na serwer.
 
-Dostępność cyfrowa (cel WCAG 2.2 AA): automatyczny audyt axe i snapshoty ARIA w każdym teście e2e, pełna obsługa klawiaturą, lista równoważna mapie, statusy rozróżnialne bez koloru (ikona + kształt + słowo), deklaracja dostępności z listą ograniczeń. Do zrobienia: testy z użytkownikami czytników ekranu, zewnętrzny audyt WCAG i wersja angielska (zaplanowana).
+Dostępność cyfrowa (cel WCAG 2.2 AA): automatyczny audyt axe i snapshoty ARIA w każdym teście e2e, pełna obsługa klawiaturą, lista równoważna mapie, statusy rozróżnialne bez koloru (ikona + kształt + słowo), deklaracja dostępności z listą ograniczeń. Interfejs jest po polsku i angielsku (przełącznik w menu). Do zrobienia: testy z użytkownikami czytników ekranu i zewnętrzny audyt WCAG.
 
 ## Źródła danych oraz ocena świeżości i wiarygodności
 
@@ -44,10 +54,11 @@ Używamy wyłącznie otwartych danych, bez dostępu do systemów UMK/MJO i bez b
 
 | Źródło | Co daje | Licencja / warunki | Odświeżanie | Gdy niedostępne |
 |---|---|---|---|---|
-| OpenStreetMap (Overpass API) | Miejsca, `wheelchair`, `toilets:wheelchair`, opis dostępności, przewijak, `check_date` | ODbL 1.0, atrybucja „© OpenStreetMap contributors” | codziennie (cron ingest) | ostatnia dobra kopia z datą, status „awaria” |
+| OpenStreetMap (Overpass API; zapasowo ekstrakt Geofabrik) | Miejsca, `wheelchair`, `toilets:wheelchair`, opis dostępności, przewijak, `check_date` | ODbL 1.0, atrybucja „© OpenStreetMap contributors” | codziennie (cron ingest) | ekstrakt Geofabrik z datą ekstraktu; gdy i on zawiedzie — ostatnia dobra kopia z datą, status „awaria” |
 | MSIP Kraków: toalety publiczne (warstwa WT_WC_2023, dane ISDP) | 50 toalet: dostępność, rodzaj dostosowania (poziom 0 / platforma / winda / pochylnia), przewijak, godziny | regulamin MSIP — **licencja do potwierdzenia z miastem**; adapter gotowy, regularnie nie ładujemy do potwierdzenia; w danych demo jednorazowy odczyt 9 toalet z 3.10.2026 (przypadek „sprzeczne”) | zbiór z 2023 r. | ostatnia kopia z datą i oznaczeniem „może być nieaktualne” |
 | ZDMK: miejsca postojowe dla osób z niepełnosprawnościami (ArcGIS Online) | 2 037 miejsc parkingowych (odczyt warstwy 3.10.2026, `docs/data-sources.md`; że zbiór prowadzi ZDMK — do potwierdzenia) | **licencja do potwierdzenia**; adapter gotowy, nie ładujemy do potwierdzenia | brak harmonogramu | ostatnia kopia z datą |
 | ZTP Kraków: inwentaryzacja przystanków (ArcGIS Online) | przystanki: ławki, nawierzchnia peronu | **licencja do potwierdzenia**; adapter gotowy, nie ładujemy do potwierdzenia | data edycji rekordu | ostatnia kopia z datą |
+| openrouteservice (HeiGIT, dane OSM) — tylko trasy, nie zapisujemy | geometria trasy, nawierzchnia, schody, nachylenie na odcinkach | warunki usługi HeiGIT, atrybucja przy trasie; użycie komercyjne **do potwierdzenia** | na żądanie, po stronie serwera | komunikat „wyznaczanie trasy niedostępne”, dane miejsc działają dalej |
 | Zgłoszenia użytkowników (moderowane) | uzupełnienia, korekty, potwierdzenia | regulamin usługi | na bieżąco | — |
 
 **Model wiarygodności.** Każdy fakt ma źródło, datę pozyskania / potwierdzenia, licencję i poziom zaufania: *Potwierdzone* (zarządca, miasto, audyt) → *Społeczność* (OSM z datą edycji) → *Zgłoszenie* (niezweryfikowane). Modyfikatory: *Może być nieaktualne* (fakt starszy niż próg), *Sprzeczne* (źródła się nie zgadzają — pokazujemy obie wartości, nie uśredniamy), *Brak danych* (nigdy „dostępne”). Zgłoszenie nigdy nie nadpisuje danych zarządcy.
