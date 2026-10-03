@@ -57,6 +57,8 @@ export interface PlaceMapProps {
   padding: { top: number; bottom: number };
   /** The user's position (`[lon, lat]`): shown as "Ty" and the map centres on it instead of fitting the places. */
   you?: [number, number] | null;
+  /** Accessible name of the map; defaults to the home screen's ("... The list has the same places."). */
+  label?: string;
   className?: string;
 }
 
@@ -64,7 +66,7 @@ export interface PlaceMapProps {
  * MapLibre map with neutral pins, or verdict pins when a profile is on. Pins are mouse shortcuts only
  * and hidden from assistive tech: the list next to the map holds the same places.
  */
-export function PlaceMap({ places, selectedId, onSelect, padding, you = null, className }: PlaceMapProps) {
+export function PlaceMap({ places, selectedId, onSelect, padding, you = null, label, className }: PlaceMapProps) {
   const messages = useMessages();
   const t = messages.home.map;
   const youLabel = messages.nearby.home.you;
@@ -112,8 +114,8 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, cl
 
   // MapLibre names the canvas once, at creation; this keeps it in the current language.
   useEffect(() => {
-    map?.getCanvas().setAttribute("aria-label", t.label);
-  }, [map, t.label]);
+    map?.getCanvas().setAttribute("aria-label", label ?? t.label);
+  }, [map, label, t.label]);
 
   useEffect(() => {
     if (!map) return;
