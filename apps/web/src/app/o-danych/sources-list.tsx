@@ -2,22 +2,40 @@
 
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowSquareOut } from "@phosphor-icons/react";
+import { ArrowSquareOut, CheckCircle, ClockCountdown, CloudSlash, Question, type Icon } from "@phosphor-icons/react";
 import type { Source } from "@krakow-bez-barier/contracts";
-import { Button, StatusBadge, useAnnounce, type Status } from "@krakow-bez-barier/ui";
+import { Button, cn, useAnnounce } from "@krakow-bez-barier/ui";
 import { SampleTag } from "@/components/kbb";
 import { pl } from "@/i18n/pl";
 import { api, isMockApi } from "@/lib/api";
 
 const t = pl.pages.aboutData;
 
-// Refresh status reuses the four status tones: each has its own icon shape and a text label.
-const STATUS_TONE: Record<Source["refreshStatus"], Status> = {
-  ok: "met",
-  stale: "conflict",
-  outage: "barrier",
-  never: "unknown",
+// Source health, not a place verdict: never the red "Nie spełnia" tone, and its own icon per state.
+const REFRESH_CHIP: Record<Source["refreshStatus"], { icon: Icon; className: string }> = {
+  ok: { icon: CheckCircle, className: "bg-status-met-bg text-status-met" },
+  stale: { icon: ClockCountdown, className: "bg-status-conflict-bg text-status-conflict" },
+  outage: { icon: CloudSlash, className: "bg-status-conflict-bg text-status-conflict" },
+  never: { icon: Question, className: "bg-status-unknown-bg text-status-unknown" },
 };
+
+const refreshIntervalLabels: Partial<Record<string, string>> = t.refreshInterval;
+
+function RefreshStatusChip({ status }: { status: Source["refreshStatus"] }) {
+  const { icon: StatusIcon, className } = REFRESH_CHIP[status];
+  return (
+    <span
+      data-refresh-status={status}
+      className={cn(
+        "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
+        className,
+      )}
+    >
+      <StatusIcon weight="bold" className="size-3.5" aria-hidden />
+      {t.status[status]}
+    </span>
+  );
+}
 
 const dateTime = new Intl.DateTimeFormat(t.dateLocale, {
   dateStyle: "medium",
@@ -79,11 +97,7 @@ export function SourcesList() {
                 {source.name}
                 {source.isSample ? <SampleTag className="ml-1.5 align-middle" /> : null}
               </h3>
-              <StatusBadge
-                status={STATUS_TONE[source.refreshStatus]}
-                label={t.status[source.refreshStatus]}
-                size="sm"
-              />
+              <RefreshStatusChip status={source.refreshStatus} />
             </div>
             {source.statusNote ? <p className="mt-2 text-caption text-foreground/85">{source.statusNote}</p> : null}
             <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-caption">
@@ -97,7 +111,7 @@ export function SourcesList() {
               ) : null}
               <dt className="text-muted-foreground">{t.refresh}</dt>
               <dd>
-                {source.refreshInterval ? (t.refreshInterval[source.refreshInterval] ?? source.refreshInterval) : "—"}
+                {source.refreshInterval ? (refreshIntervalLabels[source.refreshInterval] ?? source.refreshInterval) : "—"}
               </dd>
               <dt className="text-muted-foreground">{t.verification}</dt>
               <dd>{t.verificationByKind[source.kind]}</dd>

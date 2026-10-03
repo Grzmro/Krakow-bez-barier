@@ -59,4 +59,16 @@ describe("createMockFetch", () => {
     // THEN it answers with a problem
     expect(response.status).toBe(404);
   });
+
+  it("answers a malformed percent-encoded path with a 400 problem", async () => {
+    // GIVEN the mock fetch
+    const mockFetch = createMockFetch();
+
+    // WHEN a path with an invalid escape is requested
+    const response = await mockFetch(new Request(`${BASE_URL}/places/%E0`));
+
+    // THEN it resolves to a problem response instead of rejecting
+    expect(response.status).toBe(400);
+    expect(response.headers.get("content-type")).toBe("application/problem+json");
+  });
 });

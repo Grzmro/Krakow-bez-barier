@@ -35,8 +35,9 @@ export const pages = {
       daily: "codziennie",
       weekly: "co tydzień",
       monthly: "co miesiąc",
+      yearly: "co rok",
       realtime: "na bieżąco",
-    } as Record<string, string>,
+    } satisfies Record<string, string>,
     verificationByKind: {
       official_open_data: "zarządca lub miasto",
       community: "społeczność, potwierdzenia użytkowników",
@@ -79,16 +80,14 @@ export const pages = {
     works: "Co działa",
     worksList: [
       "Obsługa klawiaturą, widoczny fokus, link „Przejdź do treści”.",
-      "Lista miejsc jako tekstowy odpowiednik mapy.",
       "Statusy jako tekst, ikona i kształt, nie tylko kolor.",
-      "Ogłaszanie liczby wyników po zmianie filtra lub profilu.",
       "Cele dotykowe min. 48 px, kontrast tekstu min. 4,5:1.",
       "Ograniczony ruch przy ustawieniu „zmniejsz ruch”.",
       "Automatyczne testy axe (WCAG 2.2 A/AA) każdego ekranu.",
     ],
     limits: "Znane ograniczenia",
     limitsList: [
-      "Mapa jest poglądowa i nie ma etykiet dla czytnika ekranu — te same informacje są na liście.",
+      "Wyszukiwanie miejsc i mapa są w budowie: lista miejsc jako tekstowy odpowiednik mapy i ogłaszanie liczby wyników po zmianie filtra jeszcze nie działają.",
       "Część danych jest przykładowa; oznaczamy ją „PRZYKŁAD”.",
       "Brak wersji angielskiej.",
       "Nie testowaliśmy jeszcze z użytkownikami czytników ekranu.",

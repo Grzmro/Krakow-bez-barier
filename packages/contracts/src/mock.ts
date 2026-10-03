@@ -64,9 +64,13 @@ export function createMockFetch(options: MockFetchOptions = {}) {
   return async (input: Request): Promise<Response> => {
     if (options.delayMs) await new Promise((r) => setTimeout(r, options.delayMs));
     const { pathname } = new URL(input.url, "http://mock.invalid");
-    const path = decodeURIComponent(
-      pathname.startsWith(spec.basePath) ? pathname.slice(spec.basePath.length) || "/" : pathname,
-    );
+    const rawPath = pathname.startsWith(spec.basePath) ? pathname.slice(spec.basePath.length) || "/" : pathname;
+    let path: string;
+    try {
+      path = decodeURIComponent(rawPath);
+    } catch {
+      return problem(400, "Bad request", `Malformed percent-encoding in ${rawPath}`);
+    }
     for (const route of routes) {
       const match = route.method === input.method ? route.pattern.exec(path) : null;
       if (!match) continue;
