@@ -21,7 +21,8 @@ export const POST = defineRoute(
       return respond(200, await createRoute(body, { facts, locale: localeOf(request) }));
     } catch (error) {
       if (!(error instanceof RoutingError)) throw error;
-      console.error(`[routes] ${error.kind}: ${error.message}`);
+      // Only the kind: openrouteservice messages can quote the requested coordinates (the walker's position).
+      console.error(`[routes] ${error.kind}`);
       throw routingHttpError(error);
     }
   },

@@ -92,8 +92,9 @@ test("the desktop route screen passes axe and keeps its structure", async ({ pag
   await evidence("route-desktop");
 });
 
-test("a keyboard user goes from the form through the results and steps to the map, and Ruszamy answers in the panel", async ({
+test("a keyboard user goes from the form through the results and steps to the map, and Ruszamy guides in the panel", async ({
   page,
+  evidence,
 }) => {
   // GIVEN the route screen at 1440 px
   await page.setViewportSize({ width: 1440, height: 900 });
@@ -145,11 +146,12 @@ test("a keyboard user goes from the form through the results and steps to the ma
   await go.focus();
   await page.keyboard.press("Enter");
 
-  // THEN the note shows right above the button in the panel, and no toast is laid over the map
-  const note = page.getByText("Nawigacja krok po kroku w kolejnej wersji").first();
-  await expect(note).toBeVisible();
-  expect((await note.boundingBox())!.x).toBeLessThan((await page.getByRole("region", { name: MAP }).boundingBox())!.x);
-  await expect(page.locator("[data-sonner-toast]")).toHaveCount(0);
+  // THEN guidance opens in the side panel, left of the map, with focus on its heading
+  const guidance = page.getByRole("heading", { level: 1, name: "Prowadzenie" });
+  await expect(guidance).toBeFocused();
+  await expect(page.locator("main")).toContainText("Krok 1 z 33");
+  expect((await guidance.boundingBox())!.x).toBeLessThan((await page.getByRole("region", { name: MAP }).boundingBox())!.x);
+  await evidence("route-guidance-desktop");
 });
 
 test("at 200% and 400% zoom of a 1440 px window the content scrolls in one direction only", async ({ page }) => {

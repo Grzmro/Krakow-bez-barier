@@ -14,6 +14,15 @@ type Fixtures = {
 export const test = base.extend<Fixtures>({
   expectAccessible: async ({ page }, use) => {
     await use(async (options) => {
+      // axe reads colours as they are; mid-transition (e.g. a segment just checked) they fail contrast.
+      await page.evaluate(() =>
+        Promise.all(
+          document
+            .getAnimations()
+            .filter((a) => a instanceof CSSTransition)
+            .map((a) => a.finished.catch(() => undefined)),
+        ),
+      );
       let builder = new AxeBuilder({ page }).withTags(WCAG_TAGS);
       for (const selector of options?.exclude ?? []) builder = builder.exclude(selector);
       const { violations } = await builder.analyze();

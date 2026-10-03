@@ -1,25 +1,27 @@
 "use client";
 
-import { useEffect, useRef, useState, type Ref, type RefObject } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
-import { ArrowsDownUp, CaretDown, CaretLeft, CaretRight, CloudSlash, NavigationArrow, Train, WarningCircle } from "@phosphor-icons/react";
-import type { AccessibilityFact, Place, Route, RouteSegment } from "@krakow-bez-barier/contracts";
-import { Button, buttonVariants, cn, StatusIcon, toast, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
+import { ArrowsDownUp, CaretLeft, CaretRight, CloudSlash, MapPin, NavigationArrow, Train, WarningCircle } from "@phosphor-icons/react";
+import type { Place, Route } from "@krakow-bez-barier/contracts";
+import { Button, buttonVariants, cn, StatusIcon, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
 import { BottomPanel, FactRow, StatusBadge } from "@/components/kbb";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
 import { RouteMap } from "@/components/route/route-map";
 import { useLocale, useMessages } from "@/i18n/client";
-import type { Locale } from "@/i18n/locale";
 import type { Messages } from "@/i18n/messages";
 import { config } from "@/lib/config";
-import { factViews, formatDate, formatValue, joinValue } from "@/lib/place-facts";
+import { factViews } from "@/lib/place-facts";
 import { usePlace } from "@/lib/places";
 import type { ProfileSettings } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { routes } from "@/lib/routes";
 import { scrollIntoViewWithin } from "@/lib/scroll-within";
 import { useMediaQuery } from "@/lib/use-media-query";
+import { useGuidance } from "@/lib/use-guidance";
 import { RouteError, routeRequest, useRoute, type RouteKind } from "@/lib/use-route";
+import { NavigationFooter, RouteNavigation } from "./route-navigation";
+import { StepList } from "./route-steps";
 
 const KINDS: RouteKind[] = ["avoid_stairs", "shortest"];
 // Mobile: the route card floats over the map and the sheet covers its lower half. Desktop: the map has the right column to itself.
@@ -36,20 +38,6 @@ const BAR: Record<Status, string> = {
   barrier: "bg-status-barrier",
   conflict: "bg-status-conflict",
   unknown: "stripes-unknown",
-};
-
-const STEP_DOT: Record<Status, string> = {
-  met: "bg-status-met-bg",
-  barrier: "bg-status-barrier-bg",
-  conflict: "bg-status-conflict-bg",
-  unknown: "border-[1.5px] border-dashed border-status-unknown bg-status-unknown-bg",
-};
-
-const STATUS_TEXT: Record<Status, string> = {
-  met: "text-muted-foreground",
-  barrier: "text-status-barrier",
-  conflict: "text-status-conflict",
-  unknown: "text-status-unknown",
 };
 
 type RouteMessages = Messages["route"];
@@ -100,7 +88,8 @@ export function RouteScreen({ to }: { to?: string }) {
   const [swapped, setSwapped] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [expanded, setExpanded] = useState(false);
-  const [goNote, setGoNote] = useState(false);
+  // Start of a route planned again from the walker's position while guiding.
+  const [origin, setOrigin] = useState<[number, number] | null>(null);
   const desktop = useMediaQuery(DESKTOP);
   const stepRefs = useRef(new Map<number, HTMLButtonElement>());
 
@@ -108,8 +97,10 @@ export function RouteScreen({ to }: { to?: string }) {
   const placeEnd = place.data?.location.coordinates as [number, number] | undefined;
   const end = to ? placeEnd : config.routeEnd;
   const endName = to ? (place.data?.name ?? "…") : t.places.rynek;
-  const ends = end ? (swapped ? { from: end, to: config.routeStart } : { from: config.routeStart, to: end }) : null;
+  const planned = end ? (swapped ? { from: end, to: config.routeStart } : { from: config.routeStart, to: end }) : null;
+  const ends = planned && origin ? { from: origin, to: planned.to } : planned;
   const names = swapped ? [endName, t.places.dworzec] : [t.places.dworzec, endName];
+  if (origin) names[0] = t.nav.yourPosition;
 
   const avoid = useRoute(ends ? routeRequest(ends.from, ends.to, "avoid_stairs", settings) : null);
   const shortest = useRoute(ends ? routeRequest(ends.from, ends.to, "shortest", settings) : null);
@@ -125,12 +116,6 @@ export function RouteScreen({ to }: { to?: string }) {
     if (current.error) announce(routeErrorText(t, current.error));
   }, [announce, current.error, t]);
 
-  useEffect(() => {
-    if (!goNote) return;
-    const id = setTimeout(() => setGoNote(false), 4000);
-    return () => clearTimeout(id);
-  }, [goNote]);
-
   const switchKind = (next: RouteKind) => {
     setKind(next);
     setSelected(null);
@@ -145,12 +130,32 @@ export function RouteScreen({ to }: { to?: string }) {
     step.focus({ preventScroll: true });
   };
 
+  const guidance = useGuidance(route);
+  const guiding = guidance.active;
+  const guidanceHeading = useRef<HTMLHeadingElement>(null);
+  const goButton = useRef<HTMLButtonElement>(null);
+  const wasGuiding = useRef(false);
+  // Focus follows the panel: into guidance when it starts, back to "Ruszamy" when it ends.
+  useEffect(() => {
+    if (guiding) guidanceHeading.current?.focus();
+    else if (wasGuiding.current) {
+      // Without a route (a failed new one) "Ruszamy" is disabled; the screen itself takes focus.
+      const button = goButton.current;
+      if (button && !button.disabled) button.focus();
+      else document.getElementById("main")?.focus();
+    }
+    wasGuiding.current = guiding;
+  }, [guiding]);
+
   const go = () => {
-    // On desktop a bottom-centred toast would sit on the map's attribution links; the note stays next to the button.
-    if (desktop) {
-      setGoNote(true);
-      announce(t.goSoon);
-    } else toast(t.goSoon, { duration: 3000 });
+    setSelected(null);
+    setExpanded(false);
+    guidance.start();
+  };
+  const reroute = () => {
+    if (!guidance.position) return;
+    setSelected(null);
+    setOrigin(guidance.position);
   };
 
   return (
@@ -172,7 +177,7 @@ export function RouteScreen({ to }: { to?: string }) {
           <div className="relative min-w-0 flex-1 rounded-[20px] bg-card p-1 shadow-float lg:shadow-none lg:ring-1 lg:ring-border">
             <p className="flex h-12 items-center gap-3 px-3">
               <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-ink-foreground">
-                <Train weight="bold" className="size-4" aria-hidden />
+                {origin ? <MapPin weight="bold" className="size-4" aria-hidden /> : <Train weight="bold" className="size-4" aria-hidden />}
               </span>
               <span className="sr-only">{t.from}: </span>
               <span className="truncate text-body font-semibold">{names[0]}</span>
@@ -191,6 +196,7 @@ export function RouteScreen({ to }: { to?: string }) {
               aria-label={t.swap}
               onClick={() => {
                 setSwapped((s) => !s);
+                setOrigin(null);
                 setSelected(null);
               }}
               className="absolute top-1/2 right-2 size-10 -translate-y-1/2"
@@ -222,14 +228,30 @@ export function RouteScreen({ to }: { to?: string }) {
         className="mx-auto max-w-xl pb-[env(safe-area-inset-bottom)] lg:static lg:col-start-1 lg:row-start-2 lg:mx-0 lg:h-auto! lg:max-w-none lg:rounded-none lg:border-r lg:border-border lg:pb-0 lg:shadow-none"
         footer={
           <div className="shrink-0 border-t border-border bg-card/95 px-4 pt-3 pb-4 backdrop-blur">
-            {goNote ? <p className="mb-2 text-center text-body-sm text-muted-foreground">{t.goSoon}</p> : null}
-            <Button size="lg" className="w-full" disabled={!route} onClick={go}>
-              <NavigationArrow weight="fill" />
-              {t.go}
-            </Button>
+            {guiding ? (
+              <NavigationFooter guidance={guidance} total={route?.segments.length ?? 0} onEnd={guidance.end} />
+            ) : (
+              <Button ref={goButton} size="lg" className="w-full" disabled={!route} onClick={go}>
+                <NavigationArrow weight="fill" />
+                {t.go}
+              </Button>
+            )}
           </div>
         }
       >
+        {guiding ? (
+          <RouteNavigation
+            route={route}
+            guidance={guidance}
+            loading={current.isPending}
+            error={current.isError ? errorText(current.error) : null}
+            selected={selected}
+            onSelect={setSelected}
+            onReroute={reroute}
+            headingRef={guidanceHeading}
+            stepRefs={stepRefs}
+          />
+        ) : (
         <div className="px-4 pt-1 pb-6 lg:pt-4">
           <h1 className="font-display">
             {route ? (
@@ -281,10 +303,18 @@ export function RouteScreen({ to }: { to?: string }) {
           ) : null}
           {to && place.data ? <Destination place={place.data} /> : null}
         </div>
+        )}
       </BottomPanel>
 
       <div className="absolute inset-x-0 top-0 bottom-[calc(55%-24px)] lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0">
-        <RouteMap route={route} selected={selected} onSelect={selectFromMap} padding={desktop ? MAP_PADDING_DESKTOP : MAP_PADDING} />
+        <RouteMap
+          route={route}
+          selected={guiding && selected === null && route && guidance.progress ? (route.segments[guidance.progress.step]?.id ?? null) : selected}
+          onSelect={selectFromMap}
+          padding={desktop ? MAP_PADDING_DESKTOP : MAP_PADDING}
+          you={guiding ? guidance.position : null}
+          follow={guiding && guidance.follow}
+        />
       </div>
     </main>
   );
@@ -313,7 +343,6 @@ function RouteDetails({
   const clean = route.knownBarrierCount === 0;
   const conflicted = route.segments.some((s) => s.state === "conflict");
   const unknown = gaps(t, route);
-  const total = route.segments.length;
   const background = route.fallback || !clean ? "bg-status-barrier-bg" : conflicted ? "bg-status-conflict-bg" : "bg-status-met-bg";
 
   return (
@@ -392,22 +421,7 @@ function RouteDetails({
       ) : null}
 
       <h2 className="mt-7 mb-1 text-title font-semibold">{t.steps}</h2>
-      <ol aria-label={t.stepsAria}>
-        {route.segments.map((segment, index) => (
-          <SegmentItem
-            key={segment.id}
-            segment={segment}
-            index={index}
-            total={total}
-            open={selected === segment.id}
-            ref={(node) => {
-              if (node) stepRefs.current.set(segment.id, node);
-              else stepRefs.current.delete(segment.id);
-            }}
-            onToggle={() => onSelect(selected === segment.id ? null : segment.id)}
-          />
-        ))}
-      </ol>
+      <StepList route={route} selected={selected} onSelect={onSelect} stepRefs={stepRefs} />
 
       {route.attribution ? (
         <p className="mt-6 text-caption text-muted-foreground">
@@ -415,86 +429,6 @@ function RouteDetails({
         </p>
       ) : null}
     </>
-  );
-}
-
-function factLine(m: Messages, fact: AccessibilityFact, locale: Locale) {
-  return `${m.common.attribute[fact.attribute]}: ${joinValue(formatValue(fact.attribute, fact.value, locale))}`;
-}
-
-function SegmentItem({
-  segment,
-  index,
-  total,
-  open,
-  onToggle,
-  ref,
-}: {
-  segment: RouteSegment;
-  index: number;
-  total: number;
-  open: boolean;
-  onToggle: () => void;
-  ref: Ref<HTMLButtonElement>;
-}) {
-  const m = useMessages();
-  const t = m.route;
-  const locale = useLocale();
-  const status = segment.state;
-  const last = index === total - 1;
-  const detailsId = `odcinek-${segment.id}`;
-  const line = [segment.name, `${m.common.status[status]}${segment.note ? `: ${segment.note}` : ""}`].filter(Boolean).join(" · ");
-  return (
-    <li className="relative flex gap-3">
-      <div className="flex w-9 shrink-0 flex-col items-center pt-3">
-        <span className={cn("grid size-9 place-items-center rounded-full", STEP_DOT[status])}>
-          <StatusIcon status={status} className="size-5" />
-        </span>
-        {!last ? (
-          <span
-            aria-hidden
-            className={cn("mt-1 w-0 flex-1 border-l-2", status === "unknown" ? "border-dashed border-status-unknown/60" : "border-primary/40")}
-          />
-        ) : null}
-      </div>
-      <div className="min-w-0 flex-1 pb-2">
-        <button
-          ref={ref}
-          type="button"
-          aria-expanded={open}
-          aria-controls={detailsId}
-          aria-label={t.segmentAria(index + 1, total, segment.instruction, segment.lengthMeters, m.common.status[status], segment.note ?? "")}
-          onClick={onToggle}
-          className={cn(
-            "flex min-h-14 w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-muted",
-            open && "bg-primary-container hover:bg-primary-container",
-          )}
-        >
-          <span className="min-w-0 flex-1">
-            <span className="block text-body font-semibold">{segment.instruction}</span>
-            <span className={cn("block text-body-sm", STATUS_TEXT[status])}>{line}</span>
-          </span>
-          <span className="font-display text-[15px] font-extrabold text-muted-foreground tabular-nums">{t.meters(segment.lengthMeters)}</span>
-          <CaretDown className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-180")} aria-hidden />
-        </button>
-        <div id={detailsId} hidden={!open} className="px-3 pt-1 pb-2">
-          {segment.facts.length ? (
-            <ul className="space-y-1.5">
-              {segment.facts.map((fact) => (
-                <li key={fact.id} className="text-caption">
-                  <span className="font-semibold text-foreground">{factLine(m, fact, locale)}</span>
-                  <span className="block text-muted-foreground">
-                    {t.sourceLine(fact.source.name, formatDate(fact.fetchedAt, locale))} · {m.place.level[fact.reliability]}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-caption text-muted-foreground">{t.nobody}</p>
-          )}
-        </div>
-      </div>
-    </li>
   );
 }
 

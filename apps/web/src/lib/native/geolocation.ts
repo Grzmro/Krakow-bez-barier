@@ -84,3 +84,61 @@ async function locateInBrowser(): Promise<LocateResult> {
 function toPosition(coords: { latitude: number; longitude: number; accuracy: number }): DevicePosition {
   return { latitude: coords.latitude, longitude: coords.longitude, accuracyMeters: Math.round(coords.accuracy) };
 }
+
+/** Watching while walking: GPS, positions at most 5 s old. */
+const WATCH = { enableHighAccuracy: true, timeout: 20_000, maximumAge: 5_000 };
+
+type OnPosition = (position: DevicePosition) => void;
+type OnFailure = (reason: LocateFailure) => void;
+
+/**
+ * Follows the device position (turn-by-turn guidance) until the returned function is called. `onFailure` fires
+ * when there is no permission, no Geolocation API or no fix; a watch that already gave positions may keep going.
+ */
+export function watchDevice(onPosition: OnPosition, onFailure: OnFailure): () => void {
+  return Capacitor.isNativePlatform() ? watchNative(onPosition, onFailure) : watchInBrowser(onPosition, onFailure);
+}
+
+function watchNative(onPosition: OnPosition, onFailure: OnFailure): () => void {
+  let stopped = false;
+  let clear = () => {};
+  void (async () => {
+    const { Geolocation } = await import("@capacitor/geolocation");
+    try {
+      const permission = await Geolocation.requestPermissions({ permissions: ["location"] });
+      if (stopped) return;
+      if (permission.location === "denied" && permission.coarseLocation !== "granted") return onFailure("denied");
+      const id = await Geolocation.watchPosition(WATCH, (position, error) => {
+        if (stopped) return;
+        if (position) onPosition(toPosition(position.coords));
+        else if (error) onFailure(nativeFailure(error));
+      });
+      clear = () => void Geolocation.clearWatch({ id });
+      if (stopped) clear();
+    } catch (error) {
+      if (!stopped) onFailure(nativeFailure(error));
+    }
+  })();
+  return () => {
+    stopped = true;
+    clear();
+  };
+}
+
+function watchInBrowser(onPosition: OnPosition, onFailure: OnFailure): () => void {
+  if (typeof window !== "undefined" && window.isSecureContext === false) {
+    onFailure("insecure");
+    return () => {};
+  }
+  const geolocation = typeof navigator === "undefined" ? undefined : navigator.geolocation;
+  if (!geolocation) {
+    onFailure("unsupported");
+    return () => {};
+  }
+  const id = geolocation.watchPosition(
+    ({ coords }) => onPosition(toPosition(coords)),
+    (error) => onFailure(BROWSER_CODES[error.code] ?? "unavailable"),
+    WATCH,
+  );
+  return () => geolocation.clearWatch(id);
+}

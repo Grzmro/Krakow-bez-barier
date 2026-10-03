@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Route } from "@krakow-bez-barier/contracts";
 import { cn } from "@krakow-bez-barier/ui";
-import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
+import type { GeoJSONSource, Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useMessages } from "@/i18n/client";
 import { config } from "@/lib/config";
@@ -92,6 +92,10 @@ export interface RouteMapProps {
   onSelect: (id: number | null) => void;
   /** Space covered by overlays (route card on top, sheet at the bottom), in px. */
   padding: { top: number; bottom: number };
+  /** The walker's position (`[lon, lat]`) while guiding: a "Ty" marker. */
+  you?: [number, number] | null;
+  /** Keep the map centred on `you`. */
+  follow?: boolean;
   className?: string;
 }
 
@@ -99,7 +103,7 @@ export interface RouteMapProps {
  * The route on a MapLibre map, segments coloured by state. A mouse shortcut only: the same segments, in the
  * same order, are the "Krok po kroku" list.
  */
-export function RouteMap({ route, selected, onSelect, padding, className }: RouteMapProps) {
+export function RouteMap({ route, selected, onSelect, padding, you = null, follow = false, className }: RouteMapProps) {
   const t = useMessages().route.map;
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MapLibreMap | null>(null);
@@ -174,6 +178,35 @@ export function RouteMap({ route, selected, onSelect, padding, className }: Rout
       map.fitBounds(bounds, { padding: { top: padding.top, bottom: padding.bottom, left: 32, right: 72 }, duration: 400 });
     });
   }, [map, loaded, route, selected, padding.top, padding.bottom]);
+
+  const youRef = useRef<Marker | null>(null);
+  const [lon, lat] = you ?? [];
+  useEffect(() => {
+    if (!map || !loaded || lon === undefined || lat === undefined) {
+      youRef.current?.remove();
+      youRef.current = null;
+      return;
+    }
+    let cancelled = false;
+    import("maplibre-gl").then(({ Marker }) => {
+      if (cancelled) return;
+      if (!youRef.current) {
+        const element = document.createElement("div");
+        element.setAttribute("aria-hidden", "true");
+        element.className =
+          "grid size-9 place-items-center rounded-full bg-ink text-[11px] font-bold text-ink-foreground shadow-float ring-4 ring-card";
+        youRef.current = new Marker({ element }).setLngLat([lon, lat]).addTo(map);
+      }
+      youRef.current.getElement().textContent = t.you;
+      youRef.current.setLngLat([lon, lat]);
+      // Padding keeps the marker clear of the route card on top and the panel below.
+      if (follow) map.easeTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 17), offset: [0, (padding.top - padding.bottom) / 2], duration: 400 });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [map, loaded, lon, lat, follow, padding.top, padding.bottom, t.you]);
+  useEffect(() => () => void youRef.current?.remove(), []);
 
   return (
     <div
