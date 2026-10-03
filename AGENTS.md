@@ -96,6 +96,7 @@ npm install                    # all workspaces; postinstall regenerates contrac
 npm run contracts:generate     # after editing openapi.yaml
 npm run dev                    # web app (http://localhost:3000)
 npm run build | lint | typecheck | test
+npm run test:e2e               # Playwright smoke of the main screens (apps/web/e2e)
 npm run db:generate            # drizzle-kit generate after a schema change
 npm run db:migrate             # apply migrations
 npm run ingest -- --source <id> --city krakow
@@ -106,7 +107,9 @@ npm run ingest -- --source <id> --city krakow
 - Team **Krakow Bez Barier**, identifiers `KBB-<n>`. Linear is the source of truth for scope.
 - Before starting, read the full task (`get_issue`), including acceptance criteria.
 - Statuses: `Backlog` → `Todo` → `In Progress` → `In Review` → `Done` (plus `Canceled`, `Duplicate`).
-  Set the task to `In Progress` when you pick it up and to `In Review` when its PR is open; a human moves it to `Done` after merge.
+  Set the task to `In Progress` when you pick it up. The GitHub integration does the rest — a PR whose
+  branch or title has `KBB-<n>` moves it to `In Review` when opened and to `Done` when merged; don't
+  set those by hand.
 - Anything outside the task's scope: don't do it silently — propose a new task.
 - Linear comments are short, like a teammate writes them: what's done, what's blocking.
 
@@ -123,6 +126,8 @@ npm run ingest -- --source <id> --city krakow
   Linear task, what changed, how to test.
 - Stage only files relevant to the change (`git add <path>`, never `git add -A` / `git add .`).
 - Update a feature branch with `git rebase origin/main`, not by merging `main` into it.
+- **Agents merge their own PRs** once the gates in the `task` skill are green (review fixed, checks
+  pass, rebased on `main`) — no waiting for a human. `main` must always build and run.
 - Never `--no-verify`, never force-push `main`.
 
 ## Product invariants (the jury tests these)
@@ -151,6 +156,6 @@ npm run ingest -- --source <id> --city krakow
 1. The affected app builds, and lint + typecheck + tests pass (run only what you touched).
    If the build breaks, fix it before moving on.
 2. Tests for business logic and endpoints, structured `// GIVEN` / `// WHEN` / `// THEN`.
-   UI may be verified manually when time is short — say so in the PR.
-3. Self-review the full diff before declaring done.
+   UI gets a Playwright smoke spec (`apps/web/e2e/`) for its main path.
+3. Independent review (a separate subagent running the `review` skill), findings fixed.
 4. A non-obvious technical decision gets one line in `docs/architecture.md` ("Decisions").

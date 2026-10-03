@@ -56,4 +56,5 @@ BODY
 
 - Title: `KBB-<n>: <Sentence case title>` — English, no `type(scope)` prefix, no trailing period.
 - Get the Linear URL from `get_issue`.
-- Never merge the PR — that's for a human.
+- Merging is the `task` skill's step 8 (autonomous, only when all gates are green). Called on its
+  own, `ship` stops at the PR.

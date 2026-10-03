@@ -6,6 +6,7 @@ description: Self-review of the current branch's changes against main before dec
 # Review — self-review of the branch
 
 Read-only analysis first, then fix. Report only findings you're confident in (>70%).
+When run as an independent reviewer from the `task` skill: report only, don't edit files.
 
 ## 1. Get the diff
 
@@ -31,6 +32,7 @@ Read the full changed files where the diff alone lacks context.
   provenance; missing data shown as accessible/green; sample data not labeled "PRZYKŁAD"; UI string
   outside `apps/web/src/i18n/pl.ts`; information only on the map; not keyboard-operable.
 - Violates a `.claude/rules/*.md` for an area in the diff — re-read each one and check.
+- UI change without a Playwright smoke spec, or visibly different from `design/prototype-b/`.
 
 **Should-fix:**
 - Duplicated logic where an existing helper/component would do.
