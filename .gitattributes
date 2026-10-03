@@ -1,0 +1,2 @@
+# Every task appends a line to "Decisions"; a union merge keeps both sides instead of a rebase conflict.
+docs/architecture.md merge=union

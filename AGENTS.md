@@ -140,6 +140,15 @@ a change to `apps/web`, `packages/ui` or `packages/contracts` with no spec selec
 - npm blocks dependency install scripts; a new dependency that needs one goes through
   `npm approve-scripts <pkg>` (recorded in root `package.json` → `allowScripts`).
 
+## Shell commands (agents)
+
+The worktree guard rejects commands it can't verify, and every rejection costs a turn.
+- One simple command per Bash call, with absolute paths (`git -C <path> …`) — no `cd … &&`, no
+  chains of `git` commands.
+- Edit files with Edit/Write, not heredocs or inline Python/sed scripts.
+- Run `scripts/merge-pr.sh` in the foreground with `timeout: 600000` (or in the background plus a
+  Monitor until-loop) — never background plus `sleep` polling.
+
 ## Working with tasks (Linear)
 
 - Team **Krakow Bez Barier**, identifiers `KBB-<n>`. Linear is the source of truth for scope.
@@ -164,6 +173,9 @@ a change to `apps/web`, `packages/ui` or `packages/contracts` with no spec selec
   Linear task, what changed, how to test.
 - Stage only files relevant to the change (`git add <path>`, never `git add -A` / `git add .`).
 - Update a feature branch with `git rebase origin/main`, not by merging `main` into it.
+- `docs/architecture.md` merges as `merge=union` (`.gitattributes`): rebases keep both sides' lines
+  instead of conflicting — append your Decisions line, don't rewrite others'; if a rebase touched it,
+  check it for a doubled line.
 - **Agents merge their own PRs** once the gates in the `task` skill are green (review fixed, checks
   pass, rebased on `main`) — no waiting for a human. `main` must always build and run.
 - Never `--no-verify`, never force-push `main`.

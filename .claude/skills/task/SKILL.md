@@ -64,7 +64,10 @@ Follow `AGENTS.md` hard rules. Small, coherent commits as you go (see `ship` for
 
 ## 5. Verify
 
-- Build, lint, typecheck and unit tests of every affected app pass (commands in root `AGENTS.md` → Commands).
+- Lint, typecheck and unit tests of every affected app pass (commands in root `AGENTS.md` → Commands).
+- `npm run build` only when the change touches `next.config.*`, the service worker / PWA
+  (`public/sw.js`, manifest, icons) or route handlers (`src/app/api/**`), or you run a
+  `*.prod.spec.ts` — `merge-pr.sh` always builds, so a build "just in case" only costs time.
 - New business logic and endpoints have tests (`// GIVEN` / `// WHEN` / `// THEN`).
 - **E2E: only the specs of the screens you changed** — `npm run test:e2e -- e2e/<screen>.spec.ts`
   (add `E2E_PROD=1` after `npm run build` for a `*.prod.spec.ts`). Never the full suite by default:
@@ -86,9 +89,10 @@ Follow `AGENTS.md` hard rules. Small, coherent commits as you go (see `ship` for
 
 ## 6. Independent review
 
-Fresh eyes catch what the author misses. If you can't spawn subagents (e.g. you are an agent
-inside a workflow), self-review with the `review` skill and say "self-review only" in the PR Notes
-and in your result — the orchestrator then runs an independent review. Otherwise spawn a
+Fresh eyes catch what the author misses. Running inside a workflow with its own review phase? See
+*In a workflow* below — no review of your own. If you can't spawn subagents and nothing reviews
+after you, self-review with the `review` skill and say "self-review only" in the PR Notes and in
+your result — the orchestrator then runs an independent review. Otherwise spawn a
 **separate subagent** (Agent tool) with:
 "Run the `review` skill on branch `<branch>` for Linear task KBB-<n>; report findings only, don't
 edit files." Then fix every must-fix and should-fix finding yourself, rerun step 5, and repeat the
@@ -109,12 +113,15 @@ GitHub's merge queue isn't available on this repo, so use the soft queue script:
 
 ```bash
 E2E_SPECS="e2e/route.spec.ts e2e/home.spec.ts" scripts/merge-pr.sh
-  # rebase → local gate (lint, typecheck, unit, build, e2e of the given specs) → push
+  # rebase → push (CI starts) → local gate (lint, typecheck, unit, build, e2e of the given specs)
   # → fast CI green on that exact commit → main unchanged? → merge
 ```
 
 CI only runs lint, typecheck and unit tests (fast); build and e2e run on this machine inside the
-script, on the rebased commit. **E2E runs only the specs of the screens you changed**: pass them in
+script, on the rebased commit, while CI runs on GitHub. Checks that haven't registered yet ("no
+checks reported") mean "wait" (up to `CHECKS_WAIT`, 180 s), not red. Run it **in the foreground**
+(Bash `timeout: 600000` — one round fits; if the timeout kills it, run it again), or in the
+background followed by a Monitor until-loop — never background plus `sleep` polling. **E2E runs only the specs of the screens you changed**: pass them in
 `E2E_SPECS` (paths relative to `apps/web`, no globs, or as arguments after the PR number). The script
 adds the spec files changed vs `origin/main` (incl. their `-snapshots/`), and stops with an error
 when the change can affect the UI — `apps/web` code (server and API too), public files, e2e helpers or
@@ -142,3 +149,15 @@ stop and report instead of merging.
 - Linear comment (2–4 lines, like a teammate): what's done, PR link, anything left or blocking.
 - To the user: PR link, merged or not (and why), acceptance-criteria checklist, review findings left
   open, what wasn't verified, proposed follow-up tasks.
+
+## In a workflow
+
+When an orchestrator splits the task into phases (implement → review → fixes + merge):
+- **Implementing agent:** steps 0–5 and 7 (PR opened); skip step 6 — no self-review, the workflow's
+  review phase does it. Report the worktree path, the branch and the e2e specs you ran (step 8's
+  `E2E_SPECS`).
+- **Fixes and merge happen in the implementation worktree, on the same branch** (`<type>/KBB-<n>`):
+  either the implementing agent gets the review findings, or the fixing agent works in that worktree
+  (absolute paths). No new worktree, no new `-fix`/`-review` branch, no fresh `npm ci` — the PR is
+  found by its branch, and `merge-pr.sh` reinstalls only when the lockfile changed.
+- Then step 5 for what the fixes touched, `ship` (same PR), step 8 and step 9.
