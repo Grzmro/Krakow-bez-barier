@@ -29,6 +29,11 @@ export const home = {
       },
     },
   },
+  command: {
+    applied: (what: string) => `Pokazuję: ${what}, od najbliższych`,
+    unknownTitle: "Nie rozumiem tego polecenia.",
+    unknownHint: "Spróbuj: „najbliższa toaleta”, „apteka w pobliżu” albo „winda koło mnie”.",
+  },
   categoriesLabel: "Kategorie",
   categoryAll: "Wszystko",
   filtersLabel: "Filtry cech",

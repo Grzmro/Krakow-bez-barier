@@ -14,6 +14,7 @@ import { config } from "@/lib/config";
 import { routes } from "@/lib/routes";
 import { byDistance, listCentre, searchArea, toLonLat, type NearbyOrigin } from "@/lib/nearby";
 import { listedCount } from "@/lib/list-count";
+import { parseNearestCommand } from "@/lib/nearest-command";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
 import { LIST_PAGE, nextWindow, windowFor } from "@/lib/list-window";
 import { usePlaces } from "@/lib/places";
@@ -86,6 +87,7 @@ export function HomeScreen() {
   const chosenPlace = nearby?.place;
   const nearbyRef = useRef<NearbyToggleHandle>(null);
   const [quickId, setQuickId] = useState<QuickActionId | null>(null);
+  const [unknownCommand, setUnknownCommand] = useState(false);
   const rowRefs = useRef(new Map<string, HTMLAnchorElement>());
   const listRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
@@ -216,16 +218,7 @@ export function HomeScreen() {
     if (features.length === 1 && features[0] === feature) setShowUnknown(false);
   }
 
-  function runQuick(action: QuickAction) {
-    if (quick?.id === action.id) {
-      setQuickId(null);
-      if (!action.unavailable) {
-        setCategory(ALL);
-        setFeatures([]);
-        setShowUnknown(false);
-      }
-      return;
-    }
+  function startQuick(action: QuickAction) {
     setQuickId(action.id);
     if (action.unavailable) return;
     const filters = quickFilters(action);
@@ -238,8 +231,48 @@ export function HomeScreen() {
     if (!nearby) nearbyRef.current?.locate();
   }
 
+  function runQuick(action: QuickAction) {
+    if (quick?.id !== action.id) return startQuick(action);
+    setQuickId(null);
+    if (!action.unavailable) {
+      setCategory(ALL);
+      setFeatures([]);
+      setShowUnknown(false);
+    }
+  }
+
+  // "najbliższa toaleta" (said or typed): the matching quick action, or just the category with "W mojej
+  // okolicy" on; true when `text` was such a command. It never toggles an action off.
+  function runCommand(text: string) {
+    const parsed = parseNearestCommand(text, categories.data ?? []);
+    setUnknownCommand(parsed?.kind === "unknown");
+    if (!parsed) return false;
+    if (parsed.kind === "unknown") {
+      announce(`${t.command.unknownTitle} ${t.command.unknownHint}`);
+      return true;
+    }
+    const { quick: quickAction, category: id } = parsed.command;
+    if (quickAction) {
+      if (quick?.id === quickAction.id) {
+        if (!nearby) nearbyRef.current?.locate();
+      } else startQuick(quickAction);
+      return true;
+    }
+    setQuickId(null);
+    setQ("");
+    setCategory(id ?? ALL);
+    setFeatures([]);
+    setShowUnknown(false);
+    setStatusFilter(null);
+    setHideFailing(false);
+    announce(t.command.applied(categories.data?.find((c) => c.id === id)?.label ?? ""));
+    if (!nearby) nearbyRef.current?.locate();
+    return true;
+  }
+
   function searchWider() {
     setQuickId(null);
+    setUnknownCommand(false);
     setNearby(null);
     setQ("");
     setCategory(ALL);
@@ -364,7 +397,7 @@ export function HomeScreen() {
               <CaretLeft weight="bold" aria-hidden />
             </Button>
           ) : null}
-          <SearchBox value={q} onValueChange={setQ} suggestions={suggestions} />
+          <SearchBox value={q} onValueChange={setQ} suggestions={suggestions} onCommand={runCommand} />
         </div>
         <ToggleGroup
           aria-label={t.categoriesLabel}
@@ -402,6 +435,12 @@ export function HomeScreen() {
           {quick && quickState ? <QuickResult action={quick} state={quickState} /> : null}
           <ProfileSwitch value={profile} onChange={changeProfile} />
           <NearbyToggle ref={nearbyRef} origin={nearby} onChange={setNearby} />
+          {unknownCommand ? (
+            <div role="note" className="space-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-body-sm">
+              <p className="font-semibold">{t.command.unknownTitle}</p>
+              <p>{t.command.unknownHint}</p>
+            </div>
+          ) : null}
           {profile ? (
             <>
               <div className="flex items-center gap-2">
