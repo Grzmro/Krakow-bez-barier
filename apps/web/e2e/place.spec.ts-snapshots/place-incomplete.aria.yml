@@ -20,28 +20,64 @@
       - list:
         - listitem:
           - 'button "Wejście — stopnie: Brak danych. Wiarygodność: Brak danych."': Wejście — stopnie Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Wysokość stopnia: Brak danych. Wiarygodność: Brak danych."': Wysokość stopnia Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Podjazd: Brak danych. Wiarygodność: Brak danych."': Podjazd Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Toaleta dostosowana: Brak danych. Wiarygodność: Brak danych."': Toaleta dostosowana Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
         - listitem:
           - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
     - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
     - button "Uzupełnij":
       - img

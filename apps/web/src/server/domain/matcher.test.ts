@@ -165,6 +165,30 @@ describe("matchProfile with resolved attributes", () => {
       expect(matchProfile(noLiftData, wheelchair)).toMatchObject({ state: "met", unconfirmed: false });
     });
 
+    it("meets the lift need through the lift where the place has floors", () => {
+      // GIVEN an otherwise accessible place on three storeys with a lift
+      const place = { attributes: [...fullyAccessible.attributes, known("levels", num(3))] };
+      // WHEN checked against the wheelchair preset
+      // THEN the lift itself meets the need
+      expect(matchProfile(place, wheelchair)).toMatchObject({ state: "met", blockers: [] });
+      expect(liftNeed(place)).toMatchObject({ attribute: "lift", state: "met" });
+    });
+
+    it("meets the lift need on one storey even when sources disagree on the lift, but still flags the conflict", () => {
+      // GIVEN a single-storey place whose lift data is in conflict
+      const place = {
+        attributes: [
+          ...fullyAccessible.attributes.filter((a) => a.attribute !== "lift"),
+          { attribute: "lift", state: "conflict", status: "conflict", value: null, facts: [] } as ResolvedAttribute,
+          known("levels", num(1)),
+        ],
+      };
+      // WHEN checked against the wheelchair preset
+      // THEN the lift need is met by the storey count, and the overall verdict is a conflict elsewhere
+      expect(liftNeed(place)).toMatchObject({ attribute: "levels", state: "met" });
+      expect(matchProfile(place, wheelchair).state).toBe("conflict");
+    });
+
     it("can't say on a missing lift while the number of storeys is unknown", () => {
       // GIVEN an otherwise accessible place known to have no lift, with no storey data
       const place = withoutLift();

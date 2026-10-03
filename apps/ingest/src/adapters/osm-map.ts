@@ -62,6 +62,15 @@ export function storeysFromLevel(raw: string): number | null {
   return top - bottom + 1;
 }
 
+/** Venues that usually fill their whole building, so the building's height is the venue's own. */
+const WHOLE_BUILDING_VENUES: Readonly<Record<string, readonly string[]>> = {
+  tourism: ["museum", "hotel", "hostel", "guest_house", "gallery"],
+  amenity: ["theatre", "cinema", "library"],
+};
+
+const fillsBuilding = (tags: Record<string, string>) =>
+  Object.entries(WHOLE_BUILDING_VENUES).some(([key, values]) => tags[key] !== undefined && values.includes(tags[key]));
+
 export function recordRef(el: OsmElement): string {
   return `osm:${el.type}/${el.id}${el.version ? `@v${el.version}` : ""}`;
 }
@@ -155,12 +164,13 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
     else skipped.push(`capacity:disabled=${tags["capacity:disabled"]}`);
   }
 
-  // The venue's own `level` says more than the building's height; one fact per record either way.
+  // The venue's own `level` says more than the building's height, and a café's building may be taller than the
+  // café, so `building:levels` counts only for venues that fill their building. One fact per record either way.
   if (tags.level !== undefined) {
     const storeys = storeysFromLevel(tags.level);
     if (storeys === null || storeys > 50) skipped.push(`level=${tags.level}`);
     else add("levels", num(storeys, "count"), `level=${tags.level}`);
-  } else if (tags["building:levels"] !== undefined) {
+  } else if (tags["building:levels"] !== undefined && fillsBuilding(tags)) {
     const raw = tags["building:levels"];
     const storeys = COUNT.test(raw) ? Number(raw) : null;
     if (storeys === null || !inRange(storeys, 1, 50)) skipped.push(`building:levels=${raw}`);

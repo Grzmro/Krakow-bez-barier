@@ -150,11 +150,27 @@ describe("mapOsmElement", () => {
     // WHEN mapping them
     const upstairs = mapOsmElement(node(5, { level: "1", "building:levels": "5" }));
     const badLevel = mapOsmElement(node(6, { level: "parter" }));
-    const badBuilding = mapOsmElement(node(7, { "building:levels": "0" }));
+    const badBuilding = mapOsmElement(node(7, { amenity: "theatre", "building:levels": "0" }));
     // THEN the venue's own level decides, and nothing is guessed from unreadable values
     expect(upstairs.place?.facts.map((f) => [f.attribute, f.value])).toEqual([["levels", { kind: "number", number: 2, unit: "count" }]]);
     expect(badLevel).toMatchObject({ place: { facts: [] }, skipped: ["level=parter"] });
     expect(badBuilding).toMatchObject({ place: { facts: [] }, skipped: ["building:levels=0"] });
+  });
+
+  it("ignores the building's storeys for a venue that may fill only part of it", () => {
+    // GIVEN a ground-floor café mapped as a three-storey building way without a lift, and a hotel in the same building shape
+    const way = (id: number, tags: Record<string, string>): OsmElement => ({
+      type: "way",
+      id,
+      center: { lat: 1, lon: 1 },
+      tags: { name: "x", building: "yes", "building:levels": "3", elevator: "no", ...tags },
+    });
+    // WHEN mapping them
+    const cafe = mapOsmElement(way(8, { amenity: "cafe" }));
+    const hotel = mapOsmElement(way(9, { tourism: "hotel" }));
+    // THEN the café gets no storey count that could turn its missing lift into a barrier, the hotel does
+    expect(cafe.place?.facts.map((f) => f.attribute)).toEqual(["lift"]);
+    expect(hotel.place?.facts.find((f) => f.attribute === "levels")).toMatchObject({ value: { kind: "number", number: 3, unit: "count" } });
   });
 
   it("skips unnamed non-toilet places and elements of unknown category", () => {

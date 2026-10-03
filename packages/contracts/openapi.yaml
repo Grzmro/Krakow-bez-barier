@@ -1299,9 +1299,7 @@ components:
     AccessibilityAttribute:
       type: string
       description: 'Shared vocabulary of measurable accessibility attributes. `levels` is the number of storeys
-        the place spans, counting the entrance storey (1 = everything on one floor).
-
-        '
+        the place spans, counting the entrance storey (1 = everything on one floor).'
       enum:
       - step_count
       - step_height_cm
