@@ -30,7 +30,7 @@ async function openHome(page: Page) {
   // Without the install hint, as in map-touch.spec.ts: the page is one screen tall and the hint takes a strip of it.
   await page.addInitScript(() => localStorage.setItem("kbb:install-dismissed", "1"));
   await page.goto("/");
-  await expect(panel(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+  await expect(panel(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   await settledPanel(page);
 }
 
