@@ -25,6 +25,7 @@ export type SourceRefreshStatus = Schemas["SourceRefreshStatus"];
 export type ReportStatus = Schemas["ReportStatus"];
 export type PlaceList = Schemas["PlaceList"];
 export type FeatureFilter = Schemas["FeatureFilter"];
+export type FeatureMatch = Schemas["FeatureMatch"];
 export type SummaryChip = Schemas["SummaryChip"];
 export type Verdict = Schemas["Verdict"];
 export type NeedResult = Schemas["NeedResult"];

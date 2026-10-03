@@ -6,10 +6,11 @@ import {
   type PlaceList,
   type PlaceSummary,
 } from "@krakow-bez-barier/contracts";
-import { matchFeature } from "@/lib/place-features";
+import { featureState } from "@/server/domain/features";
 import { matchProfile } from "@/server/domain/matcher";
 import { thresholdsFor } from "@/server/domain/profiles";
 
+// TODO(KBB-46): delete this layer once the front runs on the real places API by default.
 // In-browser stand-in for the places API (used while NEXT_PUBLIC_API_MOCK is on), built only from the
 // spec's `examples`. Supports `q`, `category`, `feature` + `includeUnknown`, `bbox` and the profile
 // parameters; verdicts come from the same `matchProfile` the API uses.
@@ -40,10 +41,19 @@ function inBbox(summary: PlaceSummary, bbox?: number[]) {
   return lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat;
 }
 
+const factsOf = (summary: PlaceSummary) => PLACES.find((p) => p.id === summary.id) ?? { attributes: [] };
+
+/** Answers each feature filter from the example's facts, like the API does. */
+function withFeatures(summary: PlaceSummary, query: ListPlacesQuery): PlaceSummary {
+  if (!query.feature?.length) return summary;
+  const { attributes } = factsOf(summary);
+  return { ...summary, features: query.feature.map((feature) => ({ feature, state: featureState(attributes, feature) })) };
+}
+
 /** Feature filters hide places that don't have every feature by known data, unless `includeUnknown`. */
 function hasFeatures(summary: PlaceSummary, query: ListPlacesQuery) {
-  if (!query.feature?.length || query.includeUnknown) return true;
-  return query.feature.every((feature) => matchFeature(summary.summary, feature) === "known");
+  const states = summary.features?.map((match) => match.state) ?? [];
+  return query.includeUnknown ? !states.includes("absent") : states.every((state) => state === "met");
 }
 
 const normalize = (text: string) =>
@@ -58,13 +68,13 @@ function matchesText(summary: PlaceSummary, q: string) {
   return normalize(haystack).includes(normalize(q.trim()));
 }
 
-const factsOf = (summary: PlaceSummary) => PLACES.find((p) => p.id === summary.id) ?? { attributes: [] };
-
 export function mockListPlaces(query: ListPlacesQuery = {}): PlaceList {
   const thresholds = thresholdsFor(query);
   const items = SUMMARIES.filter((s) => (query.q ? matchesText(s, query.q) : true))
     .filter((s) => (query.category?.length ? query.category.includes(s.category) : true))
-    .filter((s) => inBbox(s, query.bbox) && hasFeatures(s, query))
+    .filter((s) => inBbox(s, query.bbox))
+    .map((s) => withFeatures(s, query))
+    .filter((s) => hasFeatures(s, query))
     .map((s) => ({ ...s, verdict: thresholds ? matchProfile(factsOf(s), thresholds) : null }));
   return { items, nextCursor: null, total: items.length };
 }

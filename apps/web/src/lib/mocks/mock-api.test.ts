@@ -34,7 +34,7 @@ describe("mockListPlaces", () => {
 
     // THEN only places with a known lift come back by default, unknown ones only on request
     expect(known.items.length).toBeGreaterThan(0);
-    expect(known.items.every((item) => matchFeature(item.summary, "lift") === "known")).toBe(true);
+    expect(known.items.every((item) => matchFeature(item, "lift") === "met")).toBe(true);
     expect(ids(known)).not.toContain("palac-krzysztofory");
     expect(ids(withUnknown)).toContain("palac-krzysztofory");
   });
@@ -72,7 +72,7 @@ describe("withPlacesMocks", () => {
     expect(error).toBeUndefined();
     expect(data?.items.length).toBeGreaterThan(0);
     expect(data?.items.every((item) => item.category === "museum" || item.category === "hotel")).toBe(true);
-    expect(data?.items.every((item) => matchFeature(item.summary, "step_free") === "known")).toBe(true);
+    expect(data?.items.every((item) => matchFeature(item, "step_free") === "met")).toBe(true);
   });
 });
 

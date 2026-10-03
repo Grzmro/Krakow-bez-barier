@@ -106,6 +106,38 @@ describe("GET /api/v1/places", () => {
     expect(names(withUnknown.body)).toEqual(["Hotel Dostępny", "Kawiarnia Przykład", "Pałac Krzysztofory"]);
     const cafe = withUnknown.body.items.find((p: { name: string }) => p.name === "Kawiarnia Przykład");
     expect(cafe.summary).toContainEqual({ attribute: "lift", state: "unknown", status: "no_data", label: "Winda: brak danych" });
+    expect(cafe.features).toEqual([{ feature: "lift", state: "unknown" }]);
+    expect(withUnknown.body.items[0].features).toEqual([{ feature: "lift", state: "met" }]);
+  });
+
+  it("marks steps with unknown ramp data as unknown for step_free, never as step-free", async () => {
+    // GIVEN a place with two steps and no ramp data, and one with steps and a known ramp
+    const steps = placeRecord({ name: "Schody bez danych o podjeździe", location: { x: 19.94, y: 50.06 } });
+    const ramp = placeRecord({ name: "Schody z podjazdem", location: { x: 19.94, y: 50.06 } });
+    const previous = repository.current;
+    repository.current = createFakePlaceRepository(
+      [steps, ramp],
+      [
+        factRecord(steps, "step_count", num(2, "count"), { source: city, reliability: "confirmed" }),
+        factRecord(ramp, "step_count", num(2, "count"), { source: city, reliability: "confirmed" }),
+        factRecord(ramp, "ramp", bool(true), { source: city, reliability: "confirmed" }),
+      ],
+    );
+
+    try {
+      // WHEN filtering by step_free, without and with includeUnknown
+      const strict = await list("?feature=step_free");
+      const withUnknown = await list("?feature=step_free&includeUnknown=true");
+
+      // THEN only the ramp passes by default; with includeUnknown the steps place is marked unknown
+      // and its summary says the ramp has no data
+      expect(names(strict.body)).toEqual(["Schody z podjazdem"]);
+      const place = withUnknown.body.items.find((p: { name: string }) => p.name === steps.name);
+      expect(place.features).toEqual([{ feature: "step_free", state: "unknown" }]);
+      expect(place.summary).toContainEqual({ attribute: "ramp", state: "unknown", status: "no_data", label: "Podjazd: brak danych" });
+    } finally {
+      repository.current = previous;
+    }
   });
 
   it("adds a verdict with per-need groups for a profile and honours the user's thresholds", async () => {

@@ -65,6 +65,7 @@ export const profile = {
     surface: "nierówna nawierzchnia",
     overallNo: "OSM: niedostępne dla wózków",
     missing: (need: Need) => `${needName[need].toLowerCase()}: brak`,
+    liftWithoutFloors: "winda: brak, piętra: brak danych",
     unresolved: (need: Need) => needName[need].toLowerCase(),
     conflictElsewhere: "sprzeczne dane o miejscu",
   },

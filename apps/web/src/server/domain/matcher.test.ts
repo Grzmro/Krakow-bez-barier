@@ -124,6 +124,33 @@ describe("matchProfile with resolved attributes", () => {
     expect(matchProfile(noRamp, entranceOnly)).toMatchObject({ state: "barrier", reasons: ["2 stopnie"] });
   });
 
+  it("accepts a known ramp or level entrance when the number of steps is unknown, like the step_free filter", () => {
+    // GIVEN no step count, once with a ramp, once with a level entrance, once with no ramp
+    const entranceOnly = { ...wheelchair, requireLift: false, requireAccessibleToilet: false };
+    const door = known("door_width_cm", num(90));
+    const withRamp = { attributes: [door, known("ramp", bool(true), "unverified")] };
+    const level = { attributes: [door, known("entrance_level", bool(true))] };
+    const noRamp = { attributes: [door, known("ramp", bool(false))] };
+    // WHEN checked against the wheelchair preset
+    // THEN a ramp or a level entrance meets the entrance need, no ramp alone can't say
+    expect(matchProfile(withRamp, entranceOnly)).toMatchObject({ state: "met", unconfirmed: true });
+    expect(matchProfile(withRamp, entranceOnly).needs?.[0]).toMatchObject({ need: "entrance", attribute: "ramp", state: "met" });
+    expect(matchProfile(level, entranceOnly).state).toBe("met");
+    expect(matchProfile(noRamp, entranceOnly)).toMatchObject({ state: "unknown", unknowns: ["step_count"] });
+  });
+
+  it("never blocks on a missing lift while the number of floors is unknown", () => {
+    // GIVEN an otherwise accessible place known to have no lift
+    const place = {
+      attributes: fullyAccessible.attributes.map((a) => (a.attribute === "lift" ? known("lift", bool(false)) : a)),
+    };
+    // WHEN checked against the wheelchair preset
+    const verdict = matchProfile(place, wheelchair);
+    // THEN the lift is "can't say" with its reason, not a barrier and not met
+    expect(verdict).toMatchObject({ state: "unknown", blockers: [], unknowns: ["lift"] });
+    expect(verdict.reasons).toEqual(["winda: brak, piętra: brak danych"]);
+  });
+
   it("never returns met when an attribute the profile doesn't need is in conflict", () => {
     // GIVEN a place that meets every wheelchair need but has conflicting surface data
     const place = {
@@ -218,7 +245,7 @@ describe("matchProfile with facts through the resolver", () => {
     expect(match(wheelchair, yes).state).toBe("unknown");
   });
 
-  it("supports a new profile as configuration only (US-2.8)", () => {
+  it("applies custom thresholds over the existing needs without code changes", () => {
     // GIVEN thresholds for a profile that only needs a step-free entrance and an 80 cm door
     const custom: Thresholds = {
       maxThresholdCm: 2,

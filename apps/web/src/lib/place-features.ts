@@ -1,19 +1,12 @@
-import type { FeatureFilter, SummaryChip } from "@krakow-bez-barier/contracts";
+import type { FeatureFilter, FeatureMatch, PlaceSummary, SummaryChip } from "@krakow-bez-barier/contracts";
 import type { Status } from "@krakow-bez-barier/ui";
-import { FEATURE_ATTRIBUTES } from "@/server/domain/features";
-
-export type FeatureMatch = "known" | "unknown" | "conflict";
 
 /**
- * How a place's summary answers one feature filter. Summary chips carry no value, so a `known`
- * (or `stale`) chip counts as the feature being present — examples only list present features
- * as known. Missing chips are unknown: unknown never means accessible.
+ * How a list row answers one feature filter, as the API decided it from resolved values (`features`).
+ * A filter the API didn't answer is unknown: unknown never means accessible.
  */
-export function matchFeature(summary: SummaryChip[], feature: FeatureFilter): FeatureMatch {
-  const chips = summary.filter((chip) => FEATURE_ATTRIBUTES[feature].includes(chip.attribute));
-  if (chips.some((chip) => chip.state === "known" || chip.state === "stale")) return "known";
-  if (chips.some((chip) => chip.state === "conflict")) return "conflict";
-  return "unknown";
+export function matchFeature(place: Pick<PlaceSummary, "features">, feature: FeatureFilter): FeatureMatch["state"] {
+  return place.features?.find((match) => match.feature === feature)?.state ?? "unknown";
 }
 
 const EARTH_RADIUS_M = 6_371_000;
@@ -29,12 +22,15 @@ export function distanceMeters([lon1, lat1]: number[], [lon2, lat2]: number[]): 
 
 /**
  * Status badge for a list row when feature filters are on and "show places without data" lets in
- * places that don't meet them by known data: conflict wins over unknown. `null` = all filters known.
+ * places that don't meet them by known data: conflict wins over unknown. `null` = every filter met.
  */
-export function filterGapStatus(summary: SummaryChip[], features: FeatureFilter[]): Extract<Status, "unknown" | "conflict"> | null {
-  const matches = features.map((feature) => matchFeature(summary, feature));
-  if (matches.includes("conflict")) return "conflict";
-  if (matches.includes("unknown")) return "unknown";
+export function filterGapStatus(
+  place: Pick<PlaceSummary, "features">,
+  features: FeatureFilter[],
+): Extract<Status, "unknown" | "conflict"> | null {
+  const states = features.map((feature) => matchFeature(place, feature));
+  if (states.includes("conflict")) return "conflict";
+  if (states.some((state) => state !== "met")) return "unknown";
   return null;
 }
 

@@ -1666,6 +1666,11 @@ components:
           description: Short list of facts for result lists; missing data is listed explicitly as `unknown`.
           items:
             $ref: '#/components/schemas/SummaryChip'
+        features:
+          type: array
+          description: How the place answers each requested `feature` filter; present only when `feature` was sent.
+          items:
+            $ref: '#/components/schemas/FeatureMatch'
         verdict:
           oneOf:
           - $ref: '#/components/schemas/Verdict'
@@ -1673,6 +1678,22 @@ components:
           description: Present only when a profile was requested.
         isSample:
           type: boolean
+    FeatureMatch:
+      type: object
+      required:
+      - feature
+      - state
+      properties:
+        feature:
+          $ref: '#/components/schemas/FeatureFilter'
+        state:
+          type: string
+          description: '`met`: known to be there; `absent`: known not to be; `unknown` (no or stale data) and `conflict`: we can''t say — never shown as accessible.'
+          enum:
+          - met
+          - absent
+          - unknown
+          - conflict
     Place:
       type: object
       required:

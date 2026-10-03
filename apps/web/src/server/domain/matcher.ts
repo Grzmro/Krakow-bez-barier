@@ -42,9 +42,17 @@ function entrance(place: PlaceFacts, th: Thresholds): NeedResult {
   }
 
   const steps = resolve(place, "step_count");
-  if (steps.kind === "unresolved") return unresolved("entrance", "step_count", steps.state);
-  const count = numberOf(steps.attribute);
-  if (count === null) return unresolved("entrance", "step_count", "unknown");
+  const count = steps.kind === "known" ? numberOf(steps.attribute) : null;
+  if (steps.kind === "unresolved" || count === null) {
+    // OSM rarely counts steps; a known ramp or level entrance answers the need on its own, as in featureState.
+    const alternative = (["ramp", "entrance_level"] as const)
+      .map((attribute) => resolve(place, attribute))
+      .find((r) => r.kind === "known" && booleanOf(r.attribute) === true);
+    if (alternative?.kind === "known") {
+      return result("entrance", alternative.attribute.attribute, "met", null, isUnconfirmed(alternative.attribute));
+    }
+    return unresolved("entrance", "step_count", steps.kind === "unresolved" ? steps.state : "unknown");
+  }
 
   if (count === 0 || (!th.requireStepFree && count <= 1)) {
     const threshold = resolve(place, "threshold_cm");
@@ -76,6 +84,19 @@ function door(place: PlaceFacts, th: Thresholds): NeedResult {
     : result("door", "door_width_cm", "barrier", t.door(cm));
 }
 
+/**
+ * A lift is needed only where there are floors to reach, and we have no data on floors yet, so a known
+ * missing lift is "can't say" rather than a barrier — a single-storey café is never blocked by it.
+ */
+// TODO(KBB-47): block on lift=false once the place's number of floors is known.
+function lift(place: PlaceFacts): NeedResult {
+  const resolved = resolve(place, "lift");
+  if (resolved.kind === "known" && booleanOf(resolved.attribute) === false) {
+    return result("lift", "lift", "unknown", t.liftWithoutFloors);
+  }
+  return facility(place, "lift", "lift");
+}
+
 function facility(place: PlaceFacts, need: Need, attribute: AccessibilityAttribute): NeedResult {
   const resolved = resolve(place, attribute);
   if (resolved.kind === "unresolved") return unresolved(need, attribute, resolved.state);
@@ -103,7 +124,7 @@ function surface(place: PlaceFacts): NeedResult {
  */
 export function matchProfile(place: PlaceFacts, thresholds: Thresholds): Verdict {
   const needs: NeedResult[] = [entrance(place, thresholds), door(place, thresholds)];
-  if (thresholds.requireLift) needs.push(facility(place, "lift", "lift"));
+  if (thresholds.requireLift) needs.push(lift(place));
   if (thresholds.requireAccessibleToilet) needs.push(facility(place, "toilet", "toilet_accessible"));
   if (thresholds.requireSmoothSurface) needs.push(surface(place));
   if (thresholds.requireChangingTable) needs.push(facility(place, "changing_table", "changing_table"));

@@ -154,8 +154,9 @@ function readBbox(bbox: number[] | undefined): [number, number, number, number] 
 /**
  * Searches places (text on name and address, category, bbox in PostGIS), resolves their facts and applies
  * feature filters: a place passes a filter only when the feature is known to be there; with
- * `includeUnknown`, places we can't say about pass too (their chips read "brak danych"), but a feature
- * known to be missing never does. Adds a profile verdict when `profile` is set.
+ * `includeUnknown`, places we can't say about pass too (`features[].state` says which, and every
+ * attribute behind the feature gets a chip, "brak danych" included), but a feature known to be missing
+ * never does. Adds a profile verdict when `profile` is set.
  */
 export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}): Promise<PlaceList> {
   const { repository = createDbPlaceRepository(), now = new Date() } = deps;
@@ -173,25 +174,28 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
   const matching = candidates
     .map((place) => {
       const records = factsByPlace.get(place.id) ?? [];
-      return { place, records, attributes: resolvePlace(records, now) };
+      const attributes = resolvePlace(records, now);
+      const matches = features.map((feature) => ({ feature, state: featureState(attributes, feature) }));
+      return { place, records, attributes, matches };
     })
-    .filter(({ attributes }) => {
-      const states = features.map((feature) => featureState(attributes, feature));
-      return query.includeUnknown ? !states.includes("absent") : states.every((s) => s === "met");
-    })
+    .filter(({ matches }) =>
+      query.includeUnknown ? matches.every((m) => m.state !== "absent") : matches.every((m) => m.state === "met"),
+    )
     .sort((a, b) => byNameThenId(a.place, b.place));
 
   const remaining = after ? matching.filter(({ place }) => byNameThenId(place, after) > 0) : matching;
   const page = remaining.slice(0, limit);
-  const featureAttributes = features.map((feature) => FEATURE_ATTRIBUTES[feature][0]);
+  // entrance_level only ever proves step_free, so its missing data isn't worth a "brak danych" chip.
+  const featureAttributes = features.flatMap((f) => FEATURE_ATTRIBUTES[f]).filter((a) => a !== "entrance_level");
 
-  const items: PlaceSummary[] = page.map(({ place, records, attributes }) => ({
+  const items: PlaceSummary[] = page.map(({ place, records, attributes, matches }) => ({
     id: place.id,
     name: place.name,
     category: place.category,
     location: location(place),
     address: address(place),
     summary: summaryChips(attributes, featureAttributes),
+    ...(features.length ? { features: matches } : {}),
     verdict: thresholds ? matchProfile({ attributes }, thresholds) : null,
     isSample: isSample(place, records),
   }));

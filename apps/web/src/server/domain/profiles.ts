@@ -16,8 +16,10 @@ export type Thresholds = Required<
 
 /**
  * Presets proposed in docs/requirements.md (US-2.1, US-2.2); users can change every value.
- * A new profile is a new entry here (plus the `Profile` enum in the spec) — no matcher change (US-2.8).
+ * A new profile over the same needs is a new entry here (plus the `Profile` enum in the spec); a profile
+ * with a new need (e.g. benches for US-2.8) still needs a matcher change.
  */
+// TODO(KBB-48): make needs configuration so a profile like "senior" (benches, rest places) is data only.
 export const PROFILE_PRESETS: Record<Profile, Thresholds> = {
   wheelchair: {
     maxThresholdCm: 2,

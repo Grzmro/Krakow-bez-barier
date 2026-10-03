@@ -1,4 +1,4 @@
-import type { FeatureFilter } from "@krakow-bez-barier/contracts";
+import type { FeatureFilter, FeatureMatch } from "@krakow-bez-barier/contracts";
 import type { AccessibilityAttribute, ResolvedAttribute } from "./types";
 
 /** Attributes that satisfy each home-screen feature filter (any one of them is enough). */
@@ -12,7 +12,7 @@ export const FEATURE_ATTRIBUTES: Record<FeatureFilter, AccessibilityAttribute[]>
 };
 
 /** `met`: known to be there; `absent`: known not to be; `unknown`/`conflict`: we can't say. */
-export type FeatureState = "met" | "absent" | "unknown" | "conflict";
+export type FeatureState = FeatureMatch["state"];
 
 type Answer = "yes" | "no" | "unknown" | "conflict";
 
