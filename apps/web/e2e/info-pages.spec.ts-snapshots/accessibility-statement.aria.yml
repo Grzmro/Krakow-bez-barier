@@ -1,0 +1,24 @@
+- main:
+  - link "Wróć na stronę główną":
+    - /url: /
+  - heading "Deklaracja dostępności" [level=1]
+  - paragraph: "/Prototyp „Kraków bez barier” \\(HackYeah \\d+\\)\\. Cel: WCAG 2\\.2 AA\\. Stan na \\d+\\.\\d+\\.\\d+\\./"
+  - heading "Co działa" [level=2]
+  - list:
+    - listitem: Obsługa klawiaturą, widoczny fokus, link „Przejdź do treści”.
+    - listitem: Statusy jako tekst, ikona i kształt, nie tylko kolor.
+    - listitem: /Cele dotykowe min\. \d+ px, kontrast tekstu min\. \d+,\d+:1\./
+    - listitem: Ograniczony ruch przy ustawieniu „zmniejsz ruch”.
+    - listitem: Automatyczne testy axe (WCAG 2.2 A/AA) każdego ekranu.
+  - heading "Znane ograniczenia" [level=2]
+  - list:
+    - listitem: "Wyszukiwanie miejsc i mapa są w budowie: lista miejsc jako tekstowy odpowiednik mapy i ogłaszanie liczby wyników po zmianie filtra jeszcze nie działają."
+    - listitem: Część danych jest przykładowa; oznaczamy ją „PRZYKŁAD”.
+    - listitem: Brak wersji angielskiej.
+    - listitem: Nie testowaliśmy jeszcze z użytkownikami czytników ekranu.
+  - heading "Plan usunięcia ograniczeń" [level=2]
+  - list:
+    - listitem: "Przed pilotażem: audyt WCAG 2.2 AA i testy z czytnikami ekranu (VoiceOver, NVDA)."
+    - listitem: "W pilotażu: testy z osobami na wózkach i rodzicami z wózkami."
+    - listitem: "Po pilotażu: wersja angielska."
+  - paragraph: Uwagi o dostępności zgłoś zespołowi projektu — poprawimy je przed pilotażem.
