@@ -1,0 +1,144 @@
+- main:
+  - article "Pałac Krzysztofory":
+    - text: Dane przykładowe
+    - heading "Pałac Krzysztofory" [level=1]
+    - paragraph: /Muzeum · Rynek Główny \d+, Kraków/
+    - paragraph: "Jak dojść do wejścia: Wejście główne od Rynku, bez stopni."
+    - link "Prowadź":
+      - /url: /trasa?do=palac-krzysztofory
+      - img
+      - text: ""
+    - button "Udostępnij":
+      - img
+      - text: ""
+    - button "Zapytaj obiekt":
+      - img
+      - text: ""
+    - link "Skąd wiemy?":
+      - /url: "#skad-wiemy"
+      - img
+      - text: ""
+    - paragraph: /Odświeżenie nie powiodło się — dane z \d+\.\d+\.\d+/
+    - paragraph: "Źródło: MSIP: Toalety publiczne"
+    - paragraph: /Źródło niedostępne \(HTTP \d+\)\. Pokazujemy ostatnie znane dane jako nieaktualne\./
+    - paragraph: Źródła podają sprzeczne dane
+    - paragraph: "Dotyczy: Toaleta dostosowana. Pokazujemy obie wartości ze źródłami — sprawdź na miejscu albo zapytaj obiekt."
+    - table "Porównanie źródeł":
+      - caption: Porównanie źródeł
+      - rowgroup:
+        - row "Cecha Źródło Wartość Pozyskano":
+          - columnheader "Cecha"
+          - columnheader "Źródło"
+          - columnheader "Wartość"
+          - columnheader "Pozyskano"
+      - rowgroup:
+        - 'row /Toaleta dostosowana MSIP: Toalety publiczne odczytane automatycznie Jest \d+\.\d+\.\d+ Może być nieaktualne · \d+\.\d+\.\d+/':
+          - rowheader "Toaleta dostosowana"
+          - 'cell "MSIP: Toalety publiczne odczytane automatycznie"'
+          - cell "Jest"
+          - cell /\d+\.\d+\.\d+ Może być nieaktualne · \d+\.\d+\.\d+/
+        - row /OpenStreetMap społeczność Nie ma \d+\.\d+\.\d+/:
+          - cell "OpenStreetMap społeczność"
+          - cell "Nie ma"
+          - cell /\d+\.\d+\.\d+/
+    - region "Fakty":
+      - heading "Fakty" [level=2]
+      - paragraph: Pokazujemy konkretne dane, bez zbiorczej oceny. Rozwiń cechę, aby zobaczyć źródło i datę.
+      - list:
+        - listitem:
+          - 'button "Wejście — stopnie: Bez stopni. Wiarygodność: Potwierdzone."': Wejście — stopnie Bez stopni Potwierdzone
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+          - button "Potwierdzam, byłem tu":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Toaleta dostosowana: Jest / Nie ma. Wiarygodność: Sprzeczne."': Toaleta dostosowana Jest / Nie ma Sprzeczne
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+    - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
+    - button "Uzupełnij":
+      - img
+      - text: ""
+    - button "Zapytaj obiekt":
+      - img
+      - text: ""
+    - region "Skąd wiemy?":
+      - heading "Skąd wiemy?" [level=2]
+      - paragraph: Źródła danych o tym miejscu, ich licencje i stan odświeżenia.
+      - list:
+        - listitem:
+          - paragraph: OpenStreetMap
+          - paragraph: "Społeczność · Licencja: ODbL 1.0"
+          - paragraph: /Działa · Ostatnie udane pobranie \d+\.\d+\.\d+/
+          - paragraph: © OpenStreetMap contributors
+          - link "www.openstreetmap.org":
+            - /url: https://www.openstreetmap.org
+        - listitem:
+          - paragraph: "MSIP: Toalety publiczne"
+          - paragraph: "Dane urzędowe · Licencja: Do sprawdzenia"
+          - paragraph: /Niedostępne · Ostatnie udane pobranie \d+\.\d+\.\d+/
+          - link "msip3.um.krakow.pl":
+            - /url: https://msip3.um.krakow.pl
+      - paragraph: /2 źródła · najnowsze \d+\.\d+\.\d+/
+      - link "O danych":
+        - /url: /o-danych
+        - img
+        - text: ""
+      - link "Edytuj w OpenStreetMap":
+        - /url: https://www.openstreetmap.org/edit?node=123456
+      - paragraph: Popraw dane u źródła — trafią do nas przy następnym pobraniu.
+    - region "Mapa z położeniem miejsca. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Adres jest podany w tekście powyżej."
+    - paragraph:
+      - link "OpenFreeMap":
+        - /url: https://openfreemap.org
+      - text: ·
+      - link "© OpenMapTiles":
+        - /url: https://www.openmaptiles.org/
+      - text: ·
+      - link "© OpenStreetMap contributors":
+        - /url: https://www.openstreetmap.org/copyright
+    - button "Przybliż"
+    - button "Oddal"

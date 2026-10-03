@@ -92,9 +92,11 @@ export const place = {
     titleNoDate: "Odświeżenie nie powiodło się — brak wcześniejszych danych",
     source: (name: string) => `Źródło: ${name}`,
   },
+  mapLabel: "Mapa z położeniem miejsca. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Adres jest podany w tekście powyżej.",
   conflict: {
     title: "Źródła podają sprzeczne dane",
     body: (attributes: string) => `Dotyczy: ${attributes}. Pokazujemy obie wartości ze źródłami — sprawdź na miejscu albo zapytaj obiekt.`,
+    table: { caption: "Porównanie źródeł", attribute: "Cecha", source: "Źródło", value: "Wartość", date: "Pozyskano" },
   },
   why: {
     title: "Skąd wiemy?",

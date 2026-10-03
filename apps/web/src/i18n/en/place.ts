@@ -83,10 +83,12 @@ export const place: Messages["place"] = {
     titleNoDate: "Refresh failed — no earlier data",
     source: (name: string) => `Source: ${name}`,
   },
+  mapLabel: "Map showing where the place is. Arrow keys move the view, plus and minus change the zoom. The address is given in the text above.",
   conflict: {
     title: "Sources give conflicting data",
     body: (attributes: string) =>
       `Concerns: ${attributes}. We show both values with their sources — check on site or ask the venue.`,
+    table: { caption: "Source comparison", attribute: "Feature", source: "Source", value: "Value", date: "Fetched" },
   },
   why: {
     title: "How do we know?",
