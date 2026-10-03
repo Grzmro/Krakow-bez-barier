@@ -20,6 +20,55 @@ Answers the jury's questions on dependencies, licences, portability and scaling 
 All endpoints, keys and URLs come from environment variables or the city config (`.env.example`),
 never from code.
 
+## First deployment (runbook)
+
+Target: the web app and API on Vercel, Postgres with PostGIS on Neon, the ingest cron and
+database tasks on GitHub Actions. Steps marked **owner** need repository admin rights.
+
+1. **Database.** Create a Neon project (region AWS Europe, Frankfurt; Postgres 17). From the
+   connection dialog copy two strings: *Pooled connection* (for Vercel) and *Direct connection*
+   (for GitHub Actions); the pooled host contains `-pooler`. Keep `?sslmode=require`; a trailing
+   `&channel_binding=require` is harmless (the client drops it). PostGIS is created by the first
+   migration (`CREATE EXTENSION postgis`), nothing to enable by hand.
+2. **GitHub secret (owner).** Repo → Settings → Secrets and variables → Actions → *New repository
+   secret*: `DATABASE_URL` = the direct string.
+3. **Schema and demo places.** Actions → *Database* → Run workflow → tick *seed*. It runs
+   `npm run db:migrate` and `npm run db:seed` (`npm run db:setup` does the same from a laptop with
+   `DATABASE_URL` exported). Safe to run again. The seed is not sample data: it holds the 19 demo
+   places of `docs/demo-data.md` with real values from OpenStreetMap and the MSIP toilets layer (a
+   snapshot of 2026-10-03, labelled as such in the source row) and is what gives the demo its
+   changing-table conflict while MSIP cannot be ingested live. Ingest later upserts the same places
+   by their `osm:` reference.
+4. **Vercel (owner installs the GitHub app, KBB-45).** Import the repo with Root Directory
+   `apps/web` (`apps/web/vercel.json` sets the framework and the Frankfurt region). Vercel's free
+   Hobby plan only deploys repositories of a personal GitHub account: if `Grzmro` is an
+   organisation, use Pro or import a fork. Set the environment variables **before the first
+   deploy** (or redeploy after changing them) for Production:
+
+   | Variable | Value |
+   |---|---|
+   | `DATABASE_URL` | the pooled string |
+   | `NEXT_PUBLIC_API_MOCK` | `false` (read at **build** time; changing it needs a redeploy) |
+   | `MODERATOR_TOKENS` | `name:token`, token from `openssl rand -hex 24`; empty keeps moderation closed |
+   | `ORS_API_KEY` | only when routes (KBB-22) are used |
+
+   Leave `SIMULATE_SOURCE_OUTAGE` unset. Previews: leave `NEXT_PUBLIC_API_MOCK` unset (or `true`)
+   and `DATABASE_URL` unset in the Preview environment, or point them at a separate Neon branch,
+   so previews never write to the production database.
+5. **First ingest.** Actions → *Ingest* → Run workflow. It migrates, then loads OpenStreetMap for
+   the city config. The cron then runs daily at 03:17 UTC. MSIP/ZDMK/ZTP sources are skipped until
+   their licences are confirmed (`docs/data-sources.md`).
+6. **Check.** `scripts/smoke-deploy.sh https://<project>.vercel.app` must print "All checks passed"
+   (it retries the health check while a sleeping Neon database wakes up). It covers the database,
+   seeded data, place card, widget, docs and CORS, but not which data the UI uses: also open the
+   site and expect real places (`Czarna kaczka`, ...), not the example set. If you see examples,
+   `NEXT_PUBLIC_API_MOCK` was not `false` at build time.
+7. **Live outage demo.** Set `SIMULATE_SOURCE_OUTAGE=msip-toilets` and `ALLOW_SIMULATED_OUTAGE=true`
+   in Vercel, redeploy, show the stale card and *O danych*, then remove both and redeploy.
+
+Cost: Vercel Hobby and Neon Free are enough for the demo; the plan for running costs after the
+hackathon is in the submission documents.
+
 ## Licences
 
 **Data** (details and status: `docs/data-sources.md`)

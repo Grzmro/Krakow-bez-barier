@@ -22,7 +22,8 @@
     "db:seed": "npm run db:seed -w packages/db",
     "mobile:ios": "npm run ios -w apps/mobile",
     "mobile:android": "npm run android -w apps/mobile",
-    "ingest": "npm run ingest -w apps/ingest --"
+    "ingest": "npm run ingest -w apps/ingest --",
+    "db:setup": "npm run db:migrate && npm run db:seed"
   },
   "allowScripts": {
     "esbuild@0.28.2": true,

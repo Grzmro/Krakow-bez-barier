@@ -11,6 +11,13 @@ export function isDbConfigured(): boolean {
 
 /** Shared Drizzle client for server code. Throws when `DATABASE_URL` is not set (see `.env.example`). */
 export function getDb(): Db {
-  globalForDb.kbbDb ??= createDb(process.env.DATABASE_URL, { connect_timeout: 5 });
+  // prepare: false keeps a pooled (pgbouncer, transaction mode) connection string working; a few
+  // connections per instance are enough on serverless, where every instance has its own pool.
+  globalForDb.kbbDb ??= createDb(process.env.DATABASE_URL, {
+    connect_timeout: 5,
+    prepare: false,
+    max: process.env.VERCEL ? 3 : 10,
+    idle_timeout: 20,
+  });
   return globalForDb.kbbDb.db;
 }
