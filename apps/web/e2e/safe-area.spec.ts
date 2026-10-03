@@ -52,8 +52,10 @@ test("the menu drawer keeps its last link above the home indicator", async ({ pa
   const drawer = page.getByRole("dialog", { name: "Menu" });
   await expect(drawer).toBeVisible();
 
-  // THEN the sheet reaches the screen edge but its last link sits above the indicator
-  await expectAboveHomeIndicator(page, drawer.getByRole("link").last());
+  // THEN the sheet reaches the screen edge but its last link, scrolled to, sits above the indicator
+  const lastLink = drawer.getByRole("link").last();
+  await lastLink.scrollIntoViewIfNeeded();
+  await expectAboveHomeIndicator(page, lastLink);
   await expect.poll(() => bottomEdge(drawer)).toBeCloseTo(page.viewportSize()!.height, 0);
   await expectAccessible();
   await evidence("safe-area-menu");
