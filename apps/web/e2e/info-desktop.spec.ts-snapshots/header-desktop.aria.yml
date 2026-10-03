@@ -18,8 +18,6 @@
       - link "Deklaracja dostępności":
         - /url: /deklaracja-dostepnosci
   - button "W mojej okolicy"
-  - link "Panel moderatora":
-    - /url: /moderator
   - group "Język":
     - text: ""
     - radio "Polski" [checked]

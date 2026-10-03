@@ -32,10 +32,12 @@ test("the header shows the main navigation directly and hides the hamburger", as
   await page.goto("/");
   const nav = page.getByRole("navigation", { name: NAV });
 
-  // THEN every menu destination is a link in the header and there is no hamburger
-  for (const name of [/Zaplanuj trasę/, "O danych", /Dla firm/, "Prywatność", "Deklaracja dostępności", /Panel moderatora/]) {
+  // THEN every public menu destination is a link in the header and there is no hamburger
+  for (const name of [/Zaplanuj trasę/, "O danych", /Dla firm/, "Prywatność", "Deklaracja dostępności"]) {
     await expect(nav.getByRole("link", { name })).toBeVisible();
   }
+  // AND the internal moderator panel is not part of the public navigation
+  await expect(nav.getByRole("link", { name: /moderator/i })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Menu" })).toBeHidden();
   await expect(nav.getByRole("radio", { name: "English" })).toBeAttached();
   await expect(nav).toMatchAriaSnapshot({ name: "header-desktop.aria.yml" });

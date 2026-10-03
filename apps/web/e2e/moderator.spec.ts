@@ -4,15 +4,31 @@ import { expect, test } from "./fixtures";
 // The client runs in mock mode: the queue starts from the spec's example (Podziemia Rynku, Hotel Przykład)
 // and decisions change it in memory; the real API behind it is covered by the route tests of KBB-19.
 
+for (const lang of ["pl", "en"]) {
+  test(`the phone menu (${lang}) has no link to the internal moderator panel`, async ({ page, context, baseURL }) => {
+    // GIVEN the home screen on a phone in the given language
+    if (lang === "en") await context.addCookies([{ name: "kbb-lang", value: "en", url: baseURL! }]);
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("lang", lang);
+
+    // WHEN the visitor opens the menu
+    await page.getByRole("button", { name: "Menu" }).click();
+    const drawer = page.getByRole("dialog");
+    await expect(drawer.getByRole("link").first()).toBeVisible();
+
+    // THEN no link leads to /moderator
+    await expect(drawer.getByRole("link", { name: /moderator/i })).toHaveCount(0);
+    await expect(page.locator('a[href="/moderator"]')).toHaveCount(0);
+  });
+}
+
 test("a moderator signs in with a pasted token, no puzzle, and the empty field is explained", async ({
   page,
   expectAccessible,
   evidence,
 }) => {
-  // GIVEN the moderator panel opened from the menu
-  await page.goto("/");
-  await page.getByRole("button", { name: "Menu" }).click();
-  await page.getByRole("link", { name: /Panel moderatora/ }).click();
+  // GIVEN the moderator panel opened by its direct address, as it isn't linked from the public navigation
+  await page.goto("/moderator");
   await expect(page.getByRole("heading", { level: 1, name: "Panel moderatora" })).toBeVisible();
   const main = page.locator("main");
   const token = page.getByLabel("Token moderatora");

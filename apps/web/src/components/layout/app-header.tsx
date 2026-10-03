@@ -9,7 +9,6 @@ import {
   ChartBar,
   Crosshair,
   Database,
-  Gavel,
   List,
   Path,
   PersonArmsSpread,
@@ -43,7 +42,6 @@ const menu = (t: Messages["common"]): { href: string; icon: Icon; title: string;
     short: t.menu.businessShort,
     sub: t.menu.businessSub,
   },
-  { href: routes.moderator, icon: Gavel, title: t.menu.moderator, sub: t.menu.moderatorSub },
   { href: routes.city, icon: ChartBar, title: t.menu.city, sub: t.menu.citySub },
   { href: routes.privacy, icon: ShieldCheck, title: t.menu.privacy, sub: t.menu.privacySub },
   { href: routes.accessibility, icon: PersonArmsSpread, title: t.menu.a11y, sub: t.menu.a11ySub },
@@ -98,7 +96,7 @@ export function AppHeader() {
           </Link>
           <ul className="hidden min-w-0 items-center gap-1 lg:flex">
             {menu(t)
-              .filter(({ href }) => href !== routes.moderator && href !== routes.city)
+              .filter(({ href }) => href !== routes.city)
               .map(({ href, title, short }) => (
                 <li key={href}>
                   <Link href={href} aria-current={isCurrent(pathname, href) ? "page" : undefined} className={navLink}>
@@ -109,14 +107,6 @@ export function AppHeader() {
           </ul>
           <div className="ml-auto hidden items-center gap-2 lg:flex">
             <NearMePopover />
-            <Link
-              href={routes.moderator}
-              aria-current={isCurrent(pathname, routes.moderator) ? "page" : undefined}
-              className={cn(navLink, "border border-border")}
-            >
-              <Gavel weight="bold" className="size-4 shrink-0" aria-hidden />
-              <span className="sr-only xl:not-sr-only">{t.menu.moderator}</span>
-            </Link>
             <Link
               href={routes.city}
               aria-current={isCurrent(pathname, routes.city) ? "page" : undefined}
