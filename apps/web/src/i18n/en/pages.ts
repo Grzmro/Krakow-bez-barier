@@ -63,7 +63,7 @@ export const pages: Messages["pages"] = {
     },
     dateLocale: "en-GB",
     timeZone: "Europe/Warsaw",
-    osmAttribution: "Map data © OpenStreetMap contributors, ODbL licence.",
+    osmAttribution: "Map: OpenFreeMap, © OpenMapTiles. Map data © OpenStreetMap contributors, ODbL licence.",
   },
   privacy: {
     title: "Privacy",

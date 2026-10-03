@@ -85,14 +85,7 @@
             - /url: /miejsca/restauracja-przyklad
           - button "Why? Restauracja Przykład"
   - region "Map of places. Arrow keys move the view, plus and minus change the zoom. The list has the same places."
-  - paragraph:
-    - link "OpenFreeMap":
-      - /url: https://openfreemap.org
-    - text: ·
-    - link "© OpenMapTiles":
-      - /url: https://www.openmaptiles.org/
-    - text: ·
-    - link "© OpenStreetMap contributors":
-      - /url: https://www.openstreetmap.org/copyright
+  - button "Information about the map sources"
+  - paragraph: Map sources: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors
   - button "Zoom in"
   - button "Zoom out"

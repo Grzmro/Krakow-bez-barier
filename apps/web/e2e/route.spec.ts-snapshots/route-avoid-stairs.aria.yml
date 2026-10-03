@@ -101,15 +101,7 @@
       - img
       - text: ""
   - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
-  - paragraph:
-    - link "OpenFreeMap":
-      - /url: https://openfreemap.org
-    - text: ·
-    - link "© OpenMapTiles":
-      - /url: https://www.openmaptiles.org/
-    - text: ·
-    - link "© OpenStreetMap contributors":
-      - /url: https://www.openstreetmap.org/copyright
-    - text: · openrouteservice
+  - button "Informacje o źródłach mapy"
+  - paragraph: Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors, openrouteservice
   - button "Przybliż"
   - button "Oddal"

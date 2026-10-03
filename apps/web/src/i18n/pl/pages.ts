@@ -70,7 +70,7 @@ export const pages = {
     } satisfies Record<Reliability, string>,
     dateLocale: "pl-PL",
     timeZone: "Europe/Warsaw",
-    osmAttribution: "Dane mapy © OpenStreetMap contributors, licencja ODbL.",
+    osmAttribution: "Mapa: OpenFreeMap, © OpenMapTiles. Dane mapy © OpenStreetMap contributors, licencja ODbL.",
   },
   privacy: {
     title: "Prywatność",

@@ -32,6 +32,8 @@ export const home = {
     label: "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca.",
     zoomIn: "Przybliż",
     zoomOut: "Oddal",
+    sources: "Źródła mapy",
+    sourcesLabel: "Informacje o źródłach mapy",
     unavailable: "Mapa jest niedostępna w tej przeglądarce. Wszystkie miejsca są na liście.",
     cluster: (n: number, parts: [string, number][]) => `Grupa: ${n} ${placesWord(n)}${verdictParts(parts)}`,
     zoomedToCluster: (n: number, parts: [string, number][]) => `Przybliżono: ${n} ${placesWord(n)}${verdictParts(parts)}`,

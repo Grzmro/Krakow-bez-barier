@@ -38,7 +38,7 @@ async function openHome(page: Page) {
 async function expectControlsAbove(page: Page) {
   const top = (await settledPanel(page)).y;
   const zoomOut = (await page.getByRole("button", { name: "Oddal" }).boundingBox())!;
-  const attribution = (await page.getByRole("link", { name: /OpenStreetMap/ }).first().boundingBox())!;
+  const attribution = (await page.getByRole("button", { name: "Informacje o źródłach mapy" }).boundingBox())!;
   for (const control of [zoomOut, attribution]) expect(control.y + control.height).toBeLessThanOrEqual(top);
 }
 

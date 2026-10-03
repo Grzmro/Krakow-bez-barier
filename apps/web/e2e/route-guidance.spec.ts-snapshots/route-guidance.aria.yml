@@ -35,15 +35,7 @@
             - 'button /Odcinek 2 z \d+\. Skręć w prawo, \d+ metrów\. Brak danych: brak danych o nawierzchni na części odcinka\./': "/Skręć w prawo Brak danych: brak danych o nawierzchni na części odcinka \\d+ m/"
     - button "Zakończ"
   - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
-  - paragraph:
-    - link "OpenFreeMap":
-      - /url: https://openfreemap.org
-    - text: ·
-    - link "© OpenMapTiles":
-      - /url: https://www.openmaptiles.org/
-    - text: ·
-    - link "© OpenStreetMap contributors":
-      - /url: https://www.openstreetmap.org/copyright
-    - text: · openrouteservice
+  - button "Informacje o źródłach mapy"
+  - paragraph: Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors, openrouteservice
   - button "Przybliż"
   - button "Oddal"
