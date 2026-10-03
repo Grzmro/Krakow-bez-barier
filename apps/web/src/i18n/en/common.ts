@@ -10,7 +10,6 @@ export const common: Messages["common"] = {
   },
   layout: {
     skipToContent: "Skip to content",
-    sampleBanner: "SAMPLE — prototype, data may be sample data",
     mainNav: "Main navigation",
     homeLink: "Kraków bez barier — home page",
     openMenu: "Menu",

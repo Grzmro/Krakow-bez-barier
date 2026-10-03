@@ -43,8 +43,6 @@ test("the widget works embedded on a venue's own website, without an account", a
   await expect(fullCard).toHaveAttribute("href", "/miejsca/hotel-przyklad");
   await expect(fullCard).toHaveAttribute("target", "_blank");
   await expect(widget.getByRole("button", { name: "Menu" })).toHaveCount(0);
-  // AND the app-wide sample banner gives way to the card's own PRZYKŁAD tag
-  await expect(widget.getByText(/prototyp, dane mogą być przykładowe/)).toHaveCount(0);
 });
 
 test("the widget page is accessible and keyboard-operable", async ({ page, expectAccessible, evidence }) => {

@@ -21,9 +21,8 @@ test("the business page previews the widget of a real place, without sample labe
   // WHEN the visitor opens the home screen
   await page.goto("/");
 
-  // THEN the app shows no sample banner on real data
+  // THEN the app lists real places
   await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText(/^\d+ miejsc/);
-  await expect(page.getByText(pl.common.layout.sampleBanner)).toHaveCount(0);
 
   // WHEN they open the business page for that hotel
   await page.goto(`/dla-firm?miejsce=${encodeURIComponent(hotel.id)}`);

@@ -6,7 +6,6 @@ import {
   BottomPanel as UiBottomPanel,
   FactRow as UiFactRow,
   ReliabilityBadge as UiReliabilityBadge,
-  SampleBanner as UiSampleBanner,
   SampleTag as UiSampleTag,
   StatusBadge as UiStatusBadge,
   VerdictBlock as UiVerdictBlock,
@@ -41,11 +40,6 @@ export function ReliabilityBadge({ value, className }: { value: Reliability; cla
 export function SampleTag({ className }: { className?: string }) {
   const t = useMessages().common;
   return <UiSampleTag label={t.sample.tag} ariaLabel={t.sample.aria} className={className} />;
-}
-
-export function SampleBanner({ className }: { className?: string }) {
-  const t = useMessages().common;
-  return <UiSampleBanner text={t.layout.sampleBanner} className={className} />;
 }
 
 type FactRowBoundProps = Omit<FactRowProps, "labels" | "status" | "reliability"> & {

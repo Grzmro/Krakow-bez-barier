@@ -12,7 +12,6 @@ export const common = {
   },
   layout: {
     skipToContent: "Przejdź do treści",
-    sampleBanner: "PRZYKŁAD — prototyp, dane mogą być przykładowe",
     mainNav: "Nawigacja główna",
     homeLink: "Kraków bez barier — strona główna",
     openMenu: "Menu",

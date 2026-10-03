@@ -2,7 +2,7 @@ export type VerticalPadding = { top: number; bottom: number };
 export type Padding = VerticalPadding & { left: number; right: number };
 
 /**
- * Shrinks the overlay padding of a short map (a phone with banners and the half-height list) so the
+ * Shrinks the overlay padding of a short map (a phone with the half-height list) so the
  * places keep at least `1 - maxShare` of the height instead of being squeezed into a line.
  */
 export function fitPadding(padding: VerticalPadding, height: number, maxShare = 0.6): VerticalPadding {

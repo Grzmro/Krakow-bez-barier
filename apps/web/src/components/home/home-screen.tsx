@@ -44,7 +44,7 @@ const INSET_SETTLE_MS = 120;
 const CONTROLS_ABOVE_PANEL = "bottom-[calc(var(--panel-inset,0px)+0.75rem)] lg:bottom-9";
 const STOWED_KEY = "kbb-list-stowed";
 const STOWED_HEIGHT = "calc(4.5rem + env(safe-area-inset-bottom))";
-// Set on <main> as --list-collapsed: half the screen, but on a short phone (banners, browser toolbars) down to 40%,
+// Set on <main> as --list-collapsed: half the screen, but on a short phone (browser toolbars) down to 40%,
 // so ~20rem stays for the map and its overlays. The map's padding and controls stop at the same value.
 const COLLAPSED_HEIGHT = "var(--list-collapsed)";
 const DESKTOP = "(min-width: 64rem)";

@@ -21,7 +21,6 @@ export {
 
 export {
   ReliabilityBadge,
-  SampleBanner,
   SampleTag,
   StatusBadge,
   StatusIcon,

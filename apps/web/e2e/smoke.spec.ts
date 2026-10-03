@@ -9,10 +9,9 @@ test("home page loads in Polish, has the expected structure and passes axe", asy
   // WHEN they open the home page
   await page.goto("/");
 
-  // THEN the app title, language and PRZYKŁAD banner are there
+  // THEN the app title and language are there
   await expect(page).toHaveTitle("Kraków bez barier");
   await expect(page.locator("html")).toHaveAttribute("lang", "pl");
-  await expect(page.getByRole("note")).toContainText("PRZYKŁAD");
   await expect(page.locator("main")).toMatchAriaSnapshot({ name: "home.aria.yml" });
 
   // AND the page has no WCAG 2.2 AA violations axe can detect
