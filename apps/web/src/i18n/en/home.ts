@@ -14,6 +14,11 @@ export const home: Messages["home"] = {
     placeholder: "Where to?",
     suggestions: "Suggestions",
     clear: "Clear search",
+    route: {
+      prompt: (name: string) => `Do you want to go to: ${name}?`,
+      button: "Plan route",
+      aria: (name: string) => `Plan a route to: ${name}`,
+    },
     voice: {
       start: "Type by voice",
       listening: "Listening… speak now",
