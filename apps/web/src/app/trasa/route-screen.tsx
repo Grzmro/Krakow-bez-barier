@@ -103,7 +103,6 @@ export function RouteScreen({ to }: { to?: string }) {
   const [goNote, setGoNote] = useState(false);
   const desktop = useMediaQuery(DESKTOP);
   const stepRefs = useRef(new Map<number, HTMLButtonElement>());
-  const revealRef = useRef<number | null>(null);
 
   const place = usePlace(to ?? "", {}, { enabled: Boolean(to) });
   const placeEnd = place.data?.location.coordinates as [number, number] | undefined;
@@ -132,25 +131,18 @@ export function RouteScreen({ to }: { to?: string }) {
     return () => clearTimeout(id);
   }, [goNote]);
 
-  // A segment picked on the map opens its step in the list and moves focus there, so the list stays the way back.
-  useEffect(() => {
-    const id = revealRef.current;
-    if (id === null || selected !== id) return;
-    revealRef.current = null;
-    const step = stepRefs.current.get(id);
-    if (!step) return;
-    scrollIntoViewWithin(step);
-    step.focus({ preventScroll: true });
-  }, [selected]);
-
   const switchKind = (next: RouteKind) => {
     setKind(next);
     setSelected(null);
   };
 
+  // A segment picked on the map opens its step in the list and moves focus there, so the list stays the way back.
   const selectFromMap = (id: number | null) => {
-    revealRef.current = id;
     setSelected(id);
+    const step = id === null ? undefined : stepRefs.current.get(id);
+    if (!step) return;
+    scrollIntoViewWithin(step);
+    step.focus({ preventScroll: true });
   };
 
   const go = () => {
@@ -168,7 +160,7 @@ export function RouteScreen({ to }: { to?: string }) {
       data-desktop-fill
       className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[640px] flex-1 overflow-hidden outline-none lg:mb-0 lg:grid lg:min-h-0 lg:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)]"
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 px-4 pt-3 lg:pointer-events-auto lg:static lg:col-start-1 lg:row-start-1 lg:border-r lg:border-border lg:bg-card lg:pt-4">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 px-4 pt-3 lg:pointer-events-auto lg:static lg:col-start-1 lg:row-start-1 lg:max-h-[45dvh] lg:overflow-y-auto lg:border-r lg:border-border lg:bg-card lg:pt-4">
         <div className="mx-auto flex max-w-xl items-start gap-2 *:pointer-events-auto">
           <Link
             href={to ? routes.place(to) : routes.home}

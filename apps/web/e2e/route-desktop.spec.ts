@@ -100,22 +100,37 @@ test("a keyboard user goes from the form through the results and steps to the ma
   await page.goto("/trasa");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
 
-  // WHEN comparing where these controls sit in the document
-  const order = await page.evaluate(() => {
-    const index = (el: Element | null) => (el ? [...document.querySelectorAll("*")].indexOf(el) : -1);
-    return {
-      swap: index(document.querySelector('button[aria-label="Zamień start i cel"]')),
-      kind: index(document.querySelector('[role="group"][aria-label="Rodzaj trasy"] button')),
-      profile: index(document.querySelector('main [role="radiogroup"] input, main input[type="radio"]')),
-      step: index(document.querySelector('button[aria-controls^="odcinek-"]')),
-      zoom: index(document.querySelector('button[aria-label="Przybliż"]')),
-    };
-  });
+  // WHEN a keyboard user tabs on from the swap button
+  const swap = page.getByRole("button", { name: "Zamień start i cel" });
+  const steps = page.locator('button[aria-controls^="odcinek-"]');
+  const firstStep = steps.first();
+  const zoom = page.getByRole("button", { name: "Przybliż" });
+  await swap.focus();
+  const reached: string[] = [];
+  for (let i = 0; i < 200 && !reached.includes("zoom"); i++) {
+    await page.keyboard.press("Tab");
+    const hit = await page.evaluate(() => {
+      const el = document.activeElement;
+      if (!el) return null;
+      if (el.closest('[role="group"][aria-label="Rodzaj trasy"]')) return "kind";
+      if (el.closest("main") && (el as HTMLInputElement).type === "radio") return "profile";
+      if (el.matches('button[aria-controls^="odcinek-"]')) return "step";
+      if (el.matches('button[aria-label="Przybliż"]')) return "zoom";
+      return null;
+    });
+    if (hit && !reached.includes(hit)) {
+      reached.push(hit);
+      if (hit === "step") {
+        await expect(firstStep).toBeFocused();
+        // Tabbing through all 33 steps only repeats the same stop; carry on from the last one.
+        await steps.last().focus();
+      }
+      if (hit === "zoom") await expect(zoom).toBeFocused();
+    }
+  }
 
-  // THEN tab order follows it: form, results, step list, then the map controls
-  expect(Object.values(order).every((n) => n >= 0)).toBe(true);
-  const sequence = [order.swap, order.kind, order.profile, order.step, order.zoom];
-  expect(sequence).toEqual(sequence.toSorted((a, b) => a - b));
+  // THEN focus walks the form, the results, the step list and only then the map controls
+  expect(reached).toEqual(["kind", "profile", "step", "zoom"]);
 
   // WHEN the visitor opens a step with the keyboard
   const step = page.getByRole("button", { name: /^Odcinek 2 z 33\./ });
