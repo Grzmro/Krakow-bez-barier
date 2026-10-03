@@ -40,7 +40,7 @@ export function OutageConfirmDrawer({ open, onOpenChange, placeName, equipment, 
               <span>{b.confirmUnknown(equipment)}</span>
             </p>
           ) : null}
-          <Button size="lg" className="mt-5 w-full" onClick={() => onConfirm(equipment)}>
+          <Button size="lg" className="mt-5 w-full" onClick={() => open && onConfirm(equipment)}>
             {b.reportAria(equipment)}
           </Button>
           <VaulDrawerClose asChild>

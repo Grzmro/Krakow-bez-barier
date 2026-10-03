@@ -1,0 +1,7 @@
+- dialog "Winda nie działa?":
+  - paragraph: Pałac Krzysztofory
+  - heading "Winda nie działa?" [level=2]
+  - paragraph: /Zgłoszenie od razu zobaczą inni, a werdykt profilu policzy je jako barierę\. Zniknie po \d+ godz\., jeśli nikt go nie potwierdzi\./
+  - paragraph: Nie mamy danych, czy jest tu winda. Zgłoś awarię tylko, jeśli ją widzisz i nie działa.
+  - button "Zgłoś awarię windy"
+  - button "Anuluj"
