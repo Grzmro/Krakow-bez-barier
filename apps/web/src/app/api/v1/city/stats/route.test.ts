@@ -13,12 +13,17 @@ const bar = placeRecord({ name: "Bar Mleczny", category: "restaurant" });
 const apteka = placeRecord({ name: "Apteka", category: "pharmacy" });
 const fake = placeRecord({ name: "Kawiarnia Przykład", category: "restaurant", isSample: true });
 
-const places = [bar, apteka, fake];
+// Bulk city data hidden on the map; the wheelchair needs don't apply to it.
+const bay = placeRecord({ name: "Koperta", category: "parking" });
+const stop = placeRecord({ name: "Rondo Mogilskie", category: "transit_stop" });
+
+const places = [bar, apteka, fake, bay, stop];
 const facts = [
   factRecord(bar, "wheelchair_overall", text("no")),
   // A sample fact on a real place must not count.
   factRecord(apteka, "wheelchair_overall", text("no"), { source: sample, reliability: "sample" }),
   factRecord(fake, "wheelchair_overall", text("no")),
+  factRecord(stop, "wheelchair_overall", text("no")),
 ];
 const reports: CityReportRecord[] = [
   { placeId: bar.id, status: "new" },
@@ -86,6 +91,19 @@ describe("GET /city/stats", () => {
       ["Bar Mleczny", "fix", 7],
       ["Apteka", "verify", 3],
     ]);
+  });
+
+  it("leaves out parking bays and transit stops, even one with a known barrier", async () => {
+    // GIVEN a parking bay without data and a tram stop marked not wheelchair accessible
+    // WHEN the statistics are requested
+    const body = (await (await get()).json()) as CityStats;
+
+    // THEN neither is counted per need or ranked
+    const ranked = body.priorities.items.map((i) => i.placeId);
+    expect(body.places.total).toBe(2);
+    expect(ranked).not.toContain(bay.id);
+    expect(ranked).not.toContain(stop.id);
+    expect(body.needs.find((n) => n.need === "entrance")).toMatchObject({ barrier: 1, unknown: 1 });
   });
 
   it("validates the ranking size", async () => {

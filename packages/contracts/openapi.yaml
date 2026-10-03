@@ -800,10 +800,13 @@ paths:
       summary: Accessibility statistics and repair priorities for the city
       description: 'Aggregates for the city''s staff (panel `/miasto`). It covers places with and without accessibility data,
         per need how many places meet it, have a barrier, lack data or have conflicting sources, reports by status,
-        outdated data (over 12 months) and conflicts. It also ranks places to fix or to fill in. Needs are checked like
+        outdated data (over 12 months or from a source that stopped refreshing) and conflicts. It also ranks places to fix
+        or to fill in. Needs are checked like
         the wheelchair profile does (entrance, door, lift, accessible toilet) plus a smooth surface. Each ranked place
         has a score that is the sum of the points in `criteria`, with the reasons behind it. Aggregates only: no report
-        text, no personal data. Sample (PRZYKŁAD) places, facts and their reports are left out; `isSample` is true only
+        text, no personal data. Every place is counted except the categories hidden on the map by default
+        (`hiddenByDefault` in the category config: parking bays and transit stops), which the wheelchair needs don''t
+        apply to. Sample (PRZYKŁAD) places, facts and their reports are left out; `isSample` is true only
         when the whole answer is built from sample data (the example-data mode). Requires a moderator bearer token, the
         demo account included (lockout as for the moderation queue).
 
@@ -815,7 +818,8 @@ paths:
       parameters:
       - name: limit
         in: query
-        description: How many places of the ranking to return, highest score first.
+        description: How many places of the ranking to return, highest score first. The panel's CSV export asks for the
+          maximum and says when the ranking was cut.
         schema:
           type: integer
           minimum: 1
@@ -2418,7 +2422,8 @@ components:
                 minimum: 0
         staleData:
           type: object
-          description: Facts older than 12 months or from a source that failed to refresh, and the places they describe.
+          description: Places with at least one attribute whose facts are all outdated (older than 12 months or from a
+            source that failed to refresh), and those facts — the same rule as the ranking's `stale_data`.
           required:
           - places
           - facts

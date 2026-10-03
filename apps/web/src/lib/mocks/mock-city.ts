@@ -1,5 +1,5 @@
 import type { ModerationReport, Problem } from "@krakow-bez-barier/contracts";
-import { cityStats } from "@/domain/city-stats";
+import { CITY_EXCLUDED_CATEGORIES, cityStats } from "@/domain/city-stats";
 import { EXAMPLE_PLACES } from "./mock-api";
 
 // In-browser stand-in for `GET /city/stats` in the example-data mode: the same aggregation the API runs, over the
@@ -28,7 +28,7 @@ export function withCityMocks(fallback: Fetch, reports: ModerationReport[]): Fet
     if (!/^Bearer\s+\S/i.test(input.headers.get("authorization") ?? "")) return json(unauthorized, 401);
 
     const limit = Number(url.searchParams.get("limit") ?? 25);
-    const places = EXAMPLE_PLACES.map(({ id, name, category, location, attributes }) => ({
+    const places = EXAMPLE_PLACES.filter((p) => !CITY_EXCLUDED_CATEGORIES.includes(p.category)).map(({ id, name, category, location, attributes }) => ({
       id,
       name,
       category,

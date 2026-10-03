@@ -9,8 +9,9 @@ import { Button, cn, useAnnounce } from "@krakow-bez-barier/ui";
 import { bearer, ModeratorSignIn, StatusError, useModeratorSession } from "@/components/moderator/moderator-session";
 import { InfoSection } from "@/components/layout/info-page";
 import { useLocale, useMessages } from "@/i18n/client";
+import { CITY_EXCLUDED_CATEGORIES } from "@/domain/city-stats";
 import { api } from "@/lib/api";
-import { useCategoryLookup } from "@/lib/categories";
+import { useCategories, useCategoryLookup } from "@/lib/categories";
 import { priorityCsv, reasonsText } from "@/lib/city";
 import { formatDateTime, retryMinutes } from "@/lib/moderation";
 import { routes } from "@/lib/routes";
@@ -18,6 +19,8 @@ import { routes } from "@/lib/routes";
 // Signing out here or in /moderator drops both pages' data.
 const QUERY_KEY = ["moderation"] as const;
 const RANKING_SIZE = 25;
+// The spec's maximum `limit`: the CSV takes the longest ranking the API gives, and says so when it is cut.
+const EXPORT_SIZE = 100;
 
 // Order of the stacked bars and table columns: worst first, "Brak danych" before "Spełnia".
 const STATES: NeedVerdict[] = ["barrier", "conflict", "unknown", "met"];
@@ -28,9 +31,9 @@ const BAR: Record<NeedVerdict, string> = {
   met: "bg-status-met",
 };
 
-async function fetchStats(token: string): Promise<CityStats> {
+async function fetchStats(token: string, limit = RANKING_SIZE): Promise<CityStats> {
   const { data, response } = await api.GET("/city/stats", {
-    params: { query: { limit: RANKING_SIZE } },
+    params: { query: { limit } },
     headers: bearer(token),
   });
   if (!data) throw new StatusError(response.status, response.headers.get("retry-after"));
@@ -77,6 +80,7 @@ function CityPanel({ token, onSignOut }: { token: string; onSignOut: (message: s
   const locale = useLocale();
   const announce = useAnnounce();
   const category = useCategoryLookup();
+  const { data: categoryList } = useCategories();
   const ids = { needs: useId(), reports: useId(), priorities: useId() };
 
   const query = useQuery({ queryKey: [...QUERY_KEY, "city"], queryFn: () => fetchStats(token), retry: false });
@@ -129,15 +133,29 @@ function CityPanel({ token, onSignOut }: { token: string; onSignOut: (message: s
     .map((id) => category(id).label.toLowerCase())
     .join(", ");
 
-  const downloadCsv = () => {
-    const csv = priorityCsv(stats.priorities.items, messages, (id) => category(id).label);
+  const excluded = CITY_EXCLUDED_CATEGORIES.map((id) => categoryList?.find((c) => c.id === id)?.label ?? category(id).label)
+    .map((label) => label.toLowerCase())
+    .join(", ");
+
+  const downloadCsv = async () => {
+    let ranking = stats;
+    if (stats.priorities.items.length < stats.priorities.total) {
+      try {
+        ranking = await fetchStats(token, EXPORT_SIZE);
+      } catch {
+        announce(t.priorities.exportFailed);
+        return;
+      }
+    }
+    const { items, total: rankedTotal } = ranking.priorities;
+    const csv = priorityCsv(items, messages, (id) => category(id).label);
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = t.priorities.csvFile(stats.generatedAt.slice(0, 10));
+    link.download = t.priorities.csvFile(ranking.generatedAt.slice(0, 10), items.length);
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 0);
-    announce(t.priorities.exported);
+    announce(t.priorities.exported(items.length, rankedTotal));
   };
 
   const tiles = [
@@ -158,7 +176,10 @@ function CityPanel({ token, onSignOut }: { token: string; onSignOut: (message: s
           {messages.moderator.signOut}
         </Button>
       </div>
-      <p className="mt-2 text-body-sm text-foreground/85">{t.intro}</p>
+      <p className="mt-2 text-body-sm text-foreground/85">
+        {stats.isSample ? null : `${t.intro} `}
+        {t.introRules} {t.scope(excluded)}
+      </p>
       <p className="mt-1 text-caption text-muted-foreground">{stats.isSample ? t.introSample : t.realOnly}</p>
 
       <InfoSection title={t.tiles.heading}>
@@ -274,7 +295,7 @@ function CityPanel({ token, onSignOut }: { token: string; onSignOut: (message: s
             {t.priorities.heading}
           </h2>
           {stats.priorities.items.length ? (
-            <Button variant="outline" size="sm" onClick={downloadCsv}>
+            <Button variant="outline" size="sm" onClick={() => void downloadCsv()}>
               <DownloadSimple weight="bold" aria-hidden />
               {t.priorities.exportCsv}
             </Button>

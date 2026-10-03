@@ -12,7 +12,7 @@ const criterion: Record<PriorityFactor, (p: number, max: number | null, categori
   busy_category: (p, _max, categories) =>
     `+${p} pts for a place many people visit (${categories}) — only together with another reason`,
   missing_entrance_data: (p) => `+${p} pts when nothing is known about the entrance`,
-  stale_data: (p) => `+${p} pts when the data is outdated (older than 12 months or the source isn't refreshing)`,
+  stale_data: (p) => `+${p} pts when all we have on some attribute is outdated (older than 12 months or the source isn't refreshing)`,
 };
 
 const reason: Record<PriorityFactor, (count: number, needs: string) => string> = {
@@ -32,8 +32,10 @@ export const city: Messages["city"] = {
   loaded: (total: number) => `Statistics ready: ${places(total)} in the database.`,
   loadFailed: "Couldn't load the statistics.",
   loadLockedOut: (minutes: number) => `Too many failed attempts. The statistics will be available in ${minutes} min.`,
-  intro:
-    "Figures from the Kraków bez barier database: OpenStreetMap, the city's open data and residents' reports. Aggregates only, no personal data. Missing data never counts as “accessible”.",
+  intro: "Figures from the Kraków bez barier database: OpenStreetMap, the city's open data and residents' reports.",
+  introRules: "Aggregates only, no personal data. Missing data never counts as “accessible”.",
+  scope: (excluded: string) =>
+    `Every place is counted except the categories hidden on the map by default (${excluded}) — the “Wheelchair” needs don't apply to them.`,
   introSample: "Sample mode: statistics computed from the sample places, not from Kraków's data.",
   realOnly: "Places and facts marked SAMPLE are left out.",
   generatedAt: (date: string) => `As of ${date}`,
@@ -43,7 +45,7 @@ export const city: Messages["city"] = {
     withData: "With accessibility data",
     withoutData: "Without any data",
     openReports: "Reports to decide",
-    stale: "Places with data older than 12 months",
+    stale: "Places with outdated data (>12 months or the source isn't refreshing)",
     staleFacts: (n: number) => `${n} ${n === 1 ? "fact" : "facts"}`,
     conflicts: "Places with conflicting sources",
     conflictAttributes: (n: number) => `${n} ${n === 1 ? "attribute" : "attributes"}`,
@@ -90,8 +92,10 @@ export const city: Messages["city"] = {
     empty: "No place has barriers, data gaps or reports.",
     regionLabel: "Priority table (scrolls horizontally)",
     exportCsv: "Download CSV",
-    exported: "Downloaded the ranking as CSV.",
-    csvFile: (date: string) => `accessibility-priorities-krakow-${date}.csv`,
+    exported: (shown: number, total: number) =>
+      shown < total ? `Downloaded a CSV: the top ${shown} of ${places(total)} in the ranking.` : `Downloaded a CSV: the whole ranking, ${places(total)}.`,
+    exportFailed: "Couldn't download the ranking as CSV.",
+    csvFile: (date: string, shown: number) => `accessibility-priorities-krakow-top-${shown}-${date}.csv`,
     csvHeader: ["No.", "Place", "Category", "Points", "Action", "Reasons", "Reports to decide", "Longitude", "Latitude", "Id"],
   },
 };

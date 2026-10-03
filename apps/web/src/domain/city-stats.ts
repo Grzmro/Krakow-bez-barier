@@ -9,10 +9,10 @@ import type {
   PriorityItem,
   ReportStatus,
 } from "@krakow-bez-barier/contracts";
+import { categories } from "@krakow-bez-barier/contracts";
 import { defaultLocale } from "@/i18n/locale";
 import { matchProfile } from "./matcher";
 import { PROFILE_PRESETS, type Thresholds } from "./profiles";
-import { isStale } from "./resolver";
 import type { ResolvedAttribute } from "./types";
 
 /** One place as the city statistics see it: its resolved attributes and the statuses of its reports. */
@@ -28,8 +28,14 @@ export type CityPlace = {
 /** The wheelchair profile's needs plus a smooth surface — the strictest check the app makes. */
 export const AUDIT_THRESHOLDS: Thresholds = { ...PROFILE_PRESETS.wheelchair, requireSmoothSurface: true };
 
+/**
+ * Bulk city data (parking bays, transit stops) the statistics leave out, as the map does by default: the wheelchair
+ * needs (entrance, door, lift, toilet) don't apply to them, so they would only add "Brak danych" rows.
+ */
+export const CITY_EXCLUDED_CATEGORIES: Category[] = categories.filter((c) => c.hiddenByDefault).map((c) => c.id);
+
 /** Categories many people visit; they add points only to a place that already has another reason. */
-export const BUSY_CATEGORIES: Category[] = ["toilet", "pharmacy", "museum", "theatre", "transit_stop"];
+export const BUSY_CATEGORIES: Category[] = ["toilet", "pharmacy", "museum", "theatre"];
 
 /** The scoring, in the order the panel explains it. A place's score is the sum of `points × min(count, max)`. */
 export const PRIORITY_CRITERIA: PriorityCriterion[] = [
@@ -98,11 +104,11 @@ export function cityStats(
   let conflictPlaces = 0;
 
   for (const place of places) {
-    const facts = place.attributes.flatMap((a) => a.facts);
-    if (facts.length > 0) withData += 1;
-    const stale = facts.filter((f) => isStale(f, now)).length;
-    staleFacts += stale;
-    if (stale > 0) stalePlaces += 1;
+    if (place.attributes.some((a) => a.facts.length > 0)) withData += 1;
+    // Same definition as the ranking's `stale_data`: an attribute with no fresh fact left.
+    const stale = place.attributes.filter((a) => a.state === "stale");
+    staleFacts += stale.reduce((sum, a) => sum + a.facts.length, 0);
+    if (stale.length > 0) stalePlaces += 1;
     const conflicts = place.attributes.filter((a) => a.state === "conflict").length;
     conflictAttributes += conflicts;
     if (conflicts > 0) conflictPlaces += 1;

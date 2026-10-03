@@ -26,6 +26,9 @@ test("the city panel shows statistics and the priority ranking, keyboard-reachab
   // THEN the statistics are announced and shown as text: tiles, the per-need table and reports by status
   await expect(page.getByRole("status").filter({ hasText: /^Statystyki gotowe: \d+ miejsc/ })).toBeAttached();
   await expect(main).toContainText("Tryb przykładowy: statystyki policzone z przykładowych miejsc");
+  // AND in sample mode it doesn't claim the numbers come from real sources, and it says which categories are left out
+  await expect(main).not.toContainText("dane z OpenStreetMap");
+  await expect(main).toContainText("oprócz kategorii ukrytych domyślnie na mapie (miejsca postojowe, przystanki)");
   const needs = page.getByRole("table", { name: "Liczba miejsc według wyniku dla każdej potrzeby" });
   await expect(needs.getByRole("rowheader")).toHaveText(["Wejście", "Drzwi", "Winda", "Toaleta dostosowana", "Nawierzchnia"]);
   const reports = page.getByRole("table", { name: "Liczba zgłoszeń według statusu" });
@@ -61,12 +64,12 @@ test("the city panel shows statistics and the priority ranking, keyboard-reachab
   ]);
 
   // THEN the file has the header and the first place, and the download is announced
-  expect(download.suggestedFilename()).toMatch(/^priorytety-dostepnosci-krakow-\d{4}-\d{2}-\d{2}\.csv$/);
+  expect(download.suggestedFilename()).toMatch(/^priorytety-dostepnosci-krakow-top-\d+-\d{4}-\d{2}-\d{2}\.csv$/);
   const csv = await readFile((await download.path())!, "utf8");
   const [header, first] = csv.replace(/^﻿/, "").split("\r\n");
   expect(header).toBe("Nr;Miejsce;Kategoria;Punkty;Działanie;Powody;Zgłoszenia do decyzji;Długość;Szerokość;Identyfikator");
   expect(first).toContain(`1;${firstName};`);
-  await expect(page.getByRole("status").filter({ hasText: "Pobrano plik CSV z rankingiem." })).toBeAttached();
+  await expect(page.getByRole("status").filter({ hasText: /^Pobrano plik CSV: cały ranking, \d+ miejsc/ })).toBeAttached();
 
   // WHEN the first place is opened from the ranking with Enter
   await firstLink.focus();

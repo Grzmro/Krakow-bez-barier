@@ -23,7 +23,7 @@ const criterion: Record<PriorityFactor, (p: number, max: number | null, categori
   busy_category: (p: number, _max: number | null, categories: string) =>
     `+${points(p)} gdy to miejsce, które odwiedza wiele osób (${categories}) — tylko razem z innym powodem`,
   missing_entrance_data: (p: number) => `+${points(p)} gdy nic nie wiemy o wejściu`,
-  stale_data: (p: number) => `+${points(p)} gdy dane są nieaktualne (starsze niż 12 mies. lub źródło nie odświeża się)`,
+  stale_data: (p: number) => `+${points(p)} gdy o jakimś atrybucie mamy tylko nieaktualne dane (starsze niż 12 mies. lub źródło nie odświeża się)`,
 };
 
 const reason: Record<PriorityFactor, (count: number, needs: string) => string> = {
@@ -44,8 +44,10 @@ export const city = {
   loaded: (total: number) => `Statystyki gotowe: ${places(total)} w bazie.`,
   loadFailed: "Nie udało się wczytać statystyk.",
   loadLockedOut: (minutes: number) => `Za dużo nieudanych prób. Statystyki będą dostępne za ${minutes} min.`,
-  intro:
-    "Liczby z bazy Kraków bez barier: dane z OpenStreetMap i otwartych danych miasta oraz zgłoszenia mieszkańców. Tylko dane zbiorcze, bez danych osobowych. Brak danych nigdy nie liczy się jako „dostępne”.",
+  intro: "Liczby z bazy Kraków bez barier: dane z OpenStreetMap i otwartych danych miasta oraz zgłoszenia mieszkańców.",
+  introRules: "Tylko dane zbiorcze, bez danych osobowych. Brak danych nigdy nie liczy się jako „dostępne”.",
+  scope: (excluded: string) =>
+    `Liczymy wszystkie miejsca oprócz kategorii ukrytych domyślnie na mapie (${excluded}) — potrzeby z profilu „Wózek” ich nie dotyczą.`,
   introSample: "Tryb przykładowy: statystyki policzone z przykładowych miejsc, nie z danych Krakowa.",
   realOnly: "Miejsca i fakty oznaczone PRZYKŁAD są pominięte.",
   generatedAt: (date: string) => `Stan na ${date}`,
@@ -55,7 +57,7 @@ export const city = {
     withData: "Z danymi o dostępności",
     withoutData: "Bez żadnych danych",
     openReports: "Zgłoszenia do decyzji",
-    stale: "Miejsca z danymi starszymi niż 12 mies.",
+    stale: "Miejsca z nieaktualnymi danymi (>12 mies. lub źródło nie odświeża się)",
     staleFacts: (n: number) => `${n} ${plural(n, "fakt", "fakty", "faktów")}`,
     conflicts: "Miejsca ze sprzecznymi źródłami",
     conflictAttributes: (n: number) => `${n} ${plural(n, "atrybut", "atrybuty", "atrybutów")}`,
@@ -102,8 +104,10 @@ export const city = {
     empty: "Żadne miejsce nie ma barier, luk w danych ani zgłoszeń.",
     regionLabel: "Tabela priorytetów (przewijana poziomo)",
     exportCsv: "Pobierz CSV",
-    exported: "Pobrano plik CSV z rankingiem.",
-    csvFile: (date: string) => `priorytety-dostepnosci-krakow-${date}.csv`,
+    exported: (shown: number, total: number) =>
+      shown < total ? `Pobrano plik CSV: pierwsze ${shown} z ${places(total)} rankingu.` : `Pobrano plik CSV: cały ranking, ${places(total)}.`,
+    exportFailed: "Nie udało się pobrać rankingu do pliku CSV.",
+    csvFile: (date: string, shown: number) => `priorytety-dostepnosci-krakow-top-${shown}-${date}.csv`,
     csvHeader: ["Nr", "Miejsce", "Kategoria", "Punkty", "Działanie", "Powody", "Zgłoszenia do decyzji", "Długość", "Szerokość", "Identyfikator"],
   },
 } as const;

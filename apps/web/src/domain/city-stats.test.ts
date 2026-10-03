@@ -61,6 +61,21 @@ describe("cityStats", () => {
     expect(stats.conflicts).toEqual({ places: 1, attributes: 1 });
   });
 
+  it("counts as stale only attributes with no fresh fact left, as the ranking does", () => {
+    // GIVEN a place whose door width has an old fact and a fresh one, and a place whose lift has only an old fact
+    const old = { observedAt: "2024-01-01T00:00:00Z", fetchedAt: "2024-01-01T00:00:00Z" };
+    const refreshed = place("refreshed", [fact("door_width_cm", num(80), old), fact("door_width_cm", num(80), { sourceId: "msip" })]);
+    const outdated = place("outdated", [fact("lift", bool(true), old)]);
+
+    // WHEN the statistics are computed
+    const stats = cityStats([refreshed, outdated], { now: NOW });
+
+    // THEN only the outdated place counts in the tile, and it is the only one with stale points in the ranking
+    expect(stats.staleData).toEqual({ places: 1, facts: 1 });
+    const staleRanked = stats.priorities.items.filter((i) => i.reasons.some((r) => r.factor === "stale_data"));
+    expect(staleRanked.map((i) => i.placeId)).toEqual(["outdated"]);
+  });
+
   it("ranks a known barrier above a missing-data place, with reasons that add up to the score", () => {
     // GIVEN a restaurant whose entrance OSM marks as not wheelchair accessible, with an open report,
     // a pharmacy we know nothing about, and a place with nothing to do
