@@ -16,6 +16,8 @@ see the status column.
 |---|---|---|---|---|---|
 | `osm` | OpenStreetMap via Overpass | places, `wheelchair=*` and related tags | ODbL 1.0 | Confirmed | yes |
 | `msip-toilets` | MSIP "Toalety publiczne" (`WT_WC_2023`) | city public toilets, accessibility fields | Not stated in the service; MSIP regulation limits reuse to data classified "OPEN DATA" | **To confirm** | only after confirmation |
+| `zdmk-parking-ozn` | ZDMK "Miejsca postojowe OZN" (ArcGIS Online) | marked parking spaces for disabled drivers | No licence in the ArcGIS item | **To confirm** | only after confirmation |
+| `ztp-stops` | ZTP "Przystanki Komunikacji Miejskiej w Krakowie" (ArcGIS Online) | stop inventory: benches, platform surface | No licence in the ArcGIS item | **To confirm** | only after confirmation |
 | `msip-koh` | MSIP "Obiekty hotelarskie KOH" (`WT_OBIEKTY_HOTELOWE_KOH`) | hotel names/categories/addresses, no accessibility fields | Not stated; derived from the national register of hotel facilities | **To confirm** | only after confirmation |
 | (runtime) | openrouteservice | routing, not stored | Service terms (HeiGIT) | Partly confirmed | no (on demand, server-side) |
 | (runtime) | OpenFreeMap tiles | base map | MIT (project); map data OSM/ODbL | Confirmed | no (browser loads tiles) |
@@ -54,6 +56,7 @@ Share-alike: our derived database of OSM facts is a derivative database under OD
 | Update frequency | Unknown, no published schedule. Treated as static; re-read on the cron |
 | Verification | No ID or OSM ref; matched to OSM toilets by distance (all 9 in the demo bbox are within 13 m). Reliability: official city dataset, but old. Disagreements with OSM are shown as "Sprzeczne dane" (e.g. changing table at ul. Konopnickiej) |
 | When unavailable | Same as above. The older host `msip3.um.krakow.pl` returns 404 (2026-10-03); the live demo uses it to simulate an outage (KBB-29) |
+| Adapter | `apps/ingest/src/adapters/msip-toilets.ts`, mapper tested on `apps/ingest/test/fixtures/msip-toilets-sample.json` (the 9 toilets in the demo bbox, recorded 2026-10-03). `nplnsprw` "tak…" / "nie" → `wheelchair_overall` yes / no; `rodz_npl` "pochylnia" → `ramp`, "winda" / "platforma" → `lift`; `przewijak` "Tak" / "brak" → `changing_table`. The original wording is kept as the evidence comment. Record ref `msip-toilets:WT_WC_2023/<ESRI_OID>`. `licenseConfirmed: false`, so the CLI and the runner refuse to load it |
 
 ### `msip-koh` — MSIP "Obiekty hotelarskie KOH"
 
@@ -69,12 +72,38 @@ Share-alike: our derived database of OSM facts is a derivative database under OD
 | Verification | Matched to OSM hotels by name/distance. Carries no accessibility claim, so it never makes a place "accessible" |
 | When unavailable | As for `osm`: last data kept, marked stale |
 
-**Decision rule until the MSIP licences are confirmed:** the two MSIP adapters are written and
-tested on recorded fixtures, but they are not run against the live service in production, and the
-submission names the MSIP layers as "licence to confirm". Confirmation path: ask the MSIP
+### `zdmk-parking-ozn` — ZDMK "Miejsca postojowe OZN"
+
+| | |
+|---|---|
+| Origin | ArcGIS Online organisation of Gmina Miejska Kraków (`gmk-2`), item "Miejsca postojowe OZN" (https://gmk-2.maps.arcgis.com/home/item.html?id=f0fc14687d51400aaaef0ef2c4900257), published with the web map "Mapa miejskich miejsc postojowych dla pojazdów osób z niepełnosprawnościami"; item description: "Inwentaryzacja Survey123". The owner account also publishes "Mapa ZDMK"; that ZDMK maintains it is **to confirm** |
+| Endpoint | `https://services-eu1.arcgis.com/svTzSt3AvH7sK6q9/arcgis/rest/services/Miejsca_postojowe_OZN/FeatureServer/0` (public, no key; 2,037 points, 297 in the demo bbox on 2026-10-03) |
+| What we read | `ID_MIEJSCA`, `punkt_adresowy` (address), point geometry |
+| Licence | **To confirm.** The item has empty `licenseInfo` and `accessInformation` |
+| Freshness | No per-record date; layer `dataLastEditDate` 2026-09 |
+| Adapter | `apps/ingest/src/adapters/zdmk-parking-ozn.ts`: one place per space (category `other`) with `disabled_parking = true`; ref `zdmk-parking-ozn:space/<ID_MIEJSCA>`. Fixture `zdmk-parking-ozn-sample.json`. Not matched to OSM (OSM places we ingest carry no parking spaces) |
+| When unavailable | As for `osm`: last data kept, marked stale |
+
+### `ztp-stops` — ZTP "Przystanki Komunikacji Miejskiej w Krakowie"
+
+| | |
+|---|---|
+| Origin | ArcGIS Online organisation of Gmina Miejska Kraków (`gmk-2`), item "Przystanki Komunikacji Miejskiej w Krakowie" (https://gmk-2.maps.arcgis.com/home/item.html?id=73cfc1778d0d4305a643ef0d2cb13e1f); item snippet: "Baza przystanków w Krakowie oraz aglomeracji, prowadzona przez Zarząd Transportu Publicznego w Krakowie" |
+| Endpoint | `https://services-eu1.arcgis.com/svTzSt3AvH7sK6q9/arcgis/rest/services/Przystanki_Komunikacji_Miejskiej_w_Krakowie/FeatureServer/0` (public, no key; 3,756 platforms, 88 in the demo bbox) |
+| What we read | `Nazwa_przystanku_nr`, `kod_busman`, `Grupa`, `Nawierzchnia_peronu`, `Krawężnik_peronowy`, `Wiata_liczba`, bench counts, `EditDate` |
+| Licence | **To confirm.** The item has empty `licenseInfo` and `accessInformation` |
+| Freshness | Per record: `EditDate` is stored as `observedAt` |
+| Adapter | `apps/ingest/src/adapters/ztp-stops.ts`: one place per platform (category `other`). Benches outside the shelter > 0 → `bench = true`; no shelter and no seats → `bench = false`; a shelter without other seats → no fact (the inventory does not count shelter benches). Platform surface → `surface` (`asfalt` asphalt, `beton` concrete, `kostka` / `płyty_chodnikowe` paving_stones). Kassel kerbs have no height in the data → skipped and counted. Suspended stops (`Grupa = KMK_zawieszony`) are skipped. Ref `ztp-stops:stop/<kod_busman>` (GlobalID when missing). Fixture `ztp-stops-sample.json` |
+| When unavailable | As for `osm`: last data kept, marked stale |
+
+**Decision rule until the city licences are confirmed:** the city adapters (`msip-toilets`,
+`zdmk-parking-ozn`, `ztp-stops`; `msip-koh` has no adapter yet) are written and tested on recorded
+fixtures, carry `licenseConfirmed: false`, and the CLI and runner refuse to ingest them (the daily
+cron skips them with a warning). The submission names these layers as "licence to confirm". Confirmation path: ask the MSIP
 Administrator (the regulation names this role) whether `WT_WC_2023` and `WT_OBIEKTY_HOTELOWE_KOH`
 are classified OPEN DATA and under which licence, and check https://otwartedane.krakow.pl for a
-matching dataset record. We could not complete either from here.
+matching dataset record. For the ZDMK and ZTP layers, ask ZDMK and ZTP (the item owners in the
+city's ArcGIS Online organisation) for the licence. We could not complete any of this from here.
 
 ## Runtime dependencies (not ingested)
 

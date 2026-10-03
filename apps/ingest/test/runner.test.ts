@@ -10,6 +10,7 @@ const meta: SourceMeta = {
   kind: "official_open_data",
   url: "https://example.org",
   license: "CC0",
+  licenseConfirmed: true,
   attribution: "Example",
   refreshInterval: "daily",
   baseReliability: "confirmed",
@@ -116,6 +117,26 @@ describe("runIngest", () => {
     expect(a.calls.source).toEqual([{ ok: false, error: "All records failed, first: schema mismatch" }]);
     expect(emptySummary).toMatchObject({ status: "failed", error: "Source returned no records" });
     expect(b.calls.source[0]).toMatchObject({ ok: false });
+  });
+
+  it("refuses a source whose licence is not confirmed, before fetching or writing", async () => {
+    // GIVEN an adapter with an unconfirmed licence
+    let fetched = false;
+    const adapter: SourceAdapter<number> = {
+      meta: { ...meta, license: "To be confirmed", licenseConfirmed: false },
+      fetch: async () => {
+        fetched = true;
+        return [1];
+      },
+      map: (n) => ({ place: place(n), skipped: [] }),
+    };
+    const { store, calls } = memoryStore();
+    // WHEN running it
+    const result = run(adapter as SourceAdapter<never>, store);
+    // THEN it is rejected and neither the source, a run row nor any place is touched
+    await expect(result).rejects.toThrow("Licence of source artificial is not confirmed");
+    expect(fetched).toBe(false);
+    expect(calls).toEqual({ applied: [], runs: [], source: [] });
   });
 
   it("finishes the run as failed when something unexpected throws", async () => {

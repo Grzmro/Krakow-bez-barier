@@ -51,6 +51,9 @@ export async function runIngest(options: RunOptions): Promise<RunSummary> {
   const now = options.now ?? (() => new Date());
   const log = options.log ?? (() => {});
   const { meta } = adapter;
+  if (!meta.licenseConfirmed) {
+    throw new Error(`Licence of source ${meta.id} is not confirmed (${meta.license}); not ingesting`);
+  }
 
   await store.upsertSource(meta);
   const runId = await store.startRun(meta.id);

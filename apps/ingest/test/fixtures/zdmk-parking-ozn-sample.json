@@ -1,0 +1,61 @@
+{
+ "recordedAt": "2026-10-03",
+ "query": "Miejsca_postojowe_OZN/FeatureServer/0/query (demo bbox, outSR=4326, f=json), first 5 features",
+ "features": [
+  {
+   "attributes": {
+    "OBJECTID": 169,
+    "ID_MIEJSCA": "ID_167",
+    "punkt_adresowy": "św. Sebastiana 7"
+   },
+   "geometry": {
+    "x": 19.941293262873838,
+    "y": 50.05561330371102
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 762,
+    "ID_MIEJSCA": "ID_759",
+    "punkt_adresowy": "Skawińska 5"
+   },
+   "geometry": {
+    "x": 19.94231067309914,
+    "y": 50.04754206731264
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 793,
+    "ID_MIEJSCA": "ID_790",
+    "punkt_adresowy": "Trynitarska 11"
+   },
+   "geometry": {
+    "x": 19.944918200714426,
+    "y": 50.0475419647899
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 1457,
+    "ID_MIEJSCA": "ID_1453",
+    "punkt_adresowy": "Krakusa 19"
+   },
+   "geometry": {
+    "x": 19.952376595003898,
+    "y": 50.04595045255136
+   }
+  },
+  {
+   "attributes": {
+    "OBJECTID": 722,
+    "ID_MIEJSCA": "ID_719",
+    "punkt_adresowy": "Smoleńsk 10"
+   },
+   "geometry": {
+    "x": 19.928989348379794,
+    "y": 50.058717017876134
+   }
+  }
+ ]
+}

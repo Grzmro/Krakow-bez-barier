@@ -1,10 +1,13 @@
 import type { SourceAdapter } from "./adapter";
+import { msipToilets } from "./adapters/msip-toilets";
 import { osm } from "./adapters/osm";
+import { zdmkParkingOzn } from "./adapters/zdmk-parking-ozn";
+import { ztpStops } from "./adapters/ztp-stops";
 import type { CityConfig } from "./cities/types";
 
-export const adapters: Record<string, SourceAdapter<never>> = {
-  [osm.meta.id]: osm as SourceAdapter<never>,
-};
+export const adapters: Record<string, SourceAdapter<never>> = Object.fromEntries(
+  [osm, msipToilets, zdmkParkingOzn, ztpStops].map((a) => [a.meta.id, a as SourceAdapter<never>]),
+);
 
 export type RunTarget = { city: CityConfig; sourceIds: string[] } | { error: string };
 
