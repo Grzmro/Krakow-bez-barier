@@ -13,6 +13,7 @@ const meta: SourceMeta = {
   kind: "community",
   url: "https://example.org",
   license: "CC0",
+  licenseConfirmed: true,
   attribution: "Test",
   refreshInterval: "daily",
   baseReliability: "community",

@@ -13,8 +13,9 @@ export type SourceMeta = {
   name: string;
   kind: SourceKind;
   url: string;
-  /** A source without a known licence is not ingested. */
   license: string;
+  /** False until someone has seen the licence at its source; such a source is never ingested. */
+  licenseConfirmed: boolean;
   termsUrl?: string;
   attribution: string;
   refreshInterval: string;

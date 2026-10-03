@@ -1,11 +1,8 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
 import type { FetchContext, SourceAdapter } from "../adapter";
+import { withDownloadCache } from "../cache";
 import { retryAfterMs, SourceHttpError } from "../errors";
 import { mapOsmElement, type OsmElement } from "./osm-map";
 import { categories as configuredCategories, type CategoryConfig } from "@krakow-bez-barier/contracts";
-
-const CACHE_TTL_MS = 60 * 60 * 1000;
 
 /** Overpass QL for the categories enabled in a city (all configured ones unless the city lists a subset). */
 export function buildQuery(
@@ -23,15 +20,6 @@ export function cityCategories(city: FetchContext["city"]): readonly CategoryCon
   return city.categories ? configuredCategories.filter((c) => city.categories!.includes(c.id)) : configuredCategories;
 }
 
-async function readCache(file: string): Promise<OsmElement[] | null> {
-  try {
-    const { fetchedAt, elements } = JSON.parse(await readFile(file, "utf8"));
-    return Date.now() - fetchedAt < CACHE_TTL_MS ? elements : null;
-  } catch {
-    return null;
-  }
-}
-
 export const osm: SourceAdapter<OsmElement> = {
   meta: {
     id: "osm",
@@ -39,6 +27,7 @@ export const osm: SourceAdapter<OsmElement> = {
     kind: "community",
     url: "https://www.openstreetmap.org",
     license: "ODbL 1.0",
+    licenseConfirmed: true,
     termsUrl: "https://www.openstreetmap.org/copyright",
     attribution: "© OpenStreetMap contributors",
     refreshInterval: "daily",
@@ -49,37 +38,26 @@ export const osm: SourceAdapter<OsmElement> = {
     const endpoint = process.env.OVERPASS_URL ?? city.sourceConfig.osm?.endpoint;
     if (!endpoint) throw new Error(`No Overpass endpoint configured for city ${city.id}`);
 
-    const cacheDir = process.env.INGEST_CACHE_DIR;
-    const cacheFile = cacheDir ? path.join(cacheDir, `osm-${city.id}.json`) : null;
-    if (cacheFile) {
-      const cached = await readCache(cacheFile);
-      if (cached) return cached;
-    }
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "User-Agent": userAgent, "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ data: buildQuery(city.bbox, cityCategories(city)) }),
-      signal: AbortSignal.timeout(150_000),
+    return withDownloadCache(`osm-${city.id}`, async () => {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "User-Agent": userAgent, "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ data: buildQuery(city.bbox, cityCategories(city)) }),
+        signal: AbortSignal.timeout(150_000),
+      });
+      if (!response.ok) {
+        throw new SourceHttpError(
+          `Overpass responded ${response.status} ${response.statusText}`,
+          response.status,
+          retryAfterMs(response.headers.get("Retry-After")),
+        );
+      }
+      const body = (await response.json()) as { elements?: unknown; remark?: string };
+      if (!Array.isArray(body.elements)) {
+        throw new Error(`Overpass returned no elements${body.remark ? `: ${body.remark}` : ""}`);
+      }
+      return body.elements as OsmElement[];
     });
-    if (!response.ok) {
-      throw new SourceHttpError(
-        `Overpass responded ${response.status} ${response.statusText}`,
-        response.status,
-        retryAfterMs(response.headers.get("Retry-After")),
-      );
-    }
-    const body = (await response.json()) as { elements?: unknown; remark?: string };
-    if (!Array.isArray(body.elements)) {
-      throw new Error(`Overpass returned no elements${body.remark ? `: ${body.remark}` : ""}`);
-    }
-    const elements = body.elements as OsmElement[];
-
-    if (cacheFile && cacheDir) {
-      await mkdir(cacheDir, { recursive: true });
-      await writeFile(cacheFile, JSON.stringify({ fetchedAt: Date.now(), elements }));
-    }
-    return elements;
   },
 
   map: mapOsmElement,

@@ -1,0 +1,213 @@
+{
+ "recordedAt": "2026-10-03",
+ "query": "WT_WC_2023/MapServer/0/query?where=1=1&outFields=*&outSR=4326&f=json, filtered to the demo bbox, zdjecia_html dropped",
+ "features": [
+  {
+   "attributes": {
+    "miejsce": "ul. Dietla/ul. Starowiślna",
+    "dzielnica": "01. Stare Miasto",
+    "gps_wspl": "50.057666, 19.945701",
+    "rodz_ob": "wolnostojąca",
+    "godziny": "całodobowo",
+    "dni": "Codziennie",
+    "sezon": "Nie",
+    "samoobsl": "Tak",
+    "nplnsprw": "Tak",
+    "rodz_npl": "wjazd z poziomu 0",
+    "status": "czynne",
+    "pt_karta": "Tak",
+    "przewijak": "Tak",
+    "uwagi": null,
+    "ESRI_OID": 1
+   },
+   "geometry": {
+    "x": 19.945701598627316,
+    "y": 50.05766677927727
+   }
+  },
+  {
+   "attributes": {
+    "miejsce": "ul. Sienna (Planty)N",
+    "dzielnica": "01. Stare Miasto",
+    "gps_wspl": "50.059723, 19.941759",
+    "rodz_ob": "podziemny",
+    "godziny": "8.00-21.00",
+    "dni": "Codziennie",
+    "sezon": "Nie",
+    "samoobsl": "Nie",
+    "nplnsprw": "tak, po stronie damskiej",
+    "rodz_npl": "platforma",
+    "status": "czynne",
+    "pt_karta": "tak",
+    "przewijak": "Tak",
+    "uwagi": null,
+    "ESRI_OID": 2
+   },
+   "geometry": {
+    "x": 19.94175910847226,
+    "y": 50.05972289984404
+   }
+  },
+  {
+   "attributes": {
+    "miejsce": "ul. Straszewskiego (Planty) N",
+    "dzielnica": "01. Stare Miasto",
+    "gps_wspl": "50.058403, 19.933561",
+    "rodz_ob": "podziemny",
+    "godziny": "8.00-20.00 (IV-X), 9.00-18.00 (XI-III)",
+    "dni": "Codziennie",
+    "sezon": "Tak",
+    "samoobsl": "Nie",
+    "nplnsprw": "tak, po stronie damskiej",
+    "rodz_npl": "platforma",
+    "status": "czynne",
+    "pt_karta": "tak",
+    "przewijak": "brak",
+    "uwagi": null,
+    "ESRI_OID": 4
+   },
+   "geometry": {
+    "x": 19.933561325405257,
+    "y": 50.05840301466158
+   }
+  },
+  {
+   "attributes": {
+    "miejsce": "ul. Powiśle (bulwar naprzeciwko DH Jubilat) N",
+    "dzielnica": "01. Stare Miasto",
+    "gps_wspl": "50.055514, 19.929077",
+    "rodz_ob": "podziemny",
+    "godziny": "9.00-20.00 (IV-X), 9.00-17.00 (XI-III)",
+    "dni": "Codziennie",
+    "sezon": "Tak",
+    "samoobsl": "Nie",
+    "nplnsprw": "tak, po stronie damskiej",
+    "rodz_npl": "platforma",
+    "status": "czynne",
+    "pt_karta": "tak",
+    "przewijak": "brak",
+    "uwagi": null,
+    "ESRI_OID": 5
+   },
+   "geometry": {
+    "x": 19.929077147915102,
+    "y": 50.05551528940691
+   }
+  },
+  {
+   "attributes": {
+    "miejsce": "ul. Smocza (Bulwar Czerwieński) N",
+    "dzielnica": "01. Stare Miasto",
+    "gps_wspl": "50.052223, 19.934892",
+    "rodz_ob": "podziemny",
+    "godziny": "9.00-20.00 (IV-X), 9.00-17.00 (XI- III)",
+    "dni": "Codziennie",
+    "sezon": "Tak",
+    "samoobsl": "Nie",
+    "nplnsprw": "tak, po stronie damskiej",
+    "rodz_npl": "platforma",
+    "status": "czynne",
+    "pt_karta": "tak",
+    "przewijak": "brak",
+    "uwagi": null,
+    "ESRI_OID": 6
+   },
+   "geometry": {
+    "x": 19.93489265451671,
+    "y": 50.05222320604984
+   }
+  },
+  {
+   "attributes": {
+    "miejsce": "aleja Daszyńskiego / ulica Metalowców",
+    "dzielnica": "02. Grzegórzki",
+    "gps_wspl": "50.058580, 19.949998",
+    "rodz_ob": "wolnostojąca",
+    "godziny": "całodobowo",
+    "dni": "Codziennie",
+    "sezon": "Nie",
+    "samoobsl": "Tak",
+    "nplnsprw": "Tak",
+    "rodz_npl": "wjazd z poziomu 0",
+    "status": "czynne",
+    "pt_karta": "Tak",
+    "przewijak": "brak",
+    "uwagi": null,
+    "ESRI_OID": 9
+   },
+   "geometry": {
+    "x": 19.949998855520874,
+    "y": 50.058578490648934
+   }
+  },
+  {
+   "attributes": {
+    "miejsce": "Rynek Dębnicki",
+    "dzielnica": "08. Dębniki",
+    "gps_wspl": "50.051456, 19.926747",
+    "rodz_ob": "wolnostojąca",
+    "godziny": "całodobowo",
+    "dni": "Codziennie",
+    "sezon": "Nie",
+    "samoobsl": "Tak",
+    "nplnsprw": "Tak",
+    "rodz_npl": "wjazd z poziomu 0",
+    "status": "czynne",
+    "pt_karta": "Tak",
+    "przewijak": "Tak",
+    "uwagi": null,
+    "ESRI_OID": 25
+   },
+   "geometry": {
+    "x": 19.926748276251327,
+    "y": 50.0514564507828
+   }
+  },
+  {
+   "attributes": {
+    "miejsce": "ul. Konopnickiej (przejście podziemne) N",
+    "dzielnica": "08. Dębniki",
+    "gps_wspl": "50.046754, 19.934118",
+    "rodz_ob": "podziemny, w przejściu",
+    "godziny": "9.00-17.00",
+    "dni": "pn-pt",
+    "sezon": "Nie",
+    "samoobsl": "Nie",
+    "nplnsprw": "tak, oddzielnie",
+    "rodz_npl": "pochylnia",
+    "status": "czynne",
+    "pt_karta": "tak",
+    "przewijak": "brak",
+    "uwagi": null,
+    "ESRI_OID": 26
+   },
+   "geometry": {
+    "x": 19.934118271093972,
+    "y": 50.04675293025164
+   }
+  },
+  {
+   "attributes": {
+    "miejsce": "Pl. Bohaterów Getta (przejście podziemne) N",
+    "dzielnica": "13. Podgórze",
+    "gps_wspl": "50.046732, 19.954677",
+    "rodz_ob": "podziemny, w przejściu",
+    "godziny": "pn-pt 9.00-18.00, sb-nd 9.00-17.00",
+    "dni": "Codziennie",
+    "sezon": "Nie",
+    "samoobsl": "Nie",
+    "nplnsprw": "tak, pomiędzy toaletą damską a męską",
+    "rodz_npl": "winda",
+    "status": "czynne",
+    "pt_karta": "tak",
+    "przewijak": "brak",
+    "uwagi": null,
+    "ESRI_OID": 36
+   },
+   "geometry": {
+    "x": 19.954677582637935,
+    "y": 50.046733855593835
+   }
+  }
+ ]
+}

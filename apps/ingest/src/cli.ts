@@ -9,12 +9,21 @@ function arg(name: string): string | undefined {
   return i >= 0 ? process.argv[i + 1] : undefined;
 }
 
-const target = resolveTarget(cities, arg("city"), arg("source"));
+const requested = arg("source");
+const target = resolveTarget(cities, arg("city"), requested);
 if ("error" in target) {
   console.error(target.error);
   process.exit(2);
 }
-const { city, sourceIds } = target;
+const { city, sourceIds: candidates } = target;
+
+const unlicensed = candidates.filter((id) => !adapters[id].meta.licenseConfirmed);
+for (const id of unlicensed) {
+  console.warn(`${id}: licence not confirmed (${adapters[id].meta.license}), not ingested — see docs/data-sources.md`);
+}
+// Asking for an unlicensed source by name is an error; the scheduled all-sources run just skips it.
+if (requested && unlicensed.length > 0) process.exit(2);
+const sourceIds = candidates.filter((id) => !unlicensed.includes(id));
 
 const userAgent =
   process.env.INGEST_USER_AGENT ??
