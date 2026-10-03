@@ -115,17 +115,28 @@ function fromRynek(row: string): number {
   const value = Number(match[1].replace(",", "."));
   return match[2] === "km" ? value * 1000 : value;
 }
-async function allPlaces(request: APIRequestContext): Promise<PlaceList["items"]> {
-  const items: PlaceList["items"] = [];
+
+type PlaceItem = PlaceList["items"][number];
+
+async function listPlaces(request: APIRequestContext, params: Record<string, string | number>): Promise<PlaceList> {
+  const response = await request.get("/api/v1/places", { params });
+  expect(response.ok(), `GET /api/v1/places answered ${response.status()}`).toBe(true);
+  return (await response.json()) as PlaceList;
+}
+
+// Pages through the whole city only until the first match: the full list is thousands of places.
+async function findPlace(request: APIRequestContext, matches: (item: PlaceItem) => boolean): Promise<PlaceItem | undefined> {
   let cursor: string | null | undefined;
   do {
-    const response = await request.get("/api/v1/places", { params: { limit: 100, ...(cursor ? { cursor } : {}) } });
-    expect(response.ok(), `GET /api/v1/places answered ${response.status()}`).toBe(true);
-    const list = (await response.json()) as PlaceList;
-    items.push(...list.items);
+    const list = await listPlaces(request, { limit: 100, ...(cursor ? { cursor } : {}) });
+    for (const item of list.items) {
+      if (!matches(item)) continue;
+      const sameName = await listPlaces(request, { q: item.name, limit: 100 });
+      if (sameName.items.filter((other) => other.name === item.name).length === 1) return item;
+    }
     cursor = list.nextCursor;
   } while (cursor);
-  return items;
+  return undefined;
 }
 
 test("a place tagged only as not wheelchair accessible says so on the list and on the card, with its source and date", async ({
@@ -137,10 +148,9 @@ test("a place tagged only as not wheelchair accessible says so on the list and o
   // GIVEN a real place whose only known card fact is the overall tag "no" (OSM wheelchair=no), under a name no other place has
   test.skip(!process.env.DATABASE_URL, "DATABASE_URL is unset — no database to read real places from (npm run db:setup)");
   const chipText = pl.summary.chip("wheelchair_overall", "known", { kind: "text", text: "no" });
-  const all = await allPlaces(request);
-  const target = all.find(
+  const target = await findPlace(
+    request,
     (item) =>
-      all.filter((other) => other.name === item.name).length === 1 &&
       item.summary.some((chip) => chip.attribute === "wheelchair_overall" && chip.state === "known" && chip.label === chipText) &&
       item.summary.every((chip) => chip.attribute === "wheelchair_overall" || chip.state === "unknown" || !onCard(chip.attribute)),
   );
