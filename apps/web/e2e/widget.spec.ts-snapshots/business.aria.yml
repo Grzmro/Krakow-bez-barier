@@ -3,7 +3,7 @@
     - /url: /
   - heading "Dla firm" [level=1]
   - text: Dane przykładowe
-  - paragraph: Aktualna karta dostępności na stronie hotelu lub wydarzenia: fakty, źródła, daty. Odwiedzający nie potrzebują konta.
+  - paragraph: "Aktualna karta dostępności na stronie hotelu lub wydarzenia: fakty, źródła, daty. Odwiedzający nie potrzebują konta."
   - heading "Podgląd na stronie obiektu" [level=2]
   - paragraph: /Tak wyglądałaby strona hotelu z naszym widgetem/
   - paragraph: strona-hotelu.example
