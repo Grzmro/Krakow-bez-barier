@@ -19,7 +19,9 @@
     "test:e2e": "npm run test:e2e -w apps/web",
     "db:generate": "npm run db:generate -w packages/db",
     "db:migrate": "npm run db:migrate -w packages/db",
-    "db:seed": "npm run db:seed -w packages/db"
+    "db:seed": "npm run db:seed -w packages/db",
+    "mobile:ios": "npm run ios -w apps/mobile",
+    "mobile:android": "npm run android -w apps/mobile"
   },
   "allowScripts": {
     "esbuild@0.28.2": true,
