@@ -19,12 +19,8 @@ export const metadata: Metadata = {
   icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
-export const viewport: Viewport = {
-  themeColor: brandColors.primary,
-};
-
 // "cover" lets the native app draw under the iPhone notch; globals.css pads by the safe areas.
-export const viewport: Viewport = { viewportFit: "cover" };
+export const viewport: Viewport = { viewportFit: "cover", themeColor: brandColors.primary };
 
 // Pages render their own <main id="main" tabIndex={-1}> — the skip link targets it.
 export default function RootLayout({ children }: LayoutProps<"/">) {
