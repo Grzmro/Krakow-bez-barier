@@ -4,8 +4,9 @@ import { common } from "./pl/common";
 import { dev } from "./pl/dev";
 import { home } from "./pl/home";
 import { moderator } from "./pl/moderator";
+import { nearby } from "./pl/nearby";
 import { pages } from "./pl/pages";
 import { place } from "./pl/place";
 import { profile } from "./pl/profile";
 
-export const pl = { common, home, place, profile, pages, moderator, dev } as const;
+export const pl = { common, home, place, profile, pages, moderator, nearby, dev } as const;

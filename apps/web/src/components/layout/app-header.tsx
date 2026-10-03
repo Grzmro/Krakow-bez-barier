@@ -14,6 +14,7 @@ import {
 } from "@krakow-bez-barier/ui";
 import { pl } from "@/i18n/pl";
 import { routes } from "@/lib/routes";
+import { NearMe } from "./near-me";
 
 const t = pl.common;
 
@@ -27,7 +28,7 @@ const MENU: { href: string; icon: Icon; title: string; sub: string }[] = [
 export function AppHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background">
+    <header className="sticky top-[env(safe-area-inset-top)] z-30 border-b border-border bg-background">
       <VaulDrawer open={menuOpen} onOpenChange={setMenuOpen}>
         <nav aria-label={t.layout.mainNav} className="mx-auto flex h-16 w-full max-w-5xl items-center gap-3 px-4">
           <Link
@@ -47,9 +48,12 @@ export function AppHeader() {
           </VaulDrawerTrigger>
         </nav>
         <VaulDrawerContent>
-          <div className="overflow-y-auto px-3 pt-3 pb-5">
+          <div className="overflow-y-auto px-3 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
             <VaulDrawerTitle className="px-1 font-display text-h2 font-bold">{t.menu.title}</VaulDrawerTitle>
             <VaulDrawerDescription className="sr-only">{t.menu.description}</VaulDrawerDescription>
+            <div className="mt-3">
+              <NearMe />
+            </div>
             <ul className="mt-3 space-y-1">
               {MENU.map(({ href, icon: I, title, sub }) => (
                 <li key={href}>

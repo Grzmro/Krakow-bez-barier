@@ -72,6 +72,7 @@ TypeScript everywhere, npm workspaces monorepo. Why each piece was chosen: `docs
 apps/web/src/app/       # Next.js pages; api/ = route handlers
 apps/web/src/server/    # server-only: Resolver, Matcher, RoutingProvider, DB queries
 apps/web/src/i18n/      # all Polish UI strings: pl/<area>.ts per screen area, pl.ts = index
+apps/mobile/            # Capacitor shell: iOS/Android apps that load the web app (native: lib/native in web)
 apps/ingest/            # data source adapters → normalized accessibility facts in the DB
 packages/contracts/     # openapi.yaml + generated types/client (src/generated/: gitignored, never edit)
 packages/db/            # Drizzle schema, migrations, client
@@ -95,7 +96,14 @@ npm run typecheck              # next typegen + tsc
 npm run test                   # Vitest (unit)
 npm run build                  # production build
 npm run test:e2e               # Playwright smoke (apps/web/e2e); own port per worktree (PORT overrides)
+npm run mobile:ios             # Capacitor: sync + build + run in the iOS Simulator (Xcode; web app must be running)
+npm run mobile:android         # Capacitor: sync + debug APK (needs JAVA_HOME = JDK 21, ANDROID_HOME = Android SDK)
 ```
+
+The native apps load the running web app from `CAP_SERVER_URL` (`apps/mobile/.env`, default
+`http://localhost:3000` from `.env.example`; phone on LAN: `http://<mac-ip>:3000`; Android emulator:
+`http://10.0.2.2:3000`; later the Vercel URL). It's baked in at sync time — rerun the script after a
+change. APK: `apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk`. More in `apps/mobile/AGENTS.md`.
 
 Planned — add them here when the task lands: `cp .env.example .env` + `docker compose up -d db` +
 `npm run db:generate` / `db:migrate` (KBB-10), `npm run contracts:generate` (KBB-8),

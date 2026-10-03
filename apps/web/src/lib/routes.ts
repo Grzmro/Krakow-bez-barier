@@ -6,4 +6,5 @@ export const routes = {
   accessibility: "/deklaracja-dostepnosci",
   moderator: "/moderator",
   devComponents: "/dev/components",
+  devNative: "/dev/native",
 } as const;
