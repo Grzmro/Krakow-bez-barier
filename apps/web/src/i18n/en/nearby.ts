@@ -6,7 +6,7 @@ export const nearby: Messages["nearby"] = {
   locating: "Finding your position…",
   found: (latitude: string, longitude: string, accuracy: number) =>
     `You are here: ${latitude}° N, ${longitude}° E (accuracy ±${accuracy} m)`,
-  privacy: "Your position stays on your device — we don't send it to the server.",
+  privacy: "Your exact position stays on the device. For the search we send only an approximate area within about 2 km.",
   errors: {
     denied: "No permission to use location.",
     off: "Location services are off.",

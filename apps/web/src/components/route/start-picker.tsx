@@ -32,9 +32,12 @@ export function StartPicker({
   label,
   current,
   onPick,
+  asDestination = false,
 }: {
   id: string;
   label: string;
+  /** The field holds the route's end (after swapping): it wears the destination dot, not the start icon. */
+  asDestination?: boolean;
   current: StartOption;
   onPick: (pick: StartPick) => void;
 }) {
@@ -85,9 +88,15 @@ export function StartPicker({
         if (!open) setInput(current.label);
       }}
     >
-      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-ink-foreground">
-        <StartIcon pick={current.pick} weight="bold" className="size-4" aria-hidden />
-      </span>
+      {asDestination ? (
+        <span aria-hidden className="grid size-7 shrink-0 place-items-center">
+          <span className="size-3.5 rounded-full bg-primary ring-4 ring-primary/20" />
+        </span>
+      ) : (
+        <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-ink-foreground">
+          <StartIcon pick={current.pick} weight="bold" className="size-4" aria-hidden />
+        </span>
+      )}
       <label htmlFor={id} className="sr-only">
         {label}
       </label>
