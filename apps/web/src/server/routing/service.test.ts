@@ -132,7 +132,7 @@ describe("createRoute — Dworzec Główny → Rynek Główny (recorded openrout
     // WHEN the wheelchair route is requested (max kerb 2 cm)
     const route = await createRoute(request({ avoidStairs: true, profile: "wheelchair" }), { provider: recorded, facts, now });
 
-    // THEN that segment meets the profile, while the next one, without kerb data, stays unknown
+    // THEN that segment meets the profile, while a later one without kerb data stays unknown
     expect(route.segments[0]).toMatchObject({ state: "met", note: "płyty chodnikowe, płasko (do 1%)" });
     expect(route.segments[2]).toMatchObject({ state: "unknown", note: "utwardzona, płasko (do 1%), brak danych o krawężnikach" });
   });
