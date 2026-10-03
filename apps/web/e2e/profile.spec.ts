@@ -156,7 +156,8 @@ test("a facility need switched on in the thresholds drawer joins the verdict", a
   await expect(drawer).toMatchAriaSnapshot({ name: "profile-thresholds.aria.yml" });
   await expectAccessible();
   const done = drawer.getByRole("button", { name: "Gotowe" });
-  await expect(done).toBeInViewport();
+  await done.scrollIntoViewIfNeeded();
+  await expect(done).toBeInViewport({ ratio: 1 });
   await evidence("home-profile-bench");
   await done.click();
 
