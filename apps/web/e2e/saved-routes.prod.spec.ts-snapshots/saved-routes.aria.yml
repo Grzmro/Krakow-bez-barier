@@ -1,0 +1,22 @@
+- main:
+  - link "Wróć na stronę główną":
+    - /url: /
+  - heading "Zapisane trasy" [level=1]
+  - paragraph: Trasy zapisane tylko na tym telefonie — otworzysz je bez internetu. Bez połączenia trasa jest opisana krok po kroku, mapa może się nie wczytać.
+  - list:
+    - listitem:
+      - article "Dworzec Główny → Rynek Główny":
+        - heading "Dworzec Główny → Rynek Główny" [level=2]
+        - paragraph: /\d+ min · \d+,\d+ km · Unikaj schodów/
+        - paragraph: /Brak znanych barier, ale \d+ m bez danych/
+        - paragraph: /brak danych na \d+ odcinkach \(\d+ m\)/
+        - paragraph: /Wyznaczona .+\. Dane mogą być nieaktualne — gdy będziesz online, wyznacz trasę ponownie\./
+        - button "Ukryj kroki" [expanded]
+        - button "Usuń trasę Dworzec Główny → Rynek Główny"
+        - heading "Krok po kroku" [level=3]
+        - list "Odcinki trasy, tekstowa wersja mapy":
+          - listitem:
+            - 'button /Odcinek 1 z \d+\. .+/ [expanded]'
+            - list:
+              - listitem: "/Nawierzchnia dojścia: .+ OpenStreetMap \\(przez openrouteservice\\) · [\\d.]+ · społeczność/"
+        - paragraph: "Trasa: © OpenStreetMap contributors, openrouteservice"

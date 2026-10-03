@@ -8,7 +8,8 @@ const CACHE = `kbb-${BUILD}`;
 const OFFLINE_URL = "/offline";
 // Header stamped on stored pages: when that copy was fetched. The offline banner shows it.
 const CACHED_AT = "x-kbb-cached-at";
-const PRECACHE_PAGES = ["/", OFFLINE_URL];
+// Saved routes live in IndexedDB; their page must open without a connection even if it was never visited.
+const PRECACHE_PAGES = ["/", OFFLINE_URL, "/zapisane-trasy"];
 const PRECACHE_FILES = ["/manifest.webmanifest", "/icons/icon-192.png"];
 
 self.addEventListener("install", (event) => {

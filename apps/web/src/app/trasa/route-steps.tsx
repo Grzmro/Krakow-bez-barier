@@ -35,6 +35,7 @@ export function StepList({
   onSelect,
   stepRefs,
   current,
+  idPrefix = "odcinek",
 }: {
   route: Route;
   selected: number | null;
@@ -42,6 +43,8 @@ export function StepList({
   stepRefs: RefObject<Map<number, HTMLButtonElement>>;
   /** Index of the step being walked (guidance mode). */
   current?: number;
+  /** Keeps the step details' ids unique when several lists share a page (saved routes). */
+  idPrefix?: string;
 }) {
   const t = useMessages().route;
   const total = route.segments.length;
@@ -53,6 +56,7 @@ export function StepList({
           segment={segment}
           index={index}
           total={total}
+          detailsId={`${idPrefix}-${segment.id}`}
           open={selected === segment.id}
           current={current === index}
           ref={(node) => {
@@ -76,6 +80,7 @@ function SegmentItem({
   total,
   open,
   current,
+  detailsId,
   onToggle,
   ref,
 }: {
@@ -84,6 +89,7 @@ function SegmentItem({
   total: number;
   open: boolean;
   current: boolean;
+  detailsId: string;
   onToggle: () => void;
   ref: Ref<HTMLButtonElement>;
 }) {
@@ -92,7 +98,6 @@ function SegmentItem({
   const locale = useLocale();
   const status = segment.state;
   const last = index === total - 1;
-  const detailsId = `odcinek-${segment.id}`;
   const label = segmentStatusLabel(m, segment);
   const line = [segment.name, `${label}${segment.note ? `: ${segment.note}` : ""}`].filter(Boolean).join(" · ");
   return (

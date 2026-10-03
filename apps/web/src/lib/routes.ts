@@ -14,6 +14,8 @@ export const routes = {
     ].filter(Boolean);
     return query.length ? `/trasa?${query.join("&")}` : "/trasa";
   },
+  /** Routes kept on this device (IndexedDB); precached by public/sw.js so it opens offline. */
+  savedRoutes: "/zapisane-trasy",
   aboutData: "/o-danych",
   privacy: "/prywatnosc",
   accessibility: "/deklaracja-dostepnosci",

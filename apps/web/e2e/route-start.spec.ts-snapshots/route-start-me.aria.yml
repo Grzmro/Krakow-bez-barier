@@ -27,7 +27,10 @@
       - paragraph: Trasa nie zawiera znanych barier
       - paragraph: brak danych na 0 odcinkach
       - paragraph: Odcinki w skali długości. Szczegóły w „Krok po kroku”.
-      - button "Najkrótsza · 7 min Spełnia · brak danych na 0 odcinkach"
+      - button "Najkrótsza · 7 min Spełnia · Trasa nie zawiera znanych barier"
+      - button "Zapisz na telefonie":
+        - img
+        - text: ""
       - heading "Krok po kroku" [level=2]
       - list "Odcinki trasy, tekstowa wersja mapy":
         - listitem:
@@ -63,15 +66,7 @@
       - img
       - text: ""
   - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
-  - paragraph:
-    - link "OpenFreeMap":
-      - /url: https://openfreemap.org
-    - text: ·
-    - link "© OpenMapTiles":
-      - /url: https://www.openmaptiles.org/
-    - text: ·
-    - link "© OpenStreetMap contributors":
-      - /url: https://www.openstreetmap.org/copyright
-    - text: · openrouteservice
+  - button "Informacje o źródłach mapy"
+  - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors, openrouteservice"
   - button "Przybliż"
   - button "Oddal"
