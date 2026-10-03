@@ -1,17 +1,21 @@
 import {
   responseExamples,
+  type FeatureFilter,
+  type FeatureMatch,
   type GetPlaceQuery,
   type ListPlacesQuery,
   type Place,
   type PlaceList,
   type PlaceSummary,
 } from "@krakow-bez-barier/contracts";
-import { matchFeature } from "@/lib/place-features";
-import { DEFAULT_THRESHOLDS, type Thresholds } from "@/lib/profile/thresholds";
-import { mockVerdict } from "./mock-verdict";
+import { FEATURE_ATTRIBUTES, featureState } from "@/server/domain/features";
+import { matchProfile } from "@/server/domain/matcher";
+import { thresholdsFor } from "@/server/domain/profiles";
 
-// TODO(KBB-28): in-browser stand-in for the places API, built only from the spec's `examples`.
-// Supports `q`, `category`, `feature` + `includeUnknown`, `bbox` and the profile parameters.
+// TODO(KBB-46): delete this layer once the front runs on the real places API by default.
+// In-browser stand-in for the places API (used while NEXT_PUBLIC_API_MOCK is on), built only from the
+// spec's `examples`. Supports `q`, `category`, `feature` + `includeUnknown`, `bbox` and the profile
+// parameters; verdicts come from the same `matchProfile` the API uses.
 
 function uniqueById<T extends { id: string }>(items: T[]): T[] {
   const seen = new Set<string>();
@@ -39,10 +43,30 @@ function inBbox(summary: PlaceSummary, bbox?: number[]) {
   return lon >= minLon && lon <= maxLon && lat >= minLat && lat <= maxLat;
 }
 
+const factsOf = (summary: PlaceSummary) => PLACES.find((p) => p.id === summary.id) ?? { attributes: [] };
+
+// List-only examples have no facts; their hand-written chips mark only present features as known.
+function stateFromChips(summary: PlaceSummary, feature: FeatureFilter): FeatureMatch["state"] {
+  const chips = summary.summary.filter((chip) => FEATURE_ATTRIBUTES[feature].includes(chip.attribute));
+  if (chips.some((chip) => chip.state === "known")) return "met";
+  return chips.some((chip) => chip.state === "conflict") ? "conflict" : "unknown";
+}
+
+/** Answers each feature filter from the example's facts, like the API does. */
+function withFeatures(summary: PlaceSummary, query: ListPlacesQuery): PlaceSummary {
+  if (!query.feature?.length) return summary;
+  const place = PLACES.find((p) => p.id === summary.id);
+  const features = query.feature.map((feature) => ({
+    feature,
+    state: place ? featureState(place.attributes, feature) : stateFromChips(summary, feature),
+  }));
+  return { ...summary, features };
+}
+
 /** Feature filters hide places that don't have every feature by known data, unless `includeUnknown`. */
 function hasFeatures(summary: PlaceSummary, query: ListPlacesQuery) {
-  if (!query.feature?.length || query.includeUnknown) return true;
-  return query.feature.every((feature) => matchFeature(summary.summary, feature) === "known");
+  const states = summary.features?.map((match) => match.state) ?? [];
+  return query.includeUnknown ? !states.includes("absent") : states.every((state) => state === "met");
 }
 
 const normalize = (text: string) =>
@@ -57,34 +81,20 @@ function matchesText(summary: PlaceSummary, q: string) {
   return normalize(haystack).includes(normalize(q.trim()));
 }
 
-function thresholdsOf(query: GetPlaceQuery | ListPlacesQuery): Thresholds | null {
-  if (!query.profile) return null;
-  const preset = DEFAULT_THRESHOLDS[query.profile];
-  return {
-    maxThresholdCm: query.maxThresholdCm ?? preset.maxThresholdCm,
-    minDoorWidthCm: query.minDoorWidthCm ?? preset.minDoorWidthCm,
-    requireStepFree: query.requireStepFree ?? preset.requireStepFree,
-    requireLift: query.requireLift ?? preset.requireLift,
-    requireAccessibleToilet: query.requireAccessibleToilet ?? preset.requireAccessibleToilet,
-    requireSmoothSurface: query.requireSmoothSurface ?? preset.requireSmoothSurface,
-    requireChangingTable: query.requireChangingTable ?? preset.requireChangingTable,
-  };
-}
-
-const factsOf = (summary: PlaceSummary) => PLACES.find((p) => p.id === summary.id) ?? { attributes: [] };
-
 export function mockListPlaces(query: ListPlacesQuery = {}): PlaceList {
-  const thresholds = thresholdsOf(query);
+  const thresholds = thresholdsFor(query);
   const items = SUMMARIES.filter((s) => (query.q ? matchesText(s, query.q) : true))
     .filter((s) => (query.category?.length ? query.category.includes(s.category) : true))
-    .filter((s) => inBbox(s, query.bbox) && hasFeatures(s, query))
-    .map((s) => ({ ...s, verdict: thresholds ? mockVerdict(factsOf(s), thresholds) : null }));
+    .filter((s) => inBbox(s, query.bbox))
+    .map((s) => withFeatures(s, query))
+    .filter((s) => hasFeatures(s, query))
+    .map((s) => ({ ...s, verdict: thresholds ? matchProfile(factsOf(s), thresholds) : null }));
   return { items, nextCursor: null, total: items.length };
 }
 
 export function mockGetPlace(id: string, query: GetPlaceQuery = {}): Place | null {
   const place = PLACES.find((p) => p.id === id);
   if (!place) return null;
-  const thresholds = thresholdsOf(query);
-  return { ...place, verdict: thresholds ? mockVerdict(place, thresholds) : null };
+  const thresholds = thresholdsFor(query);
+  return { ...place, verdict: thresholds ? matchProfile(place, thresholds) : null };
 }

@@ -1,18 +1,7 @@
-import type { GetPlaceQuery, Profile } from "@krakow-bez-barier/contracts";
+import type { Profile } from "@krakow-bez-barier/contracts";
+import { PROFILE_PRESETS, type Thresholds } from "@/server/domain/profiles";
 
-/** A profile's thresholds — exactly the query parameters the API takes next to `profile`. */
-export type Thresholds = Required<
-  Pick<
-    GetPlaceQuery,
-    | "maxThresholdCm"
-    | "minDoorWidthCm"
-    | "requireStepFree"
-    | "requireLift"
-    | "requireAccessibleToilet"
-    | "requireSmoothSurface"
-    | "requireChangingTable"
-  >
->;
+export type { Thresholds };
 
 export const PROFILES = ["wheelchair", "stroller"] as const satisfies readonly Profile[];
 
@@ -21,27 +10,7 @@ export const THRESHOLD_LIMITS = {
   minDoorWidthCm: { min: 60, max: 120, step: 5 },
 } as const;
 
-/** Presets proposed in docs/requirements.md (US-2.1, US-2.2); users can change every value. */
-export const DEFAULT_THRESHOLDS: Record<Profile, Thresholds> = {
-  wheelchair: {
-    maxThresholdCm: 2,
-    minDoorWidthCm: 90,
-    requireStepFree: true,
-    requireLift: true,
-    requireAccessibleToilet: true,
-    requireSmoothSurface: false,
-    requireChangingTable: false,
-  },
-  stroller: {
-    maxThresholdCm: 3,
-    minDoorWidthCm: 70,
-    requireStepFree: false,
-    requireLift: true,
-    requireAccessibleToilet: false,
-    requireSmoothSurface: false,
-    requireChangingTable: true,
-  },
-};
+export const DEFAULT_THRESHOLDS: Record<Profile, Thresholds> = PROFILE_PRESETS;
 
 /** What we keep in the browser: the active profile (or none) and each profile's own thresholds. */
 export interface ProfileSettings {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createApiClient, createMockFetch } from "@krakow-bez-barier/contracts";
 import { matchFeature } from "@/lib/place-features";
-import { mockListPlaces } from "./mock-api";
+import { mockGetPlace, mockListPlaces } from "./mock-api";
 import { withPlacesMocks } from "./mock-fetch";
 
 const ids = (list: { items: { id: string }[] }) => list.items.map((item) => item.id);
@@ -34,7 +34,7 @@ describe("mockListPlaces", () => {
 
     // THEN only places with a known lift come back by default, unknown ones only on request
     expect(known.items.length).toBeGreaterThan(0);
-    expect(known.items.every((item) => matchFeature(item.summary, "lift") === "known")).toBe(true);
+    expect(known.items.every((item) => matchFeature(item, "lift") === "met")).toBe(true);
     expect(ids(known)).not.toContain("palac-krzysztofory");
     expect(ids(withUnknown)).toContain("palac-krzysztofory");
   });
@@ -72,6 +72,46 @@ describe("withPlacesMocks", () => {
     expect(error).toBeUndefined();
     expect(data?.items.length).toBeGreaterThan(0);
     expect(data?.items.every((item) => item.category === "museum" || item.category === "hotel")).toBe(true);
-    expect(data?.items.every((item) => matchFeature(item.summary, "step_free") === "known")).toBe(true);
+    expect(data?.items.every((item) => matchFeature(item, "step_free") === "met")).toBe(true);
+  });
+});
+
+describe("mock places API", () => {
+  it("adds verdicts only when a profile is requested", () => {
+    // GIVEN the spec examples
+    // WHEN listing without and with a profile
+    const plain = mockListPlaces();
+    const withProfile = mockListPlaces({ profile: "wheelchair" });
+    // THEN only the profiled list carries verdicts, and every example place is listed
+    expect(plain.items.every((p) => p.verdict === null)).toBe(true);
+    expect(withProfile.items.every((p) => p.verdict)).toBe(true);
+    expect(withProfile.total).toBe(withProfile.items.length);
+  });
+
+  it("never gives the no-data and conflict examples a met verdict", () => {
+    // GIVEN the demo cases from the spec
+    // WHEN each is read with either profile
+    for (const profile of ["wheelchair", "stroller"] as const) {
+      // THEN neither is met
+      expect(mockGetPlace("kawiarnia-przyklad", { profile })?.verdict?.state).not.toBe("met");
+      expect(mockGetPlace("palac-krzysztofory", { profile })?.verdict?.state).not.toBe("met");
+    }
+  });
+
+  it("matches the verdicts the spec examples document", () => {
+    // GIVEN the examples written for the wheelchair presets
+    // WHEN they are read with the wheelchair profile
+    // THEN the mock agrees with the spec
+    expect(mockGetPlace("hotel-przyklad", { profile: "wheelchair" })?.verdict).toMatchObject({ state: "met", unconfirmed: true });
+    expect(mockGetPlace("restauracja-przyklad", { profile: "wheelchair" })?.verdict?.state).toBe("barrier");
+  });
+
+  it("filters by text ignoring Polish diacritics and keeps unknown ids out", () => {
+    // GIVEN a query typed without diacritics
+    // WHEN listing
+    const result = mockListPlaces({ q: "palac" });
+    // THEN Pałac Krzysztofory is found, and an unknown id is not
+    expect(result.items.map((p) => p.id)).toEqual(["palac-krzysztofory"]);
+    expect(mockGetPlace("nie-ma")).toBeNull();
   });
 });

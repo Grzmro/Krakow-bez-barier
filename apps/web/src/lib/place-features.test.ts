@@ -25,25 +25,28 @@ describe("distanceMeters", () => {
 });
 
 describe("filterGapStatus", () => {
-  it("returns null when every filter is known", () => {
-    // GIVEN a place with a known lift
+  it("returns null when every filter is met", () => {
+    // GIVEN a place the API says has a lift
     // WHEN the lift filter is on
     // THEN there is no gap
-    expect(filterGapStatus([chip("lift", "known")], ["lift"])).toBeNull();
+    expect(filterGapStatus({ features: [{ feature: "lift", state: "met" }] }, ["lift"])).toBeNull();
   });
 
-  it("returns unknown for a missing attribute — unknown is never accessible", () => {
-    // GIVEN a place without a lift chip
-    // WHEN the lift filter is on
+  it("returns unknown when the API can't say or didn't answer — unknown is never accessible", () => {
+    // GIVEN steps with no ramp data (unknown for step_free), and a place without an answer for lift
+    // WHEN the filters are on
     // THEN the row shows "Brak danych"
-    expect(filterGapStatus([chip("step_count", "known")], ["lift"])).toBe("unknown");
+    expect(filterGapStatus({ features: [{ feature: "step_free", state: "unknown" }] }, ["step_free"])).toBe("unknown");
+    expect(filterGapStatus({ features: [{ feature: "step_free", state: "met" }] }, ["step_free", "lift"])).toBe("unknown");
+    expect(filterGapStatus({}, ["lift"])).toBe("unknown");
   });
 
   it("prefers conflict over unknown", () => {
     // GIVEN a conflicting toilet and an unknown lift
     // WHEN both filters are on
     // THEN conflict is shown
-    expect(filterGapStatus([chip("toilet_accessible", "conflict")], ["lift", "toilet_accessible"])).toBe("conflict");
+    const place = { features: [{ feature: "toilet_accessible" as const, state: "conflict" as const }] };
+    expect(filterGapStatus(place, ["lift", "toilet_accessible"])).toBe("conflict");
   });
 });
 

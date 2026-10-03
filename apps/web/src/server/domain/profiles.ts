@@ -1,97 +1,57 @@
-import type { AccessibilityAttribute } from "./types";
+import type { GetPlaceQuery, Profile } from "@krakow-bez-barier/contracts";
 
-export type Rule =
-  | { type: "max"; value: number }
-  | { type: "min"; value: number }
-  | { type: "isTrue" }
-  | { type: "enum"; met: string[]; barrier: string[] };
+/** A profile's thresholds — exactly the query parameters the API takes next to `profile`. */
+export type Thresholds = Required<
+  Pick<
+    GetPlaceQuery,
+    | "maxThresholdCm"
+    | "minDoorWidthCm"
+    | "requireStepFree"
+    | "requireLift"
+    | "requireAccessibleToilet"
+    | "requireSmoothSurface"
+    | "requireChangingTable"
+  >
+>;
 
-export type Condition = {
-  attribute: AccessibilityAttribute;
-  rule: Rule;
-  /** A failing blocking condition makes the whole need a barrier even if alternatives are unknown. */
-  blocking?: boolean;
-};
-
-export type Need = {
-  id: string;
-  label: string;
-  /** `any`: one passing condition is enough (alternatives). `all`: every condition must pass. */
-  mode: "any" | "all";
-  conditions: Condition[];
-};
-
-export type ProfileConfig = {
-  id: string;
-  needs: Need[];
-};
-
-const stepFreeEntrance: Need = {
-  id: "entrance",
-  label: "Wejście bez schodów",
-  mode: "any",
-  conditions: [
-    { attribute: "step_count", rule: { type: "max", value: 0 } },
-    { attribute: "ramp", rule: { type: "isTrue" } },
-    { attribute: "lift", rule: { type: "isTrue" } },
-    {
-      attribute: "wheelchair_overall",
-      rule: { type: "enum", met: ["yes"], barrier: ["no"] },
-      blocking: true,
-    },
-  ],
-};
-
-const accessibleToilet: Need = {
-  id: "toilet",
-  label: "Toaleta dostosowana",
-  mode: "all",
-  conditions: [{ attribute: "toilet_accessible", rule: { type: "isTrue" } }],
-};
-
-export const profiles: Record<string, ProfileConfig> = {
+/**
+ * Presets proposed in docs/requirements.md (US-2.1, US-2.2); users can change every value.
+ * A new profile over the same needs is a new entry here (plus the `Profile` enum in the spec); a profile
+ * with a new need (e.g. benches for US-2.8) still needs a matcher change.
+ */
+// TODO(KBB-48): make needs configuration so a profile like "senior" (benches, rest places) is data only.
+export const PROFILE_PRESETS: Record<Profile, Thresholds> = {
   wheelchair: {
-    id: "wheelchair",
-    needs: [
-      stepFreeEntrance,
-      {
-        id: "threshold",
-        label: "Próg do 2 cm",
-        mode: "all",
-        conditions: [{ attribute: "threshold_cm", rule: { type: "max", value: 2 } }],
-      },
-      {
-        id: "door",
-        label: "Szerokość wejścia co najmniej 90 cm",
-        mode: "all",
-        conditions: [{ attribute: "door_width_cm", rule: { type: "min", value: 90 } }],
-      },
-      accessibleToilet,
-    ],
+    maxThresholdCm: 2,
+    minDoorWidthCm: 90,
+    requireStepFree: true,
+    requireLift: true,
+    requireAccessibleToilet: true,
+    requireSmoothSurface: false,
+    requireChangingTable: false,
   },
   stroller: {
-    id: "stroller",
-    needs: [
-      stepFreeEntrance,
-      {
-        id: "threshold",
-        label: "Próg do 5 cm",
-        mode: "all",
-        conditions: [{ attribute: "threshold_cm", rule: { type: "max", value: 5 } }],
-      },
-      {
-        id: "door",
-        label: "Szerokość wejścia co najmniej 70 cm",
-        mode: "all",
-        conditions: [{ attribute: "door_width_cm", rule: { type: "min", value: 70 } }],
-      },
-      accessibleToilet,
-      {
-        id: "changing_table",
-        label: "Przewijak",
-        mode: "all",
-        conditions: [{ attribute: "changing_table", rule: { type: "isTrue" } }],
-      },
-    ],
+    maxThresholdCm: 3,
+    minDoorWidthCm: 70,
+    requireStepFree: false,
+    requireLift: true,
+    requireAccessibleToilet: false,
+    requireSmoothSurface: false,
+    requireChangingTable: true,
   },
 };
+
+/** The profile's presets overridden by whatever thresholds the request sends; `null` without a profile. */
+export function thresholdsFor(query: GetPlaceQuery): Thresholds | null {
+  if (!query.profile) return null;
+  const preset = PROFILE_PRESETS[query.profile];
+  return {
+    maxThresholdCm: query.maxThresholdCm ?? preset.maxThresholdCm,
+    minDoorWidthCm: query.minDoorWidthCm ?? preset.minDoorWidthCm,
+    requireStepFree: query.requireStepFree ?? preset.requireStepFree,
+    requireLift: query.requireLift ?? preset.requireLift,
+    requireAccessibleToilet: query.requireAccessibleToilet ?? preset.requireAccessibleToilet,
+    requireSmoothSurface: query.requireSmoothSurface ?? preset.requireSmoothSurface,
+    requireChangingTable: query.requireChangingTable ?? preset.requireChangingTable,
+  };
+}

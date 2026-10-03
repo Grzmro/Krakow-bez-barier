@@ -64,11 +64,11 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
   const [open, setOpen] = useState(false);
   const I = CATEGORY_ICON[place.category];
   const verdict = place.verdict;
-  const gap = features.length ? filterGapStatus(place.summary, features) : null;
+  const gap = features.length ? filterGapStatus(place, features) : null;
   const gapFilters =
     verdict && gap
       ? features
-          .filter((feature) => matchFeature(place.summary, feature) !== "known")
+          .filter((feature) => matchFeature(place, feature) !== "met")
           .map((feature) => t.filters[feature])
           .join(", ")
       : undefined;
