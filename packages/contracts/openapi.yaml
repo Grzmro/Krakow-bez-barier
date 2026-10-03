@@ -386,8 +386,8 @@ paths:
                       lastAttemptAt: '2026-10-03T03:00:00Z'
                       statusNote: null
                       isSample: false
-                    - id: ziw
-                      name: Toalety publiczne — MSIP Kraków (dane ISDP)
+                    - id: msip-toilets
+                      name: 'MSIP: Toalety publiczne'
                       kind: official_open_data
                       license: Do sprawdzenia
                       attribution: null
@@ -2026,17 +2026,17 @@ components:
           status: conflict
           value: null
           facts:
-          - id: fact_ziw_krzysztofory_toilet
+          - id: fact_msip_krzysztofory_toilet
             attribute: toilet_accessible
             value:
               kind: boolean
               boolean: true
             unit: null
             source:
-              id: ziw
-              name: Toalety publiczne — MSIP Kraków (dane ISDP)
+              id: msip-toilets
+              name: 'MSIP: Toalety publiczne'
               kind: official_open_data
-              recordRef: ziw-77
+              recordRef: msip-toilets-77
             fetchedAt: '2023-11-08T03:00:00Z'
             observedAt: null
             confirmedAt: null
@@ -2088,8 +2088,8 @@ components:
           lastAttemptAt: '2026-10-03T03:00:00Z'
           statusNote: null
           isSample: false
-        - id: ziw
-          name: Toalety publiczne — MSIP Kraków (dane ISDP)
+        - id: msip-toilets
+          name: 'MSIP: Toalety publiczne'
           kind: official_open_data
           license: Do sprawdzenia
           attribution: null
@@ -2256,15 +2256,15 @@ components:
             kind: boolean
             boolean: true
           facts:
-          - id: fact_ziw_podziemia_toilet
+          - id: fact_msip_podziemia_toilet
             attribute: toilet_accessible
             value:
               kind: boolean
               boolean: true
             unit: null
             source:
-              id: ziw
-              name: Toalety publiczne — MSIP Kraków (dane ISDP)
+              id: msip-toilets
+              name: 'MSIP: Toalety publiczne'
               kind: official_open_data
               recordRef: null
             fetchedAt: '2023-11-08T03:00:00Z'
@@ -2284,8 +2284,8 @@ components:
           unknowns:
           - toilet_accessible
         sources:
-        - id: ziw
-          name: Toalety publiczne — MSIP Kraków (dane ISDP)
+        - id: msip-toilets
+          name: 'MSIP: Toalety publiczne'
           kind: official_open_data
           license: Do sprawdzenia
           attribution: null

@@ -27,7 +27,7 @@ test("conflicting data and an unavailable source are both visible on the card", 
   // THEN both sources are listed with their values and the stale one is flagged
   await expect(toilet).toHaveAttribute("aria-expanded", "true");
   const panel = page.locator(`#${await toilet.getAttribute("aria-controls")}`);
-  await expect(panel).toContainText("Źródło: Toalety publiczne — MSIP Kraków (dane ISDP) · Jest");
+  await expect(panel).toContainText("Źródło: MSIP: Toalety publiczne · Jest");
   await expect(panel).toContainText("Źródło: OpenStreetMap · Nie ma");
   await expect(panel).toContainText("Może być nieaktualne · 8.11.2023");
 
@@ -87,7 +87,7 @@ test("an unavailable source keeps its last data, marked as outdated", async ({ p
   // THEN the failed-refresh banner names the source and the date of the last good data
   const main = page.locator("main");
   await expect(main).toContainText("Odświeżenie nie powiodło się — dane z 8.11.2023");
-  await expect(main).toContainText("Źródło: Toalety publiczne — MSIP Kraków (dane ISDP)");
+  await expect(main).toContainText("Źródło: MSIP: Toalety publiczne");
   await expect(main).not.toContainText("Źródła podają sprzeczne dane");
 
   // WHEN the toilet fact is expanded

@@ -23,7 +23,7 @@ describe("factViews", () => {
     // THEN the toilet row carries both values and both sources, flagged as a conflict
     expect(toilet).toMatchObject({ value: "Jest / Nie ma", reliability: "conflict", conflict: true });
     expect(toilet?.sources.map((s) => [s.name, s.value])).toEqual([
-      ["Toalety publiczne — MSIP Kraków (dane ISDP)", "Jest"],
+      ["MSIP: Toalety publiczne", "Jest"],
       ["OpenStreetMap", "Nie ma"],
     ]);
     // AND the stale MSIP fact says it may be outdated, with its date
@@ -92,7 +92,7 @@ describe("sources", () => {
 
     // WHEN its sources are inspected
     // THEN MSIP is the failed one and OSM's fetch is the latest
-    expect(failedSources(place).map((s) => s.id)).toEqual(["ziw"]);
+    expect(failedSources(place).map((s) => s.id)).toEqual(["msip-toilets"]);
     expect(latestSourceDate(place)).toBe("2026-10-03T03:00:00Z");
   });
 });

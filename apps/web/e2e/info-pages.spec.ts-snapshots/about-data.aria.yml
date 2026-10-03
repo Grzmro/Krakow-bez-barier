@@ -22,7 +22,7 @@
       - 'link "Strona źródła: OpenStreetMap"':
         - /url: https://www.openstreetmap.org
     - listitem:
-      - heading "Toalety publiczne — MSIP Kraków (dane ISDP)" [level=3]
+      - 'heading "MSIP: Toalety publiczne" [level=3]'
       - text: Niedostępne
       - paragraph: /Źródło niedostępne \(HTTP \d+\)\. Pokazujemy ostatnie znane dane jako nieaktualne\./
       - term: Licencja
@@ -35,7 +35,7 @@
       - definition: /8 lis \d+, \d+:\d+/
       - term: Ostatnia próba
       - definition: /3 paź \d+, \d+:\d+/
-      - 'link "Strona źródła: Toalety publiczne — MSIP Kraków (dane ISDP)"':
+      - 'link "Strona źródła: MSIP: Toalety publiczne"':
         - /url: https://msip3.um.krakow.pl
   - heading "Jak liczymy wiarygodność" [level=2]
   - list:
