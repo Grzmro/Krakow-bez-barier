@@ -25,7 +25,10 @@ async function locateNative(): Promise<LocateResult> {
   const { Geolocation } = await import("@capacitor/geolocation");
   try {
     const permission = await Geolocation.requestPermissions({ permissions: ["location"] });
-    if (permission.location === "denied") return { ok: false, reason: "denied" };
+    // Android 12+ "approximate": location is denied but coarseLocation is granted, which is enough.
+    if (permission.location === "denied" && permission.coarseLocation !== "granted") {
+      return { ok: false, reason: "denied" };
+    }
     const { coords } = await Geolocation.getCurrentPosition(OPTIONS);
     return { ok: true, position: toPosition(coords) };
   } catch {

@@ -26,6 +26,7 @@ export function NearMe({ autoStart = false }: { autoStart?: boolean }) {
   const [result, setResult] = useState<LocateResult | null>(null);
 
   async function locate() {
+    if (locating) return;
     setLocating(true);
     const next = await locateDevice();
     setResult(next);
@@ -52,9 +53,9 @@ export function NearMe({ autoStart = false }: { autoStart?: boolean }) {
       <button
         type="button"
         onClick={locate}
-        disabled={locating}
+        aria-disabled={locating}
         aria-describedby={privacyId}
-        className="press flex min-h-16 w-full items-center gap-3.5 rounded-xl px-2 text-left disabled:opacity-70"
+        className="press flex min-h-16 w-full items-center gap-3.5 rounded-xl px-2 text-left aria-disabled:opacity-70"
       >
         <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
           {locating ? (

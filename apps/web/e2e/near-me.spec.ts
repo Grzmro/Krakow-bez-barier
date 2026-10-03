@@ -24,6 +24,7 @@ test.describe("with location access granted", () => {
     const found = "Jesteś tutaj: 50,05410° N, 19,93540° E (dokładność ±20 m)";
     await expect(page.getByRole("dialog").getByText(found)).toBeVisible();
     await expect(page.getByRole("status")).toHaveText(found);
+    await expect(nearMe).toBeFocused();
     await expectAccessible();
     await evidence("near-me");
   });

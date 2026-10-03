@@ -20,7 +20,7 @@ const config: CapacitorConfig = {
   server: {
     url: serverUrl,
     errorPath: "error.html",
-    // Android only; iOS cleartext is limited to local networks by ATS in Info.plist.
+    // Android only; on iOS, ATS in Info.plist allows HTTP only for local networks and IP addresses.
     cleartext: isLocalHttp(serverUrl),
   },
 };

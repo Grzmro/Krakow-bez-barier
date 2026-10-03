@@ -19,8 +19,8 @@ npm run assets -w apps/mobile               # re-render icons and splash from th
 - `CAP_SERVER_URL`: shell env > `apps/mobile/.env` > `.env.example` (`http://localhost:3000`, the
   Simulator default). Phone on Wi-Fi: `http://<mac-lan-ip>:3000`. Android emulator: `http://10.0.2.2:3000`.
   Production: the Vercel URL. Baked in at `cap sync` — rerun the script after changing it.
-- Cleartext HTTP is allowed only for local networks: iOS ATS `NSAllowsLocalNetworking`, Android
-  `server.cleartext` only for localhost/private IPs.
+- Cleartext HTTP is meant for local dev only: iOS ATS `NSAllowsLocalNetworking` (local names and IP
+  addresses), Android `server.cleartext` only for localhost/private IPs. Production uses HTTPS.
 - Android needs `JAVA_HOME` (JDK 21 — newer JDKs break Gradle) and `ANDROID_HOME` (Android SDK) in
   the environment, or `sdk.dir` in the gitignored `android/local.properties`.
 - `www/error.html` is the bundled "Brak połączenia" page, shown when the server can't be reached.

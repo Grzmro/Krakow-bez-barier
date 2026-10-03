@@ -42,6 +42,18 @@ describe("locateDevice in the native app", () => {
     expect(getCurrentPosition).not.toHaveBeenCalled();
   });
 
+  it("accepts approximate location on Android", async () => {
+    // GIVEN the user picks "approximate" on Android 12+
+    requestPermissions.mockResolvedValue({ location: "denied", coarseLocation: "granted" });
+    getCurrentPosition.mockResolvedValue({ coords: WAWEL, timestamp: 0 });
+
+    // WHEN the app locates the device
+    const result = await locateDevice();
+
+    // THEN the coarse position is used
+    expect(result).toEqual({ ok: true, position: { latitude: 50.0541, longitude: 19.9354, accuracyMeters: 19 } });
+  });
+
   it("reports unavailable when location services fail", async () => {
     // GIVEN location services are off
     requestPermissions.mockRejectedValue(new Error("Location services are not enabled"));
