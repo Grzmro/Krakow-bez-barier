@@ -27,6 +27,9 @@ import { SearchBox } from "./search-box";
 const ALL = "all";
 const FEATURES: FeatureFilter[] = ["step_free", "lift", "toilet_accessible", "bench", "disabled_parking", "changing_table"];
 const LIST_ID = "lista";
+// One chip look for categories and feature filters; the scroll rows fade out at the right edge on a phone.
+const CHIP = "lg:h-8 lg:px-3 lg:text-[13px]";
+const CHIP_ROW = "no-scrollbar overflow-x-auto py-1.5 pr-10 [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] lg:flex-wrap lg:overflow-visible lg:pr-4 lg:[mask-image:none]";
 // Mobile: search and chips float over the map and the sheet covers its lower half. Desktop: the map has the right column to itself.
 const MAP_PADDING = { top: 150, bottom: 100 };
 // Stowed: only the zoom buttons sit above the bar, so the pins need little room below.
@@ -210,13 +213,13 @@ export function HomeScreen() {
           aria-label={t.categoriesLabel}
           value={[category]}
           onValueChange={(value) => value[0] && setCategory(value[0])}
-          className="no-scrollbar mx-auto mt-1.5 max-w-xl overflow-x-auto px-4 py-1.5 lg:flex-wrap lg:overflow-visible"
+          className={cn(CHIP_ROW, "mx-auto mt-1.5 max-w-xl pl-4")}
         >
-          <Toggle value={ALL} className="pointer-events-auto shadow-soft lg:h-8 lg:px-3 lg:text-[13px]">
+          <Toggle value={ALL} className={cn("pointer-events-auto shadow-soft", CHIP)}>
             {t.categoryAll}
           </Toggle>
           {categories.data?.map((c) => (
-            <Toggle key={c.id} value={c.id} className="pointer-events-auto shadow-soft lg:h-8 lg:px-3 lg:text-[13px]">
+            <Toggle key={c.id} value={c.id} className={cn("pointer-events-auto shadow-soft", CHIP)}>
               {c.label}
             </Toggle>
           ))}
@@ -269,9 +272,9 @@ export function HomeScreen() {
               <LabeledSwitch label={tp.hideFailing} checked={hideFailing} onCheckedChange={changeHideFailing} className="-my-1" />
             </>
           ) : null}
-          <div role="group" aria-label={t.filtersLabel} className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-1.5 lg:flex-wrap lg:overflow-visible">
+          <div role="group" aria-label={t.filtersLabel} className={cn(CHIP_ROW, "-mx-4 flex gap-2 pl-4")}>
             {FEATURES.map((feature) => (
-              <Toggle key={feature} pressed={features.includes(feature)} onPressedChange={() => toggleFeature(feature)}>
+              <Toggle key={feature} pressed={features.includes(feature)} onPressedChange={() => toggleFeature(feature)} className={CHIP}>
                 {t.filters[feature]}
               </Toggle>
             ))}
