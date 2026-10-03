@@ -9,7 +9,7 @@ import { mapAttribution } from "@/lib/config";
 export function MapControls({ map, extraAttribution }: { map: MapLibreMap | null; extraAttribution?: string }) {
   const t = useMessages().home.map;
   return (
-    <div className="absolute inset-x-3 bottom-9 z-10 flex items-end justify-between gap-2">
+    <div className="pointer-events-none absolute inset-x-3 bottom-9 z-10 flex items-end justify-between gap-2 *:pointer-events-auto">
       <p className="min-w-0 rounded-full bg-card/90 px-2.5 py-1 text-[11px] leading-4 text-muted-foreground">
         {mapAttribution.map((item, index) => (
           <span key={item.href}>
