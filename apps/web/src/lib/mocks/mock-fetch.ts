@@ -1,8 +1,8 @@
 import type { Category, GetPlaceQuery, Problem, Profile } from "@krakow-bez-barier/contracts";
 import { mockGetPlace, mockListPlaces } from "./mock-api";
 
-// TODO(KBB-28): `fetch` for the openapi-fetch client while the API isn't implemented. Add a route
-// here (from the spec's examples) when a screen needs another endpoint.
+// TODO(KBB-28): profile-aware `/places` mocks while the API isn't implemented. Everything else
+// falls through to the generic spec-examples mock from packages/contracts.
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -29,7 +29,10 @@ function profileParams(params: URLSearchParams): GetPlaceQuery {
   };
 }
 
-export async function mockFetch(input: Request): Promise<Response> {
+type Fetch = (input: Request) => Promise<Response>;
+
+/** Wraps a mock `fetch`: answers `GET /places` and `GET /places/{id}` with search and verdicts, delegates the rest. */
+export const withPlacesMocks = (fallback: Fetch): Fetch => async (input) => {
   const url = new URL(input.url, "http://mock.local");
   const path = url.pathname.replace(/^.*\/api\/v1/, "");
   const params = url.searchParams;
@@ -52,5 +55,5 @@ export async function mockFetch(input: Request): Promise<Response> {
     return body ? json(body) : problem(404, "Not found", `Place "${id}" does not exist.`);
   }
 
-  return problem(501, "Not mocked", `${input.method} ${path} has no mock yet.`);
-}
+  return fallback(input);
+};

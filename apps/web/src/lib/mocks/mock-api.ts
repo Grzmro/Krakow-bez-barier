@@ -1,5 +1,11 @@
-import type { GetPlaceQuery, ListPlacesQuery, Place, PlaceList, PlaceSummary } from "@krakow-bez-barier/contracts";
-import { responseExamples } from "@krakow-bez-barier/contracts/examples";
+import {
+  responseExamples,
+  type GetPlaceQuery,
+  type ListPlacesQuery,
+  type Place,
+  type PlaceList,
+  type PlaceSummary,
+} from "@krakow-bez-barier/contracts";
 import { DEFAULT_THRESHOLDS, type Thresholds } from "@/lib/profile/thresholds";
 import { mockVerdict } from "./mock-verdict";
 

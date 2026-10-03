@@ -2,7 +2,7 @@
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { GetPlaceQuery, ListPlacesQuery } from "@krakow-bez-barier/contracts";
-import { api } from "./client";
+import { api } from "./api";
 
 /** `GET /places`. Keeps the previous list while a new profile or query loads, so nothing flickers. */
 export function usePlaces(query: ListPlacesQuery) {

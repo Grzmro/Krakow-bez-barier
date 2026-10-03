@@ -6,7 +6,7 @@ import type { PlaceSummary } from "@krakow-bez-barier/contracts";
 import { Button, LabeledSwitch, STATUSES, StatusIcon, useAnnounce, type Status } from "@krakow-bez-barier/ui";
 import { SampleTag, StatusBadge } from "@/components/kbb";
 import { pl } from "@/i18n/pl";
-import { usePlaces } from "@/lib/api/places";
+import { usePlaces } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { NeedGroups } from "./need-groups";
