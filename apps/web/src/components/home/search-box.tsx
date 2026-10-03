@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { MagnifyingGlass, MapPin, X } from "@phosphor-icons/react";
 import { Autocomplete } from "@base-ui/react/autocomplete";
+import { cn } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
+import { useSpeechInput } from "@/lib/use-speech-input";
+import { VoiceButton } from "./voice-button";
 
 export const SEARCH_INPUT_ID = "place-search";
 
@@ -21,6 +24,7 @@ export function SearchBox({ value, onValueChange, suggestions }: SearchBoxProps)
   // An open popup hides the rest of the page from assistive tech, so keep it closed when it
   // has nothing to add (no matches, or the field already holds the only match).
   const useful = suggestions.some((name) => name !== value);
+  const speech = useSpeechInput((text) => onValueChange(text));
   return (
     <Autocomplete.Root
       items={suggestions}
@@ -37,19 +41,25 @@ export function SearchBox({ value, onValueChange, suggestions }: SearchBoxProps)
         </label>
         <Autocomplete.Input
           id={SEARCH_INPUT_ID}
-          placeholder={t.placeholder}
-          className="size-full rounded-full bg-transparent pr-14 pl-13 text-body outline-none placeholder:text-muted-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          placeholder={speech.active ? t.voice[speech.state === "processing" ? "processing" : "listening"] : t.placeholder}
+          className={cn(
+            "size-full rounded-full bg-transparent pl-13 text-body outline-none placeholder:text-muted-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            speech.supported && value ? "pr-24" : "pr-14",
+          )}
         />
-        {value ? (
-          <button
-            type="button"
-            aria-label={t.clear}
-            onClick={() => onValueChange("")}
-            className="absolute right-1.5 grid size-10 place-items-center rounded-full hover:bg-muted"
-          >
-            <X weight="bold" className="size-5" aria-hidden />
-          </button>
-        ) : null}
+        <div className="absolute right-1.5 flex items-center gap-1">
+          {speech.supported ? <VoiceButton speech={speech} /> : null}
+          {value ? (
+            <button
+              type="button"
+              aria-label={t.clear}
+              onClick={() => onValueChange("")}
+              className="grid size-10 place-items-center rounded-full hover:bg-muted"
+            >
+              <X weight="bold" className="size-5" aria-hidden />
+            </button>
+          ) : null}
+        </div>
       </div>
       <Autocomplete.Portal>
         <Autocomplete.Positioner sideOffset={8} className="z-50 outline-none">

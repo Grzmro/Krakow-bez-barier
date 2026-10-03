@@ -84,6 +84,10 @@ export const pages: Messages["pages"] = {
         "Settings",
         "Your profile and thresholds are saved only in your browser. The language is saved in the kbb-lang cookie (only “pl” or “en”); your browser sends it to the server so the page comes in that language. Clearing the site data removes all of them.",
       ],
+      [
+        "Voice search",
+        "Your browser turns speech into text (Web Speech API), not our server. The browser may send the recording to its provider's speech recognition service (e.g. Google in Chrome, Apple in Safari) under the provider's terms. We neither receive nor store the recording — only the text that lands in the search field. In your browser we only remember that you've seen this notice.",
+      ],
       ["Trackers", "We don't use ads, tracking analytics or third-party pixels."],
     ],
   },
