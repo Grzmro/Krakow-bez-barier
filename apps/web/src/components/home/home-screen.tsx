@@ -92,7 +92,13 @@ export function HomeScreen() {
   }
 
   return (
-    <main id="main" tabIndex={-1} className="relative min-h-[600px] flex-1 overflow-hidden outline-none">
+    // Full bleed: cancel the body's bottom safe-area padding so the map and sheet reach the screen edge;
+    // the sheet pads its own content instead.
+    <main
+      id="main"
+      tabIndex={-1}
+      className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[600px] flex-1 overflow-hidden outline-none"
+    >
       <h1 className="sr-only">{t.title}</h1>
       <a
         href={`#${LIST_ID}`}
@@ -132,7 +138,7 @@ export function HomeScreen() {
         expanded={expanded}
         onExpandedChange={setExpanded}
         collapsedHeight="50%"
-        className="mx-auto max-w-xl"
+        className="mx-auto max-w-xl pb-[env(safe-area-inset-bottom)]"
       >
         <div className="space-y-2 px-4 pt-1 pb-2">
           <div role="group" aria-label={t.filtersLabel} className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-1.5">

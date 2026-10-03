@@ -24,7 +24,7 @@ async function expectAboveHomeIndicator(page: Page, target: Locator) {
   await expect.poll(() => bottomEdge(target)).toBeLessThanOrEqual(page.viewportSize()!.height - HOME_INDICATOR);
 }
 
-test("the home list panel ends above the home indicator", async ({ page, expectAccessible, evidence }) => {
+test("the home list panel reaches the screen edge and keeps its list above the home indicator", async ({ page, expectAccessible, evidence }) => {
   // GIVEN an iPhone with a home indicator
   await withHomeIndicator(page);
 
@@ -34,10 +34,18 @@ test("the home list panel ends above the home indicator", async ({ page, expectA
   const panel = page.getByRole("region", { name: "Lista miejsc" });
   await expect(panel).toHaveAttribute("data-expanded", "true");
 
-  // THEN, scrolled to the end of the page, the panel stays clear of the indicator
+  // THEN the sheet ends where the map screen ends, and that is the bottom of the page (no seam)
+  const main = page.locator("main");
+  await expect.poll(async () => (await bottomEdge(panel)) - (await bottomEdge(main))).toBeCloseTo(0, 0);
+  await expect
+    .poll(async () => (await bottomEdge(main)) - (await page.evaluate(() => document.documentElement.scrollHeight)))
+    .toBeCloseTo(0, 0);
+
+  // AND at the end of the page (the screen's min height outgrows the iPhone 15 viewport, so the
+  // sheet meets the screen edge only after a scroll) it fills the strip while its content clears it
   await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
-  await expectAboveHomeIndicator(page, panel);
-  await expect(page.locator("main")).toMatchAriaSnapshot({ name: "safe-area-home.aria.yml" });
+  await expect.poll(() => bottomEdge(panel)).toBeCloseTo(page.viewportSize()!.height, 0);
+  await expectAboveHomeIndicator(page, panel.getByRole("group", { name: "Lista miejsc", exact: true }));
   await expectAccessible();
   await evidence("safe-area-home");
 });
@@ -61,7 +69,7 @@ test("the menu drawer keeps its last link above the home indicator", async ({ pa
   await evidence("safe-area-menu");
 });
 
-test("the threshold drawer's buttons stay above the home indicator", async ({ page }) => {
+test("the threshold drawer's buttons stay above the home indicator", async ({ page, expectAccessible, evidence }) => {
   // GIVEN an iPhone with a home indicator and the wheelchair profile on
   await withHomeIndicator(page);
   await page.goto("/profil");
@@ -76,10 +84,13 @@ test("the threshold drawer's buttons stay above the home indicator", async ({ pa
   const done = drawer.getByRole("button", { name: "Gotowe" });
   await done.scrollIntoViewIfNeeded();
   await expectAboveHomeIndicator(page, done);
+  await expectAccessible();
+  await evidence("safe-area-thresholds");
 });
 
 test("the report form's send button and the thank-you toast stay above the home indicator", async ({
   page,
+  expectAccessible,
   evidence,
 }) => {
   // GIVEN an iPhone with a home indicator on a place card
@@ -97,6 +108,7 @@ test("the report form's send button and the thank-you toast stay above the home 
   const send = drawer.getByRole("button", { name: "Wyślij" });
   await send.scrollIntoViewIfNeeded();
   await expectAboveHomeIndicator(page, send);
+  await expectAccessible();
   await evidence("safe-area-report");
 
   // AND after sending, the toast with "Cofnij" does too
