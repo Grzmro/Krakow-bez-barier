@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { expandClusters, pins } from "./map";
 
 test.use({ viewport: { width: 390, height: 844 } });
 
@@ -59,14 +60,25 @@ test("selecting a pin while the list is hidden shows that place in the list", as
   await page.getByRole("button", { name: "Schowaj listę" }).click();
   await expect(list.getByRole("button", { name: "Pokaż listę" })).toBeVisible();
 
-  // WHEN they tap a pin on the map (pins overlap at this zoom, so the click is dispatched on the pin itself)
-  await page.locator('[data-place-id="sukiennice"]').dispatchEvent("click");
+  // WHEN they zoom into the clusters and tap a pin (dispatched on the pin itself, which may sit under the chips)
+  await expandClusters(page);
+  // The pin nearest the map's centre: it stays in view when the list comes back and the map gets shorter.
+  const id = await pins(page).evaluateAll((els) => {
+    const map = document.querySelector(".maplibregl-map")!.getBoundingClientRect();
+    const distance = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      return Math.hypot(r.x + r.width / 2 - (map.x + map.width / 2), r.y + r.height / 2 - (map.y + map.height / 2));
+    };
+    return (els.toSorted((a, b) => distance(a) - distance(b))[0] as HTMLElement).dataset.placeId;
+  });
+  await page.locator(`[data-place-id="${id}"]`).dispatchEvent("click");
 
   // THEN the list comes back at half height with that place focused
+  const row = list.getByRole("link", { name: /.+/ }).and(page.locator(`[href$="/${id}"]`));
   await expect(list.getByRole("button", { name: "Schowaj listę" })).toBeVisible();
-  await expect(list.getByRole("link", { name: /Sukiennice/ })).toBeFocused();
-  await expect(list.getByRole("link", { name: /Sukiennice/ })).toBeInViewport();
-  await expect(page.locator('[data-place-id="sukiennice"]')).toHaveAttribute("data-selected", "true");
+  await expect(row).toBeFocused();
+  await expect(row).toBeInViewport();
+  await expect(page.locator(`[data-place-id="${id}"]`)).toHaveAttribute("data-selected", "true");
 });
 
 test("the skip link brings a hidden list back before focusing it", async ({ page }) => {
