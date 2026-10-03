@@ -26,20 +26,13 @@ body::before {
   background: var(--background);
 }
 
-/* Home: the page is exactly one (dynamic) viewport tall, so the map and the list panel fill what the header
-   leaves, only the list scrolls, and a drag can't move or bounce the page (iOS Safari would otherwise
-   scroll the whole document under the panel). */
+/* Map screens (home, route): the page is exactly one (dynamic) viewport tall, so the map and the panel fill
+   what the header leaves, only the panel's content scrolls, and a drag can't move or bounce the page (iOS
+   Safari would otherwise scroll the whole document under the panel). */
 html:has([data-fill-viewport]) {
   overscroll-behavior: none;
 }
 body:has([data-fill-viewport]) {
   height: 100dvh;
   min-height: 0;
-}
-
-/* Desktop route screen: one viewport tall, so the side panel scrolls on its own and the map fills the rest. */
-@media (min-width: 64rem) {
-  body:has([data-desktop-fill]) {
-    height: 100dvh;
-  }
 }

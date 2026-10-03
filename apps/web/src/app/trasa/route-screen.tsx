@@ -7,6 +7,7 @@ import type { Route } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, StatusIcon, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
 import { BottomPanel, StatusBadge } from "@/components/kbb";
 import { BackButton } from "@/components/layout/back-button";
+import { CONTROLS_ABOVE_PANEL, STOWED_HEIGHT, usePanelInset } from "@/components/map/use-panel-inset";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
 import { PlaceEntrance } from "@/components/route/place-entrance";
 import { ReadAloud } from "@/components/route/read-aloud";
@@ -29,16 +30,22 @@ import type { SavedRouteInput } from "@/lib/saved-routes";
 import { scrollIntoViewWithin } from "@/lib/scroll-within";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useGuidance } from "@/lib/use-guidance";
+import { useSessionFlag } from "@/lib/use-session-flag";
 import { RouteError, routeRequest, useRoute, type RouteKind } from "@/lib/use-route";
 import { NavigationFooter, RouteNavigation } from "./route-navigation";
 import { StepList } from "./route-steps";
 
 const KINDS: RouteKind[] = ["avoid_stairs", "shortest"];
-// Mobile: the route card floats over the map and the sheet covers its lower half. Desktop: the map has the right column to itself.
-const MAP_PADDING = { top: 190, bottom: 80 };
+// Mobile: the map fills the screen; the route card floats over its top, the panel over its bottom (added as `inset`),
+// and the bottom value keeps the route off the strip with the attribution above the panel.
+// Desktop: the map has the right column to itself.
+const MAP_PADDING = { top: 190, bottom: 64 };
 // Bottom: the attribution and zoom buttons sit there, and the destination dot must stay clear of them.
 const MAP_PADDING_DESKTOP = { top: 48, bottom: 96 };
 const DESKTOP = "(min-width: 64rem)";
+const STOWED_KEY = "kbb-route-stowed";
+// Set on <main> as --route-collapsed, so the panel and the probe that caps the map's padding share one value.
+const COLLAPSED_HEIGHT = "var(--route-collapsed)";
 
 const BAR: Record<Status, string> = {
   met: "bg-status-met",
@@ -110,6 +117,13 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
   // Start of a route planned again from the walker's position while guiding.
   const [origin, setOrigin] = useState<[number, number] | null>(null);
   const desktop = useMediaQuery(DESKTOP);
+  const [stowedFlag, setStowed] = useSessionFlag(STOWED_KEY);
+  const stowed = stowedFlag && !desktop;
+  const mainRef = useRef<HTMLElement>(null);
+  const collapsedRef = useRef<HTMLDivElement>(null);
+  const { inset: panelInset, follow: followPanel } = usePanelInset(mainRef, collapsedRef);
+  // A segment picked on the map while the panel is stowed: its step is shown once the panel is back.
+  const revealRef = useRef<number | null>(null);
   const stepRefs = useRef(new Map<number, HTMLButtonElement>());
 
   const [chosenStart, setStart] = useState<RouteStart>(() => parseStart(from));
@@ -232,13 +246,25 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
   };
 
   // A segment picked on the map opens its step in the list and moves focus there, so the list stays the way back.
-  const selectFromMap = (id: number | null) => {
-    setSelected(id);
-    const step = id === null ? undefined : stepRefs.current.get(id);
+  const revealStep = (id: number) => {
+    const step = stepRefs.current.get(id);
     if (!step) return;
     scrollIntoViewWithin(step);
     step.focus({ preventScroll: true });
   };
+  const selectFromMap = (id: number | null) => {
+    setSelected(id);
+    if (id === null) return;
+    if (stowed) {
+      revealRef.current = id;
+      setStowed(false);
+    } else revealStep(id);
+  };
+  useEffect(() => {
+    if (stowed || revealRef.current === null) return;
+    revealStep(revealRef.current);
+    revealRef.current = null;
+  }, [stowed]);
 
   const guidance = useGuidance(route);
   const guiding = guidance.active;
@@ -296,11 +322,13 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
   );
 
   return (
+    // Full bleed and one viewport tall, like home: only the panel's content scrolls, so a swipe can't move the page.
     <main
+      ref={mainRef}
       id="main"
       tabIndex={-1}
-      data-desktop-fill
-      className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[640px] flex-1 overflow-hidden outline-none lg:mb-0 lg:grid lg:min-h-0 lg:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)]"
+      data-fill-viewport
+      className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[24rem] [--route-collapsed:55%] flex-1 overflow-hidden outline-none lg:mb-0 lg:grid lg:min-h-0 lg:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)]"
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 px-4 pt-3 lg:pointer-events-auto lg:static lg:col-start-1 lg:row-start-1 lg:max-h-[45dvh] lg:overflow-y-auto lg:border-r lg:border-border lg:bg-card lg:pt-4">
         <div className="mx-auto flex max-w-xl items-start gap-2 *:pointer-events-auto">
@@ -362,7 +390,13 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
         label={t.segments}
         expanded={expanded}
         onExpandedChange={setExpanded}
-        collapsedHeight="55%"
+        collapsedHeight={COLLAPSED_HEIGHT}
+        stowed={stowed}
+        onStowedChange={setStowed}
+        stowLabels={t.stow}
+        stowedSummary={route ? `${t.minutes(route.durationMinutes)} · ${t.distance(route.distanceMeters)}` : t.pageTitle}
+        stowedHeight={STOWED_HEIGHT}
+        onHeightChange={followPanel}
         headerClassName="lg:hidden"
         className="mx-auto max-w-xl pb-[env(safe-area-inset-bottom)] lg:static lg:col-start-1 lg:row-start-2 lg:mx-0 lg:h-auto! lg:max-w-none lg:rounded-none lg:border-r lg:border-border lg:pb-0 lg:shadow-none"
         footer={
@@ -474,12 +508,17 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
         )}
       </BottomPanel>
 
-      <div className="absolute inset-x-0 top-0 bottom-[calc(55%-24px)] lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0">
+      {/* Resolves --route-collapsed in px: the map's padding and controls never rise above the half-height panel. */}
+      <div ref={collapsedRef} aria-hidden className="pointer-events-none invisible absolute bottom-0 left-0 h-(--route-collapsed) w-px lg:hidden" />
+      {/* Phone: the map fills the screen at every panel height and the panel lies over it, so it never resizes. */}
+      <div className="absolute inset-0 lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0">
         <RouteMap
           route={route}
           selected={guiding && selected === null && route && guidance.progress ? (route.segments[guidance.progress.step]?.id ?? null) : selected}
           onSelect={selectFromMap}
           padding={desktop ? MAP_PADDING_DESKTOP : MAP_PADDING}
+          inset={desktop ? 0 : panelInset}
+          controlsClassName={CONTROLS_ABOVE_PANEL}
           you={guiding ? guidance.position : null}
           follow={guiding && guidance.follow}
         />

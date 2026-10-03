@@ -60,6 +60,7 @@ export const route = {
     `krawężnik do ${String(kerbCm).replace(".", ",")} cm, dopuszczalne nachylenie${smooth ? ", gładka nawierzchnia" : ""}`,
   limitsNoProfile: "bez schodów",
   segments: "Odcinki trasy",
+  stow: { hide: "Schowaj szczegóły trasy", show: "Pokaż szczegóły" },
   segmentsHint: "Odcinki w skali długości. Szczegóły w „Krok po kroku”.",
   steps: "Krok po kroku",
   stepsAria: "Odcinki trasy, tekstowa wersja mapy",

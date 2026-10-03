@@ -1,5 +1,23 @@
 import { describe, expect, it } from "vitest";
-import { fitPadding, insidePadding, mapPadding, paddedCentre } from "./map-padding";
+import { fitPadding, insidePadding, mapPadding, paddedCentre, panelInset } from "./map-padding";
+
+describe("panelInset", () => {
+  it("is the panel's height while it is at most half height, stowed included", () => {
+    // GIVEN a panel stowed to a 72.4 px bar, and one at its 430 px half height
+    // WHEN the covered part of the map is computed
+    // THEN it is the panel's own height, in whole px
+    expect(panelInset(72.4, 430)).toBe(72);
+    expect(panelInset(430, 430)).toBe(430);
+  });
+
+  it("stops at half height when the panel is expanded, and is zero beside the map", () => {
+    // GIVEN an expanded 760 px panel over a phone map, and a desktop side panel (no half height)
+    // WHEN the covered part is computed
+    // THEN the phone map keeps the half-height padding and the desktop map none
+    expect(panelInset(760, 430)).toBe(430);
+    expect(panelInset(760, 0)).toBe(0);
+  });
+});
 
 describe("fitPadding", () => {
   it("keeps the padding of a map tall enough for it", () => {
