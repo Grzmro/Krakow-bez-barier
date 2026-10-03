@@ -47,9 +47,16 @@ type FactRowBoundProps = Omit<FactRowProps, "labels" | "status" | "reliability">
 };
 
 export function FactRow({ status, reliability, ...props }: FactRowBoundProps) {
+  const known = props.value !== undefined && props.value !== "";
+  const value = known ? [props.value, props.unit].filter(Boolean).join(" ") : t.fact.noValue;
+  const shown = props.limit ? `${value} (${props.limit})` : value;
   return (
     <UiFactRow
       {...props}
+      ariaLabel={
+        props.ariaLabel ??
+        t.fact.aria(props.label, shown, t.reliability[reliability], status ? t.status[status] : undefined)
+      }
       status={status ? { value: status, label: t.status[status] } : undefined}
       reliability={{ value: reliability, label: t.reliability[reliability] }}
       labels={t.fact}

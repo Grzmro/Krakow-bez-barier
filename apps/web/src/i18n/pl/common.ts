@@ -52,6 +52,8 @@ export const common = {
     noValue: "Brak danych",
     noSources: "Nikt jeszcze nie sprawdził.",
     maybeOutdated: (date: string) => `Może być nieaktualne · ${date}`,
+    aria: (label: string, value: string, reliability: string, status?: string) =>
+      `${label}: ${value}. ${status ? `${status}. ` : ""}Wiarygodność: ${reliability}.`,
   },
   bottomPanel: {
     expand: "Rozwiń arkusz",

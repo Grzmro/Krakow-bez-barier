@@ -45,6 +45,8 @@ export interface FactRowProps {
   reliability: { value: Reliability; label: string };
   sources: FactSource[];
   labels: FactRowLabels;
+  /** Accessible name for the toggle, read instead of the visible text (avoids "Brak danych Brak danych"). */
+  ariaLabel?: string;
   /** Buttons shown under the sources (e.g. "To się nie zgadza"). */
   actions?: ReactNode;
   open?: boolean;
@@ -64,6 +66,7 @@ export function FactRow({
   reliability,
   sources,
   labels,
+  ariaLabel,
   actions,
   open: openProp,
   defaultOpen = false,
@@ -85,6 +88,7 @@ export function FactRow({
         type="button"
         aria-expanded={open}
         aria-controls={panelId}
+        aria-label={ariaLabel}
         onClick={toggle}
         className="flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted focus-visible:-outline-offset-3"
       >

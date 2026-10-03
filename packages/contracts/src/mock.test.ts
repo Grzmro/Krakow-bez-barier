@@ -31,6 +31,31 @@ describe("createMockFetch", () => {
     expect(data?.id).toBe("teatr-slowackiego");
   });
 
+  it("answers an id no example uses with the documented 404", async () => {
+    // GIVEN a client backed by the mock
+    const api = createApiClient({ baseUrl: BASE_URL, fetch: createMockFetch() });
+
+    // WHEN a place no example covers is requested
+    const { data, error, response } = await api.GET("/places/{id}", { params: { path: { id: "nie-ma-takiego" } } });
+
+    // THEN it is a 404 problem, not some other place
+    expect(data).toBeUndefined();
+    expect(response.status).toBe(404);
+    expect(error).toMatchObject({ status: 404 });
+  });
+
+  it("reaches every getPlace demo example by its own id", async () => {
+    // GIVEN a client backed by the mock
+    const api = createApiClient({ baseUrl: BASE_URL, fetch: createMockFetch() });
+
+    // WHEN the source-unavailable demo place is requested
+    const { data } = await api.GET("/places/{id}", { params: { path: { id: "podziemia-rynku" } } });
+
+    // THEN its own example comes back, with the source in outage
+    expect(data?.name).toBe("Podziemia Rynku");
+    expect(data?.sources.map((s) => s.refreshStatus)).toEqual(["outage"]);
+  });
+
   it("returns a chosen example or error status per operation", async () => {
     // GIVEN overrides for two operations
     const api = createApiClient({

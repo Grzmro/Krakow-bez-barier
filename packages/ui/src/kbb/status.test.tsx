@@ -94,4 +94,21 @@ describe("FactRow", () => {
     expect(html).toContain("Nikt nie sprawdził.");
     expect(html).toContain('aria-expanded="true"');
   });
+
+  it("uses the composed accessible name when one is given", () => {
+    // GIVEN a fact with a composed aria label
+    // WHEN rendered
+    const html = renderToStaticMarkup(
+      <FactRow
+        label="Winda"
+        reliability={{ value: "unknown", label: "Brak danych" }}
+        sources={[]}
+        labels={LABELS}
+        ariaLabel="Winda: Brak danych. Wiarygodność: Brak danych."
+      />,
+    );
+
+    // THEN the toggle carries it
+    expect(html).toContain('aria-label="Winda: Brak danych. Wiarygodność: Brak danych."');
+  });
 });
