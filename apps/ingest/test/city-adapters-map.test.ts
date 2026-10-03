@@ -68,23 +68,46 @@ describe("mapMsipToilet", () => {
     expect(result.place?.location.y).toBeCloseTo(50.0597, 3);
   });
 
-  it("creates no ramp or lift fact for level access, and maps 'nie' to no", () => {
+  it("maps an accessible cubicle on the women's side only to limited, not yes", () => {
+    // GIVEN the recorded toilets whose access reads "tak, po stronie damskiej"
+    const womensSide = toilets.filter((t) => t.attributes.nplnsprw === "tak, po stronie damskiej");
+    expect(womensSide.map((t) => t.attributes.ESRI_OID)).toEqual([2, 4, 5, 6]);
+    // WHEN mapping them
+    const overall = womensSide.map((t) => mapMsipToilet(t).place?.facts.find((f) => f.attribute === "wheelchair_overall"));
+    // THEN each is limited and keeps the original wording as evidence
+    expect(overall.map((f) => f?.value)).toEqual(Array(4).fill({ kind: "text", text: "limited" }));
+    expect(overall[0]?.evidence?.comment).toBe(
+      "MSIP: dostępność dla niepełnosprawnych: tak, po stronie damskiej; modyfikacja: platforma",
+    );
+  });
+
+  it("maps level access to entrance_level, and maps 'nie' to no", () => {
     // GIVEN level access, and a record saying it is not accessible
     const level = mapMsipToilet(toilet(1));
     const no = mapMsipToilet({ ...toilet(1), attributes: { ...toilet(1).attributes, nplnsprw: "nie", rodz_npl: "-" } });
-    // THEN level access adds nothing beyond the overall fact, and "nie" is a no
-    expect(level.place?.facts.map((f) => f.attribute)).toEqual(["wheelchair_overall", "changing_table"]);
+    // THEN level access is an entrance_level fact, and "nie" is a no
+    expect(factsOf(level)).toEqual([
+      ["wheelchair_overall", { kind: "text", text: "yes" }],
+      ["entrance_level", { kind: "boolean", boolean: true }],
+      ["changing_table", { kind: "boolean", boolean: true }],
+    ]);
+    expect(level.skipped).toEqual([]);
     expect(factsOf(no)?.[0]).toEqual(["wheelchair_overall", { kind: "text", text: "no" }]);
     expect(no.place?.facts[0].evidence?.comment).toBe("MSIP: dostępność dla niepełnosprawnych: nie");
   });
 
-  it("skips values it cannot read and records without geometry", () => {
-    // GIVEN an unknown access value, and a record without a point
-    const odd = mapMsipToilet({ ...toilet(1), attributes: { ...toilet(1).attributes, nplnsprw: "częściowo", przewijak: null } });
+  it("skips values it cannot read, closed toilets and records without geometry", () => {
+    // GIVEN an unknown access value and modification, a closed toilet, and a record without a point
+    const odd = mapMsipToilet({
+      ...toilet(1),
+      attributes: { ...toilet(1).attributes, nplnsprw: "tak, częściowo", rodz_npl: "schodołaz", przewijak: null },
+    });
+    const closed = mapMsipToilet({ ...toilet(1), attributes: { ...toilet(1).attributes, status: "nie" } });
     const noPoint = mapMsipToilet({ ...toilet(1), geometry: null });
-    // THEN nothing is guessed
+    // THEN nothing is guessed, and every dropped value is counted
     expect(odd.place?.facts).toEqual([]);
-    expect(odd.skipped).toEqual(["nplnsprw=częściowo"]);
+    expect(odd.skipped).toEqual(["nplnsprw=tak, częściowo", "rodz_npl=schodołaz"]);
+    expect(closed).toEqual({ place: null, skipped: ["status=nie"] });
     expect(noPoint.place).toBeNull();
   });
 });
@@ -139,7 +162,7 @@ describe("mapZtpStop", () => {
     ]);
     expect(place?.facts[0].observedAt).toEqual(new Date(1769514681505));
     expect(place?.facts[1].evidence).toEqual({ comment: "ZTP: nawierzchnia peronu: płyty_chodnikowe" });
-    expect(skipped).toEqual([]);
+    expect(skipped).toEqual(["Krawężnik_peronowy=tak"]);
   });
 
   it("says no bench only when there is neither a shelter nor a seat", () => {
@@ -151,9 +174,25 @@ describe("mapZtpStop", () => {
     expect(bare?.facts.find((f) => f.attribute === "bench")?.value).toEqual({ kind: "boolean", boolean: false });
   });
 
-  it("counts a Kassel kerb as skipped, since the inventory gives no height", () => {
-    // GIVEN Filharmonia 04 with a Kassel kerb WHEN mapping THEN it is reported, not guessed
-    expect(mapZtpStop(stop(7686)).skipped).toEqual(["Krawężnik_peronowy=kassel-kerb"]);
+  it("counts kerb values and an ambiguous 'kostka' surface as skipped instead of guessing", () => {
+    // GIVEN Filharmonia 04 (Kassel kerb, "kostka" platform) and Hala Targowa 71 (kerb "nie")
+    // WHEN mapping them
+    const filharmonia = mapZtpStop(stop(7686));
+    const hala = mapZtpStop(stop(8055), new Date("2026-10-03T00:00:00Z"));
+    // THEN neither kerb nor "kostka" becomes a fact, and each is reported
+    expect(filharmonia.place?.facts.map((f) => f.attribute)).toEqual(["bench"]);
+    expect(filharmonia.skipped).toEqual(["Nawierzchnia_peronu=kostka", "Krawężnik_peronowy=kassel-kerb"]);
+    expect(hala.skipped).toEqual(["Krawężnik_peronowy=nie"]);
+  });
+
+  it("skips a platform once its validUntil date has passed", () => {
+    // GIVEN Hala Targowa 71, a temporary stop valid until 2026-10-05
+    // WHEN mapping it before and after that date
+    const before = mapZtpStop(stop(8055), new Date("2026-10-04T00:00:00Z"));
+    const after = mapZtpStop(stop(8055), new Date("2026-10-06T00:00:00Z"));
+    // THEN it is a place before, and a counted skip after
+    expect(before.place?.name).toBe("Przystanek Hala Targowa 71");
+    expect(after).toEqual({ place: null, skipped: ["validUntil=2026-10-05T00:00:00.000Z"] });
   });
 
   it("skips suspended stops and falls back to GlobalID without a BusMan code", () => {

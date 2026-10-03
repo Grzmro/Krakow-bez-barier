@@ -18,6 +18,18 @@ export type MsipToilet = ArcgisFeature<{
 const SOURCE_ID = "msip-toilets";
 const LAYER = "WT_WC_2023";
 
+/**
+ * `nplnsprw` wording → OSM `wheelchair`. "po stronie damskiej" puts the accessible cubicle on the
+ * women's side only, so it is `limited`; "oddzielnie" and "pomiędzy …" mean a separate cubicle.
+ */
+const ACCESS: Record<string, string> = {
+  tak: "yes",
+  "tak, oddzielnie": "yes",
+  "tak, pomiędzy toaletą damską a męską": "yes",
+  "tak, po stronie damskiej": "limited",
+  nie: "no",
+};
+
 const clean = (value: string | null | undefined) => value?.trim() || null;
 const lower = (value: string | null | undefined) => clean(value)?.toLowerCase() ?? null;
 
@@ -28,7 +40,7 @@ const placeName = (miejsce: string | null) => {
 };
 
 /**
- * Maps one MSIP public-toilet record. The layer has no per-record date, so `observedAt` stays
+ * Maps one MSIP public-toilet record; a closed toilet (`status = "nie"`) is skipped. The layer has no per-record date, so `observedAt` stays
  * empty; the original wording goes into the evidence comment.
  */
 export function mapMsipToilet(feature: MsipToilet): MapResult {
@@ -36,6 +48,7 @@ export function mapMsipToilet(feature: MsipToilet): MapResult {
   const skipped: string[] = [];
   const location = pointOf(feature);
   if (!location) return { place: null, skipped: [`ESRI_OID=${a.ESRI_OID} without geometry`] };
+  if (lower(a.status) === "nie") return { place: null, skipped: [`status=${a.status}`] };
 
   const ref = `${SOURCE_ID}:${LAYER}/${a.ESRI_OID}`;
   const facts: MappedFact[] = [];
@@ -45,18 +58,19 @@ export function mapMsipToilet(feature: MsipToilet): MapResult {
   const access = lower(a.nplnsprw);
   const modification = lower(a.rodz_npl);
   const modificationNote = modification && modification !== "-" ? `; modyfikacja: ${clean(a.rodz_npl)}` : "";
-  const closedNote = lower(a.status) === "nie" ? "; WC nieczynne" : "";
   if (access !== null) {
-    const comment = `MSIP: dostępność dla niepełnosprawnych: ${clean(a.nplnsprw)}${modificationNote}${closedNote}`;
-    if (/^tak\b/.test(access)) add("wheelchair_overall", { kind: "text", text: "yes" }, comment);
-    else if (access === "nie") add("wheelchair_overall", { kind: "text", text: "no" }, comment);
+    const comment = `MSIP: dostępność dla niepełnosprawnych: ${clean(a.nplnsprw)}${modificationNote}`;
+    const overall = ACCESS[access];
+    if (overall) add("wheelchair_overall", { kind: "text", text: overall }, comment);
     else skipped.push(`nplnsprw=${a.nplnsprw}`);
   }
 
-  if (modification === "pochylnia") {
-    add("ramp", { kind: "boolean", boolean: true }, `MSIP: rodzaj modyfikacji: ${clean(a.rodz_npl)}`);
-  } else if (modification === "winda" || modification === "platforma") {
-    add("lift", { kind: "boolean", boolean: true }, `MSIP: rodzaj modyfikacji: ${clean(a.rodz_npl)}`);
+  if (modification !== null && modification !== "-") {
+    const comment = `MSIP: rodzaj modyfikacji: ${clean(a.rodz_npl)}`;
+    if (modification === "pochylnia") add("ramp", { kind: "boolean", boolean: true }, comment);
+    else if (modification === "winda" || modification === "platforma") add("lift", { kind: "boolean", boolean: true }, comment);
+    else if (modification === "wjazd z poziomu 0") add("entrance_level", { kind: "boolean", boolean: true }, comment);
+    else skipped.push(`rodz_npl=${a.rodz_npl}`);
   }
 
   const changingTable = lower(a.przewijak);

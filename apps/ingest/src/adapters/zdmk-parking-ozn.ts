@@ -31,6 +31,7 @@ export function mapZdmkParkingSpace(feature: ZdmkParkingSpace): MapResult {
     place: {
       externalRef: ref,
       name: address ? `Miejsce postojowe dla osób z niepełnosprawnościami: ${address}` : "Miejsce postojowe dla osób z niepełnosprawnościami",
+      // TODO(KBB-52): own category before the licence is confirmed, or these flood the "Inne" list.
       category: "other",
       location,
       ...splitAddress(address),

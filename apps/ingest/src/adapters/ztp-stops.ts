@@ -18,15 +18,19 @@ export type ZtpStop = ArcgisFeature<{
   Inne_do_siedzenia?: number | null;
   /** Epoch milliseconds of the last inventory edit. */
   EditDate?: number | null;
+  /** Epoch milliseconds after which the platform no longer exists (e.g. a temporary stop). */
+  validUntil?: number | null;
 }>;
 
 const SOURCE_ID = "ztp-stops";
 
-/** Platform surfaces in the inventory → the OSM `surface` values the app already labels. */
+/**
+ * Platform surfaces in the inventory → the OSM `surface` values the app already labels. "kostka" is
+ * skipped: it does not say whether it is smooth concrete blocks or stone setts.
+ */
 const SURFACES: Record<string, string> = {
   asfalt: "asphalt",
   beton: "concrete",
-  kostka: "paving_stones",
   płyty_chodnikowe: "paving_stones",
 };
 
@@ -34,12 +38,15 @@ const count = (value: number | null | undefined) => (typeof value === "number" &
 
 /**
  * Maps one stop (one platform) from the ZTP inventory. Benches inside a shelter are not counted
- * by the inventory, so a stop with a shelter and no other seats has no bench fact.
+ * by the inventory, so a stop with a shelter and no other seats has no bench fact. A platform whose
+ * `validUntil` is before `now` no longer exists and is skipped.
  */
-export function mapZtpStop(feature: ZtpStop): MapResult {
+export function mapZtpStop(feature: ZtpStop, now: Date = new Date()): MapResult {
   const a = feature.attributes;
   const skipped: string[] = [];
   if (a.Grupa === "KMK_zawieszony") return { place: null, skipped: [`Grupa=${a.Grupa}`] };
+  const validUntil = epochDate(a.validUntil);
+  if (validUntil && validUntil < now) return { place: null, skipped: [`validUntil=${validUntil.toISOString()}`] };
   const location = pointOf(feature);
   const name = a.Nazwa_przystanku_nr?.trim();
   if (!location || !name) return { place: null, skipped: [`OBJECTID=${a.OBJECTID} without geometry or name`] };
@@ -65,13 +72,15 @@ export function mapZtpStop(feature: ZtpStop): MapResult {
     else skipped.push(`Nawierzchnia_peronu=${surface}`);
   }
 
-  // A Kassel kerb is a raised boarding kerb, but the inventory gives no height to store.
-  if (a.Krawężnik_peronowy === "kassel-kerb") skipped.push(`Krawężnik_peronowy=${a.Krawężnik_peronowy}`);
+  // No kerb value maps to the vocabulary: the inventory gives no kerb height, even for a Kassel kerb.
+  const kerb = a.Krawężnik_peronowy?.trim();
+  if (kerb) skipped.push(`Krawężnik_peronowy=${kerb}`);
 
   return {
     place: {
       externalRef: ref,
       name: `Przystanek ${name}`,
+      // TODO(KBB-52): own category before the licence is confirmed, or these flood the "Inne" list.
       category: "other",
       location,
       street: null,
@@ -95,5 +104,5 @@ export const ztpStops: SourceAdapter<ZtpStop> = {
     baseReliability: "confirmed",
   },
   fetch: (ctx) => fetchArcgisLayer(SOURCE_ID, ctx),
-  map: mapZtpStop,
+  map: (record) => mapZtpStop(record),
 };
