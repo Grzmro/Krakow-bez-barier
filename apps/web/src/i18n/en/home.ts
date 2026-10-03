@@ -31,6 +31,7 @@ export const home: Messages["home"] = {
   },
   list: {
     label: "List of places",
+    stow: { hide: "Hide the list", show: "Show the list" },
     results: (n: number) => `${n} ${placesWord(n)}`,
     announce: (n: number) => (n === 0 ? "No places found" : `Found ${n} ${placesWord(n)}`),
     loading: "Searching for places…",

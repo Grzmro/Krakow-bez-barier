@@ -76,11 +76,15 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
   const markersRef = useRef(new Map<string, { marker: Marker; root: Root }>());
   const fittedRef = useRef<string | null>(null);
   const onSelectRef = useRef(onSelect);
+  const paddingRef = useRef(padding);
+  const selectedIdRef = useRef(selectedId);
   const [youLon, youLat] = you ?? [];
   const centered = Boolean(you);
   useEffect(() => {
     onSelectRef.current = onSelect;
-  }, [onSelect]);
+    paddingRef.current = padding;
+    selectedIdRef.current = selectedId;
+  });
 
   useEffect(() => {
     let disposed = false;
@@ -131,6 +135,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
           onSelectRef.current(place.id);
         });
         const [lon, lat] = place.location.coordinates;
+        element.dataset.selected = String(place.id === selectedIdRef.current);
         markers.set(place.id, { marker: new Marker({ element }).setLngLat([lon, lat]).addTo(map), root });
       }
       if (centered) {
@@ -143,7 +148,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
       const bounds = new LngLatBounds();
       for (const place of places) bounds.extend(place.location.coordinates as [number, number]);
       map.fitBounds(bounds, {
-        padding: { top: padding.top, bottom: padding.bottom, left: 48, right: 72 },
+        padding: { top: paddingRef.current.top, bottom: paddingRef.current.bottom, left: 48, right: 72 },
         maxZoom: 16,
         duration: 400,
       });
@@ -151,7 +156,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
     return () => {
       cancelled = true;
     };
-  }, [map, places, padding.top, padding.bottom, centered]);
+  }, [map, places, centered]);
 
   useEffect(() => {
     if (!map || youLon === undefined || youLat === undefined) return;
@@ -163,7 +168,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
       map.easeTo({
         center: [youLon, youLat],
         zoom: Math.max(map.getZoom(), config.initialZoom),
-        padding: { top: padding.top, bottom: padding.bottom, left: 0, right: 0 },
+        padding: { top: paddingRef.current.top, bottom: paddingRef.current.bottom, left: 0, right: 0 },
         duration: 400,
       });
     });
@@ -171,7 +176,12 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, la
       cancelled = true;
       marker?.remove();
     };
-  }, [map, youLon, youLat, padding.top, padding.bottom, youLabel]);
+  }, [map, youLon, youLat, youLabel]);
+
+  // A padding change (the list panel being stowed) only moves the map's visible area; it never refits or recentres.
+  useEffect(() => {
+    if (map && centered) map.easeTo({ padding: { top: padding.top, bottom: padding.bottom, left: 0, right: 0 }, duration: 300 });
+  }, [map, centered, padding.top, padding.bottom]);
 
   useEffect(() => {
     for (const [id, { marker }] of markersRef.current) {

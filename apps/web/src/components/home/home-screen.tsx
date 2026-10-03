@@ -13,11 +13,12 @@ import { config } from "@/lib/config";
 import type { DevicePosition } from "@/lib/native/geolocation";
 import { byDistance, searchArea, toLonLat } from "@/lib/nearby";
 import { usePlaces } from "@/lib/places";
-import { scrollIntoViewWithin } from "@/lib/scroll-within";
-import { useMediaQuery } from "@/lib/use-media-query";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { countByStatus, filterByVerdict, STATUS_ORDER } from "@/lib/profile/verdict-list";
+import { scrollIntoViewWithin } from "@/lib/scroll-within";
+import { useMediaQuery } from "@/lib/use-media-query";
+import { useSessionFlag } from "@/lib/use-session-flag";
 import { PlaceMap } from "./place-map";
 import { NearbyToggle } from "./nearby-toggle";
 import { PlaceRow } from "./place-list";
@@ -28,7 +29,11 @@ const FEATURES: FeatureFilter[] = ["step_free", "lift", "toilet_accessible", "be
 const LIST_ID = "lista";
 // Mobile: search and chips float over the map and the sheet covers its lower half. Desktop: the map has the right column to itself.
 const MAP_PADDING = { top: 150, bottom: 100 };
+// Stowed: only the zoom buttons sit above the bar, so the pins need little room below.
+const MAP_PADDING_STOWED = { top: 150, bottom: 60 };
 const MAP_PADDING_DESKTOP = { top: 48, bottom: 48 };
+const STOWED_KEY = "kbb-list-stowed";
+const STOWED_HEIGHT = "calc(4.5rem + env(safe-area-inset-bottom))";
 const DESKTOP = "(min-width: 64rem)";
 
 const COUNTER_PRESSED: Record<Status, string> = {
@@ -65,11 +70,14 @@ export function HomeScreen() {
   const [showUnknown, setShowUnknown] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [stowedFlag, setStowed] = useSessionFlag(STOWED_KEY);
+  const revealRef = useRef<string | null>(null);
   // Stays in this component: only the coarse `searchArea` goes to the API (see docs/architecture.md).
   const [position, setPosition] = useState<DevicePosition | null>(null);
   const rowRefs = useRef(new Map<string, HTMLAnchorElement>());
   const listRef = useRef<HTMLDivElement>(null);
   const desktop = useMediaQuery(DESKTOP);
+  const stowed = stowedFlag && !desktop;
 
   const area = position ? searchArea(position) : undefined;
   const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown, area };
@@ -99,6 +107,7 @@ export function HomeScreen() {
     [items, settled, query.q],
   );
 
+  const resultsLabel = total === undefined ? t.list.loading : t.list.results(shown.length === items.length ? total : shown.length);
   const queryKey = JSON.stringify(query);
   const pending = places.isPlaceholderData || total === undefined;
   const listAnnouncement =
@@ -142,12 +151,30 @@ export function HomeScreen() {
     setHideFailing(false);
   }
 
-  function selectFromMap(id: string) {
-    setSelectedId(id);
+  function reveal(id: string) {
+    if (id === LIST_ID) {
+      listRef.current?.focus();
+      return;
+    }
     const row = rowRefs.current.get(id);
     if (row) scrollIntoViewWithin(row);
     row?.focus({ preventScroll: true });
   }
+
+  function selectFromMap(id: string) {
+    setSelectedId(id);
+    if (stowed) {
+      revealRef.current = id;
+      setStowed(false);
+    } else reveal(id);
+  }
+
+  useEffect(() => {
+    if (!stowed && revealRef.current) {
+      reveal(revealRef.current);
+      revealRef.current = null;
+    }
+  }, [stowed]);
 
   return (
     // Full bleed: cancel the body's bottom safe-area padding so the map and sheet reach the screen edge;
@@ -163,7 +190,10 @@ export function HomeScreen() {
         href={`#${LIST_ID}`}
         onClick={(event) => {
           event.preventDefault();
-          listRef.current?.focus();
+          if (stowed) {
+            revealRef.current = LIST_ID;
+            setStowed(false);
+          } else listRef.current?.focus();
         }}
         className="sr-only z-50 rounded-full bg-ink px-4 py-3 font-semibold text-ink-foreground focus:not-sr-only focus:absolute focus:top-3 focus:left-4"
       >
@@ -196,6 +226,11 @@ export function HomeScreen() {
         expanded={expanded}
         onExpandedChange={setExpanded}
         collapsedHeight="50%"
+        stowed={stowed}
+        onStowedChange={setStowed}
+        stowLabels={t.list.stow}
+        stowedSummary={resultsLabel}
+        stowedHeight={STOWED_HEIGHT}
         headerClassName="lg:hidden"
         className="mx-auto max-w-xl pb-[env(safe-area-inset-bottom)] lg:static lg:col-start-1 lg:row-start-2 lg:mx-0 lg:h-auto! lg:max-w-none lg:rounded-none lg:border-r lg:border-border lg:pb-0 lg:shadow-none"
       >
@@ -249,7 +284,7 @@ export function HomeScreen() {
 
         <div ref={listRef} id={LIST_ID} tabIndex={-1} className="scroll-mt-2 px-4 pt-1 pb-8 outline-none">
           <h2 className="mb-2 text-caption font-semibold text-muted-foreground">
-            {total === undefined ? t.list.loading : t.list.results(shown.length === items.length ? total : shown.length)}
+            {resultsLabel}
           </h2>
           {truncatedNote ? <p className="mb-2 text-body-sm text-muted-foreground">{truncatedNote}</p> : null}
           {places.isError ? (
@@ -317,12 +352,15 @@ export function HomeScreen() {
           )}
         </div>
       </BottomPanel>
-      <div className="absolute inset-x-0 top-0 bottom-[calc(50%-24px)] lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0">
+      <div
+        style={stowed ? { bottom: STOWED_HEIGHT } : undefined}
+        className="absolute inset-x-0 top-0 bottom-[calc(50%-24px)] transition-[bottom] duration-[420ms] ease-(--ease-out-soft) lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0"
+      >
         <PlaceMap
           places={mapPlaces}
           selectedId={selectedId}
           onSelect={selectFromMap}
-          padding={desktop ? MAP_PADDING_DESKTOP : MAP_PADDING}
+          padding={desktop ? MAP_PADDING_DESKTOP : stowed ? MAP_PADDING_STOWED : MAP_PADDING}
           you={origin}
         />
       </div>
