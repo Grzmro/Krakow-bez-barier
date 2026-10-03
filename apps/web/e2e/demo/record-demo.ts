@@ -9,7 +9,7 @@ import { pl } from "../../src/i18n/pl";
 // in a phone-sized frame, the scene caption sits beside it. The final video (KBB-31) then only
 // needs a voice-over. Scene numbers and captions match the script.
 //
-// Real data only: every place is looked up in the API by name (or, for the conflict, by its state), never by a
+// Real data only: every place is looked up in the API by name (or, for the disagreement, by its facts), never by a
 // sample id, and the recording stops with an error when the database or a place is missing.
 
 const PLACES = {
@@ -18,11 +18,16 @@ const PLACES = {
   /** OSM says only wheelchair=yes: every concrete barrier is "Brak danych". */
   incomplete: "Hotel Miodowa",
 };
-/** The public toilet where the city (MSIP) and OSM disagree about the changing table. */
-const CONFLICT = { category: "toilet", attribute: "changing_table" } as const;
+/**
+ * A public toilet where the city (krakow.pl list: adapted) and OSM (`wheelchair=limited`) disagree; the one nearest
+ * to `near` (the Sukiennice toilet on Rynek Główny). The city list was last updated on 2025-09-15, over a year ago,
+ * so its fact is "Nieaktualne" and the fresh OSM fact decides — the card shows both with their dates.
+ */
+const DISAGREEMENT = { category: "toilet", attribute: "wheelchair_overall", near: "19.9375,50.0622" } as const;
 /** The source the outage server reports as down (SIMULATE_SOURCE_OUTAGE in playwright.demo.config.ts). */
-const OUTAGE_SOURCE = "MSIP: Toalety publiczne";
-const SETUP_HINT = "Load the data first: `npm run db:setup` and `npm run ingest -- --source osm` (docs/demo-script.md).";
+const OUTAGE_SOURCE = "krakow.pl Kraków bez barier: Toalety ogólnodostępne";
+const SETUP_HINT =
+  "Load the data first: `npm run db:setup`, `npm run ingest -- --city krakow --source osm` and `--source krakow-pl-toilets` (docs/demo-script.md).";
 
 const MAX_SECONDS = 180;
 // DEMO_PACE=0.2 shortens every pause, for checking the walkthrough without waiting 3 minutes.
@@ -88,18 +93,18 @@ async function placeNamed(request: APIRequestContext, name: string): Promise<Pla
   return place;
 }
 
-async function conflictPlace(request: APIRequestContext): Promise<PlaceSummary> {
-  const place = await findPlace(
-    request,
-    `category=${CONFLICT.category}&limit=100`,
-    (p) => !p.isSample && p.summary.some((chip) => chip.attribute === CONFLICT.attribute && chip.state === "conflict"),
-  );
-  if (!place) {
-    throw new Error(
-      `No ${CONFLICT.category} with conflicting "${CONFLICT.attribute}" in the database (city toilets vs OSM). ${SETUP_HINT}`,
-    );
+/** The toilet nearest to `DISAGREEMENT.near` whose two sources give different values for the attribute. */
+async function disagreementPlace(request: APIRequestContext): Promise<PlaceSummary> {
+  const { category, attribute, near } = DISAGREEMENT;
+  const page = await listPlacesPage(request, `category=${category}&near=${near}&limit=50`);
+  for (const summary of page.items.filter((p) => !p.isSample && p.summary.some((chip) => chip.attribute === attribute))) {
+    const response = await request.get(`/api/v1/places/${summary.id}`);
+    const place = (await response.json()) as components["schemas"]["Place"];
+    const facts = place.attributes.find((a) => a.attribute === attribute)?.facts ?? [];
+    const values = new Set(facts.map((f) => JSON.stringify(f.value)));
+    if (new Set(facts.map((f) => f.source.id)).size > 1 && values.size > 1) return summary;
   }
-  return place;
+  throw new Error(`No ${category} near ${near} where two sources disagree on "${attribute}" (krakow.pl toilets vs OSM). ${SETUP_HINT}`);
 }
 
 /** Shows the scene caption beside the phone, so the silent recording can be followed and voiced over. */
@@ -157,7 +162,7 @@ test("record the demo walkthrough", async ({ browser, baseURL, request }) => {
   await requireDatabase(request);
   const facts = await placeNamed(request, PLACES.facts);
   const incomplete = await placeNamed(request, PLACES.incomplete);
-  const conflict = await conflictPlace(request);
+  const disagreement = await disagreementPlace(request);
   const outageURL = process.env.DEMO_OUTAGE_BASE_URL;
   if (!outageURL) console.warn("DEMO_OUTAGE_BASE_URL is not set: the recording skips the unavailable-source scene.");
 
@@ -227,47 +232,46 @@ test("record the demo walkthrough", async ({ browser, baseURL, request }) => {
   await caption(page, "4 · Niepełne dane", `${incomplete.name}: o stopniach, drzwiach i windzie nie wiemy nic — „Brak danych” na szaro, nigdy „dostępne”.`);
   await pause(page, 8);
 
-  await open(`/miejsca/${conflict.id}`);
-  await expect(app.getByRole("heading", { level: 1, name: conflict.name })).toBeVisible();
-  const changingTable = factRow(pl.common.attribute.changing_table);
-  await expect(changingTable).toContainText(pl.common.reliability.conflict);
-  await caption(page, "4 · Sprzeczne dane", "Publiczna toaleta: miasto (MSIP) mówi „nie ma przewijaka”, OpenStreetMap — „jest”. Pokazujemy obie wersje.");
+  await open(`/miejsca/${disagreement.id}`);
+  await expect(app.getByRole("heading", { level: 1, name: disagreement.name })).toBeVisible();
+  const overall = factRow(pl.common.attribute.wheelchair_overall);
+  await expect(overall).toContainText(pl.place.overall.limited);
+  await caption(page, "4 · Rozbieżne dane", "Toaleta w Sukiennicach: OpenStreetMap mówi „częściowo”, lista miasta (krakow.pl, 15.09.2025) — „dostosowana”. Pokazujemy obie wersje; dane miasta są starsze niż rok, więc „Nieaktualne”.");
   await pause(page, 4);
-  await tap(page, changingTable);
+  await tap(page, overall);
   await pause(page, 8);
 
   // 5. Correcting data
   await caption(page, "5 · Zgłoszenie", "Każdy może poprawić dane: „To się nie zgadza” — trzy kroki, bez konta.");
-  const changingTableRow = app.locator("li").filter({ has: changingTable });
-  await tap(page, changingTableRow.getByRole("button", { name: "To się nie zgadza" }));
+  const overallRow = app.locator("li").filter({ has: overall });
+  await tap(page, overallRow.getByRole("button", { name: "To się nie zgadza" }));
   const report = app.getByRole("dialog", { name: "To się nie zgadza" });
   await expect(report).toBeVisible();
   await pause(page, 3);
   // The radio input is visually hidden; the visible target is its label.
-  const yes = app.getByRole("radio", { name: pl.place.report.option.yes, exact: true });
-  await tap(page, report.locator("label").filter({ has: yes }));
-  await expect(yes).toBeChecked();
+  const accessible = app.getByRole("radio", { name: pl.place.overall.yes, exact: true });
+  await tap(page, report.locator("label").filter({ has: accessible }));
+  await expect(accessible).toBeChecked();
   await pause(page, 2);
   await tap(page, report.getByRole("button", { name: "Wyślij" }), "enter");
   await expect(report).toBeHidden();
   await caption(page, "5 · Zgłoszenie", "Zgłoszenie jest „Niezweryfikowane” i czeka na moderację — nie zmienia danych od razu.");
-  await expect(changingTableRow).toContainText(pl.common.reliability.unverified);
-  await expect(changingTable).toContainText(pl.common.reliability.conflict);
+  await expect(overallRow).toContainText(pl.common.reliability.unverified);
   await pause(page, 7);
 
   if (outageURL) {
-    await open(`/miejsca/${conflict.id}`, outageURL);
-    await expect(app.getByRole("heading", { level: 1, name: conflict.name })).toBeVisible();
+    await open(`/miejsca/${disagreement.id}`, outageURL);
+    await expect(app.getByRole("heading", { level: 1, name: disagreement.name })).toBeVisible();
     await expect(app.getByText(pl.place.outage.source(OUTAGE_SOURCE)).first()).toBeVisible();
     await expect(app.getByText(pl.place.outage.title(""))).toBeVisible();
-    await caption(page, "4 · Źródło niedostępne", "Symulujemy awarię serwera MSIP. Ta sama toaleta: dane miasta zostają, z datą i jako „Nieaktualne”.");
+    await caption(page, "4 · Źródło niedostępne", "Symulujemy awarię serwisu krakow.pl. Ta sama toaleta: dane miasta zostają, z datą i jako „Nieaktualne”.");
     await pause(page, 8);
     await open("/o-danych", outageURL);
-    await caption(page, "6 · Źródła danych", "OpenStreetMap i otwarte dane Krakowa (MSIP): licencja, odświeżanie, status — także awaria.");
+    await caption(page, "6 · Źródła danych", "OpenStreetMap, BIP i krakow.pl: licencja, odświeżanie, status — także awaria. Warstwa MSIP bez licencji jest wyłączona.");
     await pause(page, 6);
   } else {
     await open("/o-danych");
-    await caption(page, "6 · Źródła danych", "OpenStreetMap i otwarte dane Krakowa (MSIP): licencja, odświeżanie i status każdego źródła.");
+    await caption(page, "6 · Źródła danych", "OpenStreetMap, BIP i krakow.pl: licencja, odświeżanie i status każdego źródła. Warstwa MSIP bez licencji jest wyłączona.");
     await pause(page, 6);
   }
 

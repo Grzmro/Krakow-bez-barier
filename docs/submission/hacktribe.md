@@ -26,7 +26,7 @@ Z karty miejsca można też wyznaczyć trasę do niego („Prowadź”; start: D
 Te same dane trafiają do partnerów: hotel osadza kartę dostępności na swojej stronie jako widget (`<iframe>`, bez konta), organizator wydarzenia generuje stronę „Dojazd i wejście bez barier” dla swojego obiektu, a aplikacje turystyczne i systemy rezerwacji pobierają dane przez publiczne API tylko do odczytu (OpenAPI 3.1, dokumentacja pod `/api/docs`) — każda cecha ze źródłem, datą, statusem i licencją.
 
 **Co nas wyróżnia** (wszystko poniżej jest w kodzie, wykaz z numerami PR: `docs/submission/features.md`):
-- **Prawdziwe dane miejskie, nie tylko OSM.** Adaptery do trzech warstw miasta — toalety MSIP, miejsca postojowe OZN, przystanki ZTP — przetestowane na zapisanych odczytach z 3.10.2026. Toalety MSIP (9 w obszarze demo) są w danych demo; pozostałe warstwy kod ładuje dopiero po potwierdzeniu licencji z miastem.
+- **Prawdziwe dane miejskie, nie tylko OSM.** Adaptery do trzech warstw miasta — toalety MSIP, miejsca postojowe OZN, przystanki ZTP — przetestowane na zapisanych odczytach z 3.10.2026. Kod ładuje je dopiero po potwierdzeniu licencji z miastem. Warstwa toalet MSIP okazała się nie być danymi otwartymi, więc jej dane wyłączyliśmy (aplikacja ich nie pokazuje, karta źródła mówi dlaczego); toalety bierzemy z listy miasta na krakow.pl („Kraków bez barier”, 65 toalet, stan na 15.09.2025), z jawnym oznaczeniem „licencja niekomercyjna, do potwierdzenia”.
 - **Konflikty i awarie źródeł obsłużone, nie ukryte.** Sprzeczne źródła pokazujemy obok siebie; gdy źródło nie odpowiada, zostaje ostatnia dobra kopia z datą, a OSM ma zapasowy kanał (ekstrakt Geofabrik, gdy Overpass zawodzi).
 - **Trzy kanały B2B już działają:** widget dla hotelu, strona wydarzenia dla organizatora, publiczne API z dokumentacją.
 - **Jeden kod → web, PWA z trybem offline i aplikacja iOS/Android**, po polsku i angielsku.
@@ -55,7 +55,8 @@ Używamy wyłącznie otwartych danych, bez dostępu do systemów UMK/MJO i bez b
 | Źródło | Co daje | Licencja / warunki | Odświeżanie | Gdy niedostępne |
 |---|---|---|---|---|
 | OpenStreetMap (Overpass API; zapasowo ekstrakt Geofabrik) | Miejsca, `wheelchair`, `toilets:wheelchair`, opis dostępności, przewijak, `check_date` | ODbL 1.0, atrybucja „© OpenStreetMap contributors” | codziennie (cron ingest) | ekstrakt Geofabrik z datą ekstraktu; gdy i on zawiedzie — ostatnia dobra kopia z datą, status „awaria” |
-| MSIP Kraków: toalety publiczne (warstwa WT_WC_2023, dane ISDP) | 50 toalet: dostępność, rodzaj dostosowania (poziom 0 / platforma / winda / pochylnia), przewijak, godziny | regulamin MSIP — **licencja do potwierdzenia z miastem**; adapter gotowy, regularnie nie ładujemy do potwierdzenia; w danych demo jednorazowy odczyt 9 toalet z 3.10.2026 (przypadek „sprzeczne”) | zbiór z 2023 r. | ostatnia kopia z datą i oznaczeniem „może być nieaktualne” |
+| krakow.pl „Kraków bez barier”: Toalety ogólnodostępne | 65 toalet dostosowanych z rodzajem udogodnienia (platforma / winda / pochylnia / poziom 0); 24 dopasowane do toalet z OSM | regulamin krakow.pl: użycie niekomercyjne dozwolone — **licencja niekomercyjna, do potwierdzenia** dla użycia komercyjnego; oznaczone na karcie źródła, wyłączalne flagą | co tydzień (data aktualizacji strony przy każdym fakcie) | ostatnia kopia z datą i oznaczeniem „może być nieaktualne” |
+| MSIP Kraków: toalety publiczne (warstwa WT_WC_2023, dane ISDP) | 50 toalet | warstwa **nie jest w katalogu OPEN DATA MSIP** — dane wyłączone, nie pokazujemy ich do czasu potwierdzenia warunków przez miasto | zbiór z 2023 r. | — |
 | ZDMK: miejsca postojowe dla osób z niepełnosprawnościami (ArcGIS Online) | 2 037 miejsc parkingowych (odczyt warstwy 3.10.2026, `docs/data-sources.md`; że zbiór prowadzi ZDMK — do potwierdzenia) | **licencja do potwierdzenia**; adapter gotowy, nie ładujemy do potwierdzenia | brak harmonogramu | ostatnia kopia z datą |
 | ZTP Kraków: inwentaryzacja przystanków (ArcGIS Online) | przystanki: ławki, nawierzchnia peronu | **licencja do potwierdzenia**; adapter gotowy, nie ładujemy do potwierdzenia | data edycji rekordu | ostatnia kopia z datą |
 | openrouteservice (HeiGIT, dane OSM) — tylko trasy, nie zapisujemy | geometria trasy, nawierzchnia, schody, nachylenie na odcinkach | warunki usługi HeiGIT, atrybucja przy trasie; użycie komercyjne **do potwierdzenia** | na żądanie, po stronie serwera | komunikat „wyznaczanie trasy niedostępne”, dane miejsc działają dalej |
@@ -66,9 +67,9 @@ Używamy wyłącznie otwartych danych, bez dostępu do systemów UMK/MJO i bez b
 **Pobieranie.** Osobny proces ingest (codzienny cron) pobiera źródła przez adaptery, zapisuje fakty z pochodzeniem i dziennikiem uruchomień. Aplikacja nie odpytuje źródeł w czasie żądania; awaria źródła = ostatnia dobra kopia z datą i komunikat na stronie „O danych”. Źródło bez potwierdzonej licencji nie jest ładowane — reguła wymuszona w kodzie. Kolejne źródło to nowy adapter, kolejne miasto to plik konfiguracyjny (przykład: Wrocław na samym OSM).
 
 **Trzy prawdziwe przypadki błędów pokazywane w demo:**
-1. Dane sprzeczne — toaleta przy ul. Konopnickiej: MSIP „brak przewijaka”, OSM `changing_table=yes`.
+1. Dane rozbieżne — toaleta w Sukiennicach: lista miasta (krakow.pl, 15.09.2025) „dostosowana, platforma”, OSM `wheelchair=limited`. Pokazujemy oba źródła z datami; dane miasta są starsze niż rok, więc oznaczamy je „może być nieaktualne”.
 2. Dane niepełne — Hotel Miodowa: w OSM tylko `wheelchair=yes`, brak stopni, drzwi, windy.
-3. Źródło niedostępne — adresy `msip3.um.krakow.pl` wskazywane w katalogu MSIP zwracają HTTP 404 (3.10.2026). W demo wywołujemy awarię przełącznikiem serwera i pokazujemy, co widzi użytkownik: ostatnią kopię z datą i status „awaria” źródła.
+3. Źródło niedostępne — adresy `msip3.um.krakow.pl` wskazywane w katalogu MSIP zwracają HTTP 404 (3.10.2026), więc awarie miejskich serwisów się zdarzają. W demo wywołujemy awarię źródła krakow.pl przełącznikiem serwera i pokazujemy, co widzi użytkownik: ostatnią kopię z datą i status „awaria” źródła.
 
 Dane przykładowe w prototypie są oznaczone tagiem i stałym banerem „PRZYKŁAD”.
 

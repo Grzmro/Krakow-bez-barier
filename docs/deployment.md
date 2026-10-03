@@ -37,11 +37,11 @@ database tasks on GitHub Actions. Steps marked **owner** need repository admin r
    secret*: `DATABASE_URL` = the direct string.
 3. **Schema and demo places.** Actions → *Database* → Run workflow → tick *seed*. It runs
    `npm run db:migrate` and `npm run db:seed` (`npm run db:setup` does the same from a laptop with
-   `DATABASE_URL` exported). Safe to run again. The seed is not sample data: it holds the 19 demo
-   places of `docs/demo-data.md` with real values from OpenStreetMap and the MSIP toilets layer (a
-   snapshot of 2026-10-03, labelled as such in the source row) and is what gives the demo its
-   changing-table conflict while MSIP cannot be ingested live. Ingest later upserts the same places
-   by their `osm:` reference.
+   `DATABASE_URL` exported). Safe to run again. The seed is not sample data: it holds the demo
+   places of `docs/demo-data.md` with real values from OpenStreetMap (a snapshot of 2026-10-03) and
+   lists the MSIP toilets source as withheld (not open data, KBB-133; no MSIP facts are seeded or served).
+   City toilet facts come from `npm run ingest -- --city krakow --source krakow-pl-toilets`. Ingest
+   later upserts the same places by their `osm:` reference.
 4. **Vercel (owner installs the GitHub app, KBB-45).** Import the repo with Root Directory
    `apps/web` (`apps/web/vercel.json` sets the framework and the Frankfurt region). **Name the
    project `kbb-<random token>`** (`echo "kbb-$(openssl rand -hex 12)"`), so the address
@@ -77,7 +77,7 @@ database tasks on GitHub Actions. Steps marked **owner** need repository admin r
    seeded data, place card, widget, docs and CORS, but not which data the UI uses: also open the
    site and expect real places (`Czarna kaczka`, ...), not the example set. If you see examples,
    `NEXT_PUBLIC_API_MOCK` was `true` at build time.
-7. **Live outage demo.** Set `SIMULATE_SOURCE_OUTAGE=msip-toilets` and `ALLOW_SIMULATED_OUTAGE=true`
+7. **Live outage demo.** Set `SIMULATE_SOURCE_OUTAGE=krakow-pl-toilets` and `ALLOW_SIMULATED_OUTAGE=true`
    in Vercel, redeploy, show the stale card and *O danych*, then remove both and redeploy.
 
 Cost: Vercel Hobby and Neon Free are enough for the demo; the plan for running costs after the
