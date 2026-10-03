@@ -1,3 +1,4 @@
+import type { AccessibilityAttribute } from "@krakow-bez-barier/contracts";
 import type { Reliability, Status } from "@krakow-bez-barier/ui";
 
 // App shell and shared components. Screen-specific copy goes in its own file next to this one.
@@ -19,6 +20,8 @@ export const common = {
   menu: {
     title: "Menu",
     description: "Strony dodatkowe",
+    profile: "Profil potrzeb",
+    profileSub: "Wózek, wózek dziecięcy, progi",
     aboutData: "O danych",
     aboutDataSub: "Źródła, licencje, wiarygodność",
     moderator: "Panel moderatora",
@@ -34,6 +37,24 @@ export const common = {
     conflict: "Sprzeczne",
     unknown: "Brak danych",
   } satisfies Record<Status, string>,
+  attribute: {
+    step_count: "Wejście — stopnie",
+    step_height_cm: "Wysokość stopnia",
+    threshold_cm: "Próg",
+    ramp: "Podjazd",
+    lift: "Winda",
+    door_width_cm: "Szerokość drzwi",
+    entrance_level: "Poziom wejścia",
+    toilet_accessible: "Toaleta dostosowana",
+    changing_table: "Przewijak",
+    surface: "Nawierzchnia dojścia",
+    smoothness: "Równość nawierzchni",
+    incline_pct: "Nachylenie",
+    kerb_height_cm: "Wysokość krawężnika",
+    bench: "Miejsca odpoczynku",
+    disabled_parking: "Parking dla osób z niepełnosprawnościami",
+    wheelchair_overall: "Ogólna dostępność (OSM)",
+  } satisfies Record<AccessibilityAttribute, string>,
   unconfirmed: "niepotwierdzone",
   reliability: {
     confirmed: "Potwierdzone",

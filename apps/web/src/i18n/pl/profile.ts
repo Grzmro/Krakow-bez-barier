@@ -26,6 +26,10 @@ const profileName = { wheelchair: "Wózek", stroller: "Wózek dziecięcy" } sati
 
 // Needs profiles (E2). Every label names a barrier or facility — never a disability (R4).
 export const profile = {
+  page: {
+    title: "Profil potrzeb",
+    lead: "Włącz profil, a przy każdym miejscu zobaczysz, czy pasuje do Twoich progów — i dlaczego.",
+  },
   switch: {
     label: "Profil potrzeb",
     off: "Dla każdego",

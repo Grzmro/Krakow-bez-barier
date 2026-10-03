@@ -7,6 +7,8 @@ export { Badge, badgeVariants } from "./components/badge";
 export { Button, buttonVariants } from "./components/button";
 export { LabeledSwitch, type LabeledSwitchProps } from "./components/labeled-switch";
 export { Toaster, toast } from "./components/sonner";
+export { Switch } from "./components/switch";
+export { Toggle, ToggleGroup, toggleVariants } from "./components/toggle";
 export {
   VaulDrawer,
   VaulDrawerClose,

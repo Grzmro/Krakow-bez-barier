@@ -2,7 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { CaretRight, Database, Gavel, List, PersonArmsSpread, ShieldCheck, type Icon } from "@phosphor-icons/react";
+import {
+  CaretRight,
+  Database,
+  Gavel,
+  List,
+  PersonArmsSpread,
+  ShieldCheck,
+  SlidersHorizontal,
+  type Icon,
+} from "@phosphor-icons/react";
 import {
   Button,
   LogoMark,
@@ -19,6 +28,8 @@ import { NearMe } from "./near-me";
 const t = pl.common;
 
 const MENU: { href: string; icon: Icon; title: string; sub: string }[] = [
+  // TODO(KBB-41): drop once the profile lives on the home screen.
+  { href: routes.profile, icon: SlidersHorizontal, title: t.menu.profile, sub: t.menu.profileSub },
   { href: routes.aboutData, icon: Database, title: t.menu.aboutData, sub: t.menu.aboutDataSub },
   { href: routes.moderator, icon: Gavel, title: t.menu.moderator, sub: t.menu.moderatorSub },
   { href: routes.privacy, icon: ShieldCheck, title: t.menu.privacy, sub: t.menu.privacySub },

@@ -1,4 +1,4 @@
-import type { AccessibilityAttribute, Category, Reliability, components } from "@krakow-bez-barier/contracts";
+import type { Category,Reliability, components } from "@krakow-bez-barier/contracts";
 
 type SourceKind = components["schemas"]["SourceKind"];
 type SourceRefreshStatus = components["schemas"]["SourceRefreshStatus"];
@@ -87,24 +87,6 @@ export const place = {
     shop: "Handel",
     other: "Inne",
   } satisfies Record<Category, string>,
-  attribute: {
-    step_count: "Wejście — stopnie",
-    step_height_cm: "Wysokość stopnia",
-    threshold_cm: "Próg",
-    ramp: "Podjazd",
-    lift: "Winda",
-    door_width_cm: "Szerokość drzwi",
-    entrance_level: "Poziom wejścia",
-    toilet_accessible: "Toaleta dostosowana",
-    changing_table: "Przewijak",
-    surface: "Nawierzchnia dojścia",
-    smoothness: "Równość nawierzchni",
-    incline_pct: "Nachylenie",
-    kerb_height_cm: "Wysokość krawężnika",
-    bench: "Miejsca odpoczynku",
-    disabled_parking: "Parking dla osób z niepełnosprawnościami",
-    wheelchair_overall: "Ogólna dostępność (OSM)",
-  } satisfies Record<AccessibilityAttribute, string>,
   value: {
     yes: "Jest",
     no: "Nie ma",

@@ -6,10 +6,10 @@ const row = (page: import("@playwright/test").Page, name: string) =>
 
 test("wheelchair profile shows verdicts, announces counts and keeps the search", async ({ page, expectAccessible, evidence }) => {
   // GIVEN a visitor who searched for the sample places
-  await page.goto("/");
+  await page.goto("/profil");
   const search = page.getByRole("searchbox", { name: "Szukaj miejsca" });
   await search.fill("przyk");
-  await expect(page.getByRole("heading", { name: /Miejsca · 3 miejsca/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Miejsca · 5 miejsc/ })).toBeVisible();
   await expect(page.getByText("Spełnia")).toHaveCount(0);
 
   // WHEN they turn on the wheelchair profile with one click
@@ -21,14 +21,14 @@ test("wheelchair profile shows verdicts, announces counts and keeps the search",
   await expect(row(page, "Restauracja Przykład")).toContainText("Nie spełnia · 2 stopnie");
   await expect(row(page, "Kawiarnia Przykład")).toContainText("Brak danych");
   await expect(liveRegion(page)).toHaveText(
-    "Profil: wózek. 3 miejsca: 1 spełnia, 1 nie spełnia, 1 brak danych, 0 sprzeczne.",
+    "Profil: wózek. 5 miejsc: 1 spełnia, 1 nie spełnia, 3 brak danych, 0 sprzeczne.",
   );
 
   // AND hiding failing places announces the new count
   await page.getByRole("switch", { name: "Ukryj niespełniające" }).check();
   await expect(row(page, "Restauracja Przykład")).toHaveCount(0);
   await expect(liveRegion(page)).toHaveText(
-    "Profil: wózek. 2 miejsca (ukryto niespełniające: 1): 1 spełnia, 0 nie spełnia, 1 brak danych, 0 sprzeczne.",
+    "Profil: wózek. 4 miejsca (ukryto niespełniające: 1): 1 spełnia, 0 nie spełnia, 3 brak danych, 0 sprzeczne.",
   );
 
   // AND the card groups explain the verdict
@@ -44,7 +44,7 @@ test("wheelchair profile shows verdicts, announces counts and keeps the search",
 
 test("thresholds change verdicts, persist in the browser and reset to defaults", async ({ page, expectAccessible, evidence }) => {
   // GIVEN the wheelchair profile is on
-  await page.goto("/");
+  await page.goto("/profil");
   await page.getByRole("radio", { name: "Wózek", exact: true }).check();
   await expect(row(page, "Hotel Przykład")).toContainText("Spełnia");
 
@@ -76,7 +76,7 @@ test("thresholds change verdicts, persist in the browser and reset to defaults",
 
 test("no-data and conflicting places never meet a profile; turning it off returns the neutral view", async ({ page }) => {
   // GIVEN the stroller profile
-  await page.goto("/");
+  await page.goto("/profil");
   await page.getByRole("radio", { name: "Wózek dziecięcy" }).check();
 
   // THEN the incomplete and conflicting demo places are not "Spełnia"
@@ -93,7 +93,7 @@ test("no-data and conflicting places never meet a profile; turning it off return
 
 test("profile switch works from the keyboard", async ({ page }) => {
   // GIVEN the home page
-  await page.goto("/");
+  await page.goto("/profil");
   await page.getByRole("searchbox", { name: "Szukaj miejsca" }).focus();
 
   // WHEN a keyboard user tabs into the profile group and presses the arrow key

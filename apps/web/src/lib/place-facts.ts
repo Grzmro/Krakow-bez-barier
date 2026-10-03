@@ -117,7 +117,7 @@ export function factViews(place: Place): FactView[] {
     return (byAttribute.get(attribute)?.facts.length ?? 0) > 0;
   }).map((attribute) => {
     const resolved = byAttribute.get(attribute);
-    const label = t.attribute[attribute];
+    const label = pl.common.attribute[attribute];
     if (!resolved || resolved.state === "unknown" || resolved.facts.length === 0) {
       return { attribute, label, reliability: "unknown", sources: [], unknown: true, conflict: false };
     }
