@@ -77,6 +77,44 @@ test("a number out of the contract's range is explained in text and not sent", a
   await expect(page.locator("li").filter({ has: door })).toContainText("Twoje zgłoszenie:90 cm");
 });
 
+test("swiping the attribute chips scrolls only the chip row, not the sheet or the page", async ({ page }) => {
+  // GIVEN the "Uzupełnij dane" sheet of the incomplete demo place, opened from a scrolled card
+  await page.goto("/miejsca/kawiarnia-przyklad");
+  const fill = page.getByRole("button", { name: "Uzupełnij" }).last();
+  await fill.scrollIntoViewIfNeeded();
+  const pageScroll = await page.evaluate(() => window.scrollY);
+  await fill.click();
+  const drawer = page.getByRole("dialog", { name: "Uzupełnij dane" });
+  const chips = drawer.getByRole("group", { name: "Która cecha?" }).locator("[data-vaul-no-drag]");
+  const form = drawer.locator("form");
+  await expect(chips).toBeVisible();
+  await drawer.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+  // AND the sheet is only as wide as the screen: the chips overflow their row, not the form
+  expect(await form.evaluate((el) => el.scrollWidth - el.clientWidth)).toBe(0);
+  expect(await chips.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
+  const title = drawer.getByRole("heading", { name: "Uzupełnij dane" });
+  const titleX = (await title.boundingBox())!.x;
+  const startScroll = await chips.evaluate((el) => el.scrollLeft);
+
+  // WHEN the visitor swipes the chips to the left with a finger, drifting down a little
+  const box = (await chips.boundingBox())!;
+  const touch = await page.context().newCDPSession(page);
+  const x = box.x + box.width - 40;
+  const y = box.y + box.height / 2;
+  await touch.send("Input.dispatchTouchEvent", { type: "touchStart", touchPoints: [{ x, y }] });
+  for (let step = 1; step <= 15; step++) {
+    await touch.send("Input.dispatchTouchEvent", { type: "touchMove", touchPoints: [{ x: x - step * 15, y: y + step }] });
+  }
+  await touch.send("Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+
+  // THEN only the chip row moved: the sheet's content, the sheet and the page behind stay put
+  await expect.poll(() => chips.evaluate((el) => el.scrollLeft)).toBeGreaterThan(startScroll);
+  expect(await form.evaluate((el) => el.scrollLeft)).toBe(0);
+  expect((await title.boundingBox())!.x).toBe(titleX);
+  expect(await page.evaluate(() => window.scrollY)).toBe(pageScroll);
+  await expect(drawer).toBeVisible();
+});
+
 test("Cofnij withdraws the report before it is sent", async ({ page }) => {
   // GIVEN a report just submitted for the ramp of the outdated demo place
   await page.goto("/miejsca/teatr-slowackiego");
