@@ -21,10 +21,10 @@
     - listitem: Pinezki na mapie są ukryte przed czytnikami ekranu i nie da się do nich przejść klawiszem Tab — te same miejsca są na liście.
     - listitem: Nie sprawdzaliśmy trybu wysokiego kontrastu systemu.
     - listitem: Część danych jest przykładowa; oznaczamy ją „PRZYKŁAD”.
-    - listitem: Brak wersji angielskiej.
+    - listitem: Nazw miejsc i wartości z danych źródłowych nie tłumaczymy na angielski.
   - heading "Plan usunięcia ograniczeń" [level=2]
   - list:
     - listitem: "Przed pilotażem: ręczne testy głównego scenariusza z VoiceOver, TalkBack i NVDA oraz audyt WCAG 2.2 AA."
     - listitem: "W pilotażu: testy z osobami na wózkach i rodzicami z wózkami dziecięcymi."
-    - listitem: "Po pilotażu: tryb wysokiego kontrastu i wersja angielska."
+    - listitem: "Po pilotażu: tryb wysokiego kontrastu."
   - paragraph: Uwagi o dostępności zgłoś zespołowi projektu — poprawimy je przed pilotażem.

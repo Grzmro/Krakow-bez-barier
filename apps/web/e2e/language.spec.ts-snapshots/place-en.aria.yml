@@ -1,0 +1,104 @@
+- main:
+  - article "Hotel Przykład":
+    - text: No photo Sample data
+    - heading "Hotel Przykład" [level=1]
+    - paragraph: Hotel · ul. Sienna 5, Kraków
+    - paragraph: "How to reach the entrance: Wejście główne od ul. Siennej, bez progu."
+    - button "Share":
+      - img
+      - text: ""
+    - link "How do we know?":
+      - /url: "#skad-wiemy"
+      - img
+      - text: ""
+    - region "Facts":
+      - heading "Facts" [level=2]
+      - paragraph: We show specific data, with no overall rating. Expand a feature to see its source and date.
+      - list:
+        - listitem:
+          - 'button "Entrance — steps: No steps. Reliability: Confirmed."': Entrance — steps No steps Confirmed
+          - button "This isn't right":
+            - img
+            - text: ""
+          - button "I confirm, I've been here":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Threshold: 1 cm. Reliability: Confirmed."': Threshold 1 cm Confirmed
+          - button "This isn't right":
+            - img
+            - text: ""
+          - button "I confirm, I've been here":
+            - img
+            - text: ""
+        - listitem:
+          - 'button /Door width: \d+ cm\. Reliability: Confirmed\./': /Door width \d+ cm Confirmed/
+          - button "This isn't right":
+            - img
+            - text: ""
+          - button "I confirm, I've been here":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Lift: Yes. Reliability: Unverified."': Lift Yes Unverified
+          - button "This isn't right":
+            - img
+            - text: ""
+          - button "I confirm, I've been here":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Path surface: No data. Reliability: No data."': Path surface No data No data
+          - button "Fill in":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Accessible toilet: Yes. Reliability: Confirmed."': Accessible toilet Yes Confirmed
+          - button "This isn't right":
+            - img
+            - text: ""
+          - button "I confirm, I've been here":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Places to rest: No data. Reliability: No data."': Places to rest No data No data
+          - button "Fill in":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Disabled parking: No data. Reliability: No data."': Disabled parking No data No data
+          - button "Fill in":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Baby changing table: No data. Reliability: No data."': Baby changing table No data No data
+          - button "Fill in":
+            - img
+            - text: ""
+    - paragraph: Something unknown? Ask the venue or fill it in.
+    - button "Fill in":
+      - img
+      - text: ""
+    - region "How do we know?":
+      - heading "How do we know?" [level=2]
+      - paragraph: Data sources for this place, their licences and refresh status.
+      - list:
+        - listitem:
+          - paragraph: Dane obiektu Sample data
+          - paragraph: "Venue manager · Licence: Udostępnione przez obiekt"
+          - paragraph: /Working · Last successful fetch \d+\/\d+\/\d+/
+        - listitem:
+          - paragraph: OpenStreetMap
+          - paragraph: "Community · Licence: ODbL 1.0"
+          - paragraph: /Working · Last successful fetch \d+\/\d+\/\d+/
+          - paragraph: © OpenStreetMap contributors
+          - link "www.openstreetmap.org":
+            - /url: https://www.openstreetmap.org
+      - paragraph: /2 sources · latest \d+\/\d+\/\d+/
+      - link "About the data":
+        - /url: /o-danych
+        - img
+        - text: ""
+      - link "Edit in OpenStreetMap":
+        - /url: https://www.openstreetmap.org/edit?node=987654
+      - paragraph: Fix the data at the source — it reaches us with the next fetch.

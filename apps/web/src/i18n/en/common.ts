@@ -1,0 +1,85 @@
+import type { Messages } from "../messages";
+
+export const common: Messages["common"] = {
+  app: {
+    name: "Kraków bez barier",
+    description:
+      "Check whether a place in Kraków fits your needs — specific barriers and facilities, each with its source and date.",
+    close: "Close",
+    back: "Back",
+  },
+  layout: {
+    skipToContent: "Skip to content",
+    sampleBanner: "SAMPLE — prototype, data may be sample data",
+    mainNav: "Main navigation",
+    homeLink: "Kraków bez barier — home page",
+    openMenu: "Menu",
+  },
+  menu: {
+    title: "Menu",
+    description: "More pages and settings",
+    aboutData: "About the data",
+    aboutDataSub: "Sources, licences, reliability",
+    business: "For businesses: widget and API",
+    businessSub: "Accessibility card on your website",
+    moderator: "Moderator panel",
+    moderatorSub: "Report queue",
+    privacy: "Privacy",
+    privacySub: "What we collect and for how long",
+    a11y: "Accessibility statement",
+    a11ySub: "What works, known limitations",
+  },
+  language: {
+    label: "Language",
+  },
+  status: {
+    met: "Meets",
+    barrier: "Doesn't meet",
+    conflict: "Conflicting",
+    unknown: "No data",
+  },
+  attribute: {
+    step_count: "Entrance — steps",
+    step_height_cm: "Step height",
+    threshold_cm: "Threshold",
+    ramp: "Ramp",
+    lift: "Lift",
+    door_width_cm: "Door width",
+    entrance_level: "Level entrance",
+    toilet_accessible: "Accessible toilet",
+    changing_table: "Baby changing table",
+    surface: "Path surface",
+    smoothness: "Surface smoothness",
+    incline_pct: "Incline",
+    kerb_height_cm: "Kerb height",
+    bench: "Places to rest",
+    disabled_parking: "Disabled parking",
+    wheelchair_overall: "Overall accessibility (OSM)",
+    levels: "Storeys",
+  },
+  unconfirmed: "unconfirmed",
+  reliability: {
+    confirmed: "Confirmed",
+    unverified: "Unverified",
+    outdated: "Outdated",
+    conflict: "Conflicting",
+    unknown: "No data",
+  },
+  sample: {
+    tag: "Sample",
+    aria: "Sample data",
+  },
+  fact: {
+    source: "Source",
+    acquired: "Collected",
+    noValue: "No data",
+    noSources: "Nobody has checked yet.",
+    maybeOutdated: (date: string) => `May be outdated · ${date}`,
+    aria: (label: string, value: string, reliability: string, status?: string) =>
+      `${label}: ${value}. ${status ? `${status}. ` : ""}Reliability: ${reliability}.`,
+  },
+  bottomPanel: {
+    expand: "Expand sheet",
+    collapse: "Collapse sheet",
+  },
+};

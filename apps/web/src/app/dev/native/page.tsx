@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
-import { pl } from "@/i18n/pl";
+import { getMessages } from "@/i18n/server";
 import { NativePreview } from "./native-preview";
 
-const t = pl.nearby.devPage;
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await getMessages();
+  return { title: `${m.nearby.devPage.title} · ${m.common.app.name}`, robots: { index: false, follow: false } };
+}
 
-export const metadata: Metadata = {
-  title: `${t.title} · ${pl.common.app.name}`,
-  robots: { index: false, follow: false },
-};
-
-export default function DevNativePage() {
+export default async function DevNativePage() {
+  const t = (await getMessages()).nearby.devPage;
   return (
     <main id="main" tabIndex={-1} className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
       <header className="space-y-2">

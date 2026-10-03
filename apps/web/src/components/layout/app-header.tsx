@@ -23,13 +23,13 @@ import {
   VaulDrawerTitle,
   VaulDrawerTrigger,
 } from "@krakow-bez-barier/ui";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
+import type { Messages } from "@/i18n/messages";
 import { isWidgetRoute, routes } from "@/lib/routes";
+import { LanguageSwitch } from "./language-switch";
 import { NearMe } from "./near-me";
 
-const t = pl.common;
-
-const MENU: { href: string; icon: Icon; title: string; sub: string }[] = [
+const menu = (t: Messages["common"]): { href: string; icon: Icon; title: string; sub: string }[] => [
   { href: routes.route(), icon: Path, title: t.menu.route, sub: t.menu.routeSub },
   { href: routes.aboutData, icon: Database, title: t.menu.aboutData, sub: t.menu.aboutDataSub },
   { href: routes.business, icon: Storefront, title: t.menu.business, sub: t.menu.businessSub },
@@ -39,6 +39,7 @@ const MENU: { href: string; icon: Icon; title: string; sub: string }[] = [
 ];
 
 export function AppHeader() {
+  const t = useMessages().common;
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   if (isWidgetRoute(pathname)) return null;
@@ -70,7 +71,7 @@ export function AppHeader() {
               <NearMe />
             </div>
             <ul className="mt-3 space-y-1">
-              {MENU.map(({ href, icon: I, title, sub }) => (
+              {menu(t).map(({ href, icon: I, title, sub }) => (
                 <li key={href}>
                   <Link
                     href={href}
@@ -89,6 +90,7 @@ export function AppHeader() {
                 </li>
               ))}
             </ul>
+            <LanguageSwitch className="mt-4 px-2" />
           </div>
         </VaulDrawerContent>
       </VaulDrawer>

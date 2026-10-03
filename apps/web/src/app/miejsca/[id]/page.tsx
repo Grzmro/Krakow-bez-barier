@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { pl } from "@/i18n/pl";
+import { getMessages } from "@/i18n/server";
 import { PlaceScreen } from "./place-screen";
 
-export const metadata: Metadata = {
-  title: `${pl.place.pageTitle} · ${pl.common.app.name}`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await getMessages();
+  return { title: `${m.place.pageTitle} · ${m.common.app.name}` };
+}
 
 // A shareable, account-free link: everything the card needs comes from the API by id.
 export default async function PlacePage({ params }: PageProps<"/miejsca/[id]">) {

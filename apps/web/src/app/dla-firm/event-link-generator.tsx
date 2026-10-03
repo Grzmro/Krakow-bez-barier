@@ -3,14 +3,13 @@
 import { useDeferredValue, useId, useState } from "react";
 import { ArrowSquareOut } from "@phosphor-icons/react";
 import { buttonVariants, cn } from "@krakow-bez-barier/ui";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
 import { EVENT_NAME_MAX } from "@/lib/event-link";
 import { usePlaces } from "@/lib/places";
 import { routes } from "@/lib/routes";
 import { useOrigin } from "@/lib/use-origin";
 import { CodeBlock } from "./code-block";
 
-const t = pl.business.event;
 
 const PLACES_SHOWN = 50;
 
@@ -19,6 +18,7 @@ const fieldClass =
 
 /** Organizer picks a venue, names the event and gets a shareable link to its event page. */
 export function EventLinkGenerator() {
+  const t = useMessages().business.event;
   const ids = { search: useId(), searchHint: useId(), place: useId(), name: useId(), date: useId() };
   const origin = useOrigin();
   const [search, setSearch] = useState("");

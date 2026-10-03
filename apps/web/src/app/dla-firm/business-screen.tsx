@@ -3,14 +3,13 @@
 import { Bed, LockSimple } from "@phosphor-icons/react";
 import { API_BASE_PATH } from "@krakow-bez-barier/contracts";
 import { InfoSection } from "@/components/layout/info-page";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
 import { routes } from "@/lib/routes";
 import { useOrigin } from "@/lib/use-origin";
 import { useWidgetCard } from "@/lib/use-widget-card";
 import { CodeBlock } from "./code-block";
 import { EventLinkGenerator } from "./event-link-generator";
 
-const t = pl.business.page;
 
 const DEMO_PLACE_ID = "hotel-przyklad";
 const IFRAME_HEIGHT = 640;
@@ -24,6 +23,8 @@ function embedSnippet(origin: string, placeId: string, title: string) {
 }
 
 export function BusinessScreen() {
+  const m = useMessages();
+  const t = m.business.page;
   const origin = useOrigin();
   const widget = useWidgetCard(DEMO_PLACE_ID);
   const iframeTitle = t.iframeTitle(t.hotelName);
@@ -62,7 +63,7 @@ export function BusinessScreen() {
         <CodeBlock code={embedSnippet(origin, DEMO_PLACE_ID, iframeTitle)} label={t.codeLabel} copyLabel={t.copyCode} />
       </InfoSection>
 
-      <InfoSection title={pl.business.event.title}>
+      <InfoSection title={m.business.event.title}>
         <EventLinkGenerator />
       </InfoSection>
 

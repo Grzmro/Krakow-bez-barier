@@ -2,9 +2,8 @@
 
 import { Copy } from "@phosphor-icons/react";
 import { Button, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
 
-const t = pl.business.page;
 
 /** Read-only code or link with a copy button; the copy result is shown and announced. */
 export function CodeBlock({
@@ -19,6 +18,7 @@ export function CodeBlock({
   /** Wrap long lines (a link) instead of scrolling sideways (code). */
   wrap?: boolean;
 }) {
+  const t = useMessages().business.page;
   const announce = useAnnounce();
   const copy = async () => {
     try {

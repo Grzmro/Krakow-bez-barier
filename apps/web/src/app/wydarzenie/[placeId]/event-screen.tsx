@@ -6,7 +6,7 @@ import { ArrowRight, Bus, Car, CalendarBlank, DoorOpen, MapPin, Printer, Toilet,
 import type { Place } from "@krakow-bez-barier/contracts";
 import { Button, LogoMark, buttonVariants, cn } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge, SampleTag } from "@/components/kbb";
-import { pl } from "@/i18n/pl";
+import { useLocale, useMessages } from "@/i18n/client";
 import type { EventDetails } from "@/lib/event-link";
 import { eventSections, formatEventDate, type EventSectionId } from "@/lib/event-page";
 import { failedSources, formatDate, latestSourceDate, type FactView } from "@/lib/place-facts";
@@ -14,11 +14,11 @@ import { usePlace } from "@/lib/places";
 import { routes } from "@/lib/routes";
 import { useOrigin } from "@/lib/use-origin";
 
-const t = pl.event;
 
 const SECTION_ICON: Record<EventSectionId, Icon> = { entrance: DoorOpen, toilet: Toilet, parking: Car };
 
 export function EventScreen({ placeId, details }: { placeId: string; details: EventDetails }) {
+  const t = useMessages().event;
   const query = usePlace(placeId, {});
 
   if (query.isPending) {
@@ -68,7 +68,9 @@ function Card({ id, title, icon: CardIcon, children }: { id: string; title: stri
 }
 
 function FactItem({ fact }: { fact: FactView }) {
-  const value = fact.unknown ? pl.common.fact.noValue : [fact.value, fact.unit].filter(Boolean).join(" ");
+  const m = useMessages();
+  const t = m.event;
+  const value = fact.unknown ? m.common.fact.noValue : [fact.value, fact.unit].filter(Boolean).join(" ");
   return (
     <li className="py-2.5 break-inside-avoid">
       <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
@@ -95,8 +97,11 @@ function FactItem({ fact }: { fact: FactView }) {
 }
 
 function EventSheet({ place, details }: { place: Place; details: EventDetails }) {
+  const m = useMessages();
+  const t = m.event;
+  const locale = useLocale();
   const origin = useOrigin();
-  const sections = eventSections(place);
+  const sections = eventSections(place, locale);
   const latest = latestSourceDate(place);
   const failed = new Set(failedSources(place).map((s) => s.id));
   const address = [[place.address?.street, place.address?.houseNumber].filter(Boolean).join(" "), place.address?.city]
@@ -135,7 +140,7 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
             <dt className="sr-only">{t.date}</dt>
             <dd className="flex gap-2">
               <CalendarBlank weight="fill" className="mt-0.5 size-[18px] shrink-0 text-primary" aria-hidden />
-              <span className="font-semibold first-letter:uppercase">{formatEventDate(details.date)}</span>
+              <span className="font-semibold first-letter:uppercase">{formatEventDate(details.date, locale)}</span>
             </dd>
           </div>
         ) : null}
@@ -171,7 +176,7 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
                 <span className="font-semibold">{source.name}</span>
                 {source.isSample ? <SampleTag className="ml-2 align-middle" /> : null}
                 <span className="text-muted-foreground">
-                  {` · ${t.lastSuccess(source.lastSuccessAt ? formatDate(source.lastSuccessAt) : undefined)}`}
+                  {` · ${t.lastSuccess(source.lastSuccessAt ? formatDate(source.lastSuccessAt, locale) : undefined)}`}
                   {source.attribution ? ` · ${source.attribution}` : null}
                 </span>
                 {failed.has(source.id) ? (
@@ -183,7 +188,7 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
         ) : (
           <p className="mt-2 text-body-sm text-muted-foreground">{t.sourcesNone}</p>
         )}
-        {latest ? <p className="mt-2 text-caption text-muted-foreground">{t.updated(formatDate(latest))}</p> : null}
+        {latest ? <p className="mt-2 text-caption text-muted-foreground">{t.updated(formatDate(latest, locale))}</p> : null}
       </section>
 
       <div className="mt-6 flex flex-wrap items-center gap-2 print:hidden">
@@ -201,7 +206,7 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
         <p className="break-all">{t.fullCardPrint(`${origin}${fullCard}`)}</p>
         <p className="mt-1 flex items-center gap-1.5 font-semibold">
           <LogoMark className="size-4" />
-          {pl.common.app.name}
+          {m.common.app.name}
         </p>
       </footer>
     </article>

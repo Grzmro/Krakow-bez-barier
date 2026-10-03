@@ -4,7 +4,7 @@ import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Bank, Bed, Bus, Car, Church, ForkKnife, MapPin, MaskHappy, Pill, ShoppingBag, Toilet, type Icon } from "@phosphor-icons/react";
 import type { Category, CategoryDefinition } from "@krakow-bez-barier/contracts";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
 import { api } from "./api";
 
 /** Icon keys the category config may use (`packages/contracts/src/categories.ts`); an unknown key shows a pin. */
@@ -27,8 +27,9 @@ export const ICON_KEYS = Object.keys(ICONS);
 
 export const categoryIcon = (key: string | undefined): Icon => (key && ICONS[key]) || MapPin;
 
-/** `GET /categories`: the categories configured for this deployment, in display order. */
+/** `GET /categories`: the categories configured for this deployment, in display order, in the UI language. */
 export function useCategories() {
+  const names = useMessages().place.categoryNames;
   return useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
@@ -36,6 +37,7 @@ export function useCategories() {
       if (error) throw error;
       return data.items;
     },
+    select: (items) => items.map((c) => ({ ...c, ...names[c.id] })),
     staleTime: Infinity,
   });
 }
@@ -43,12 +45,13 @@ export function useCategories() {
 /** Label and icon for a category id; works before the list loads and for ids the list lacks. */
 export function useCategoryLookup() {
   const { data } = useCategories();
+  const fallback = useMessages().place.category as Record<string, string>;
   return useCallback(
     (id: Category): { label: string; icon: Icon } => {
       const found: CategoryDefinition | undefined = data?.find((c) => c.id === id);
-      const fallbackLabel = (pl.place.category as Record<string, string>)[id] ?? id;
+      const fallbackLabel = fallback[id] ?? id;
       return { label: found?.singularLabel ?? fallbackLabel, icon: categoryIcon(found?.icon) };
     },
-    [data],
+    [data, fallback],
   );
 }

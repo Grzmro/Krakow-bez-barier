@@ -12,6 +12,8 @@ import {
 import { FEATURE_ATTRIBUTES, featureState } from "@/server/domain/features";
 import { matchProfile } from "@/server/domain/matcher";
 import { thresholdsFor } from "@/server/domain/profiles";
+import { defaultLocale, type Locale } from "@/i18n/locale";
+import { messagesFor } from "@/i18n/messages";
 
 // TODO(KBB-46): delete this layer once the front runs on the real places API by default.
 // In-browser stand-in for the places API (used while NEXT_PUBLIC_API_MOCK is on), built only from the
@@ -84,20 +86,42 @@ function matchesText(summary: PlaceSummary, q: string) {
 
 const HIDDEN_BY_DEFAULT = new Set(categories.filter((c) => c.hiddenByDefault).map((c) => c.id));
 
-export function mockListPlaces(query: ListPlacesQuery = {}): PlaceList {
+/**
+ * The examples' chip labels are written in Polish. In another language, a labelled chip of a place with facts is
+ * labelled like the API does; other chips lose the label, so the list falls back to the attribute name and state.
+ */
+function localizedChips(summary: PlaceSummary, locale: Locale): PlaceSummary {
+  if (locale === defaultLocale) return summary;
+  const place = PLACES.find((p) => p.id === summary.id);
+  const chip = messagesFor(locale).summary.chip;
+  return {
+    ...summary,
+    summary: summary.summary.map(({ attribute, state, status, label }) => {
+      const resolved = label ? place?.attributes.find((a) => a.attribute === attribute) : undefined;
+      return resolved
+        ? { attribute, state, status, label: chip(attribute, resolved.state, resolved.value) }
+        : { attribute, state, status };
+    }),
+  };
+}
+
+export function mockListPlaces(query: ListPlacesQuery = {}, locale: Locale = defaultLocale): PlaceList {
   const thresholds = thresholdsFor(query);
   const items = SUMMARIES.filter((s) => (query.q ? matchesText(s, query.q) : true))
     .filter((s) => (query.category?.length ? query.category.includes(s.category) : !HIDDEN_BY_DEFAULT.has(s.category)))
     .filter((s) => inBbox(s, query.bbox))
     .map((s) => withFeatures(s, query))
     .filter((s) => hasFeatures(s, query))
-    .map((s) => ({ ...s, verdict: thresholds ? matchProfile(factsOf(s), thresholds) : null }));
+    .map((s) => ({
+      ...localizedChips(s, locale),
+      verdict: thresholds ? matchProfile(factsOf(s), thresholds, locale) : null,
+    }));
   return { items, nextCursor: null, total: items.length };
 }
 
-export function mockGetPlace(id: string, query: GetPlaceQuery = {}): Place | null {
+export function mockGetPlace(id: string, query: GetPlaceQuery = {}, locale: Locale = defaultLocale): Place | null {
   const place = PLACES.find((p) => p.id === id);
   if (!place) return null;
   const thresholds = thresholdsFor(query);
-  return { ...place, verdict: thresholds ? matchProfile(place, thresholds) : null };
+  return { ...place, verdict: thresholds ? matchProfile(place, thresholds, locale) : null };
 }

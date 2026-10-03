@@ -1,4 +1,6 @@
-// Shared components from @krakow-bez-barier/ui with their Polish copy bound from i18n/pl/common.
+"use client";
+
+// Shared components from @krakow-bez-barier/ui with their copy bound from the `common` messages area.
 // Screens import from here so status words, reliability labels and PRZYKŁAD stay consistent.
 import {
   BottomPanel as UiBottomPanel,
@@ -15,29 +17,32 @@ import {
   type StatusBadgeProps,
   type VerdictBlockProps,
 } from "@krakow-bez-barier/ui";
-import { pl } from "@/i18n/pl";
-
-const t = pl.common;
+import { useMessages } from "@/i18n/client";
 
 type Unconfirmed = { unconfirmed?: boolean };
 
 export function StatusBadge({ unconfirmed, ...props }: Omit<StatusBadgeProps, "label" | "note"> & Unconfirmed) {
+  const t = useMessages().common;
   return <UiStatusBadge {...props} label={t.status[props.status]} note={unconfirmed ? t.unconfirmed : undefined} />;
 }
 
 export function VerdictBlock({ unconfirmed, ...props }: Omit<VerdictBlockProps, "label" | "note"> & Unconfirmed) {
+  const t = useMessages().common;
   return <UiVerdictBlock {...props} label={t.status[props.status]} note={unconfirmed ? t.unconfirmed : undefined} />;
 }
 
 export function ReliabilityBadge({ value, className }: { value: Reliability; className?: string }) {
+  const t = useMessages().common;
   return <UiReliabilityBadge value={value} label={t.reliability[value]} className={className} />;
 }
 
 export function SampleTag({ className }: { className?: string }) {
+  const t = useMessages().common;
   return <UiSampleTag label={t.sample.tag} ariaLabel={t.sample.aria} className={className} />;
 }
 
 export function SampleBanner({ className }: { className?: string }) {
+  const t = useMessages().common;
   return <UiSampleBanner text={t.layout.sampleBanner} className={className} />;
 }
 
@@ -47,6 +52,7 @@ type FactRowBoundProps = Omit<FactRowProps, "labels" | "status" | "reliability">
 };
 
 export function FactRow({ status, reliability, ...props }: FactRowBoundProps) {
+  const t = useMessages().common;
   const known = props.value !== undefined && props.value !== "";
   const value = known ? [props.value, props.unit].filter(Boolean).join(" ") : t.fact.noValue;
   const shown = props.limit ? `${value} (${props.limit})` : value;
@@ -65,5 +71,6 @@ export function FactRow({ status, reliability, ...props }: FactRowBoundProps) {
 }
 
 export function BottomPanel(props: Omit<BottomPanelProps, "toggleLabels">) {
+  const t = useMessages().common;
   return <UiBottomPanel {...props} toggleLabels={t.bottomPanel} />;
 }

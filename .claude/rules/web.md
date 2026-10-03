@@ -33,11 +33,14 @@ copy and interactions; requirements in `docs/requirements.md` win where they dif
 - Vaul overlay: black at 40%, not the ink token (ink is near-white in dark mode).
 - Button: `rounded-full`, 48 px default / 56 px large; focus = 3 px outline with 2 px offset.
 - Status variants live in Badge via `cva`; "Brak danych" has a dashed border.
-- **All user-facing text is Polish and lives in the messages module** so English can be added later.
-  No string literals in components. One file per area — `apps/web/src/i18n/pl/<area>.ts` (`common`,
-  `home`, `place`, `profile`, `pages`, `moderator`, …), composed in `pl.ts`; write to your area's file
-  so parallel work doesn't conflict. Shared component copy (status words, reliability) is in `common`.
-- Shared components: import them from `@/components/kbb` (Polish copy already bound), primitives
+- **All user-facing text lives in the messages module, in Polish and English** (menu switch, cookie
+  `kbb-lang`, default Polish). No string literals in components. One file per area —
+  `apps/web/src/i18n/pl/<area>.ts` (`common`, `home`, `place`, `profile`, `pages`, `moderator`, …),
+  composed in `pl.ts`, and the same file in `i18n/en/` (typed against Polish: a missing key fails the
+  build). Add a string to both. Read copy with `useMessages()` / `useLocale()` (`@/i18n/client`) in
+  Client Components and `await getMessages()` (`@/i18n/server`) in Server Components and metadata;
+  lib helpers take a `locale`. Shared component copy (status words, reliability) is in `common`.
+- Shared components: import them from `@/components/kbb` (copy already bound), primitives
   (`Button`, `Badge`, `VaulDrawer`, `Toaster`/`toast`, `useAnnounce`) from `@krakow-bez-barier/ui`.
   Announce async results with `useAnnounce()` — the layout owns the one `aria-live` region.
   Preview every state at `/dev/components`.

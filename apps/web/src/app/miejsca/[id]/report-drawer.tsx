@@ -10,12 +10,9 @@ import {
   VaulDrawerDescription,
   VaulDrawerTitle,
 } from "@krakow-bez-barier/ui";
-import { pl } from "@/i18n/pl";
+import { useLocale, useMessages } from "@/i18n/client";
 import { formatValue } from "@/lib/place-facts";
 import { reportInput, unitLabel } from "@/lib/reports";
-
-const t = pl.place;
-const r = t.report;
 
 export type ReportMode = "correct" | "fill";
 
@@ -69,6 +66,9 @@ function ReportForm({
   attributes,
   onSubmit,
 }: Omit<ReportDrawerProps, "open" | "onOpenChange" | "formKey">) {
+  const m = useMessages();
+  const r = m.place.report;
+  const locale = useLocale();
   const [attribute, setAttribute] = useState(initial);
   const [choice, setChoice] = useState<string | null>(null);
   const [number, setNumber] = useState("");
@@ -77,9 +77,9 @@ function ReportForm({
   const valueRef = useRef<HTMLDivElement>(null);
   const chipsRef = useRef<HTMLDivElement>(null);
   const commentRef = useRef<HTMLTextAreaElement>(null);
-  const input = reportInput(attribute);
+  const input = reportInput(attribute, locale);
   const maxComment = reportRules.commentMaxLength ?? undefined;
-  const unit = input.kind === "number" ? unitLabel(input.range) : "";
+  const unit = input.kind === "number" ? unitLabel(input.range, locale) : "";
 
   useEffect(() => {
     chipsRef.current?.querySelector("label:has(:checked)")?.scrollIntoView({ block: "nearest", inline: "center" });
@@ -118,7 +118,7 @@ function ReportForm({
       else valueRef.current?.querySelector<HTMLElement>("input")?.focus();
       return;
     }
-    const formatted = formatValue(attribute, result.value);
+    const formatted = formatValue(attribute, result.value, locale);
     onSubmit({
       attribute,
       value: result.value,
@@ -159,7 +159,7 @@ function ReportForm({
                 onChange={() => pickAttribute(a)}
                 className="sr-only"
               />
-              {pl.common.attribute[a]}
+              {m.common.attribute[a]}
             </label>
           ))}
         </div>

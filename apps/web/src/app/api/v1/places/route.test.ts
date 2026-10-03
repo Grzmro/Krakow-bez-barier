@@ -46,8 +46,8 @@ vi.mock("@/server/places/repository", async (importOriginal) => ({
 
 const { GET } = await import("./route");
 
-async function list(params: string) {
-  const res = await GET(new Request(`http://localhost/api/v1/places${params}`));
+async function list(params: string, headers: HeadersInit = {}) {
+  const res = await GET(new Request(`http://localhost/api/v1/places${params}`, { headers }));
   const body = await res.json();
   expect(validateResponse("listPlaces", res.status, body)).toEqual([]);
   return { status: res.status, body };
@@ -71,6 +71,18 @@ describe("GET /api/v1/places", () => {
       { attribute: "step_count", state: "unknown", status: "no_data", label: "Wejście — stopnie: brak danych" },
       { attribute: "toilet_accessible", state: "unknown", status: "no_data", label: "Toaleta dostosowana: brak danych" },
     ]);
+  });
+
+  it("labels chips and gives verdict reasons in the language chosen in the app", async () => {
+    // GIVEN the language cookie set to English
+    const english = { cookie: "kbb-lang=en" };
+    // WHEN listing with the wheelchair profile
+    const { body } = await list("?profile=wheelchair", english);
+
+    // THEN the chips and reasons are English, while place names stay as they are
+    const museum = body.items.find((p: { name: string }) => p.name === "Muzeum bez windy");
+    expect(museum.summary).toContainEqual({ attribute: "step_count", state: "unknown", status: "no_data", label: "Entrance — steps: no data" });
+    expect(museum.verdict.reasons).toContain("entrance");
   });
 
   it("finds a place by name or address, ignoring Polish letters and case", async () => {

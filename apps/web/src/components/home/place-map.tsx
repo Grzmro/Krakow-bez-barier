@@ -7,12 +7,10 @@ import type { PlaceSummary } from "@krakow-bez-barier/contracts";
 import { cn } from "@krakow-bez-barier/ui";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
 import { config } from "@/lib/config";
 import { MapControls } from "../map/map-controls";
 import { PlacePin } from "./place-pin";
-
-const t = pl.home.map;
 
 const PIN_CLASS = "group relative size-9 cursor-pointer data-[selected=true]:z-10";
 
@@ -27,14 +25,14 @@ function pinElement(place: PlaceSummary) {
   return { element, root };
 }
 
-function youElement() {
+function youElement(you: string) {
   const element = document.createElement("div");
   element.setAttribute("aria-hidden", "true");
   element.dataset.you = "true";
   element.className = "pointer-events-none flex flex-col items-center gap-1";
   const label = document.createElement("span");
   label.className = "rounded-full bg-ink px-2 py-0.5 text-caption font-semibold text-ink-foreground shadow-soft";
-  label.textContent = pl.nearby.home.you;
+  label.textContent = you;
   const dot = document.createElement("span");
   dot.className = "size-5 rounded-full bg-primary ring-4 ring-card shadow-float";
   element.append(label, dot);
@@ -67,6 +65,9 @@ export interface PlaceMapProps {
  * and hidden from assistive tech: the list next to the map holds the same places.
  */
 export function PlaceMap({ places, selectedId, onSelect, padding, you = null, className }: PlaceMapProps) {
+  const messages = useMessages();
+  const t = messages.home.map;
+  const youLabel = messages.nearby.home.you;
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [unavailable, setUnavailable] = useState(false);
@@ -95,7 +96,6 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, cl
           attributionControl: false,
           dragRotate: false,
           pitchWithRotate: false,
-          locale: { "Map.Title": t.label },
         });
         instance.touchZoomRotate.disableRotation();
         setMap(instance);
@@ -109,6 +109,11 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, cl
       instance?.remove();
     };
   }, []);
+
+  // MapLibre names the canvas once, at creation; this keeps it in the current language.
+  useEffect(() => {
+    map?.getCanvas().setAttribute("aria-label", t.label);
+  }, [map, t.label]);
 
   useEffect(() => {
     if (!map) return;
@@ -152,7 +157,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, cl
     let cancelled = false;
     import("maplibre-gl").then(({ Marker }) => {
       if (cancelled) return;
-      marker = new Marker({ element: youElement(), anchor: "bottom" }).setLngLat([youLon, youLat]).addTo(map);
+      marker = new Marker({ element: youElement(youLabel), anchor: "bottom" }).setLngLat([youLon, youLat]).addTo(map);
       map.easeTo({
         center: [youLon, youLat],
         zoom: Math.max(map.getZoom(), config.initialZoom),
@@ -164,7 +169,7 @@ export function PlaceMap({ places, selectedId, onSelect, padding, you = null, cl
       cancelled = true;
       marker?.remove();
     };
-  }, [map, youLon, youLat, padding.top, padding.bottom]);
+  }, [map, youLon, youLat, padding.top, padding.bottom, youLabel]);
 
   useEffect(() => {
     for (const [id, { marker }] of markersRef.current) {

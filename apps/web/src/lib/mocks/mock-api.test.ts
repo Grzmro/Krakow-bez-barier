@@ -7,6 +7,17 @@ import { withPlacesMocks } from "./mock-fetch";
 const ids = (list: { items: { id: string }[] }) => list.items.map((item) => item.id);
 
 describe("mockListPlaces", () => {
+  it("labels chips in English like the API, and drops Polish labels it can't translate", () => {
+    // GIVEN the examples, whose chip labels are written in Polish
+    // WHEN listing in English
+    const result = mockListPlaces({}, "en");
+    const labels = (id: string) => result.items.find((p) => p.id === id)?.summary.map((chip) => chip.label);
+
+    // THEN a place with facts gets English labels, and a list-only example falls back to no label
+    expect(labels("sukiennice")).toEqual(["Step-free entrance", "Lift", "Accessible toilet: no data"]);
+    expect(labels("bistro-przyklad")).toEqual([undefined, undefined]);
+  });
+
   it("finds Sukiennice by name, ignoring case and diacritics", () => {
     // GIVEN the example places
     // WHEN searching for a lower-case name

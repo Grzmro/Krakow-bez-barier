@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useEffectEvent, useState, useSyncExternalStore } from "react";
 import { usePathname } from "next/navigation";
 import { CloudSlash, DeviceMobile, X } from "@phosphor-icons/react";
 import { Button, useAnnounce } from "@krakow-bez-barier/ui";
-import { pl } from "@/i18n/pl";
+import { useLocale, useMessages } from "@/i18n/client";
 import { appPlatform } from "@/lib/native/platform";
 import { installOffer } from "@/lib/pwa/install-offer";
 import { offlineMessage } from "@/lib/pwa/offline-message";
 
-const t = pl.pwa;
 const SW_URL = `/sw.js?build=${process.env.NEXT_PUBLIC_SW_BUILD}`;
 // Set by public/sw.js on every page it stores.
 const CACHED_AT_HEADER = "x-kbb-cached-at";
@@ -96,21 +95,24 @@ async function readCachedAt(): Promise<string | null> {
 function OfflineBanner() {
   const online = useOnline();
   const announce = useAnnounce();
-  const [message, setMessage] = useState<string | null>(null);
+  const locale = useLocale();
+  // undefined until the cache answers; null when this page has no cached copy.
+  const [cachedAt, setCachedAt] = useState<string | null | undefined>(undefined);
+  const message = cachedAt === undefined ? null : offlineMessage(cachedAt, locale);
+  const announceOffline = useEffectEvent((at: string | null) => announce(offlineMessage(at, locale)));
 
   useEffect(() => {
     if (online) return;
     let active = true;
-    void readCachedAt().then((cachedAt) => {
+    void readCachedAt().then((at) => {
       if (!active) return;
-      const text = offlineMessage(cachedAt);
-      setMessage(text);
-      announce(text);
+      setCachedAt(at);
+      announceOffline(at);
     });
     return () => {
       active = false;
     };
-  }, [online, announce]);
+  }, [online]);
 
   if (online || !message) return null;
   return (
@@ -145,6 +147,7 @@ function readDismissed() {
 const noSubscribe = () => () => {};
 
 function InstallPrompt() {
+  const t = useMessages().pwa;
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [dismissedNow, setDismissedNow] = useState(false);
   const native = useSyncExternalStore(noSubscribe, () => appPlatform() !== "web", () => true);

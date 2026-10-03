@@ -16,7 +16,7 @@ describe("formatEventDate", () => {
     // GIVEN a date picked by the organizer
     // WHEN it's formatted
     // THEN the formatted day is the one picked
-    expect(formatEventDate("2026-10-10")).toBe("sobota, 10 października 2026");
+    expect(formatEventDate("2026-10-10", "pl")).toBe("sobota, 10 października 2026");
   });
 });
 
@@ -26,7 +26,7 @@ describe("eventSections", () => {
     const place = await examplePlace("hotel-przyklad");
 
     // WHEN the event page groups its facts
-    const sections = Object.fromEntries(eventSections(place).map((s) => [s.id, s.facts]));
+    const sections = Object.fromEntries(eventSections(place, "pl").map((s) => [s.id, s.facts]));
 
     // THEN the entrance carries its known facts with sources and dates
     const door = sections.entrance.find((f) => f.attribute === "door_width_cm");
@@ -45,7 +45,7 @@ describe("eventSections", () => {
     const place = await examplePlace("palac-krzysztofory");
 
     // WHEN its facts are grouped
-    const toilet = eventSections(place).find((s) => s.id === "toilet")?.facts[0];
+    const toilet = eventSections(place, "pl").find((s) => s.id === "toilet")?.facts[0];
 
     // THEN the row is a conflict and each source carries its own value
     expect(toilet).toMatchObject({ attribute: "toilet_accessible", reliability: "conflict", conflict: true });

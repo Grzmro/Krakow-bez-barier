@@ -1,15 +1,18 @@
 import type { Metadata } from "next";
 import { ShieldCheck } from "@phosphor-icons/react/ssr";
 import { InfoPage } from "@/components/layout/info-page";
-import { pl } from "@/i18n/pl";
+import { getMessages } from "@/i18n/server";
 
-const t = pl.pages.privacy;
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await getMessages();
+  return { title: `${m.pages.privacy.title} · ${m.common.app.name}` };
+}
 
-export const metadata: Metadata = { title: `${t.title} · ${pl.common.app.name}` };
-
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const m = await getMessages();
+  const t = m.pages.privacy;
   return (
-    <InfoPage title={t.title}>
+    <InfoPage title={t.title} backLabel={m.pages.back}>
       <p className="flex gap-3 rounded-[20px] bg-primary-container p-4 text-body font-semibold">
         <ShieldCheck weight="fill" className="mt-0.5 size-6 shrink-0 text-primary" aria-hidden />
         {t.lead}

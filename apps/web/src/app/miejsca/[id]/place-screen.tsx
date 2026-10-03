@@ -33,7 +33,7 @@ import {
 import type { AccessibilityAttribute, Place } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { FactRow, ReliabilityBadge, SampleTag } from "@/components/kbb";
-import { pl } from "@/i18n/pl";
+import { useLocale, useMessages } from "@/i18n/client";
 import { api } from "@/lib/api";
 import { useCategoryLookup } from "@/lib/categories";
 import { CARD_ATTRIBUTES, factViews, failedSources, formatDate, latestSourceDate, osmEditUrl } from "@/lib/place-facts";
@@ -42,7 +42,6 @@ import { usePlaceReports } from "@/lib/use-place-reports";
 import { routes } from "@/lib/routes";
 import { ReportDrawer, type ReportMode, type ReportSubmission } from "./report-drawer";
 
-const t = pl.place;
 
 const FACT_ICON: Partial<Record<AccessibilityAttribute, Icon>> = {
   step_count: Stairs,
@@ -60,6 +59,7 @@ const FACT_ICON: Partial<Record<AccessibilityAttribute, Icon>> = {
 };
 
 export function PlaceScreen({ id }: { id: string }) {
+  const t = useMessages().place;
   const query = useQuery({
     queryKey: ["place", id],
     queryFn: async () => {
@@ -102,6 +102,9 @@ export function PlaceScreen({ id }: { id: string }) {
 }
 
 function PlaceCard({ place }: { place: Place }) {
+  const m = useMessages();
+  const t = m.place;
+  const locale = useLocale();
   const [contactOpen, setContactOpen] = useState(false);
   const focusContact = useRef(false);
   const contactRef = useRef<HTMLDivElement>(null);
@@ -115,7 +118,7 @@ function PlaceCard({ place }: { place: Place }) {
     attribute: CARD_ATTRIBUTES[0],
     key: 0,
   });
-  const facts = withPending(factViews(place), reports.entries);
+  const facts = withPending(factViews(place, locale), reports.entries);
   const osmEdit = osmEditUrl(place);
   const failed = failedSources(place);
   const conflicts = facts.filter((f) => f.conflict);
@@ -268,7 +271,7 @@ function PlaceCard({ place }: { place: Place }) {
           <CloudSlash weight="bold" className="mt-0.5 size-6 shrink-0 text-status-conflict" aria-hidden />
           <div>
             <p className="text-body-sm font-semibold text-status-conflict">
-              {source.lastSuccessAt ? t.outage.title(formatDate(source.lastSuccessAt)) : t.outage.titleNoDate}
+              {source.lastSuccessAt ? t.outage.title(formatDate(source.lastSuccessAt, locale)) : t.outage.titleNoDate}
             </p>
             <p className="mt-0.5 text-caption text-foreground">{t.outage.source(source.name)}</p>
             {source.statusNote ? <p className="mt-0.5 text-caption text-foreground">{source.statusNote}</p> : null}
@@ -390,7 +393,7 @@ function PlaceCard({ place }: { place: Place }) {
                 >
                   {source.refreshStatus === "outage" ? <CloudSlash className="size-3.5" aria-hidden /> : null}
                   {t.refreshStatus[source.refreshStatus]} · {t.why.lastSuccess}{" "}
-                  {source.lastSuccessAt ? formatDate(source.lastSuccessAt) : t.why.never}
+                  {source.lastSuccessAt ? formatDate(source.lastSuccessAt, locale) : t.why.never}
                 </p>
                 {source.attribution ? <p className="mt-0.5 text-caption text-muted-foreground">{source.attribution}</p> : null}
                 {source.url ? (
@@ -413,11 +416,11 @@ function PlaceCard({ place }: { place: Place }) {
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
           <p className="flex items-center gap-2 text-caption text-muted-foreground">
             <Database className="size-4" aria-hidden />
-            {t.sourcesCount(place.sources.length, latest ? formatDate(latest) : undefined)}
+            {t.sourcesCount(place.sources.length, latest ? formatDate(latest, locale) : undefined)}
           </p>
           <Link href={routes.aboutData} className={cn(buttonVariants({ variant: "link", size: "sm" }), "h-10 px-0")}>
             <Info weight="bold" />
-            {pl.common.menu.aboutData}
+            {m.common.menu.aboutData}
           </Link>
         </div>
         {osmEdit ? (
@@ -454,6 +457,8 @@ function PlaceCard({ place }: { place: Place }) {
 }
 
 function PendingList({ entries }: { entries: PendingEntry[] }) {
+  const t = useMessages().place;
+  const locale = useLocale();
   return (
     <div>
       <ul className="space-y-1.5">
@@ -466,7 +471,7 @@ function PendingList({ entries }: { entries: PendingEntry[] }) {
             {entry.valueText ? <span>{entry.valueText}</span> : null}
             <ReliabilityBadge value="unverified" />
             <span className="text-muted-foreground tabular-nums">
-              {formatDate(entry.createdAt)}
+              {formatDate(entry.createdAt, locale)}
               {entry.sending ? ` · ${t.mine.sending}` : null}
             </span>
           </li>

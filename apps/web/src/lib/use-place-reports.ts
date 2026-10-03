@@ -3,11 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { AccessibilityAttribute, ReportCreate } from "@krakow-bez-barier/contracts";
 import { toast, useAnnounce } from "@krakow-bez-barier/ui";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
 import { api } from "./api";
 import type { PendingEntry } from "./reports";
-
-const t = pl.place;
 
 /** How long "Cofnij" is offered before the report is actually sent. */
 export const UNDO_MS = 5000;
@@ -25,6 +23,7 @@ export function usePlaceReports(placeId: string) {
   const queued = useRef(new Map<string, { timer: ReturnType<typeof setTimeout>; send: () => void }>());
   const confirming = useRef(new Set<string>());
   const announce = useAnnounce();
+  const t = useMessages().place;
 
   const remove = useCallback((key: string) => setEntries((all) => all.filter((e) => e.key !== key)), []);
 
@@ -42,7 +41,7 @@ export function usePlaceReports(placeId: string) {
         announce(t.report.failed);
       }
     },
-    [announce, remove],
+    [announce, remove, t],
   );
 
   const submitReport = useCallback(
@@ -75,7 +74,7 @@ export function usePlaceReports(placeId: string) {
       });
       announce(t.report.thanks);
     },
-    [announce, placeId, remove, send],
+    [announce, placeId, remove, send, t],
   );
 
   const confirm = useCallback(
@@ -103,7 +102,7 @@ export function usePlaceReports(placeId: string) {
         confirming.current.delete(factId);
       }
     },
-    [announce, placeId],
+    [announce, placeId, t],
   );
 
   useEffect(() => {

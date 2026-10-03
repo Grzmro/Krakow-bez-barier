@@ -7,12 +7,11 @@ import type { ModerationDecisionKind, ModerationReport } from "@krakow-bez-barie
 import { Button, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge } from "@/components/kbb";
 import { InfoSection } from "@/components/layout/info-page";
-import { pl } from "@/i18n/pl";
+import { useLocale, useMessages } from "@/i18n/client";
 import { api, isMockApi } from "@/lib/api";
 import { changePreview, formatDateTime, isOpen, moderationHistory, retryMinutes } from "@/lib/moderation";
 import { formatDate } from "@/lib/place-facts";
 
-const t = pl.moderator;
 const TOKEN_KEY = "kbb.moderatorToken";
 const PAGE_SIZE = 100;
 
@@ -99,6 +98,7 @@ export function ModeratorScreen() {
 }
 
 function SignInForm({ notice, onSignedIn }: { notice: string | null; onSignedIn: (token: string) => void }) {
+  const t = useMessages().moderator;
   const [token, setToken] = useState("");
   const [show, setShow] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -184,6 +184,8 @@ function SignInForm({ notice, onSignedIn }: { notice: string | null; onSignedIn:
 }
 
 function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (message: string) => void }) {
+  const t = useMessages().moderator;
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const announce = useAnnounce();
   const queueHeading = useRef<HTMLHeadingElement>(null);
@@ -199,7 +201,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
 
   useEffect(() => {
     if (expired) onSignOut(t.sessionExpired);
-  }, [expired, onSignOut]);
+  }, [expired, onSignOut, t.sessionExpired]);
 
   const loadError =
     query.error instanceof StatusError && query.error.status === 429
@@ -226,7 +228,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
     if (!query.isSuccess || announcedLoad.current) return;
     announcedLoad.current = true;
     announce(t.loaded(query.data.filter(isOpen).length));
-  }, [announce, query.isSuccess, query.data]);
+  }, [announce, query.isSuccess, query.data, t]);
 
   const decide = useMutation({
     mutationFn: async ({ report, decision }: { report: ModerationReport; decision: ModerationDecisionKind }) => {
@@ -275,8 +277,8 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
     );
   }
 
-  const preview = current ? changePreview(current) : null;
-  const history = moderationHistory(reports);
+  const preview = current ? changePreview(current, locale) : null;
+  const history = moderationHistory(reports, locale);
 
   return (
     <>
@@ -298,7 +300,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
         {open.length ? (
           <ul className="space-y-2">
             {open.map((report) => {
-              const item = changePreview(report);
+              const item = changePreview(report, locale);
               const active = report.id === current?.id;
               return (
                 <li key={report.id}>
@@ -314,7 +316,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
                     <span className="min-w-0 flex-1">
                       <span className="block text-body-sm font-semibold">{report.placeName}</span>
                       <span className="block text-caption text-muted-foreground">
-                        {item.attribute} → {item.after} · {formatDate(report.createdAt)}
+                        {item.attribute} → {item.after} · {formatDate(report.createdAt, locale)}
                       </span>
                     </span>
                     <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-caption font-semibold text-secondary-foreground">
@@ -336,7 +338,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
             <h3 className="text-body-sm font-semibold">
               {current.placeName} · {preview.attribute}
             </h3>
-            <p className="text-caption text-muted-foreground">{t.reportedOn(formatDate(current.createdAt))}</p>
+            <p className="text-caption text-muted-foreground">{t.reportedOn(formatDate(current.createdAt, locale))}</p>
             <dl className="mt-3 grid grid-cols-2 gap-2">
               <div className="rounded-2xl bg-muted p-3">
                 <dt className="text-caption text-muted-foreground">{t.before}</dt>
@@ -367,7 +369,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
                 {current.history.map((event, i) => (
                   <li key={i}>
                     <span className="font-semibold">{t.decision[event.decision]}</span> ·{" "}
-                    {t.historyEntry(event.moderator, formatDateTime(event.decidedAt))}
+                    {t.historyEntry(event.moderator, formatDateTime(event.decidedAt, locale))}
                     {event.note ? <span className="block text-foreground/85">„{event.note}”</span> : null}
                   </li>
                 ))}
@@ -435,7 +437,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
                     {entry.summary}
                   </span>
                   <span className="block text-muted-foreground">
-                    {t.historyEntry(entry.moderator, formatDateTime(entry.decidedAt))}
+                    {t.historyEntry(entry.moderator, formatDateTime(entry.decidedAt, locale))}
                   </span>
                   {entry.note ? <span className="block text-foreground/85">„{entry.note}”</span> : null}
                 </span>

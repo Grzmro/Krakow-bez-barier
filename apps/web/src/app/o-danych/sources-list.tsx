@@ -6,10 +6,9 @@ import { ArrowSquareOut, CheckCircle, ClockCountdown, CloudSlash, Question, type
 import type { Source } from "@krakow-bez-barier/contracts";
 import { Button, cn, useAnnounce } from "@krakow-bez-barier/ui";
 import { SampleTag } from "@/components/kbb";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
+import type { Messages } from "@/i18n/messages";
 import { api, isMockApi } from "@/lib/api";
-
-const t = pl.pages.aboutData;
 
 // Source health, not a place verdict: never the red "Nie spełnia" tone, and its own icon per state.
 const REFRESH_CHIP: Record<Source["refreshStatus"], { icon: Icon; className: string }> = {
@@ -19,9 +18,8 @@ const REFRESH_CHIP: Record<Source["refreshStatus"], { icon: Icon; className: str
   never: { icon: Question, className: "bg-status-unknown-bg text-status-unknown" },
 };
 
-const refreshIntervalLabels: Partial<Record<string, string>> = t.refreshInterval;
-
 function RefreshStatusChip({ status }: { status: Source["refreshStatus"] }) {
+  const t = useMessages().pages.aboutData;
   const { icon: StatusIcon, className } = REFRESH_CHIP[status];
   return (
     <span
@@ -37,14 +35,11 @@ function RefreshStatusChip({ status }: { status: Source["refreshStatus"] }) {
   );
 }
 
-const dateTime = new Intl.DateTimeFormat(t.dateLocale, {
-  dateStyle: "medium",
-  timeStyle: "short",
-  timeZone: t.timeZone,
-});
-
-function formatDate(iso: string | null | undefined) {
-  return iso ? dateTime.format(new Date(iso)) : t.never;
+function formatDate(iso: string | null | undefined, t: Messages["pages"]["aboutData"]) {
+  if (!iso) return t.never;
+  return new Intl.DateTimeFormat(t.dateLocale, { dateStyle: "medium", timeStyle: "short", timeZone: t.timeZone }).format(
+    new Date(iso),
+  );
 }
 
 async function fetchSources() {
@@ -54,13 +49,15 @@ async function fetchSources() {
 }
 
 export function SourcesList() {
+  const t = useMessages().pages.aboutData;
+  const refreshIntervalLabels: Partial<Record<string, string>> = t.refreshInterval;
   const announce = useAnnounce();
   const query = useQuery({ queryKey: ["sources"], queryFn: fetchSources });
 
   useEffect(() => {
     if (query.isSuccess) announce(t.loaded(query.data.length));
     if (query.isError) announce(t.error);
-  }, [announce, query.isSuccess, query.isError, query.data]);
+  }, [announce, query.isSuccess, query.isError, query.data, t]);
 
   if (query.isPending) {
     return (
@@ -116,11 +113,11 @@ export function SourcesList() {
               <dt className="text-muted-foreground">{t.verification}</dt>
               <dd>{t.verificationByKind[source.kind]}</dd>
               <dt className="text-muted-foreground">{t.lastOk}</dt>
-              <dd className="tabular-nums">{formatDate(source.lastSuccessAt)}</dd>
+              <dd className="tabular-nums">{formatDate(source.lastSuccessAt, t)}</dd>
               {source.refreshStatus !== "ok" ? (
                 <>
                   <dt className="text-muted-foreground">{t.lastAttempt}</dt>
-                  <dd className="tabular-nums">{formatDate(source.lastAttemptAt)}</dd>
+                  <dd className="tabular-nums">{formatDate(source.lastAttemptAt, t)}</dd>
                 </>
               ) : null}
             </dl>

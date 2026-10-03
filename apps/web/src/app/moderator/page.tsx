@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
 import { SampleTag } from "@/components/kbb";
 import { InfoPage } from "@/components/layout/info-page";
-import { pl } from "@/i18n/pl";
+import { getMessages } from "@/i18n/server";
 import { isMockApi } from "@/lib/api";
 import { ModeratorScreen } from "./moderator-screen";
 
-export const metadata: Metadata = {
-  title: `${pl.moderator.title} · ${pl.common.app.name}`,
-  robots: { index: false },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await getMessages();
+  return { title: `${m.moderator.title} · ${m.common.app.name}`, robots: { index: false } };
+}
 
-export default function ModeratorPage() {
+export default async function ModeratorPage() {
+  const t = await getMessages();
   return (
-    <InfoPage title={pl.moderator.title} aside={isMockApi ? <SampleTag className="shrink-0" /> : undefined}>
+    <InfoPage title={t.moderator.title} backLabel={t.pages.back} aside={isMockApi ? <SampleTag className="shrink-0" /> : undefined}>
       <ModeratorScreen />
     </InfoPage>
   );

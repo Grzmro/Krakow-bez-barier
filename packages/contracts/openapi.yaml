@@ -1780,7 +1780,7 @@ components:
           type:
           - string
           - 'null'
-          description: Short Polish explanation, e.g. "2 stopnie" or "drzwi 70 cm".
+          description: Short explanation in the language of the `kbb-lang` cookie (`pl` by default, or `en`), e.g. "2 stopnie" or "drzwi 70 cm".
     Need:
       type: string
       description: A need a profile can check; `entrance` combines steps, threshold and ramp.
@@ -1807,7 +1807,7 @@ components:
           $ref: '#/components/schemas/ReliabilityStatus'
         label:
           type: string
-          description: 'Short Polish text, e.g. "Winda" or "Toaleta: brak danych".'
+          description: 'Short text in the language of the `kbb-lang` cookie (`pl` by default, or `en`), e.g. "Winda" or "Toaleta: brak danych".'
     PlaceSummary:
       type: object
       required:

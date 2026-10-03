@@ -2,13 +2,13 @@
 
 import { useSyncExternalStore } from "react";
 import { NearMe } from "@/components/layout/near-me";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
 import { appPlatform } from "@/lib/native/platform";
 
-const t = pl.nearby.devPage;
 const noSubscription = () => () => {};
 
 export function NativePreview() {
+  const t = useMessages().nearby.devPage;
   // The platform is only known in the client (the Capacitor bridge is injected into the WebView).
   const platform = useSyncExternalStore(noSubscription, appPlatform, () => null);
   return (

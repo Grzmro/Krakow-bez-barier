@@ -12,7 +12,8 @@ import type {
 } from "@krakow-bez-barier/contracts";
 import { categories } from "@krakow-bez-barier/contracts";
 import { openapiDocument } from "@krakow-bez-barier/contracts/openapi";
-import { pl } from "@/i18n/pl";
+import { defaultLocale, type Locale } from "@/i18n/locale";
+import { messagesFor } from "@/i18n/messages";
 import { FEATURE_ATTRIBUTES, featureState } from "../domain/features";
 import { matchProfile } from "../domain/matcher";
 import { thresholdsFor } from "../domain/profiles";
@@ -37,7 +38,8 @@ export class InvalidQueryError extends Error {
   }
 }
 
-export type PlacesDeps = { repository?: PlaceRepository; now?: Date };
+/** `locale`: language of chip labels and verdict reasons — the one the caller picked, Polish by default. */
+export type PlacesDeps = { repository?: PlaceRepository; now?: Date; locale?: Locale };
 
 // Describe a route segment, not a place (see the spec's AccessibilityAttribute).
 const ROUTE_ONLY: AccessibilityAttribute[] = ["stairs"];
@@ -115,7 +117,7 @@ const address = (place: PlaceRecord) => ({
 
 const location = (place: PlaceRecord) => ({ type: "Point" as const, coordinates: [place.location.x, place.location.y] });
 
-function summaryChips(attributes: ResolvedAttribute[], extra: AccessibilityAttribute[]): SummaryChip[] {
+function summaryChips(attributes: ResolvedAttribute[], extra: AccessibilityAttribute[], locale: Locale): SummaryChip[] {
   const wanted = new Set([...ALWAYS_SUMMARIZED, ...extra]);
   return attributes
     .filter((a) => a.state !== "unknown" || wanted.has(a.attribute))
@@ -123,7 +125,7 @@ function summaryChips(attributes: ResolvedAttribute[], extra: AccessibilityAttri
       attribute,
       state,
       status,
-      label: pl.summary.chip(attribute, state, value),
+      label: messagesFor(locale).summary.chip(attribute, state, value),
     }));
 }
 
@@ -163,7 +165,7 @@ function readBbox(bbox: number[] | undefined): [number, number, number, number] 
  * never does. Adds a profile verdict when `profile` is set.
  */
 export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}): Promise<PlaceList> {
-  const { repository = createDbPlaceRepository(), now = new Date() } = deps;
+  const { repository = createDbPlaceRepository(), now = new Date(), locale = defaultLocale } = deps;
   const bbox = readBbox(query.bbox);
   const unknownCategory = query.category?.find((id) => !categories.some((c) => c.id === id));
   if (unknownCategory) {
@@ -208,9 +210,9 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
     category: place.category,
     location: location(place),
     address: address(place),
-    summary: summaryChips(attributes, featureAttributes),
+    summary: summaryChips(attributes, featureAttributes, locale),
     ...(features.length ? { features: matches } : {}),
-    verdict: thresholds ? matchProfile({ attributes }, thresholds) : null,
+    verdict: thresholds ? matchProfile({ attributes }, thresholds, locale) : null,
     isSample: isSample(place, records),
   }));
 
@@ -231,7 +233,7 @@ function contact(place: PlaceRecord): Place["contact"] {
 
 /** One place with every attribute resolved, all active facts behind each, its sources and an optional verdict. */
 export async function getPlace(id: string, query: GetPlaceQuery = {}, deps: PlacesDeps = {}): Promise<Place | null> {
-  const { repository = createDbPlaceRepository(), now = new Date() } = deps;
+  const { repository = createDbPlaceRepository(), now = new Date(), locale = defaultLocale } = deps;
   const place = await repository.findPlace(id);
   if (!place) return null;
 
@@ -249,7 +251,7 @@ export async function getPlace(id: string, query: GetPlaceQuery = {}, deps: Plac
     contact: contact(place),
     entranceHint: place.entranceHint,
     attributes,
-    verdict: thresholds ? matchProfile({ attributes }, thresholds) : null,
+    verdict: thresholds ? matchProfile({ attributes }, thresholds, locale) : null,
     sources,
     updatedAt: place.updatedAt.toISOString(),
     isSample: isSample(place, records),

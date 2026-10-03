@@ -3,10 +3,8 @@
 import { useId, useState } from "react";
 import { CircleNotch, Crosshair } from "@phosphor-icons/react";
 import { Toggle, useAnnounce } from "@krakow-bez-barier/ui";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
 import { locateDevice, type DevicePosition } from "@/lib/native/geolocation";
-
-const t = pl.nearby;
 
 /**
  * "W mojej okolicy" on the home list: pressed, it asks for the device position and hands it up so the
@@ -14,6 +12,7 @@ const t = pl.nearby;
  * failed fix is shown and announced, and the list keeps working as before.
  */
 export function NearbyToggle({ active, onChange }: { active: boolean; onChange: (position: DevicePosition | null) => void }) {
+  const t = useMessages().nearby;
   const announce = useAnnounce();
   const privacyId = useId();
   const [locating, setLocating] = useState(false);

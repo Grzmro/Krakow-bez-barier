@@ -23,7 +23,7 @@ const report = (attribute: PendingEntry["attribute"], valueText: string): Pendin
 describe("withPending", () => {
   it("shows the visitor's report beside the fact without changing its value or reliability", async () => {
     // GIVEN the conflicting demo place and a pending report that the toilet is accessible
-    const views = factViews(await demoPlace("palac-krzysztofory"));
+    const views = factViews(await demoPlace("palac-krzysztofory"), "pl");
     const pending = [report("toilet_accessible", "Jest"), report("lift", "Jest")];
 
     // WHEN the report is attached to the card rows
@@ -43,13 +43,13 @@ describe("reportInput", () => {
     // GIVEN door width, which the contract bounds to 10–300 cm
     // WHEN building its input
     // THEN it is a number field with that range
-    expect(reportInput("door_width_cm")).toEqual({ kind: "number", range: { min: 10, max: 300, unit: "cm" } });
+    expect(reportInput("door_width_cm", "pl")).toEqual({ kind: "number", range: { min: 10, max: 300, unit: "cm" } });
   });
 
   it("offers typed choices for yes/no and surface attributes", () => {
     // GIVEN a yes/no attribute and the surface attribute
-    const ramp = reportInput("ramp");
-    const surface = reportInput("surface");
+    const ramp = reportInput("ramp", "pl");
+    const surface = reportInput("surface", "pl");
 
     // WHEN reading their options
     // THEN they carry FactValues of the right kind
@@ -70,7 +70,7 @@ describe("confirm and OSM edit targets", () => {
     const place = await demoPlace("palac-krzysztofory");
 
     // WHEN building the rows and the OSM link
-    const rows = factViews(place);
+    const rows = factViews(place, "pl");
 
     // THEN the known fact can be confirmed by id, the conflicting and unknown ones cannot
     expect(rows.find((r) => r.attribute === "step_count")?.confirmFactId).toBe("fact_osm_krzysztofory_steps");
