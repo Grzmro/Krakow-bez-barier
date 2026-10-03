@@ -1,7 +1,6 @@
 - main:
   - link "Wstecz":
     - /url: /
-    - img
   - paragraph: "Start: Dworzec Główny"
   - paragraph: "Cel: Rynek Główny"
   - button "Zamień start i cel":

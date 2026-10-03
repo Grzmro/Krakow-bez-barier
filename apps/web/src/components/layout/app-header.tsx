@@ -28,7 +28,7 @@ import {
 import { useMessages } from "@/i18n/client";
 import type { Messages } from "@/i18n/messages";
 import { isPlainClick, requestHomeReset } from "@/lib/back-navigation";
-import { isWidgetRoute, routes } from "@/lib/routes";
+import { isDetailRoute, isWidgetRoute, routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { BackButton } from "./back-button";
 import { LanguageSwitch } from "./language-switch";
@@ -83,7 +83,7 @@ export function AppHeader() {
   const pathname = usePathname();
   if (isWidgetRoute(pathname)) return null;
   // Detail pages have no back control of their own; it sits here so it stays in reach while the page scrolls.
-  const showBack = pathname.startsWith(routes.place(""));
+  const showBack = isDetailRoute(pathname);
   return (
     <header className="sticky top-[env(safe-area-inset-top)] z-30 border-b border-border bg-background print:hidden">
       <VaulDrawer open={menuOpen} onOpenChange={setMenuOpen}>
