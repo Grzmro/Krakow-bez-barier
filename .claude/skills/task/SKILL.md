@@ -68,6 +68,7 @@ Run the `ship` skill (commit, push, PR).
 
 ## 8. Report
 
-- Set the task to `In Review`.
+- Don't change the status: opening the PR moves the task to `In Review` (GitHub integration). Check
+  the PR got the Linear bot comment; if not, the branch/title lacks `KBB-<n>`.
 - Linear comment (2–4 lines, like a teammate): what's done, PR link, anything left or blocking.
 - To the user: PR link, acceptance-criteria checklist, what wasn't verified, proposed follow-up tasks.

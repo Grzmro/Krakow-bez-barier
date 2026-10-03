@@ -106,7 +106,9 @@ npm run ingest -- --source <id> --city krakow
 - Team **Krakow Bez Barier**, identifiers `KBB-<n>`. Linear is the source of truth for scope.
 - Before starting, read the full task (`get_issue`), including acceptance criteria.
 - Statuses: `Backlog` → `Todo` → `In Progress` → `In Review` → `Done` (plus `Canceled`, `Duplicate`).
-  Set the task to `In Progress` when you pick it up and to `In Review` when its PR is open; a human moves it to `Done` after merge.
+  Set the task to `In Progress` when you pick it up. The GitHub integration does the rest — a PR whose
+  branch or title has `KBB-<n>` moves it to `In Review` when opened and to `Done` when merged; don't
+  set those by hand.
 - Anything outside the task's scope: don't do it silently — propose a new task.
 - Linear comments are short, like a teammate writes them: what's done, what's blocking.
 
