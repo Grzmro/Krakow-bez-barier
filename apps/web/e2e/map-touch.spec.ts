@@ -76,20 +76,8 @@ async function view(page: Page) {
 
 // Waits out MapLibre's ease/inertia so the next gesture is measured from a still map.
 async function settledView(page: Page) {
-  let last = await view(page);
-  await page.waitForTimeout(120);
-  await expect
-    .poll(
-      async () => {
-        const next = await view(page);
-        const still = Math.abs(next.x - last.x) < 0.5 && Math.abs(next.y - last.y) < 0.5 && Math.abs(next.gap - last.gap) < 0.5;
-        last = next;
-        return still;
-      },
-      { message: "map keeps moving", intervals: [120] },
-    )
-    .toBe(true);
-  return last;
+  await markersSettled(page);
+  return view(page);
 }
 
 /** Where a finger lands on plain map: below the chips, above the attribution and the panel, left of the zoom buttons. */
@@ -141,6 +129,10 @@ for (const [name, device] of [
           await sheetToggle.click();
           await page.getByRole("button", { name: "Zwiń arkusz" }).click();
           await expect(sheetToggle).toBeVisible();
+          // The sheet slides back down over 420 ms; until then it covers the low part of the map.
+          await page
+            .getByRole("region", { name: "Lista miejsc" })
+            .evaluate((el) => Promise.allSettled(el.getAnimations().map((animation) => animation.finished)));
           await settledView(page);
         }
         // WHEN a finger drags from a different spot of the map each time, back and forth

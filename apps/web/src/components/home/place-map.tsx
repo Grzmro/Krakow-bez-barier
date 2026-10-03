@@ -245,6 +245,21 @@ export function PlaceMap({
     };
   }, []);
 
+  // `data-moving` mirrors the camera (a gesture, its inertia or an ease): tests wait on it before measuring the map.
+  useEffect(() => {
+    if (!map) return;
+    const container = map.getContainer();
+    const start = () => (container.dataset.moving = "true");
+    const end = () => (container.dataset.moving = "false");
+    container.dataset.moving = String(map.isMoving());
+    map.on("movestart", start);
+    map.on("moveend", end);
+    return () => {
+      map.off("movestart", start);
+      map.off("moveend", end);
+    };
+  }, [map]);
+
   // MapLibre names the canvas once, at creation; this keeps it in the current language.
   useEffect(() => {
     map?.getCanvas().setAttribute("aria-label", label ?? t.label);
