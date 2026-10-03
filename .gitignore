@@ -5,3 +5,7 @@
 !.env.example
 .DS_Store
 node_modules/
+dist/
+.next/
+coverage/
+packages/contracts/src/generated/

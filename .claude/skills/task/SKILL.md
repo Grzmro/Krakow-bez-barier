@@ -24,8 +24,8 @@ Never: merge a PR, push to `main`, move a task to `Done`, create new Linear task
 ## 1. Understand
 
 - `get_issue` and `list_comments` — comments often carry the final decisions.
-- Read `docs/challenge.md` (requirements this task serves), `docs/architecture.md`, the `AGENTS.md` of every app you'll touch, and relevant
-  `.claude/context/*.md`.
+- Read `docs/challenge.md` (requirements this task serves), `docs/architecture.md`, and the files listed for your area in `AGENTS.md` → *Read before you start*
+  (rules and context files).
 - If the task is ambiguous or its acceptance criteria contradict the code, ask — don't guess.
 - Set the task to `In Progress`.
 
@@ -53,7 +53,7 @@ Follow `AGENTS.md` hard rules. Small, coherent commits as you go (see `ship` for
 
 ## 5. Verify
 
-- Build, lint, typecheck and tests of every affected app pass (commands in the app's `AGENTS.md`).
+- Build, lint, typecheck and tests of every affected app pass (commands in root `AGENTS.md` → Commands).
 - New business logic and endpoints have tests (`// GIVEN` / `// WHEN` / `// THEN`).
 - Actually run it: hit the endpoint / open the screen. If you can't verify something, say so.
 - Tick every acceptance criterion — or state explicitly which one isn't met and why.

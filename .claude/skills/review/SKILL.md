@@ -27,6 +27,10 @@ Read the full changed files where the diff alone lacks context.
 - Hidden workaround: a hack without `TODO(KBB-<n>)`, fake data presented as real.
 - Edited generated files; hardcoded URLs/ports/credentials.
 - Acceptance criteria from the Linear task not met.
+- Product invariants broken (`AGENTS.md` → Product invariants): accessibility value without
+  provenance; missing data shown as accessible/green; sample data not labeled "PRZYKŁAD"; UI string
+  outside `apps/web/src/i18n/pl.ts`; information only on the map; not keyboard-operable.
+- Violates a `.claude/rules/*.md` for an area in the diff — re-read each one and check.
 
 **Should-fix:**
 - Duplicated logic where an existing helper/component would do.
