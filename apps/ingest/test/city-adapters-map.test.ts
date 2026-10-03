@@ -121,7 +121,7 @@ describe("mapZdmkParkingSpace", () => {
     expect(place).toMatchObject({
       externalRef: "zdmk-parking-ozn:space/ID_167",
       name: "Miejsce postojowe dla osób z niepełnosprawnościami: św. Sebastiana 7",
-      category: "other",
+      category: "parking",
       street: "św. Sebastiana",
       houseNumber: "7",
     });
@@ -154,7 +154,7 @@ describe("mapZtpStop", () => {
     expect(place).toMatchObject({
       externalRef: "ztp-stops:stop/816-01",
       name: "Przystanek św. Wawrzyńca 01",
-      category: "other",
+      category: "transit_stop",
     });
     expect(place?.facts.map((f) => [f.attribute, f.value])).toEqual([
       ["bench", { kind: "boolean", boolean: true }],

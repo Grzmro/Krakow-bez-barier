@@ -176,7 +176,13 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
   const limit = query.limit ?? 25;
 
   // Feature filters need resolved facts, so every candidate is resolved before paging (see docs/architecture.md).
-  const candidates = await repository.searchPlaces({ text: text || undefined, categories: query.category, bbox });
+  const hiddenByDefault = categories.filter((c) => c.hiddenByDefault).map((c) => c.id);
+  const candidates = await repository.searchPlaces({
+    text: text || undefined,
+    categories: query.category,
+    excludeCategories: hiddenByDefault,
+    bbox,
+  });
   const factsByPlace = Map.groupBy(await repository.activeFacts(candidates.map((p) => p.id)), (f) => f.placeId);
 
   const matching = candidates

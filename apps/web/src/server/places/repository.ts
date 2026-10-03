@@ -1,6 +1,6 @@
 import type { Category } from "@krakow-bez-barier/contracts";
 import { confirmations, facts, places, sources, type Db } from "@krakow-bez-barier/db";
-import { and, eq, inArray, sql, type SQL } from "drizzle-orm";
+import { and, eq, inArray, notInArray, sql, type SQL } from "drizzle-orm";
 import { getDb } from "../db";
 
 export type PlaceRecord = typeof places.$inferSelect;
@@ -11,6 +11,8 @@ export type PlaceSearch = {
   /** Already normalized with `normalizeText`. */
   text?: string;
   categories?: Category[];
+  /** Left out when `categories` is not given (hidden by default). */
+  excludeCategories?: Category[];
   /** `[minLon, minLat, maxLon, maxLat]`, WGS84. */
   bbox?: [number, number, number, number];
 };
@@ -39,13 +41,14 @@ const escapeLike = (text: string) => text.replace(/[\\%_]/g, (c) => `\\${c}`);
 
 export function createDbPlaceRepository(db: Db = getDb()): PlaceRepository {
   return {
-    async searchPlaces({ text, categories, bbox }) {
+    async searchPlaces({ text, categories, excludeCategories, bbox }) {
       const where: SQL[] = [];
       if (text) {
         const haystack = sql`translate(lower(concat_ws(' ', ${places.name}, ${places.street}, ${places.houseNumber})), ${FOLD_FROM}, ${FOLD_TO})`;
         where.push(sql`${haystack} like ${`%${escapeLike(text)}%`}`);
       }
       if (categories?.length) where.push(inArray(places.category, categories));
+      else if (excludeCategories?.length) where.push(notInArray(places.category, excludeCategories));
       if (bbox) {
         const [minLon, minLat, maxLon, maxLat] = bbox;
         where.push(sql`ST_Intersects(${places.location}, ST_MakeEnvelope(${minLon}, ${minLat}, ${maxLon}, ${maxLat}, 4326))`);

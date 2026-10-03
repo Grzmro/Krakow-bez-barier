@@ -24,6 +24,7 @@ const ziwDown = sourceRecord({
 const palac = placeRecord({ name: "Pałac Krzysztofory", website: "https://muzeumkrakowa.pl", phone: "+48 12 619 23 00" });
 const teatr = placeRecord({ name: "Teatr", website: "not a url" });
 const hotel = placeRecord({ name: "Hotel Dostępny", category: "hotel" });
+const parking = placeRecord({ name: "Miejsce postojowe: Sebastiana 7", category: "parking" });
 
 const facts = [
   factRecord(palac, "toilet_accessible", bool(true)),
@@ -37,7 +38,7 @@ const facts = [
   factRecord(hotel, "toilet_accessible", bool(true), { source: city, reliability: "confirmed" }),
 ];
 
-const repository = createFakePlaceRepository([palac, teatr, hotel], facts);
+const repository = createFakePlaceRepository([palac, teatr, hotel, parking], facts);
 
 vi.mock("@/server/places/repository", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/server/places/repository")>()),
@@ -124,5 +125,15 @@ describe("GET /api/v1/places/{id}", () => {
     // THEN it is a 404 problem
     expect(status).toBe(404);
     expect(body).toMatchObject({ status: 404, detail: 'Place "nie-ma-takiego" does not exist.' });
+  });
+
+  it("still returns a place whose category is hidden from the default list", async () => {
+    // GIVEN a parking space, a category that GET /places leaves out by default
+    // WHEN it is read by id
+    const { status, body } = await get(parking.id);
+
+    // THEN it resolves like any other place
+    expect(status).toBe(200);
+    expect(body).toMatchObject({ id: parking.id, category: "parking" });
   });
 });

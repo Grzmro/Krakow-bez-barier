@@ -81,7 +81,7 @@ Share-alike: our derived database of OSM facts is a derivative database under OD
 | What we read | `ID_MIEJSCA`, `punkt_adresowy` (address), point geometry |
 | Licence | **To confirm.** The item has empty `licenseInfo` and `accessInformation` |
 | Freshness | No per-record date; layer `dataLastEditDate` 2026-09 |
-| Adapter | `apps/ingest/src/adapters/zdmk-parking-ozn.ts`: one place per space (category `other`) with `disabled_parking = true`; ref `zdmk-parking-ozn:space/<ID_MIEJSCA>`. Fixture `zdmk-parking-ozn-sample.json`. Not matched to OSM (OSM places we ingest carry no parking spaces) |
+| Adapter | `apps/ingest/src/adapters/zdmk-parking-ozn.ts`: one place per space (category `parking`, hidden from the default places list) with `disabled_parking = true`; ref `zdmk-parking-ozn:space/<ID_MIEJSCA>`. Fixture `zdmk-parking-ozn-sample.json`. Not matched to OSM (OSM places we ingest carry no parking spaces) |
 | When unavailable | As for `osm`: last data kept, marked stale |
 
 ### `ztp-stops` — ZTP "Przystanki Komunikacji Miejskiej w Krakowie"
@@ -93,7 +93,7 @@ Share-alike: our derived database of OSM facts is a derivative database under OD
 | What we read | `Nazwa_przystanku_nr`, `kod_busman`, `Grupa`, `Nawierzchnia_peronu`, `Krawężnik_peronowy`, `Wiata_liczba`, bench counts, `EditDate` |
 | Licence | **To confirm.** The item has empty `licenseInfo` and `accessInformation` |
 | Freshness | Per record: `EditDate` is stored as `observedAt` |
-| Adapter | `apps/ingest/src/adapters/ztp-stops.ts`: one place per platform (category `other`). Benches outside the shelter > 0 → `bench = true`; no shelter and no seats → `bench = false`; a shelter without other seats → no fact (the inventory does not count shelter benches). Platform surface → `surface` (`asfalt` asphalt, `beton` concrete, `płyty_chodnikowe` paving_stones; `kostka` is skipped, since it does not say concrete blocks or stone setts). `Krawężnik_peronowy` (tak / nie / kassel-kerb) has no height in the data → skipped and counted. Suspended stops (`Grupa = KMK_zawieszony`) and platforms past their `validUntil` are skipped. Ref `ztp-stops:stop/<kod_busman>` (GlobalID when missing). Fixture `ztp-stops-sample.json` |
+| Adapter | `apps/ingest/src/adapters/ztp-stops.ts`: one place per platform (category `transit_stop`, hidden from the default places list). Benches outside the shelter > 0 → `bench = true`; no shelter and no seats → `bench = false`; a shelter without other seats → no fact (the inventory does not count shelter benches). Platform surface → `surface` (`asfalt` asphalt, `beton` concrete, `płyty_chodnikowe` paving_stones; `kostka` is skipped, since it does not say concrete blocks or stone setts). `Krawężnik_peronowy` (tak / nie / kassel-kerb) has no height in the data → skipped and counted. Suspended stops (`Grupa = KMK_zawieszony`) and platforms past their `validUntil` are skipped. Ref `ztp-stops:stop/<kod_busman>` (GlobalID when missing). Fixture `ztp-stops-sample.json` |
 | When unavailable | As for `osm`: last data kept, marked stale |
 
 **Decision rule until the city licences are confirmed:** the city adapters (`msip-toilets`,

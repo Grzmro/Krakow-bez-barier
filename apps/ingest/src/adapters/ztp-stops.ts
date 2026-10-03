@@ -80,8 +80,7 @@ export function mapZtpStop(feature: ZtpStop, now: Date = new Date()): MapResult 
     place: {
       externalRef: ref,
       name: `Przystanek ${name}`,
-      // TODO(KBB-52): own category before the licence is confirmed, or these flood the "Inne" list.
-      category: "other",
+      category: "transit_stop",
       location,
       street: null,
       houseNumber: null,
