@@ -9,6 +9,9 @@ function Toaster(props: ToasterProps) {
     <Sonner
       className="toaster group"
       position="bottom-center"
+      // Sonner's default bottom gaps (24 px, 16 px on phones) plus the iPhone home indicator.
+      offset={{ bottom: "calc(24px + env(safe-area-inset-bottom))" }}
+      mobileOffset={{ bottom: "calc(16px + env(safe-area-inset-bottom))" }}
       icons={{
         success: <CheckCircle weight="fill" className="size-5" />,
         info: <Info weight="fill" className="size-5" />,

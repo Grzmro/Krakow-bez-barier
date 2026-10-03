@@ -64,7 +64,7 @@ export function AppHeader() {
           </VaulDrawerTrigger>
         </nav>
         <VaulDrawerContent>
-          <div className="overflow-y-auto px-3 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+          <div className="overflow-y-auto px-3 pt-3 pb-5">
             <VaulDrawerTitle className="px-1 font-display text-h2 font-bold">{t.menu.title}</VaulDrawerTitle>
             <VaulDrawerDescription className="sr-only">{t.menu.description}</VaulDrawerDescription>
             <div className="mt-3">
