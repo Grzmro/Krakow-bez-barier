@@ -2,7 +2,8 @@
 
 Spec-first API contract (OpenAPI 3.1). `openapi.yaml` is the single source of truth; web handlers and clients depend on it.
 
-- `npm run contracts:generate` – generates `src/generated/schema.d.ts` (gitignored, never edit). Runs automatically on `postinstall`.
+- `npm run contracts:generate` – generates `src/generated/schema.d.ts` and `src/generated/examples.ts` (gitignored, never edit). Runs automatically on `postinstall`.
+- `responseExamples` – every JSON response example from the spec, type-checked against its schema with `satisfies`; the web app's profile mocks are built from it.
 - `npm run lint` – lints the spec with Redocly.
 - Import types and the typed `openapi-fetch` client from `@krakow-bez-barier/contracts` (`createApiClient()`).
 - `createMockFetch()` answers requests with the spec's response `examples` (generated to `src/generated/examples.ts`):

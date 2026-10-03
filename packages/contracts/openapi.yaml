@@ -101,6 +101,13 @@ paths:
         description: Optional needs profile; adds `verdict` to every summary. Thresholds default to the profile's presets.
         schema:
           $ref: '#/components/schemas/Profile'
+      - $ref: '#/components/parameters/MaxThresholdCm'
+      - $ref: '#/components/parameters/MinDoorWidthCm'
+      - $ref: '#/components/parameters/RequireStepFree'
+      - $ref: '#/components/parameters/RequireLift'
+      - $ref: '#/components/parameters/RequireAccessibleToilet'
+      - $ref: '#/components/parameters/RequireSmoothSurface'
+      - $ref: '#/components/parameters/RequireChangingTable'
       - name: limit
         in: query
         schema:
@@ -207,8 +214,16 @@ paths:
       - $ref: '#/components/parameters/PlaceId'
       - name: profile
         in: query
+        description: Optional needs profile; adds `verdict` with one entry per need. Thresholds default to the profile's presets.
         schema:
           $ref: '#/components/schemas/Profile'
+      - $ref: '#/components/parameters/MaxThresholdCm'
+      - $ref: '#/components/parameters/MinDoorWidthCm'
+      - $ref: '#/components/parameters/RequireStepFree'
+      - $ref: '#/components/parameters/RequireLift'
+      - $ref: '#/components/parameters/RequireAccessibleToilet'
+      - $ref: '#/components/parameters/RequireSmoothSurface'
+      - $ref: '#/components/parameters/RequireChangingTable'
       responses:
         '200':
           description: The place.
@@ -229,6 +244,12 @@ paths:
                 sourceUnavailable:
                   $ref: '#/components/examples/PlaceSourceUnavailable'
                   summary: Demo 4 — source unavailable (ZIW outage, last data kept and marked stale)
+                meetsWheelchair:
+                  $ref: '#/components/examples/PlaceMeetsWheelchair'
+                  summary: Meets the wheelchair presets; the lift rests on unconfirmed community data
+                barrier:
+                  $ref: '#/components/examples/PlaceBarrier'
+                  summary: Known barrier (two steps, no ramp, narrow door)
         '404':
           $ref: '#/components/responses/NotFound'
         '429':
@@ -654,6 +675,7 @@ paths:
                     name: Hotel Przykład
                     verdict:
                       state: unknown
+                      unconfirmed: false
                       reasons:
                       - Brak danych o przewijaku
                     facts:
@@ -698,6 +720,52 @@ components:
         type: string
         examples:
         - palac-krzysztofory
+    MaxThresholdCm:
+      name: maxThresholdCm
+      in: query
+      description: 'Profile threshold: highest entrance threshold (cm) that still counts as met. Ignored without `profile`.'
+      schema:
+        type: number
+        minimum: 0
+        maximum: 20
+    MinDoorWidthCm:
+      name: minDoorWidthCm
+      in: query
+      description: 'Profile threshold: narrowest entrance door (cm) that still counts as met. Ignored without `profile`.'
+      schema:
+        type: number
+        minimum: 40
+        maximum: 200
+    RequireStepFree:
+      name: requireStepFree
+      in: query
+      description: 'Profile need: no steps at the entrance unless there is a ramp (when false, one step is accepted).'
+      schema:
+        type: boolean
+    RequireLift:
+      name: requireLift
+      in: query
+      description: 'Profile need: a lift between floors.'
+      schema:
+        type: boolean
+    RequireAccessibleToilet:
+      name: requireAccessibleToilet
+      in: query
+      description: 'Profile need: an accessible toilet.'
+      schema:
+        type: boolean
+    RequireSmoothSurface:
+      name: requireSmoothSurface
+      in: query
+      description: 'Profile need: an even surface on the way in (no cobblestones or gravel).'
+      schema:
+        type: boolean
+    RequireChangingTable:
+      name: requireChangingTable
+      in: query
+      description: 'Profile need: a baby changing table.'
+      schema:
+        type: boolean
   responses:
     BadRequest:
       description: Malformed request.
@@ -1238,6 +1306,44 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/AccessibilityAttribute'
+        needs:
+          type: array
+          description: One entry per need of the profile, for the "Blokuje / Pasuje / Nie wiadomo" groups.
+          items:
+            $ref: '#/components/schemas/NeedResult'
+    NeedResult:
+      type: object
+      description: One profile need checked against the place's resolved attributes.
+      required:
+      - need
+      - attribute
+      - state
+      properties:
+        need:
+          $ref: '#/components/schemas/Need'
+        attribute:
+          $ref: '#/components/schemas/AccessibilityAttribute'
+        state:
+          $ref: '#/components/schemas/NeedVerdict'
+        unconfirmed:
+          type: boolean
+          default: false
+          description: True when `met` rests on data that is not confirmed.
+        reason:
+          type:
+          - string
+          - 'null'
+          description: Short Polish explanation, e.g. "2 stopnie" or "drzwi 70 cm".
+    Need:
+      type: string
+      description: A need a profile can check; `entrance` combines steps, threshold and ramp.
+      enum:
+      - entrance
+      - door
+      - lift
+      - toilet
+      - surface
+      - changing_table
     SummaryChip:
       type: object
       required:
@@ -1951,4 +2057,349 @@ components:
           statusNote: Źródło niedostępne (HTTP 404). Pokazujemy ostatnie znane dane jako nieaktualne.
           isSample: false
         updatedAt: '2023-11-14T03:00:00Z'
+        isSample: true
+    PlaceMeetsWheelchair:
+      value:
+        id: hotel-przyklad
+        name: Hotel Przykład
+        category: hotel
+        location:
+          type: Point
+          coordinates:
+          - 19.9405
+          - 50.0598
+        address:
+          street: ul. Sienna
+          houseNumber: '5'
+          postalCode: 31-041
+          city: Kraków
+        contact:
+          phone: null
+          website: null
+          email: null
+        entranceHint: Wejście główne od ul. Siennej, bez progu.
+        attributes:
+        - attribute: step_count
+          state: known
+          status: confirmed
+          value:
+            kind: number
+            number: 0
+            unit: count
+          facts:
+          - id: fact_owner_hotel_steps
+            attribute: step_count
+            value:
+              kind: number
+              number: 0
+              unit: count
+            unit: count
+            source:
+              id: owner
+              name: Dane obiektu
+              kind: venue_owner
+              recordRef: null
+            fetchedAt: '2026-09-12T08:00:00Z'
+            observedAt: '2026-09-12T08:00:00Z'
+            confirmedAt: '2026-09-12T08:00:00Z'
+            reliability: confirmed
+            evidence: null
+            status: active
+            stale: false
+        - attribute: threshold_cm
+          state: known
+          status: confirmed
+          value:
+            kind: number
+            number: 1
+            unit: cm
+          facts:
+          - id: fact_owner_hotel_threshold
+            attribute: threshold_cm
+            value:
+              kind: number
+              number: 1
+              unit: cm
+            unit: cm
+            source:
+              id: owner
+              name: Dane obiektu
+              kind: venue_owner
+              recordRef: null
+            fetchedAt: '2026-09-12T08:00:00Z'
+            observedAt: '2026-09-12T08:00:00Z'
+            confirmedAt: '2026-09-12T08:00:00Z'
+            reliability: confirmed
+            evidence: null
+            status: active
+            stale: false
+        - attribute: door_width_cm
+          state: known
+          status: confirmed
+          value:
+            kind: number
+            number: 90
+            unit: cm
+          facts:
+          - id: fact_owner_hotel_door
+            attribute: door_width_cm
+            value:
+              kind: number
+              number: 90
+              unit: cm
+            unit: cm
+            source:
+              id: owner
+              name: Dane obiektu
+              kind: venue_owner
+              recordRef: null
+            fetchedAt: '2026-09-12T08:00:00Z'
+            observedAt: '2026-09-12T08:00:00Z'
+            confirmedAt: '2026-09-12T08:00:00Z'
+            reliability: confirmed
+            evidence: null
+            status: active
+            stale: false
+        - attribute: lift
+          state: known
+          status: unverified
+          value:
+            kind: boolean
+            boolean: true
+          facts:
+          - id: fact_osm_hotel_lift
+            attribute: lift
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: node/987654
+            fetchedAt: '2026-10-03T03:00:00Z'
+            observedAt: null
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: active
+            stale: false
+        - attribute: toilet_accessible
+          state: known
+          status: confirmed
+          value:
+            kind: boolean
+            boolean: true
+          facts:
+          - id: fact_owner_hotel_toilet
+            attribute: toilet_accessible
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: owner
+              name: Dane obiektu
+              kind: venue_owner
+              recordRef: null
+            fetchedAt: '2026-09-12T08:00:00Z'
+            observedAt: '2026-09-12T08:00:00Z'
+            confirmedAt: '2026-09-12T08:00:00Z'
+            reliability: confirmed
+            evidence: null
+            status: active
+            stale: false
+        - attribute: changing_table
+          state: unknown
+          status: no_data
+          value: null
+          facts: []
+        verdict:
+          state: met
+          unconfirmed: true
+          reasons:
+          - 'Winda: dane niezweryfikowane'
+          blockers: []
+          unknowns: []
+          needs:
+          - need: entrance
+            attribute: step_count
+            state: met
+            unconfirmed: false
+            reason: null
+          - need: door
+            attribute: door_width_cm
+            state: met
+            unconfirmed: false
+            reason: null
+          - need: lift
+            attribute: lift
+            state: met
+            unconfirmed: true
+            reason: null
+          - need: toilet
+            attribute: toilet_accessible
+            state: met
+            unconfirmed: false
+            reason: null
+        sources:
+        - id: owner
+          name: Dane obiektu
+          kind: venue_owner
+          license: Udostępnione przez obiekt
+          attribution: null
+          url: null
+          refreshInterval: null
+          refreshStatus: ok
+          lastSuccessAt: '2026-09-12T08:00:00Z'
+          lastAttemptAt: '2026-09-12T08:00:00Z'
+          statusNote: null
+          isSample: true
+        - id: osm
+          name: OpenStreetMap
+          kind: community
+          license: ODbL 1.0
+          attribution: © OpenStreetMap contributors
+          url: https://www.openstreetmap.org
+          refreshInterval: daily
+          refreshStatus: ok
+          lastSuccessAt: '2026-10-03T03:00:00Z'
+          lastAttemptAt: '2026-10-03T03:00:00Z'
+          statusNote: null
+          isSample: false
+        updatedAt: '2026-10-03T03:00:00Z'
+        isSample: true
+    PlaceBarrier:
+      value:
+        id: restauracja-przyklad
+        name: Restauracja Przykład
+        category: restaurant
+        location:
+          type: Point
+          coordinates:
+          - 19.9369
+          - 50.0631
+        address:
+          street: ul. Szewska
+          houseNumber: '8'
+          postalCode: 31-009
+          city: Kraków
+        contact: null
+        entranceHint: null
+        attributes:
+        - attribute: step_count
+          state: known
+          status: unverified
+          value:
+            kind: number
+            number: 2
+            unit: count
+          facts:
+          - id: fact_osm_restauracja_steps
+            attribute: step_count
+            value:
+              kind: number
+              number: 2
+              unit: count
+            unit: count
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: node/555111
+            fetchedAt: '2026-10-03T03:00:00Z'
+            observedAt: '2026-06-15T00:00:00Z'
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: active
+            stale: false
+        - attribute: ramp
+          state: known
+          status: unverified
+          value:
+            kind: boolean
+            boolean: false
+          facts:
+          - id: fact_osm_restauracja_ramp
+            attribute: ramp
+            value:
+              kind: boolean
+              boolean: false
+            unit: null
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: node/555111
+            fetchedAt: '2026-10-03T03:00:00Z'
+            observedAt: '2026-06-15T00:00:00Z'
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: active
+            stale: false
+        - attribute: door_width_cm
+          state: known
+          status: unverified
+          value:
+            kind: number
+            number: 70
+            unit: cm
+          facts:
+          - id: fact_osm_restauracja_door
+            attribute: door_width_cm
+            value:
+              kind: number
+              number: 70
+              unit: cm
+            unit: cm
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: node/555111
+            fetchedAt: '2026-10-03T03:00:00Z'
+            observedAt: '2026-06-15T00:00:00Z'
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: active
+            stale: false
+        verdict:
+          state: barrier
+          unconfirmed: false
+          reasons:
+          - 2 stopnie
+          - drzwi 70 cm
+          blockers:
+          - step_count
+          - door_width_cm
+          unknowns: []
+          needs:
+          - need: entrance
+            attribute: step_count
+            state: barrier
+            unconfirmed: false
+            reason: 2 stopnie
+          - need: door
+            attribute: door_width_cm
+            state: barrier
+            unconfirmed: false
+            reason: drzwi 70 cm
+        sources:
+        - id: osm
+          name: OpenStreetMap
+          kind: community
+          license: ODbL 1.0
+          attribution: © OpenStreetMap contributors
+          url: https://www.openstreetmap.org
+          refreshInterval: daily
+          refreshStatus: ok
+          lastSuccessAt: '2026-10-03T03:00:00Z'
+          lastAttemptAt: '2026-10-03T03:00:00Z'
+          statusNote: null
+          isSample: false
+        updatedAt: '2026-10-03T03:00:00Z'
         isSample: true

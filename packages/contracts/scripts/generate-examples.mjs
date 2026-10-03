@@ -1,5 +1,6 @@
 // Extracts every response example from openapi.yaml into src/generated/examples.ts, keyed by
-// operationId, so clients can mock the API from the same examples the spec documents.
+// operationId, so clients can mock the API from the same examples the spec documents. JSON examples
+// are also emitted as `responseExamples`, each checked against its response schema by `satisfies`.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -43,14 +44,37 @@ for (const [path, item] of Object.entries(spec.paths ?? {})) {
 }
 
 const basePath = new URL(spec.servers?.[0]?.url ?? "/", "http://spec.invalid").pathname.replace(/\/$/, "");
+
+const typed = Object.entries(operations)
+  .map(([operationId, op]) => {
+    const statuses = Object.entries(op.responses)
+      .filter(([status, r]) => /^\d+$/.test(status) && r.contentType?.includes("json") && Object.keys(r.examples).length)
+      .map(([status, r]) => {
+        const json = JSON.stringify(r.examples, null, 2).replace(/\n/g, "\n    ");
+        return `    ${status}: ${json} satisfies Record<string, ResponseBody<"${operationId}", ${status}>>,`;
+      });
+    return statuses.length ? `  ${operationId}: {\n${statuses.join("\n")}\n  },` : null;
+  })
+  .filter(Boolean)
+  .join("\n");
+
 const out = join(root, "src", "generated", "examples.ts");
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(
   out,
   `// Generated from openapi.yaml by scripts/generate-examples.mjs. Do not edit.
 import type { SpecExamples } from "../mock";
+import type { operations } from "./schema";
+
+type ResponseBody<O extends keyof operations, S extends keyof operations[O]["responses"]> =
+  operations[O]["responses"][S] extends { content: infer C } ? C[keyof C] : never;
 
 export const specExamples: SpecExamples = ${JSON.stringify({ basePath, operations }, null, 2)};
+
+/** JSON response examples by operationId → status → example name, typed by the spec. */
+export const responseExamples = {
+${typed}
+};
 `,
 );
 console.log(`examples: ${Object.keys(operations).length} operations → ${out}`);
