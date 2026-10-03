@@ -1,6 +1,13 @@
-import type { TransitDeparture, TransitStop, VehicleAccessibility } from "@krakow-bez-barier/contracts";
+import type {
+  Reliability,
+  TransitDeparture,
+  TransitStop,
+  VehicleAccessibility,
+  VehicleEvidence,
+} from "@krakow-bez-barier/contracts";
 import { distanceMeters } from "@/lib/place-features";
 import type { FeedConfig, FeedData } from "./feed";
+import { FLEET_RELIABILITY, fleetEntriesFor, type FleetEntry } from "./fleet";
 import type { RtVehicle } from "./gtfs-rt";
 
 export type DepartureOptions = {
@@ -10,27 +17,53 @@ export type DepartureOptions = {
   maxDeparturesPerStop?: number;
   /** Departures further ahead are left out. */
   horizonSeconds?: number;
+  /** City fleet configuration; entries of a source whose licence is unconfirmed are dropped when `production`. */
+  fleet?: FleetEntry[];
+  production?: boolean;
 };
 
 const iso = (seconds: number) => new Date(seconds * 1000).toISOString();
 
-/** What a departure says about its vehicle; unknown never becomes accessible. */
+const RANK: Record<Reliability, number> = { confirmed: 0, community: 1, extracted: 2, user_report: 3, inferred: 4, sample: 5 };
+
+/**
+ * What a departure says about its vehicle. The statements are the operator's flag (when this feed's flag means
+ * something), the vehicle's fleet type and a carrier declaration; `entries` are the fleet entries already matched to
+ * this vehicle. Agreeing statements make one fact with every source, disagreeing ones a conflict that shows all of them,
+ * a declaration alone stays "declared" — and missing data never becomes accessible.
+ */
 export function vehicleAccessibility(
   feed: FeedConfig,
   vehicle: RtVehicle | undefined,
   observedAt: number | undefined,
+  entries: FleetEntry[] = [],
 ): VehicleAccessibility {
   const base = { label: vehicle?.label ?? vehicle?.id ?? null, observedAt: observedAt ? iso(observedAt) : null };
-  switch (vehicle?.wheelchair) {
-    case 2:
-      return feed.trustsAccessibleFlag
-        ? { ...base, state: "accessible", reliability: "confirmed" }
-        : { ...base, state: "unverified", reliability: "inferred" };
-    case 3:
-      return { ...base, state: "inaccessible", reliability: "confirmed" };
-    default:
-      return { ...base, state: "no_data", reliability: null };
+  const evidence: VehicleEvidence[] = [];
+  if (vehicle?.wheelchair === 3) {
+    evidence.push({ kind: "operator_flag", accessible: false, reliability: "confirmed", detail: null });
+  } else if (vehicle?.wheelchair === 2 && feed.trustsAccessibleFlag) {
+    evidence.push({ kind: "operator_flag", accessible: true, reliability: "confirmed", detail: null });
   }
+  for (const entry of entries) {
+    evidence.push({
+      kind: entry.kind,
+      accessible: entry.lowFloor,
+      reliability: FLEET_RELIABILITY[entry.kind],
+      detail: entry.model,
+    });
+  }
+
+  if (evidence.length === 0) {
+    // A default flag stays visible as "unverified"; no flag at all is "no data".
+    return vehicle?.wheelchair === 2
+      ? { ...base, state: "unverified", reliability: "inferred", evidence }
+      : { ...base, state: "no_data", reliability: null, evidence };
+  }
+  const best = evidence.reduce((a, b) => (RANK[b.reliability] < RANK[a.reliability] ? b : a)).reliability;
+  if (new Set(evidence.map((e) => e.accessible)).size > 1) return { ...base, state: "conflict", reliability: best, evidence };
+  if (evidence.every((e) => e.kind === "carrier_declaration")) return { ...base, state: "declared", reliability: best, evidence };
+  return { ...base, state: evidence[0].accessible ? "accessible" : "inaccessible", reliability: best, evidence };
 }
 
 type Platform = { feed: FeedData; id: string; name: string; platform: string | null; lon: number; lat: number; distance: number };
@@ -44,7 +77,7 @@ export function nearbyDepartures(
   feeds: FeedData[],
   point: [number, number],
   now: number,
-  { radiusMeters, maxStops = 3, maxDeparturesPerStop = 6, horizonSeconds = 3600 }: DepartureOptions,
+  { radiusMeters, maxStops = 3, maxDeparturesPerStop = 6, horizonSeconds = 3600, fleet = [], production = false }: DepartureOptions,
 ): TransitStop[] {
   const platforms: Platform[] = [];
   for (const feed of feeds) {
@@ -87,7 +120,12 @@ export function nearbyDepartures(
             platform: platform.platform,
             departureAt: iso(at),
             delaySeconds: stopTime.delaySeconds ?? null,
-            vehicle: vehicleAccessibility(feed.feed, vehicle, position?.timestamp ?? feed.timestamp),
+            vehicle: vehicleAccessibility(
+              feed.feed,
+              vehicle,
+              position?.timestamp ?? feed.timestamp,
+              fleetEntriesFor(fleet, feed.feed.id, vehicle?.label ?? vehicle?.id, { production }),
+            ),
           });
         });
       }

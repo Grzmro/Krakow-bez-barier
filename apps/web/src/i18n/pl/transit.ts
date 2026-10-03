@@ -31,7 +31,26 @@ export const transit = {
     inaccessible: "Pojazd niedostępny dla wózka",
     unverified: "Niezweryfikowane",
     no_data: "Brak danych o pojeździe",
+    declared: "Deklaracja przewoźnika",
+    conflict: "Sprzeczne",
   },
+  evidenceTitle: "Co mówią źródła",
+  evidenceKind: {
+    operator_flag: "Flaga przewoźnika (ZTP, dane na żywo)",
+    fleet_type: "Typ taboru (konfiguracja miasta)",
+    carrier_declaration: "Deklaracja przewoźnika",
+  },
+  evidenceValue: (accessible: boolean): string => (accessible ? "dostępny dla wózka" : "niedostępny dla wózka"),
+  evidenceReliability: {
+    confirmed: "potwierdzone",
+    community: "społeczność",
+    extracted: "wyciągnięte automatycznie",
+    user_report: "zgłoszenie użytkownika",
+    inferred: "wnioskowane",
+    sample: "PRZYKŁAD",
+  },
+  evidenceLine: (kind: string, value: string, reliability: string, detail: string | null) =>
+    `${kind}: ${value}${detail ? ` (${detail})` : ""} · wiarygodność: ${reliability}`,
   vehicleNumber: (label: string) => `pojazd nr ${label}`,
   unverifiedHint:
     "„Niezweryfikowane”: przewoźnik oznacza każdy tramwaj jako dostępny dla wózka, także wysokopodłogowe, więc nie traktujemy tego jako potwierdzenia. „Brak danych”: dane na żywo nic nie mówią o pojeździe — to nie znaczy, że jest dostępny.",

@@ -28,7 +28,26 @@ export const transit: Messages["transit"] = {
     inaccessible: "Vehicle not wheelchair-accessible",
     unverified: "Unverified",
     no_data: "No vehicle data",
+    declared: "Carrier's declaration",
+    conflict: "Conflicting",
   },
+  evidenceTitle: "What the sources say",
+  evidenceKind: {
+    operator_flag: "Operator's flag (ZTP, live data)",
+    fleet_type: "Fleet type (city configuration)",
+    carrier_declaration: "Carrier's declaration",
+  },
+  evidenceValue: (accessible: boolean) => (accessible ? "wheelchair-accessible" : "not wheelchair-accessible"),
+  evidenceReliability: {
+    confirmed: "confirmed",
+    community: "community",
+    extracted: "extracted automatically",
+    user_report: "user report",
+    inferred: "inferred",
+    sample: "SAMPLE",
+  },
+  evidenceLine: (kind: string, value: string, reliability: string, detail: string | null) =>
+    `${kind}: ${value}${detail ? ` (${detail})` : ""} · reliability: ${reliability}`,
   vehicleNumber: (label: string) => `vehicle no. ${label}`,
   unverifiedHint:
     "“Unverified”: the operator flags every tram as wheelchair-accessible, high-floor ones too, so we don't treat it as confirmation. “No data”: the live data says nothing about the vehicle — that doesn't mean it is accessible.",

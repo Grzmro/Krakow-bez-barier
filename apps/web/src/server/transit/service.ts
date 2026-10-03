@@ -4,6 +4,7 @@ import { messagesFor } from "@/i18n/messages";
 import { simulatedOutageIds } from "@/server/sources";
 import { nearbyDepartures } from "./departures";
 import { ZTP_FEEDS, ZTP_SOURCE, type FeedConfig, type FeedData, type TransitFeedProvider } from "./feed";
+import { KRAKOW_FLEET, type FleetEntry } from "./fleet";
 import { createLiveProvider } from "./live-provider";
 import { createRecordedProvider } from "./recorded-provider";
 
@@ -18,6 +19,10 @@ export type TransitServiceOptions = {
   /** `null`: the feed is not served (licence not confirmed in production, or switched off). */
   provider: TransitFeedProvider | null;
   feeds?: FeedConfig[];
+  /** Fleet types and carrier declarations (city configuration). */
+  fleet?: FleetEntry[];
+  /** Production uses only fleet entries whose source licence is confirmed. */
+  production?: boolean;
   /** A feed read more recently than this is not read again. */
   refreshMs?: number;
   /** Demo switch: every read fails as if the operator were down; the last data stays. */
@@ -40,6 +45,8 @@ export type TransitService = { departures(query: DeparturesQuery, locale?: Local
 export function createTransitService({
   provider,
   feeds = ZTP_FEEDS,
+  fleet = KRAKOW_FLEET,
+  production = process.env.NODE_ENV === "production",
   refreshMs = 30_000,
   simulateOutage = () => false,
   now = () => new Date(),
@@ -108,7 +115,7 @@ export function createTransitService({
         mode: provider.kind,
         fetchedAt,
         source,
-        stops: nearbyDepartures(loaded, [lon, lat], reference, { radiusMeters: radius ?? SPEC_DEFAULT_RADIUS_M }),
+        stops: nearbyDepartures(loaded, [lon, lat], reference, { radiusMeters: radius ?? SPEC_DEFAULT_RADIUS_M, fleet, production }),
       };
     },
   };

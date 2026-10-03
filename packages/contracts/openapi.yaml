@@ -1491,6 +1491,7 @@ paths:
                           reliability: inferred
                           label: '405'
                           observedAt: '2026-10-03T18:06:20Z'
+                          evidence: []
                       - tripId: 20260930_2_128804900_11
                         mode: bus
                         line: '502'
@@ -1503,6 +1504,7 @@ paths:
                           reliability: null
                           label: '147'
                           observedAt: '2026-10-03T18:06:20Z'
+                          evidence: []
         '400':
           $ref: '#/components/responses/BadRequest'
         '429':
@@ -3358,8 +3360,9 @@ components:
           $ref: '#/components/schemas/VehicleAccessibility'
     VehicleAccessibility:
       type: object
-      description: 'Whether the vehicle on the trip takes a wheelchair, from GTFS-Realtime `wheelchair_accessible`, with
-        its provenance (source and time are the response''s `source` and `fetchedAt`).
+      description: 'Whether the vehicle on the trip takes a wheelchair, from the operator''s GTFS-Realtime
+        `wheelchair_accessible` flag, the vehicle''s fleet type and the carrier''s declaration, with the provenance of each
+        statement in `evidence` (the flag''s source and time are the response''s `source` and `fetchedAt`).
 
         '
       required:
@@ -3367,17 +3370,21 @@ components:
       - reliability
       - label
       - observedAt
+      - evidence
       properties:
         state:
           type: string
           description: '`accessible` / `inaccessible`: the operator says so for this vehicle; `unverified`: the feed says
             accessible, but for this mode the flag is a default (every tram is flagged), so it is not trusted;
-            `no_data`: the feed says nothing — never treat as accessible.'
+            `no_data`: the feed says nothing — never treat as accessible; `declared`: only the carrier''s own declaration
+            says so, nothing checked the vehicle; `conflict`: the statements in `evidence` disagree, show them all.'
           enum:
           - accessible
           - inaccessible
           - unverified
           - no_data
+          - declared
+          - conflict
         reliability:
           oneOf:
           - $ref: '#/components/schemas/Reliability'
@@ -3393,6 +3400,39 @@ components:
           - 'null'
           format: date-time
           description: When the vehicle last reported its position.
+        evidence:
+          type: array
+          description: Every statement about the vehicle that counted towards `state`; empty for `unverified` and `no_data`.
+          items:
+            $ref: '#/components/schemas/VehicleEvidence'
+    VehicleEvidence:
+      type: object
+      description: One statement about whether a vehicle takes a wheelchair, with where it comes from.
+      required:
+      - kind
+      - accessible
+      - reliability
+      - detail
+      properties:
+        kind:
+          type: string
+          description: '`operator_flag`: the GTFS-Realtime flag of this vehicle; `fleet_type`: the low-floor property of the
+            vehicle''s model, from the city''s fleet configuration; `carrier_declaration`: the carrier''s own announcement
+            (for example “low-floor from …”), not a check of the vehicle.'
+          enum:
+          - operator_flag
+          - fleet_type
+          - carrier_declaration
+        accessible:
+          type: boolean
+          description: What the statement says.
+        reliability:
+          $ref: '#/components/schemas/Reliability'
+        detail:
+          type:
+          - string
+          - 'null'
+          description: The model name or the wording of the declaration, when there is one.
     WidgetFact:
       type: object
       required:
