@@ -254,7 +254,7 @@ export function HomeScreen() {
       revealRef.current = null;
     }
     // "Pokaż więcej" moves focus to the first new row, so a keyboard user carries on where the list grew.
-    if (focusRowRef.current) rowRefs.current.get(focusRowRef.current)?.focus();
+    if (focusRowRef.current) reveal(focusRowRef.current);
     focusRowRef.current = null;
   }, [stowed, rendered]);
 
