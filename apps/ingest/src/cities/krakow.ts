@@ -1,3 +1,4 @@
+import { krakowBipMalopolskaPages } from "./data/krakow-bip-malopolska";
 import { krakowBipPages } from "./data/krakow-bip-pages";
 import { krakowPlToiletsPage } from "./data/krakow-pl-toilets";
 import type { CityConfig } from "./types";
@@ -13,7 +14,7 @@ export const krakow: CityConfig = {
     demo: { south: 50.045, west: 19.925, north: 50.06, east: 19.96 },
   },
   defaults: { center: [19.9373, 50.0614], zoom: 15 },
-  sources: ["osm", "msip-toilets", "zdmk-parking-ozn", "ztp-stops", "bip-mk", "krakow-pl-toilets"],
+  sources: ["osm", "msip-toilets", "zdmk-parking-ozn", "ztp-stops", "bip-mk", "krakow-pl-toilets", "bip-malopolska"],
   sourceConfig: {
     osm: {
       endpoint: "https://overpass-api.de/api/interpreter",
@@ -32,5 +33,6 @@ export const krakow: CityConfig = {
     },
     "bip-mk": { pages: krakowBipPages },
     "krakow-pl-toilets": { pages: [krakowPlToiletsPage] },
+    "bip-malopolska": { endpoint: "https://bip.malopolska.pl/api/", pages: krakowBipMalopolskaPages },
   },
 };
