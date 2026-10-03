@@ -113,8 +113,9 @@ for (const [name, device] of [
   test.describe(`map touch gestures on ${name}`, () => {
     const { viewport, userAgent, deviceScaleFactor, isMobile, hasTouch } = device;
     test.use({ viewport, userAgent, deviceScaleFactor, isMobile, hasTouch });
-    // Every touch step waits for a rendered frame of the software-GL map; ten drags take ~7 s alone.
-    test.describe.configure({ timeout: 30_000 });
+    // Every touch step and ease waits for rendered frames of the software-GL map. Idle, ten drags take ~7 s; with
+    // parallel agents on the machine a frame can take a second and opening the map alone ~18 s.
+    test.describe.configure({ timeout: 60_000 });
 
     test("ten drags anywhere on the visible map each pan it, also after the sheet is toggled", async ({ page, evidence }) => {
       // GIVEN the home screen zoomed in to single sample pins
