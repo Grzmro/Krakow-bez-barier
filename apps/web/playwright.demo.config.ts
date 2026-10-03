@@ -47,7 +47,7 @@ export default defineConfig({
           command: `npm run start -- --port ${outagePort}`,
           url: outageURL,
           reuseExistingServer: false,
-          env: { ...env, SIMULATE_SOURCE_OUTAGE: "msip-toilets", ALLOW_SIMULATED_OUTAGE: "true" },
+          env: { ...env, SIMULATE_SOURCE_OUTAGE: "krakow-pl-toilets", ALLOW_SIMULATED_OUTAGE: "true" },
           timeout: 60_000,
         },
       ],

@@ -39,6 +39,8 @@ export type PagePlace = {
   osmRef: string;
   /** The parts of the page about this place, in page order; the whole page when omitted. */
   sections?: PageSection[];
+  /** On a page that lists places one per heading (krakow.pl toilets): this place's heading, without its number. */
+  heading?: string;
 };
 
 export type SourcePage = { url: string; places: PagePlace[] };

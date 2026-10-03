@@ -52,6 +52,12 @@ export const pages = {
       seeded: "Dane wczytane jednorazowo, bez automatycznej aktualizacji.",
       awaitingLicense: "Czekamy na potwierdzenie licencji z urzędem. Do tego czasu nie pobieramy z tego źródła danych.",
       notFetched: "Jeszcze nie pobraliśmy z tego źródła danych.",
+      withheld: "Wyłączone: nie pokazujemy danych z tego źródła, dopóki licencja nie zostanie potwierdzona.",
+      // Why a specific source is switched off, by source id; others get `withheld`.
+      withheldBySource: {
+        "msip-toilets":
+          "Wyłączone: ta warstwa MSIP nie należy do danych otwartych (OPEN DATA) miasta, więc nie pokazujemy jej danych, dopóki miasto nie potwierdzi warunków ponownego wykorzystania. Toalety publiczne bierzemy z krakow.pl i OpenStreetMap.",
+      } as Partial<Record<string, string>>,
     },
     // Licence wording the sources API shows instead of the internal raw value.
     licenseNote: {

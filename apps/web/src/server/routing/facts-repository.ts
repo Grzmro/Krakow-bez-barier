@@ -2,6 +2,7 @@ import { routeCategoryIds, type AccessibilityAttribute } from "@krakow-bez-barie
 import { confirmations, facts, places, sources, type Db } from "@krakow-bez-barier/db";
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { getDb } from "../db";
+import { isWithheld, withheldSourceIds } from "../sources";
 import type { FactRecord } from "../places/repository";
 import { toFact } from "../places/service";
 import type { LonLat } from "./provider";
@@ -52,7 +53,8 @@ export function createDbRouteFacts(db: Db = getDb()): RouteFactsSource {
           sql`ST_DWithin(${places.location}::geography, ST_SetSRID(ST_GeomFromGeoJSON(${geojson}), 4326)::geography, ${meters})`,
         ),
       );
-    return rows.map(({ fact, source, lon, lat, confirmations: count }) => ({
+    const withheld = withheldSourceIds();
+    return rows.filter(({ source }) => !isWithheld(source, withheld)).map(({ fact, source, lon, lat, confirmations: count }) => ({
       ...fact,
       source,
       confirmations: Number(count),

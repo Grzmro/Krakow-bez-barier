@@ -16,7 +16,8 @@ see the status column.
 |---|---|---|---|---|---|
 | `osm` | OpenStreetMap via Overpass | places, `wheelchair=*` and related tags | ODbL 1.0 | Confirmed | yes |
 | `bip-mk` | BIP MK "Dostępność architektoniczna" pages of city units (cultural institutions first) | lift, ramp, accessible toilet, changing table, disabled parking, level entrance, door width — read from the text | GMK rules for reuse of public-sector information, pt III (commercial use allowed) | Confirmed | yes |
-| `msip-toilets` | MSIP "Toalety publiczne" (`WT_WC_2023`) | city public toilets, accessibility fields | Not stated in the service; MSIP regulation limits reuse to data classified "OPEN DATA" | **To confirm** | only after confirmation |
+| `krakow-pl-toilets` | krakow.pl "Kraków bez barier": "Toalety ogólnodostępne" (list of 65 adapted toilets, updated 2025-09-15) | accessible toilet, overall access, lift/platform, ramp, level entrance — paired with OSM toilets | krakow.pl terms: non-commercial use allowed, commercial use needs the city's consent | **Non-commercial, to confirm for commercial use** (shown as such) | yes (switch off with `WITHHELD_SOURCES`) |
+| `msip-toilets` | MSIP "Toalety publiczne" (`WT_WC_2023`) | city public toilets, accessibility fields | Not stated in the service; the layer is **not** in MSIP's OPEN DATA ("Pobieranie") folder | **Not open data — withheld** | no; facts already in a database are not served (KBB-133) |
 | `zdmk-parking-ozn` | ZDMK "Miejsca postojowe OZN" (ArcGIS Online) | marked parking spaces for disabled drivers | No licence in the ArcGIS item | **To confirm** | only after confirmation |
 | `ztp-stops` | ZTP "Przystanki Komunikacji Miejskiej w Krakowie" (ArcGIS Online) | stop inventory: benches, platform surface | No licence in the ArcGIS item | **To confirm** | only after confirmation |
 | `msip-koh` | MSIP "Obiekty hotelarskie KOH" (`WT_OBIEKTY_HOTELOWE_KOH`) | hotel names/categories/addresses, no accessibility fields | Not stated; derived from the national register of hotel facilities | **To confirm** | only after confirmation |
@@ -59,7 +60,25 @@ Share-alike: our derived database of OSM facts is a derivative database under OD
 | When unavailable | A page that fails is logged and left out, its places keep their facts; the run fails only when no page could be read |
 | Coverage caveat | No unit states a door width for its entrance, so no place meets the wheelchair preset on BIP data alone; Muzeum Krakowa (a PDF) and Teatr Variete (one line) have no usable text |
 
+### `krakow-pl-toilets` — krakow.pl "Toalety ogólnodostępne"
+
+| | |
+|---|---|
+| Origin | Urząd Miasta Krakowa, krakow.pl service "Kraków bez barier" (publisher "Bez barier"), page https://www.krakow.pl/bezbarier/turystyka_sport_kultura/2780,artykul,toalety-ogolnodostepne.html: "Ogólnodostępne toalety dostosowane dla osób z niepełnosprawnościami" |
+| What we read | 65 numbered entries: place name, type (obsługowa / samoobsługowa), opening hours, facility for disabled people ("platforma", "winda", "pochylnia", "wjazd z poziomu 0", "schodołaz"); page update date from `<time title="Data aktualizacji">` (2025-09-15) |
+| Licence | **Non-commercial use, to confirm for commercial use.** krakow.pl legal information (https://www.krakow.pl/start/3307,artykul,informacje_prawne.html): content may not be reproduced without the owner's written consent, "z wyłączeniem wykorzystania dla celów niekomercyjnych". The hackathon prototype is non-commercial; a commercial service needs consent or a reuse request under the GMK rules (pt IV). The source card and `/o-danych` show this wording |
+| Attribution | "Źródło: Urząd Miasta Krakowa, serwis krakow.pl „Kraków bez barier”, strona „Toalety ogólnodostępne”"; processed: entries paired with OSM toilets |
+| Freshness | `observedAt` = the page's update date (2025-09-15). That is over 12 months before the demo, so the card shows these facts as "Może być nieaktualne" and a fresh OSM fact decides; when the city updates the page, disagreements become "Sprzeczne" |
+| Matching | The page has no coordinates. Pairing entry → OSM toilet is configuration (`apps/ingest/src/cities/data/krakow-pl-toilets.ts`), made once: the entry's place or street geocoded with OSM Nominatim (free, ~65 requests at 1/s), nearest OSM toilet within ~150 m, each pair checked. 24 of 65 entries are paired; ambiguous ones (two OSM toilets nearby, e.g. Bulwar Czerwieński) and ones without an OSM toilet are left out. A configured heading missing from a later page is logged and not loaded |
+| Adapter | `apps/ingest/src/adapters/krakow-pl-toilets.ts`, tested on `apps/ingest/test/fixtures/krakow-pl-toilets.html`. On the list → `toilet_accessible = true`, `wheelchair_overall = yes` ("schodołaz" only → `limited`); "platforma" / "winda" → `lift`, "pochylnia" → `ramp`, "wjazd z poziomu 0" → `entrance_level`; other facilities skipped and counted. Evidence: the entry's words and the page link. Record ref `krakow-pl-toilets:<id>@<update date>`. Reliability `confirmed` (city publication) |
+| Switch off | Remove `krakow-pl-toilets` from the city's `sources` (ingest) and set `WITHHELD_SOURCES=krakow-pl-toilets` on the web server (the API stops serving its facts, the source card says so) |
+
 ### `msip-toilets` — MSIP "Toalety publiczne"
+
+**Withheld (KBB-133).** The layer is not in MSIP's OPEN DATA ("Pobieranie") folder, so it has no basis for reuse.
+The API never serves facts of a source whose licence is "to be confirmed" (`isWithheld` in
+`apps/web/src/server/sources.ts`), so facts loaded by an older seed stay in the database but reach no screen,
+route or statistic; `/o-danych` lists the source with the reason. The seed no longer writes MSIP facts.
 
 | | |
 |---|---|
@@ -70,7 +89,7 @@ Share-alike: our derived database of OSM facts is a derivative database under OD
 | Attribution (per regulation, if reuse is allowed) | "Gmina Miejska Kraków, Portal MSIP Obserwatorium (https://msip.krakow.pl)" |
 | Freshness | Dataset year 2023 (layer name); the fetch date is stored as `fetchedAt`. No per-record date, so the UI shows "dataset 2023" |
 | Update frequency | Unknown, no published schedule. Treated as static; re-read on the cron |
-| Verification | No ID or OSM ref; matched to OSM toilets by distance (all 9 in the demo bbox are within 13 m). Reliability: official city dataset, but old. Disagreements with OSM are shown as "Sprzeczne dane" (e.g. changing table at ul. Konopnickiej) |
+| Verification | No ID or OSM ref; matched to OSM toilets by distance (all 9 in the demo bbox are within 13 m). Reliability: official city dataset, but old |
 | When unavailable | Same as above. The older host `msip3.um.krakow.pl` returns 404 (2026-10-03); the live demo uses it to simulate an outage (KBB-29) |
 | Adapter | `apps/ingest/src/adapters/msip-toilets.ts`, mapper tested on `apps/ingest/test/fixtures/msip-toilets-sample.json` (the 9 toilets in the demo bbox, recorded 2026-10-03). `nplnsprw` "tak", "tak, oddzielnie", "tak, pomiędzy toaletą damską a męską" → `wheelchair_overall = yes`, "tak, po stronie damskiej" (accessible cubicle on the women's side only) → `limited`, "nie" → `no`, anything else skipped; `rodz_npl` "pochylnia" → `ramp`, "winda" / "platforma" → `lift`, "wjazd z poziomu 0" → `entrance_level`, other values (e.g. "schodołaz") skipped; closed toilets (`status = nie`) skipped; `przewijak` "Tak" / "brak" → `changing_table`. The original wording is kept as the evidence comment. Record ref `msip-toilets:WT_WC_2023/<ESRI_OID>`. `licenseConfirmed: false`, so the CLI and the runner refuse to load it |
 

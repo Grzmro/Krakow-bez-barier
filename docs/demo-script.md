@@ -3,15 +3,17 @@
 Scenariusz wideo do zgłoszenia (KBB-31) i pokazu na żywo. Nagranie przejścia przez aplikację robi
 Playwright; na gotowe wideo wystarczy nagrać lektora z tekstu poniżej.
 
-**Wszystko na prawdziwych danych**: miejsca z OpenStreetMap (ekstrakt Geofabrik) i otwartych danych
-Krakowa (MSIP), z bazy, na której działa aplikacja. Żadnych przykładowych miejsc ze specyfikacji API
+**Wszystko na prawdziwych danych**: miejsca z OpenStreetMap (ekstrakt Geofabrik), fakty z BIP Miasta
+Krakowa i lista toalet z krakow.pl („Kraków bez barier”), z bazy, na której działa aplikacja. Warstwa
+toalet MSIP (`WT_WC_2023`) nie jest danymi otwartymi, więc jest wyłączona (KBB-133). Żadnych przykładowych miejsc ze specyfikacji API
 i żadnej etykiety „PRZYKŁAD” na ekranie.
 
 ## Jak nagrać
 
 ```bash
-npm run db:setup                      # migracje + seed (źródła, toalety MSIP)
-npm run ingest -- --source osm        # miejsca z OpenStreetMap
+npm run db:setup                      # migracje + seed (źródła, hotele ze sceny 2–4)
+npm run ingest -- --city krakow --source osm                # miejsca z OpenStreetMap
+npm run ingest -- --city krakow --source krakow-pl-toilets  # toalety z krakow.pl (strona „miasto” rozbieżności)
 npm run demo:record                   # build bez mocka + dwa `next start` tego repo, nagranie
 DEMO_PACE=0.2 npm run demo:record     # szybki przebieg kontrolny (krótsze pauzy)
 E2E_BASE_URL=https://<deploy> DEMO_OUTAGE_BASE_URL=https://<deploy z awarią> npm run demo:record
@@ -25,15 +27,15 @@ E2E_BASE_URL=https://<deploy> DEMO_OUTAGE_BASE_URL=https://<deploy z awarią> np
 - **Baza jest wymagana.** Bez `DATABASE_URL` nagranie nie startuje (błąd konfiguracji z instrukcją),
   a gdy baza nie odpowiada albo brakuje miejsca ze scenariusza, kończy się błędem na starcie —
   nigdy nie przechodzi po cichu na przykładowe dane. Build ma zawsze `NEXT_PUBLIC_API_MOCK` puste.
-- Miejsca są wyszukiwane w API po nazwie (Qubus, Hotel Miodowa) albo po stanie (toaleta, w której
-  miasto i OpenStreetMap podają sprzeczne dane o przewijaku), nie po identyfikatorach. Nazwy są w
+- Miejsca są wyszukiwane w API po nazwie (Qubus, Hotel Miodowa) albo po stanie (toaleta najbliżej Rynku,
+  w której miasto i OpenStreetMap podają różną ogólną dostępność), nie po identyfikatorach. Nazwy są w
   jednym miejscu skryptu, `PLACES`.
-- **Awaria źródła** to przełącznik operatora `SIMULATE_SOURCE_OUTAGE=msip-toilets` (zmienna serwera,
+- **Awaria źródła** to przełącznik operatora `SIMULATE_SOURCE_OUTAGE=krakow-pl-toilets` (zmienna serwera,
   KBB-29). Lokalnie nagranie uruchamia drugi `next start` tego samego buildu i tej samej bazy z tym
   przełącznikiem i tylko scena „Źródło niedostępne” oraz „O danych” idą przez niego. Dla wdrożenia
   podaj jego adres w `DEMO_OUTAGE_BASE_URL` (np. wdrożenie podglądowe z przełącznikiem, patrz
   [deployment.md](deployment.md) pkt 7); bez niego nagranie pomija tę scenę z ostrzeżeniem.
-- **Scena 5 wysyła prawdziwe zgłoszenie** („Przewijak: Jest”) do bazy, na której działa aplikacja.
+- **Scena 5 wysyła prawdziwe zgłoszenie** („Ogólna dostępność: Dostępne dla wózków”) do bazy, na której działa aplikacja.
   Czeka na moderację i nie zmienia danych. Nagrywaj na bazie demo, nie produkcyjnej.
 - **Przed każdym kolejnym nagraniem odrzuć zgłoszenia z poprzedniego** w `/moderator` (albo postaw
   bazę demo od nowa: `npm run db:setup` + ingest). Inaczej karta toalety pokaże starsze wpisy
@@ -43,20 +45,21 @@ E2E_BASE_URL=https://<deploy> DEMO_OUTAGE_BASE_URL=https://<deploy z awarią> np
 
 ## Miejsca w scenariuszu
 
-Stan danych z 2026-10-03 (OSM: ekstrakt Geofabrik z 2026-10-02, MSIP: zapytanie z 2026-10-03).
+Stan danych z 2026-10-04 (OSM: ekstrakt Geofabrik z 2026-10-02, krakow.pl: strona z aktualizacją 2025-09-15).
 Przed nagraniem nagranie samo sprawdza, że każde z nich jest w bazie.
 
-Skąd są w bazie: Qubus, Hotel Miodowa i fakty MSIP o toaletach (strona „miasto” konfliktu) pochodzą
-ze snapshotu seeda `npm run db:setup` (`packages/db/seed/demo-places.json`), nie z ingestu.
-`ingest --source osm` dokłada pozostałe miejsca z ekstraktu i odświeża fakty OSM — także nazwy, stąd
-toaleta ma na karcie samą nazwę z OSM, bez ulicy.
+Skąd są w bazie: Qubus i Hotel Miodowa pochodzą ze snapshotu seeda `npm run db:setup`
+(`packages/db/seed/demo-places.json`), toaleta i jej fakty OSM z `ingest --source osm`, a fakty miasta
+z `ingest --source krakow-pl-toilets` (wpis „Rynek Główny (Sukiennice)” przypięty do toalety OSM
+`node/3533569749`, patrz `apps/ingest/src/cities/data/krakow-pl-toilets.ts`). OSM nadpisuje nazwy, stąd
+toaleta ma na karcie samą nazwę z OSM.
 
 | Scena | Miejsce | Co mówią dane |
 |---|---|---|
 | 2–3 · Fakty | **Qubus** (hotel, Nadwiślańska 6) | OSM: `wheelchair=yes`, 9 kondygnacji, sprawdzone 2026-02-11. Wejście, drzwi, winda, toaleta — brak danych. Werdykt dla profilu „Wózek”: „Brak danych · wejście”. |
 | 4 · Niepełne dane | **Hotel Miodowa** (Miodowa 51) | OSM: tylko `wheelchair=yes`; żadnej konkretnej bariery. Na karcie „Brak danych” przy każdej cesze. |
-| 4 · Sprzeczne dane | **Toaleta publiczna** (OSM `node/5270846528`, przejście pod ul. Konopnickiej) | MSIP: przewijak „brak”; OpenStreetMap: `changing_table=yes`. Status „Sprzeczne”, obie wartości ze źródłami. |
-| 4 · Źródło niedostępne | ta sama toaleta, przy symulowanej awarii MSIP | „Odświeżenie nie powiodło się — dane z 3.10.2026”; fakty MSIP oznaczone jako nieaktualne, przewijak rozstrzyga świeższe OpenStreetMap. |
+| 4 · Rozbieżne dane | **Toaleta publiczna** (OSM `node/3533569749`, Sukiennice, Rynek Główny) | krakow.pl: na liście toalet dostosowanych, „platforma” (stan na 15.09.2025, licencja niekomercyjna, do potwierdzenia); OpenStreetMap: `wheelchair=limited`. Lista miasta jest starsza niż 12 miesięcy, więc jej fakt jest „Może być nieaktualne”, a wartość daje świeższe OSM; karta pokazuje oba źródła z datami. Gdy miasto odświeży stronę, ten sam przypadek stanie się „Sprzeczne”. Tak samo: toaleta przy pl. Szczepańskim (`node/274115129`) i przy Cmentarzu Mogilskim (`way/963795022`, OSM `no`). |
+| 4 · Źródło niedostępne | ta sama toaleta, przy symulowanej awarii krakow.pl | „Odświeżenie nie powiodło się”; fakty krakow.pl oznaczone jako nieaktualne, ogólną dostępność rozstrzyga świeższe OpenStreetMap. |
 | 7 · Dla firm | widget hotelu **Qubus** (`/dla-firm?miejsce=<id>`) | Ta sama karta co w aplikacji, z tymi samymi źródłami. |
 
 ## Scenariusz
@@ -73,11 +76,11 @@ Grupa docelowa: **osoba na wózku** (profil „Wózek”); ten sam przebieg dzia
 | 0:32 | 3 · Konkretne fakty | Karta miejsca: stopnie, drzwi, winda, toaleta, kondygnacje | Na karcie nie ma etykiety „dostępne”. Są konkretne cechy, a tam, gdzie nikt ich nie sprawdził, „Brak danych”. |
 | 0:39 | 3 · Skąd wiemy? | Rozwinięte „Kondygnacje”: źródło OpenStreetMap, data, „Niezweryfikowane” | Przy każdej informacji jest źródło, data i wiarygodność. Jedno źródło społeczności to „niezweryfikowane”, a nie gwarancja. |
 | 0:47 | 4 · Niepełne dane | Hotel Miodowa: „Brak danych” przy każdej cesze | Hotel Miodowa: w danych jest tylko ogólne „tak”. Mówimy „brak danych” — szarym kolorem, nigdy jako „dostępne”. Można zapytać obiekt albo uzupełnić dane. |
-| 0:55 | 4 · Sprzeczne dane | „Toaleta publiczna” (przejście pod ul. Konopnickiej): „Przewijak: Nie ma / Jest”, oba źródła z datami | Miasto mówi, że przewijaka nie ma, OpenStreetMap — że jest. Pokazujemy obie wersje ze źródłami — decyzję zostawiamy użytkownikowi. |
-| 1:08 | 5 · Zgłoszenie | „To się nie zgadza” → „Jest” → „Wyślij” | Pani Anna była na miejscu, więc poprawia dane: trzy kroki, bez konta i bez e-maila. |
-| 1:16 | 5 · Zgłoszenie | „Twoje zgłoszenie: Jest · Niezweryfikowane”, fakt dalej „Sprzeczne” | Zgłoszenie czeka na moderację. Do tego czasu nie zmienia danych — jest widoczne obok jako niezweryfikowane. |
-| 1:24 | 4 · Źródło niedostępne | Ta sama toaleta przy awarii MSIP: „Odświeżenie nie powiodło się — dane z 3.10.2026” | Symulujemy awarię miejskiego serwera MSIP. Nie ukrywamy jej: dane miasta zostają, z datą i jako nieaktualne. |
-| 1:32 | 6 · Źródła danych | „O danych”: MSIP „Niedostępne” (symulowana awaria), OSM działa, zasady wiarygodności | Dane pochodzą z otwartych źródeł: OpenStreetMap i MSIP Krakowa. Dla każdego: licencja, częstotliwość odświeżania i stan — także awaria. Miasto nie utrzymuje żadnej bazy. |
+| 0:55 | 4 · Rozbieżne dane | „Toaleta publiczna” w Sukiennicach: „Ogólna dostępność: Częściowo dostępne dla wózków”, rozwinięte: krakow.pl „Może być nieaktualne · 15.09.2025” z cytatem, OpenStreetMap | Miasto wpisuje tę toaletę na listę dostosowanych, z platformą; OpenStreetMap mówi „częściowo”. Lista miasta ma ponad rok, więc pokazujemy ją jako możliwie nieaktualną — ale obok, ze źródłem i datą, nie ukrywamy jej. |
+| 1:08 | 5 · Zgłoszenie | „To się nie zgadza” → „Dostępne dla wózków” → „Wyślij” | Pani Anna była na miejscu, więc poprawia dane: trzy kroki, bez konta i bez e-maila. |
+| 1:16 | 5 · Zgłoszenie | „Twoje zgłoszenie: Dostępne dla wózków · Niezweryfikowane” | Zgłoszenie czeka na moderację. Do tego czasu nie zmienia danych — jest widoczne obok jako niezweryfikowane. |
+| 1:24 | 4 · Źródło niedostępne | Ta sama toaleta przy awarii krakow.pl: „Odświeżenie nie powiodło się” | Symulujemy awarię miejskiego serwisu krakow.pl. Nie ukrywamy jej: dane miasta zostają, z datą i jako nieaktualne. |
+| 1:32 | 6 · Źródła danych | „O danych”: krakow.pl „Niedostępne” (symulowana awaria), OSM i BIP działają, MSIP „Wyłączone” z powodem, zasady wiarygodności | Dane pochodzą z OpenStreetMap, BIP Miasta Krakowa i krakow.pl. Dla każdego: licencja, częstotliwość odświeżania i stan — także awaria. Warstwę miejską bez jasnej licencji wyłączamy i mówimy dlaczego. Miasto nie utrzymuje żadnej bazy. |
 | 1:43 | 7 · Dla firm | Widget z kartą hotelu Qubus na stronie obiektu, kod do wklejenia, API | Hotel osadza na swojej stronie aktualną kartę dostępności jednym kodem. Systemy rezerwacyjne i aplikacje turystyczne biorą te same dane z API. |
 | 1:50 | 7 · Model biznesowy | Cennik: karta na stronie, weryfikacja na miejscu | Płacą obiekty — za kartę na stronie i weryfikację na miejscu. Mieszkańcy i turyści korzystają za darmo. |
 | 1:57 | 8 · Dostępność | Przejścia klawiszem Tab: „Przejdź do treści”, widoczny fokus, menu | Aplikacja sama jest dostępna: cały scenariusz przejdziemy klawiaturą, statusy są tekstem, nie tylko kolorem, a mapa ma tekstowy odpowiednik. |
@@ -96,7 +99,7 @@ Punkty z [challenge.md](challenge.md) → „How the jury will evaluate it”.
 | Sprawdzenie miejsca, konkretne bariery i udogodnienia | 2, 3 |
 | Pochodzenie danych: źródło, data, wiarygodność | 3, 6 |
 | Oznaczenie danych niepełnych, nieaktualnych, niezweryfikowanych | 2–3 (niezweryfikowane, brak danych), 4 (brak danych, nieaktualne) |
-| Przypadek awarii: sprzeczne, niepełne, niedostępne źródło; brak informacji ≠ dostępność | 4 (wszystkie trzy, na prawdziwych miejscach) |
+| Przypadek awarii: sprzeczne, niepełne, niedostępne źródło; brak informacji ≠ dostępność | 4 (niepełne, rozbieżne/nieaktualne i niedostępne źródło, na prawdziwych miejscach; stan „Sprzeczne” dla dwóch świeżych źródeł pokazuje `/o-danych` i e2e na danych przykładowych) |
 | Poprawianie błędnych danych | 5 |
 | Kontrola dostępności: klawiatura, czytnik ekranu, kontrast, mapa jako tekst; ograniczenia i plan | 2 (lista = mapa), 8 |
 | Prototyp → usługa: właściciel, dane, hosting, plan, kolejne miasto | 6 (dane), 7 (kto płaci), 9 (operator, finansowanie hostingu, plan, warunki dla kolejnego miasta) |

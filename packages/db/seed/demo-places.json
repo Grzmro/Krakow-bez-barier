@@ -434,7 +434,7 @@
  },
  {
   "externalRef": "osm:node/5270846528",
-  "name": "Toaleta publiczna: ul. Konopnickiej (przejście podziemne)",
+  "name": "Toaleta publiczna: ul. M. Konopnickiej (przejście podziemne)",
   "category": "toilet",
   "lon": 19.9341941,
   "lat": 50.0467387,
@@ -464,158 +464,6 @@
     "recordRef": "osm:node/5270846528",
     "observedAt": null,
     "evidence": null
-   },
-   {
-    "attribute": "wheelchair_overall",
-    "value": {
-     "kind": "text",
-     "text": "yes"
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/26",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: dostępność dla niepełnosprawnych: tak, oddzielnie; modyfikacja: pochylnia"
-    }
-   },
-   {
-    "attribute": "ramp",
-    "value": {
-     "kind": "boolean",
-     "boolean": true
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/26",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: rodzaj modyfikacji: pochylnia"
-    }
-   },
-   {
-    "attribute": "changing_table",
-    "value": {
-     "kind": "boolean",
-     "boolean": false
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/26",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: obecność przewijaka: brak"
-    }
-   }
-  ],
-  "entranceHint": null,
-  "fetchedAt": "2026-10-03T00:00:00Z"
- },
- {
-  "externalRef": "osm:node/274115139",
-  "name": "Toaleta publiczna: ul. Sienna (Planty)",
-  "category": "toilet",
-  "lon": 19.9417976,
-  "lat": 50.0596777,
-  "street": null,
-  "houseNumber": null,
-  "facts": [
-   {
-    "attribute": "wheelchair_overall",
-    "value": {
-     "kind": "text",
-     "text": "limited"
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/2",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: dostępność dla niepełnosprawnych: tak, po stronie damskiej; modyfikacja: platforma"
-    }
-   },
-   {
-    "attribute": "lift",
-    "value": {
-     "kind": "boolean",
-     "boolean": true
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/2",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: rodzaj modyfikacji: platforma"
-    }
-   },
-   {
-    "attribute": "changing_table",
-    "value": {
-     "kind": "boolean",
-     "boolean": true
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/2",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: obecność przewijaka: Tak"
-    }
-   }
-  ],
-  "entranceHint": null,
-  "fetchedAt": "2026-10-03T00:00:00Z"
- },
- {
-  "externalRef": "osm:way/1039863501",
-  "name": "Toaleta publiczna: ul. Powiśle (bulwar)",
-  "category": "toilet",
-  "lon": 19.9290352,
-  "lat": 50.0555099,
-  "street": null,
-  "houseNumber": null,
-  "facts": [
-   {
-    "attribute": "wheelchair_overall",
-    "value": {
-     "kind": "text",
-     "text": "limited"
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/5",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: dostępność dla niepełnosprawnych: tak, po stronie damskiej; modyfikacja: platforma"
-    }
-   },
-   {
-    "attribute": "lift",
-    "value": {
-     "kind": "boolean",
-     "boolean": true
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/5",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: rodzaj modyfikacji: platforma"
-    }
-   },
-   {
-    "attribute": "changing_table",
-    "value": {
-     "kind": "boolean",
-     "boolean": false
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/5",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: obecność przewijaka: brak"
-    }
    }
   ],
   "entranceHint": null,
@@ -623,7 +471,7 @@
  },
  {
   "externalRef": "osm:node/2984350171",
-  "name": "Toaleta publiczna: ul. Dietla / ul. Starowiślna",
+  "name": "Toaleta publiczna",
   "category": "toilet",
   "lon": 19.9456654,
   "lat": 50.0576535,
@@ -641,48 +489,6 @@
     "recordRef": "osm:node/2984350171",
     "observedAt": null,
     "evidence": null
-   },
-   {
-    "attribute": "wheelchair_overall",
-    "value": {
-     "kind": "text",
-     "text": "yes"
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/1",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: dostępność dla niepełnosprawnych: Tak; modyfikacja: wjazd z poziomu 0"
-    }
-   },
-   {
-    "attribute": "entrance_level",
-    "value": {
-     "kind": "boolean",
-     "boolean": true
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/1",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: rodzaj modyfikacji: wjazd z poziomu 0"
-    }
-   },
-   {
-    "attribute": "changing_table",
-    "value": {
-     "kind": "boolean",
-     "boolean": true
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/1",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: obecność przewijaka: Tak"
-    }
    }
   ],
   "entranceHint": null,
@@ -690,7 +496,7 @@
  },
  {
   "externalRef": "osm:node/283018590",
-  "name": "Toaleta publiczna: Pl. Bohaterów Getta (przejście podziemne)",
+  "name": "Toaleta publiczna: Plac Bohaterów Getta (przejście podziemne)",
   "category": "toilet",
   "lon": 19.9546603,
   "lat": 50.0468538,
@@ -708,48 +514,6 @@
     "recordRef": "osm:node/283018590",
     "observedAt": null,
     "evidence": null
-   },
-   {
-    "attribute": "wheelchair_overall",
-    "value": {
-     "kind": "text",
-     "text": "yes"
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/36",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: dostępność dla niepełnosprawnych: tak, pomiędzy toaletą damską a męską; modyfikacja: winda"
-    }
-   },
-   {
-    "attribute": "lift",
-    "value": {
-     "kind": "boolean",
-     "boolean": true
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/36",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: rodzaj modyfikacji: winda"
-    }
-   },
-   {
-    "attribute": "changing_table",
-    "value": {
-     "kind": "boolean",
-     "boolean": false
-    },
-    "unit": null,
-    "source": "msip-toilets",
-    "recordRef": "msip-toilets:WT_WC_2023/36",
-    "observedAt": null,
-    "evidence": {
-     "comment": "MSIP: obecność przewijaka: brak"
-    }
    }
   ],
   "entranceHint": null,

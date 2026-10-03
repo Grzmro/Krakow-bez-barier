@@ -45,16 +45,20 @@ export function parseBipPage(html: string): BipPage {
   const start = heading ? heading.index + heading[0].length : -1;
   const end = html.indexOf('<div class="labelBox">', start);
   const body = start >= 0 ? html.slice(start, end > start ? end : undefined) : "";
-  const text = body
+  return { lines: htmlLines(body), publishedAt: metkaDate(html, "Data publikacji"), updatedAt: metkaDate(html, "Data aktualizacji") };
+}
+
+/** Readable text of an HTML fragment: one line per block element, entities decoded, whitespace collapsed. */
+export function htmlLines(html: string): string[] {
+  const text = html
     .replace(/<(script|style|audio|video)[\s\S]*?<\/\1>/gi, " ")
     .replace(/<br\s*\/?>/gi, " ")
     .replace(/<\/(p|li|h\d|div|tr|td|th|ul|ol|blockquote)>/gi, "\n")
     .replace(/<[^>]+>/g, "");
-  const lines = decodeEntities(text)
+  return decodeEntities(text)
     .split("\n")
     .map((l) => l.replace(/\s+/g, " ").trim())
     .filter(Boolean);
-  return { lines, publishedAt: metkaDate(html, "Data publikacji"), updatedAt: metkaDate(html, "Data aktualizacji") };
 }
 
 /**

@@ -2,6 +2,7 @@ import type { AccessibilityFact } from "@krakow-bez-barier/contracts";
 import { confirmations, facts, moderationLog, places, reports, sources, type Db } from "@krakow-bez-barier/db";
 import { and, asc, desc, eq, gt, inArray, lt, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/server/db";
+import { isWithheld, withheldSourceIds } from "@/server/sources";
 import { DEMO_MODERATED_SOURCE } from "./demo";
 import type { ModerationEventRecord, QueueItem, ReportRecord, ReportsStore } from "./store";
 
@@ -134,11 +135,12 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
           .where(and(inArray(facts.placeId, placeIds), eq(facts.status, "active"))),
       ]);
 
+      const withheld = withheldSourceIds();
       return rows.map(({ report, placeName }): QueueItem => ({
         report: toRecord(report),
         placeName,
         currentFacts: current
-          .filter(({ fact }) => fact.placeId === report.placeId && fact.attribute === report.attribute)
+          .filter(({ fact, source }) => fact.placeId === report.placeId && fact.attribute === report.attribute && !isWithheld(source, withheld))
           .map(toFact),
         history: logs
           .filter((log) => log.reportId === report.id)

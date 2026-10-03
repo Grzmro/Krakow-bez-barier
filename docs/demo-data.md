@@ -4,6 +4,12 @@ Real places and real data for the live demo (KBB-9). Nothing here is invented: e
 read from the sources below on 2026-10-03. Anything we add on top (owner declarations, user
 reports) is sample data and is labeled "PRZYKŁAD" in the UI.
 
+> **Update 2026-10-04 (KBB-133):** the MSIP toilets layer (`WT_WC_2023`) is not open data, so its facts
+> are no longer seeded or served; the MSIP sections below are kept as the research record. City toilet data
+> now comes from krakow.pl "Toalety ogólnodostępne" (see [data-sources.md](data-sources.md)), and the demo
+> scenes are in [demo-script.md](demo-script.md): the Sukiennice toilet (krakow.pl vs OSM `wheelchair=limited`)
+> and a simulated krakow.pl outage.
+
 ## Demo area
 
 **Stare Miasto + Kazimierz + Stradom**, bbox `50.045,19.925 – 50.060,19.960` (S,W – N,E). It has the

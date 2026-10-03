@@ -31,6 +31,7 @@ const seedSources: (typeof sources.$inferInsert)[] = [
     lastAttemptAt: seededAt,
     statusNote: "Seeded from an Overpass snapshot, not an ingestion run",
   },
+  // Listed so "O danych" can say why it is switched off; the seed writes none of its facts (not OPEN DATA, KBB-133).
   {
     id: "msip-toilets",
     name: "MSIP: Toalety publiczne",
@@ -39,10 +40,7 @@ const seedSources: (typeof sources.$inferInsert)[] = [
     url: "https://msip.um.krakow.pl/arcgis/rest/services/Obserwatorium/WT_WC_2023/MapServer/0",
     refreshInterval: "unknown",
     baseReliability: "confirmed",
-    refreshStatus: "ok",
-    lastSuccessAt: seededAt,
-    lastAttemptAt: seededAt,
-    statusNote: "Seeded from a one-off query, not an ingestion run",
+    refreshStatus: "never",
   },
   {
     id: "msip-koh",
@@ -56,21 +54,6 @@ const seedSources: (typeof sources.$inferInsert)[] = [
   },
 ];
 
-/**
- * Seed rows written before the MSIP adapter existed used refs without the source prefix. Re-pointing the
- * ref keeps the fact's id, confirmations and history; a legacy row is only superseded when a prefixed
- * active twin already exists (the unique index would otherwise reject the update).
- */
-const REPOINT_LEGACY_MSIP_REFS = sql`
-  update facts f set source_record_ref = 'msip-toilets:' || f.source_record_ref
-  where f.source_id = 'msip-toilets' and f.status = 'active' and f.source_record_ref not like 'msip-toilets:%'
-    and not exists (
-      select 1 from facts g
-      where g.source_id = f.source_id and g.status = 'active' and g.subject = f.subject
-        and g.attribute = f.attribute and g.source_record_ref = 'msip-toilets:' || f.source_record_ref
-    )`;
-const SUPERSEDE_LEGACY_TWINS = sql`${facts.sourceId} = 'msip-toilets' and ${facts.status} = 'active' and ${facts.sourceRecordRef} not like 'msip-toilets:%'`;
-
 function sameValue(a: FactValue, b: FactValue): boolean {
   return JSON.stringify(a, Object.keys(a).sort()) === JSON.stringify(b, Object.keys(b).sort());
 }
@@ -83,8 +66,6 @@ function sameValue(a: FactValue, b: FactValue): boolean {
 export async function seedDemoData(db: Db): Promise<{ places: number; newFacts: number }> {
   return db.transaction(async (tx) => {
     await tx.insert(sources).values(seedSources).onConflictDoNothing();
-    await tx.execute(REPOINT_LEGACY_MSIP_REFS);
-    await tx.update(facts).set({ status: "superseded", supersededAt: sql`now()` }).where(SUPERSEDE_LEGACY_TWINS);
     const baseReliability = new Map(seedSources.map((s) => [s.id, s.baseReliability]));
 
     let factCount = 0;
