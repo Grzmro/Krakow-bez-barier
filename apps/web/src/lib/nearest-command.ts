@@ -91,12 +91,14 @@ export function parseNearestCommand(text: string, categories: readonly CommandCa
   const words = tokens(text);
   if (!hasNearestPhrase(words)) return null;
 
+  // Features first: a lift or bench may be a place of its own category or a feature of a venue, and the feature
+  // quick action finds both.
+  for (const [stem, feature] of Object.entries(FEATURE_STEMS)) {
+    if (words.some((word) => matches(word, stem))) return { kind: "nearest", command: withQuick({ feature }) };
+  }
   for (const category of categories) {
     const stems = [...(CATEGORY_STEMS[category.id] ?? []), ...labelStems(category)];
     if (words.some((word) => stems.some((stem) => matches(word, stem)))) return { kind: "nearest", command: withQuick({ category: category.id }) };
-  }
-  for (const [stem, feature] of Object.entries(FEATURE_STEMS)) {
-    if (words.some((word) => matches(word, stem))) return { kind: "nearest", command: withQuick({ feature }) };
   }
   return { kind: "unknown" };
 }
