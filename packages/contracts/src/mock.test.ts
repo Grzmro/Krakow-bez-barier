@@ -16,7 +16,7 @@ describe("createMockFetch", () => {
     expect(response.status).toBe(200);
     expect(data?.items.map((s) => [s.id, s.refreshStatus])).toEqual([
       ["osm", "ok"],
-      ["ziw", "outage"],
+      ["msip-toilets", "outage"],
     ]);
   });
 

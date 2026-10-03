@@ -322,7 +322,7 @@ paths:
               examples:
                 conflicting:
                   $ref: '#/components/examples/PlaceConflict'
-                  summary: Demo 1 — conflicting sources (toilet differs between ZIW and OSM)
+                  summary: Demo 1 — conflicting sources (toilet differs between MSIP and OSM)
                 noData:
                   $ref: '#/components/examples/PlaceNoData'
                   summary: Demo 2 — incomplete (no facts at all)
@@ -331,7 +331,7 @@ paths:
                   summary: Demo 3 — outdated data (last confirmed 2022)
                 sourceUnavailable:
                   $ref: '#/components/examples/PlaceSourceUnavailable'
-                  summary: Demo 4 — source unavailable (ZIW outage, last data kept and marked stale)
+                  summary: Demo 4 — source unavailable (MSIP outage, last data kept and marked stale)
                 meetsWheelchair:
                   $ref: '#/components/examples/PlaceMeetsWheelchair'
                   summary: Meets the wheelchair presets; the lift rests on unconfirmed community data
@@ -386,15 +386,15 @@ paths:
                       lastAttemptAt: '2026-10-03T03:00:00Z'
                       statusNote: null
                       isSample: false
-                    - id: ziw
-                      name: Zintegrowany Informator Wojewódzki (ZIW)
+                    - id: msip-toilets
+                      name: 'MSIP: Toalety publiczne'
                       kind: official_open_data
                       license: Do sprawdzenia
                       attribution: null
-                      url: https://msim3.um.krakow.pl
+                      url: https://msip3.um.krakow.pl
                       refreshInterval: daily
                       refreshStatus: outage
-                      lastSuccessAt: '2023-11-14T03:00:00Z'
+                      lastSuccessAt: '2023-11-08T03:00:00Z'
                       lastAttemptAt: '2026-10-03T03:00:00Z'
                       statusNote: Źródło niedostępne (HTTP 404). Pokazujemy ostatnie znane dane jako nieaktualne.
                       isSample: false
@@ -2026,18 +2026,18 @@ components:
           status: conflict
           value: null
           facts:
-          - id: fact_ziw_krzysztofory_toilet
+          - id: fact_msip_krzysztofory_toilet
             attribute: toilet_accessible
             value:
               kind: boolean
               boolean: true
             unit: null
             source:
-              id: ziw
-              name: Zintegrowany Informator Wojewódzki (ZIW)
+              id: msip-toilets
+              name: 'MSIP: Toalety publiczne'
               kind: official_open_data
-              recordRef: ziw-77
-            fetchedAt: '2023-11-14T03:00:00Z'
+              recordRef: msip-toilets-77
+            fetchedAt: '2023-11-08T03:00:00Z'
             observedAt: null
             confirmedAt: null
             reliability: extracted
@@ -2088,15 +2088,15 @@ components:
           lastAttemptAt: '2026-10-03T03:00:00Z'
           statusNote: null
           isSample: false
-        - id: ziw
-          name: Zintegrowany Informator Wojewódzki (ZIW)
+        - id: msip-toilets
+          name: 'MSIP: Toalety publiczne'
           kind: official_open_data
           license: Do sprawdzenia
           attribution: null
-          url: https://msim3.um.krakow.pl
+          url: https://msip3.um.krakow.pl
           refreshInterval: daily
           refreshStatus: outage
-          lastSuccessAt: '2023-11-14T03:00:00Z'
+          lastSuccessAt: '2023-11-08T03:00:00Z'
           lastAttemptAt: '2026-10-03T03:00:00Z'
           statusNote: Źródło niedostępne (HTTP 404). Pokazujemy ostatnie znane dane jako nieaktualne.
           isSample: false
@@ -2256,18 +2256,18 @@ components:
             kind: boolean
             boolean: true
           facts:
-          - id: fact_ziw_podziemia_toilet
+          - id: fact_msip_podziemia_toilet
             attribute: toilet_accessible
             value:
               kind: boolean
               boolean: true
             unit: null
             source:
-              id: ziw
-              name: Zintegrowany Informator Wojewódzki (ZIW)
+              id: msip-toilets
+              name: 'MSIP: Toalety publiczne'
               kind: official_open_data
               recordRef: null
-            fetchedAt: '2023-11-14T03:00:00Z'
+            fetchedAt: '2023-11-08T03:00:00Z'
             observedAt: null
             confirmedAt: null
             reliability: extracted
@@ -2278,25 +2278,25 @@ components:
           state: unknown
           unconfirmed: true
           reasons:
-          - Źródło ZIW niedostępne
+          - Źródło MSIP niedostępne
           - pokazujemy ostatnie znane dane
           blockers: []
           unknowns:
           - toilet_accessible
         sources:
-        - id: ziw
-          name: Zintegrowany Informator Wojewódzki (ZIW)
+        - id: msip-toilets
+          name: 'MSIP: Toalety publiczne'
           kind: official_open_data
           license: Do sprawdzenia
           attribution: null
-          url: https://msim3.um.krakow.pl
+          url: https://msip3.um.krakow.pl
           refreshInterval: daily
           refreshStatus: outage
-          lastSuccessAt: '2023-11-14T03:00:00Z'
+          lastSuccessAt: '2023-11-08T03:00:00Z'
           lastAttemptAt: '2026-10-03T03:00:00Z'
           statusNote: Źródło niedostępne (HTTP 404). Pokazujemy ostatnie znane dane jako nieaktualne.
           isSample: false
-        updatedAt: '2023-11-14T03:00:00Z'
+        updatedAt: '2023-11-08T03:00:00Z'
         isSample: true
     PlaceMeetsWheelchair:
       value:

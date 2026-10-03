@@ -22,7 +22,7 @@
       - 'link "Strona źródła: OpenStreetMap"':
         - /url: https://www.openstreetmap.org
     - listitem:
-      - heading "Zintegrowany Informator Wojewódzki (ZIW)" [level=3]
+      - 'heading "MSIP: Toalety publiczne" [level=3]'
       - text: Niedostępne
       - paragraph: /Źródło niedostępne \(HTTP \d+\)\. Pokazujemy ostatnie znane dane jako nieaktualne\./
       - term: Licencja
@@ -32,11 +32,11 @@
       - term: Weryfikacja
       - definition: zarządca lub miasto
       - term: Ostatnia udana aktualizacja
-      - definition: /\d+ lis \d+, \d+:\d+/
+      - definition: /8 lis \d+, \d+:\d+/
       - term: Ostatnia próba
       - definition: /3 paź \d+, \d+:\d+/
-      - 'link "Strona źródła: Zintegrowany Informator Wojewódzki (ZIW)"':
-        - /url: https://msim3.um.krakow.pl
+      - 'link "Strona źródła: MSIP: Toalety publiczne"':
+        - /url: https://msip3.um.krakow.pl
   - heading "Jak liczymy wiarygodność" [level=2]
   - list:
     - listitem: Potwierdzone dane zarządcy lub miasta, albo 2 potwierdzenia od społeczności
