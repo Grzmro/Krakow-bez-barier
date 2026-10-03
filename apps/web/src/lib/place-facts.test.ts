@@ -5,7 +5,7 @@ import { matchProfile } from "@/domain/matcher";
 import { PROFILE_PRESETS } from "@/domain/profiles";
 import { resolveAttributes } from "@/domain/resolver";
 import { messagesFor } from "@/i18n/messages";
-import { factViews, failedSources, formatValue, latestSourceDate } from "./place-facts";
+import { factViews, failedSources, formatValue, latestSourceDate, osmEditUrl, parseOsmRecordRef } from "./place-facts";
 
 const api = createApiClient({ baseUrl: "http://localhost/api/v1", fetch: createMockFetch() });
 
@@ -143,5 +143,39 @@ describe("sources", () => {
     // THEN MSIP is the failed one and OSM's fetch is the latest
     expect(failedSources(place).map((s) => s.id)).toEqual(["msip-toilets"]);
     expect(latestSourceDate(place)).toBe("2026-10-03T03:00:00Z");
+  });
+});
+
+describe("OSM edit link", () => {
+  it.each([
+    ["osm:node/1", { type: "node", id: "1" }],
+    ["osm:way/2@v3", { type: "way", id: "2" }],
+    ["osm:way/2;geofabrik-2026-10-02", { type: "way", id: "2" }],
+    ["osm:relation/7@v21;geofabrik-2026-10-02", { type: "relation", id: "7" }],
+    ["node/123456", { type: "node", id: "123456" }],
+  ])("reads the OSM object from %s", (recordRef, expected) => {
+    // GIVEN a stored recordRef
+    // WHEN it is parsed
+    // THEN only the element type and id are kept
+    expect(parseOsmRecordRef(recordRef)).toEqual(expected);
+  });
+
+  it.each(["msip:toilet/12", "osm:node/abc", "osm:changeset/5", "node/1x"])("rejects %s", (recordRef) => {
+    // GIVEN a recordRef that isn't an OSM element
+    // WHEN it is parsed
+    // THEN there is nothing to edit
+    expect(parseOsmRecordRef(recordRef)).toBeUndefined();
+  });
+
+  it("links to the OSM object for a fact read from the Geofabrik extract", async () => {
+    // GIVEN a place whose OSM fact carries the prefix, the version and the extract suffix, as ingest stores it
+    const place = structuredClone(await demoPlace("palac-krzysztofory"));
+    const osmFact = place.attributes.flatMap((a) => a.facts).find((f) => f.source.recordRef?.includes("node/"));
+    if (!osmFact) throw new Error("demo place has no OSM fact");
+    osmFact.source.recordRef = "osm:node/979972831@v21;geofabrik-2026-10-02";
+
+    // WHEN building the edit link
+    // THEN it points at that node on the OSM source's site
+    expect(osmEditUrl(place)).toBe("https://www.openstreetmap.org/edit?node=979972831");
   });
 });

@@ -1,0 +1,3 @@
+- link "Edytuj w OpenStreetMap":
+  - /url: /^https:\/\/www\.openstreetmap\.org\/edit\?(node|way|relation)=\d+$/
+- paragraph: Popraw dane u źródła — trafią do nas przy następnym pobraniu.
