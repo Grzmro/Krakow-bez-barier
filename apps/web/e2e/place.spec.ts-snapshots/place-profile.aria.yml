@@ -1,0 +1,134 @@
+- main:
+  - article "Restauracja Przykład":
+    - text: Brak zdjęcia Dane przykładowe
+    - heading "Restauracja Przykład" [level=1]
+    - paragraph: Restauracja · ul. Szewska 8, Kraków
+    - paragraph: "Jak dojść do wejścia: Brak wskazówki, jak dojść do wejścia."
+    - link "Prowadź":
+      - /url: /trasa?do=restauracja-przyklad
+      - img
+      - text: ""
+    - button "Udostępnij":
+      - img
+      - text: ""
+    - link "Skąd wiemy?":
+      - /url: "#skad-wiemy"
+      - img
+      - text: ""
+    - 'region "Twój profil: Wózek"':
+      - 'heading "Twój profil: Wózek" [level=2]'
+      - paragraph: Wynik według progów Twojego profilu. Źródła i daty znajdziesz w faktach poniżej.
+      - paragraph: Nie spełnia · 2 stopnie
+      - paragraph: Pasuje 0 z 4 potrzeb profilu
+      - heading "Blokuje (2)" [level=3]
+      - list:
+        - listitem: Wejście Nie spełnia · 2 stopnie
+        - listitem: /Drzwi Nie spełnia · drzwi \d+ cm/
+      - heading "Nie wiadomo (2)" [level=3]
+      - list:
+        - listitem: Winda Brak danych
+        - listitem: Toaleta dostosowana Brak danych
+    - region "Fakty":
+      - heading "Fakty" [level=2]
+      - paragraph: Pokazujemy konkretne dane, bez zbiorczej oceny. Rozwiń cechę, aby zobaczyć źródło i datę.
+      - list:
+        - listitem:
+          - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Wejście — stopnie: 2 stopnie. Wiarygodność: Niezweryfikowane."': Wejście — stopnie 2 stopnie Niezweryfikowane
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+          - button "Potwierdzam, byłem tu":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Wysokość stopnia: Brak danych. Wiarygodność: Brak danych."': Wysokość stopnia Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button /Szerokość drzwi: \d+ cm\. Wiarygodność: Niezweryfikowane\./': /Szerokość drzwi \d+ cm Niezweryfikowane/
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+          - button "Potwierdzam, byłem tu":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Podjazd: Nie ma. Wiarygodność: Niezweryfikowane."': Podjazd Nie ma Niezweryfikowane
+          - button "To się nie zgadza":
+            - img
+            - text: ""
+          - button "Potwierdzam, byłem tu":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+          - button "Zgłoś awarię windy":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Toaleta dostosowana: Brak danych. Wiarygodność: Brak danych."': Toaleta dostosowana Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
+          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+    - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
+    - button "Uzupełnij":
+      - img
+      - text: ""
+    - region "Skąd wiemy?":
+      - heading "Skąd wiemy?" [level=2]
+      - paragraph: Źródła danych o tym miejscu, ich licencje i stan odświeżenia.
+      - list:
+        - listitem:
+          - paragraph: OpenStreetMap
+          - paragraph: "Społeczność · Licencja: ODbL 1.0"
+          - paragraph: /Działa · Ostatnie udane pobranie \d+\.\d+\.\d+/
+          - paragraph: © OpenStreetMap contributors
+          - link "www.openstreetmap.org":
+            - /url: https://www.openstreetmap.org
+      - paragraph: /1 źródło · najnowsze \d+\.\d+\.\d+/
+      - link "O danych":
+        - /url: /o-danych
+        - img
+        - text: ""
+      - link "Edytuj w OpenStreetMap":
+        - /url: https://www.openstreetmap.org/edit?node=555111
+      - paragraph: Popraw dane u źródła — trafią do nas przy następnym pobraniu.
