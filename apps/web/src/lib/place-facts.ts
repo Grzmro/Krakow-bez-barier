@@ -182,16 +182,28 @@ export function latestSourceDate(place: Place): string | undefined {
   return dates.length ? dates.reduce((a, b) => (a > b ? a : b)) : undefined;
 }
 
-const OSM_RECORD = /^(node|way|relation)\/(\d+)$/;
+const OSM_RECORD = /^(?:osm:)?(node|way|relation)\/(\d+)(?:[@;].*)?$/;
+
+export interface OsmRecord {
+  type: "node" | "way" | "relation";
+  id: string;
+}
+
+/** The OSM object behind a recordRef: `osm:way/2@v3;geofabrik-2026-10-02` and bare `way/2` both give way 2. */
+export function parseOsmRecordRef(recordRef: string): OsmRecord | undefined {
+  const match = OSM_RECORD.exec(recordRef);
+  return match ? { type: match[1] as OsmRecord["type"], id: match[2] } : undefined;
+}
 
 /** "Edytuj w OpenStreetMap" link for the place's OSM object, built from the OSM source's own URL. */
 export function osmEditUrl(place: Place): string | undefined {
   for (const fact of place.attributes.flatMap((a) => a.facts)) {
-    const match = fact.source.kind === "community" && fact.source.recordRef ? OSM_RECORD.exec(fact.source.recordRef) : null;
-    const base = match ? place.sources.find((s) => s.id === fact.source.id)?.url : undefined;
-    if (!match || !base) continue;
+    const record =
+      fact.source.kind === "community" && fact.source.recordRef ? parseOsmRecordRef(fact.source.recordRef) : undefined;
+    const base = record ? place.sources.find((s) => s.id === fact.source.id)?.url : undefined;
+    if (!record || !base) continue;
     const url = new URL("/edit", base);
-    url.searchParams.set(match[1], match[2]);
+    url.searchParams.set(record.type, record.id);
     return url.toString();
   }
   return undefined;

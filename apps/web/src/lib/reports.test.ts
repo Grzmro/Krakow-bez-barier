@@ -130,7 +130,7 @@ describe("reportInput", () => {
 
 describe("confirm and OSM edit targets", () => {
   it("lets visitors confirm only a single known fact, and links to the OSM object", async () => {
-    // GIVEN the conflicting demo place (steps known from OSM node/123456, toilet in conflict)
+    // GIVEN the conflicting demo place (steps known from osm:node/123456@v21, toilet in conflict)
     const place = await demoPlace("palac-krzysztofory");
 
     // WHEN building the rows and the OSM link
