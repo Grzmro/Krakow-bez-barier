@@ -3,6 +3,7 @@ import { Inter, Manrope } from "next/font/google";
 import { LiveRegionProvider, Providers, Toaster } from "@krakow-bez-barier/ui";
 import { AppSampleBanner } from "@/components/layout/app-sample-banner";
 import { AppHeader } from "@/components/layout/app-header";
+import { BackNavigation } from "@/components/layout/back-navigation";
 import { PwaStatus } from "@/components/pwa/pwa-status";
 import { I18nProvider } from "@/i18n/client";
 import { getLocale, getMessages } from "@/i18n/server";
@@ -44,6 +45,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <Providers>
             <LiveRegionProvider>
               <AppHeader />
+              <BackNavigation />
               <PwaStatus />
               {children}
               <Toaster />

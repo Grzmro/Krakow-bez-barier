@@ -9,6 +9,7 @@ const verdictParts = (parts: [string, number][]) =>
 export const home = {
   title: "Mapa i lista miejsc",
   skipToList: "Przejdź do listy",
+  backToMap: "Wróć do całej mapy",
   search: {
     label: "Wyszukaj miejsce",
     placeholder: "Dokąd?",

@@ -5,6 +5,8 @@ import { MagnifyingGlass, MapPin, X } from "@phosphor-icons/react";
 import { Autocomplete } from "@base-ui/react/autocomplete";
 import { useMessages } from "@/i18n/client";
 
+export const SEARCH_INPUT_ID = "place-search";
+
 export interface SearchBoxProps {
   value: string;
   onValueChange: (value: string) => void;
@@ -30,11 +32,11 @@ export function SearchBox({ value, onValueChange, suggestions }: SearchBoxProps)
     >
       <div role="search" className="relative flex h-[52px] min-w-0 flex-1 items-center rounded-full bg-card shadow-float">
         <MagnifyingGlass className="pointer-events-none absolute left-5 size-[22px] text-foreground" aria-hidden />
-        <label htmlFor="place-search" className="sr-only">
+        <label htmlFor={SEARCH_INPUT_ID} className="sr-only">
           {t.label}
         </label>
         <Autocomplete.Input
-          id="place-search"
+          id={SEARCH_INPUT_ID}
           placeholder={t.placeholder}
           className="size-full rounded-full bg-transparent pr-14 pl-13 text-body outline-none placeholder:text-muted-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
         />
