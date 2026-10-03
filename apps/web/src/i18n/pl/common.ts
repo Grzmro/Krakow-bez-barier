@@ -25,6 +25,7 @@ export const common = {
     aboutData: "O danych",
     aboutDataSub: "Źródła, licencje, wiarygodność",
     business: "Dla firm: widget i API",
+    businessShort: "Dla firm",
     businessSub: "Karta dostępności na Twojej stronie",
     moderator: "Panel moderatora",
     moderatorSub: "Kolejka zgłoszeń",

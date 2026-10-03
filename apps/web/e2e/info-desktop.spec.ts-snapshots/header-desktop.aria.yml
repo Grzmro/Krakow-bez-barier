@@ -1,0 +1,28 @@
+- navigation "Nawigacja główna":
+  - link "Kraków bez barier — strona główna":
+    - /url: /
+  - list:
+    - listitem:
+      - link "Zaplanuj trasę":
+        - /url: /trasa
+    - listitem:
+      - link "O danych":
+        - /url: /o-danych
+    - listitem:
+      - link "Dla firm":
+        - /url: /dla-firm
+    - listitem:
+      - link "Prywatność":
+        - /url: /prywatnosc
+    - listitem:
+      - link "Deklaracja dostępności":
+        - /url: /deklaracja-dostepnosci
+  - button "W mojej okolicy"
+  - link "Panel moderatora":
+    - /url: /moderator
+  - group "Język":
+    - text: ""
+    - radio "Polski" [checked]
+    - text: Polski
+    - radio "English"
+    - text: English

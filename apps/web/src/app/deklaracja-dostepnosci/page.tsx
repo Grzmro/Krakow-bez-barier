@@ -34,7 +34,7 @@ export default async function AccessibilityStatementPage() {
   );
 
   return (
-    <InfoPage title={t.title} backLabel={m.pages.back} wide>
+    <InfoPage title={t.title} backLabel={m.pages.back} width="wide">
       <div className="lg:mt-4 lg:grid lg:grid-cols-[14rem_minmax(0,1fr)] lg:items-start lg:gap-10">
         <nav aria-label={t.tocTitle} className="mt-2 print:hidden lg:sticky lg:top-20 lg:mt-0">
           <details className="group rounded-[20px] bg-surface-raised ring-1 ring-border/70 lg:hidden">

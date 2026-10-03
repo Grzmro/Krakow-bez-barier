@@ -15,16 +15,18 @@ export default async function AboutDataPage() {
   const m = await getMessages();
   const t = m.pages.aboutData;
   return (
-    <InfoPage title={t.title} backLabel={m.pages.back}>
-      <p className="text-body text-foreground/85">{t.lead}</p>
+    <InfoPage title={t.title} backLabel={m.pages.back} width="full">
+      <p className="max-w-3xl text-body text-foreground/85">{t.lead}</p>
       <InfoSection title={t.sources}>
         <SourcesList />
       </InfoSection>
       <InfoSection title={t.rulesTitle}>
         <ul className="divide-y divide-border rounded-[20px] bg-surface-raised ring-1 ring-border/70">
           {RELIABILITIES.map((reliability) => (
-            <li key={reliability} className="flex flex-col items-start gap-1 px-4 py-3">
-              <ReliabilityBadge value={reliability} />
+            <li key={reliability} className="flex flex-col items-start gap-1 px-4 py-3 lg:flex-row lg:items-center lg:gap-4">
+              <span className="lg:w-44 lg:shrink-0">
+                <ReliabilityBadge value={reliability} />
+              </span>
               <span className="text-caption text-muted-foreground">{t.rules[reliability]}</span>
             </li>
           ))}

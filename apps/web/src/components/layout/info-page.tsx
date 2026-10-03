@@ -4,24 +4,26 @@ import { ArrowLeft } from "@phosphor-icons/react/ssr";
 import { routes } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 
+const WIDTH = { text: "lg:max-w-3xl", wide: "lg:max-w-5xl", full: "lg:max-w-6xl" } as const;
+
 type InfoPageProps = {
   title: string;
   backLabel: string;
   aside?: ReactNode;
-  /** Long documents with a side table of contents get a wider column on desktop. */
-  wide?: boolean;
+  /** Desktop column: `text` for reading (48 rem), `wide` for a side table of contents, `full` for two-column layouts. */
+  width?: keyof typeof WIDTH;
   children: ReactNode;
 };
 
 /** Secondary page from the menu: back link, one h1, then the content. Owns the skip-link target. */
-export function InfoPage({ title, backLabel, aside, wide, children }: InfoPageProps) {
+export function InfoPage({ title, backLabel, aside, width = "text", children }: InfoPageProps) {
   return (
     <main
       id="main"
       tabIndex={-1}
       className={cn(
-        "mx-auto w-full max-w-xl flex-1 px-4 pt-3 pb-10 outline-none print:max-w-none print:pb-0",
-        wide && "lg:max-w-5xl",
+        "mx-auto w-full max-w-xl flex-1 px-4 pt-3 pb-10 outline-none lg:px-8 lg:pt-6 print:max-w-none print:px-4 print:pt-3 print:pb-0",
+        WIDTH[width],
       )}
     >
       <div className="flex items-center gap-2">

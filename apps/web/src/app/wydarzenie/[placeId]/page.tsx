@@ -17,7 +17,7 @@ export default async function EventPage({ params, searchParams }: PageProps<"/wy
     <main
       id="main"
       tabIndex={-1}
-      className="mx-auto w-full max-w-xl flex-1 px-4 pt-4 pb-10 outline-none print:max-w-none print:p-0"
+      className="mx-auto w-full max-w-xl flex-1 px-4 pt-4 pb-10 outline-none lg:max-w-4xl lg:px-8 lg:pt-6 print:max-w-none print:p-0"
     >
       <EventScreen placeId={placeId} details={details} />
     </main>
