@@ -172,18 +172,3 @@ export function SampleTag({ label, ariaLabel, className }: SampleTagProps) {
     </Badge>
   );
 }
-
-export function SampleBanner({ text, className }: { text: string; className?: string }) {
-  return (
-    <p
-      role="note"
-      className={cn(
-        "flex min-h-8 shrink-0 items-center justify-center gap-1.5 bg-ink px-4 py-1 text-center text-[11px] font-bold tracking-[0.08em] text-ink-foreground uppercase",
-        className,
-      )}
-    >
-      <span className="size-1.5 shrink-0 rounded-full bg-blush" aria-hidden />
-      {text}
-    </p>
-  );
-}

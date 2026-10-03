@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { LiveRegionProvider, Providers, Toaster } from "@krakow-bez-barier/ui";
-import { AppSampleBanner } from "@/components/layout/app-sample-banner";
 import { AppHeader } from "@/components/layout/app-header";
 import { BackNavigation } from "@/components/layout/back-navigation";
 import { PwaStatus } from "@/components/pwa/pwa-status";
@@ -41,7 +40,6 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           {t.common.layout.skipToContent}
         </a>
         <I18nProvider locale={locale}>
-          <AppSampleBanner />
           <Providers>
             <LiveRegionProvider>
               <AppHeader />

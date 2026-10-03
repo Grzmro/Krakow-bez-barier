@@ -147,9 +147,8 @@ async function typeSlowly(page: Page, target: Locator, text: string) {
   await target.pressSequentially(text, { delay: 140 * PACE });
 }
 
-/** The app is on real data: no sample banner and no PRZYKŁAD tag anywhere on the screen. */
+/** The app is on real data: no PRZYKŁAD tag anywhere on the screen. */
 async function expectNoSampleLabel(app: Frame) {
-  await expect(app.getByText(pl.common.layout.sampleBanner)).toHaveCount(0);
   await expect(app.getByText(pl.common.sample.tag, { exact: true })).toHaveCount(0);
 }
 

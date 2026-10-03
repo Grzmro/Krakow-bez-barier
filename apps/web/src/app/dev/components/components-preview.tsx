@@ -19,7 +19,6 @@ import {
   BottomPanel,
   FactRow,
   ReliabilityBadge,
-  SampleBanner,
   SampleTag,
   StatusBadge,
   VehicleBadge,
@@ -101,10 +100,7 @@ export function ComponentsPreview() {
       </Section>
 
       <Section id="sec-sample" title={t.sections.sample}>
-        <div className="space-y-2">
-          <SampleBanner className="rounded-xl" />
-          <SampleTag />
-        </div>
+        <SampleTag />
       </Section>
 
       <Section id="sec-facts" title={t.sections.facts}>

@@ -26,8 +26,8 @@ body::before {
   background: var(--background);
 }
 
-/* Home: the page is exactly one (dynamic) viewport tall, so the map and the list panel fill what the banners and
-   the header leave, only the list scrolls, and a drag can't move or bounce the page (iOS Safari would otherwise
+/* Home: the page is exactly one (dynamic) viewport tall, so the map and the list panel fill what the header
+   leaves, only the list scrolls, and a drag can't move or bounce the page (iOS Safari would otherwise
    scroll the whole document under the panel). */
 html:has([data-fill-viewport]) {
   overscroll-behavior: none;

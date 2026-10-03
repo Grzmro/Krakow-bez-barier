@@ -24,7 +24,7 @@ import { Providers, cn } from "@krakow-bez-barier/ui";
 | `ReliabilityBadge` | `confirmed / unverified / outdated / conflict / unknown` |
 | `FactRow` | attribute, value with unit, verdict, reliability, expandable sources with dates |
 | `BottomPanel` | non-modal sheet for map screens, two heights, toggled by a button |
-| `SampleBanner`, `SampleTag` | "PRZYKŁAD" labelling |
+| `SampleTag` | "PRZYKŁAD" labelling |
 | `LiveRegionProvider`, `useAnnounce` | the app's single polite `aria-live` region |
 
 Components carry no copy: every text comes in as a prop. In `apps/web` use the wrappers from

@@ -126,7 +126,7 @@ Cel e2e: przy każdej informacji wiem, skąd jest, jak jest stara i na ile mogę
 - US-3.6 (M) Jako użytkownik chcę, gdy źródło danych jest niedostępne, zobaczyć ostatnie znane dane z datą i komunikatem, że odświeżenie się nie powiodło.
     - Aplikacja działa dalej na ostatniej dobrej kopii.
 - US-3.7 (M) Jako oglądający demo chcę, żeby dane przykładowe były jednoznacznie oznaczone.
-    - Znacznik „PRZYKŁAD” na karcie i stały baner w całej aplikacji.
+    - Znacznik „PRZYKŁAD” przy każdym przykładowym miejscu, fakcie i źródle (lista, karta, widget, „O danych”); bez stałego paska w całej aplikacji.
 - US-3.8 (M) Jako użytkownik chcę mieć stronę „O danych” dostępną z każdej karty: lista źródeł, licencje, częstotliwość odświeżania, sposób weryfikacji i zasada liczenia wiarygodności.
     - Widoczna atrybucja © OpenStreetMap contributors.
 
