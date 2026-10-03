@@ -18,18 +18,6 @@
     - button "Przystanki"
     - button "Handel"
     - button "Inne"
-  - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
-  - paragraph:
-    - link "OpenFreeMap":
-      - /url: https://openfreemap.org
-    - text: ·
-    - link "© OpenMapTiles":
-      - /url: https://www.openmaptiles.org/
-    - text: ·
-    - link "© OpenStreetMap contributors":
-      - /url: https://www.openstreetmap.org/copyright
-  - button "Przybliż"
-  - button "Oddal"
   - region "Lista miejsc":
     - button "Rozwiń arkusz"
     - group "Lista miejsc":
@@ -53,3 +41,15 @@
         - button "Przewijak"
       - heading /\d+ miejsc/ [level=2]
       - list
+  - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
+  - paragraph:
+    - link "OpenFreeMap":
+      - /url: https://openfreemap.org
+    - text: ·
+    - link "© OpenMapTiles":
+      - /url: https://www.openmaptiles.org/
+    - text: ·
+    - link "© OpenStreetMap contributors":
+      - /url: https://www.openstreetmap.org/copyright
+  - button "Przybliż"
+  - button "Oddal"
