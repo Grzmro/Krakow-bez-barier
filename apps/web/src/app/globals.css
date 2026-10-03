@@ -4,3 +4,8 @@
 @import "@krakow-bez-barier/ui/styles.css";
 
 @source "../../../../packages/ui/src";
+
+/* Keep focused and anchored content clear of the sticky header (WCAG 2.4.11). */
+html {
+  scroll-padding-top: 5rem;
+}

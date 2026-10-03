@@ -1,0 +1,146 @@
+"use client";
+
+import { useId, useState, type ReactNode } from "react";
+import { CaretDown, ClockCounterClockwise } from "@phosphor-icons/react";
+import { cn } from "../cn";
+import type { Reliability, Status } from "../types";
+import { ReliabilityBadge, StatusBadge } from "./status";
+
+export interface FactSource {
+  /** Source name, e.g. "OpenStreetMap". */
+  name: string;
+  /** When we fetched it, already formatted for display. */
+  date: string;
+  /** What this source says, e.g. "80 cm" — needed when sources disagree. */
+  value?: string;
+  /** Extra line, e.g. "2/2 potwierdzeń". */
+  detail?: string;
+  /** Staleness warning, e.g. "Może być nieaktualne · 2021-05-04". */
+  staleNote?: string;
+}
+
+export interface FactRowLabels {
+  /** "Źródło" */
+  source: string;
+  /** "Pozyskano" */
+  acquired: string;
+  /** "Brak danych" — shown when there is no value. */
+  noValue: string;
+  /** "Nikt jeszcze nie sprawdził." — shown when there are no sources. */
+  noSources: string;
+}
+
+export interface FactRowProps {
+  /** Decorative icon element (aria-hidden is up to the caller's icon). */
+  icon?: ReactNode;
+  /** Attribute name, e.g. "Drzwi". */
+  label: string;
+  /** Value without the unit; omit when unknown. */
+  value?: string;
+  unit?: string;
+  /** The user's threshold, e.g. "min. 80 cm". */
+  limit?: string;
+  /** Verdict of this fact against the user's need. */
+  status?: { value: Status; label: string };
+  reliability: { value: Reliability; label: string };
+  sources: FactSource[];
+  labels: FactRowLabels;
+  /** Buttons shown under the sources (e.g. "To się nie zgadza"). */
+  actions?: ReactNode;
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  className?: string;
+}
+
+/** One accessibility fact: value with unit, verdict, reliability and an expandable provenance list. */
+export function FactRow({
+  icon,
+  label,
+  value,
+  unit,
+  limit,
+  status,
+  reliability,
+  sources,
+  labels,
+  actions,
+  open: openProp,
+  defaultOpen = false,
+  onOpenChange,
+  className,
+}: FactRowProps) {
+  const [openState, setOpenState] = useState(defaultOpen);
+  const open = openProp ?? openState;
+  const panelId = useId();
+  const toggle = () => {
+    setOpenState(!open);
+    onOpenChange?.(!open);
+  };
+  const known = value !== undefined && value !== "";
+
+  return (
+    <li className={cn("list-none", className)}>
+      <button
+        type="button"
+        aria-expanded={open}
+        aria-controls={panelId}
+        onClick={toggle}
+        className="flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted focus-visible:-outline-offset-3"
+      >
+        {icon ? (
+          <span aria-hidden className="shrink-0 text-muted-foreground [&_svg]:size-[22px]">
+            {icon}
+          </span>
+        ) : null}
+        <span className="min-w-0 flex-1">
+          <span className="block text-body-sm font-medium text-muted-foreground">{label}</span>
+          <span className="flex flex-wrap items-baseline gap-x-1.5">
+            <span
+              className={cn(
+                "font-display text-[17px] font-extrabold tabular-nums",
+                !known && "font-sans text-body-sm font-semibold text-muted-foreground",
+              )}
+            >
+              {known ? (unit ? `${value} ${unit}` : value) : labels.noValue}
+            </span>
+            {limit ? <span className="text-caption text-muted-foreground">({limit})</span> : null}
+          </span>
+          {status ? <StatusBadge status={status.value} label={status.label} size="sm" className="mt-1" /> : null}
+        </span>
+        <ReliabilityBadge value={reliability.value} label={reliability.label} className="shrink-0 self-start pt-0.5" />
+        <CaretDown
+          aria-hidden
+          className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}
+        />
+      </button>
+      <div id={panelId} hidden={!open} className="space-y-3 bg-muted px-4 pt-2 pb-4">
+        {sources.length ? (
+          <ul className="space-y-2.5">
+            {sources.map((s, i) => (
+              <li key={i} className="flex flex-col gap-0.5 text-caption text-muted-foreground">
+                <span className="font-semibold text-foreground">
+                  {labels.source}: {s.name}
+                  {s.value ? <span className="font-normal"> · {s.value}</span> : null}
+                </span>
+                <span className="tabular-nums">
+                  {labels.acquired} {s.date}
+                  {s.detail ? ` · ${s.detail}` : null}
+                </span>
+                {s.staleNote ? (
+                  <span className="flex items-center gap-1 font-semibold text-status-conflict">
+                    <ClockCounterClockwise className="size-3.5" aria-hidden />
+                    {s.staleNote}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-caption text-muted-foreground">{labels.noSources}</p>
+        )}
+        {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
+      </div>
+    </li>
+  );
+}
