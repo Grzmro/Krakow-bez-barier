@@ -32,6 +32,11 @@ export const home: Messages["home"] = {
       },
     },
   },
+  command: {
+    applied: (what) => `Showing: ${what}, nearest first`,
+    unknownTitle: "I didn't understand that command.",
+    unknownHint: "Try: “nearest toilet”, “pharmacy near me” or “lift near me”.",
+  },
   categoriesLabel: "Categories",
   categoryAll: "Everything",
   filtersLabel: "Feature filters",

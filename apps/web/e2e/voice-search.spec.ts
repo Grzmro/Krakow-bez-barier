@@ -163,3 +163,38 @@ test("without speech recognition there is no microphone button", async ({ page }
   // THEN no microphone is offered
   await expect(page.getByRole("button", { name: "Wpisz głosem" })).toHaveCount(0);
 });
+
+test.describe("voice commands with location access granted", () => {
+  test.use({ geolocation: { latitude: 50.0541, longitude: 19.9354, accuracy: 20 }, permissions: ["geolocation"] });
+
+  test("'najbliższa toaleta' picks the category and turns on 'W mojej okolicy'", async ({ page }) => {
+    // GIVEN a browser with speech recognition
+    await fakeSpeech(page);
+    await page.goto("/");
+    const field = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
+
+    // WHEN the visitor says "najbliższa toaleta"
+    await page.getByRole("button", { name: "Wpisz głosem" }).click();
+    await speak(page, "najbliższa toaleta", true);
+    await fakeCall(page, "end");
+
+    // THEN the category is chosen, the list is sorted from the user, and the command is not left in the field
+    await expect(page.getByRole("button", { name: "Toalety" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "W mojej okolicy" })).toHaveAttribute("aria-pressed", "true");
+    await expect(field).toHaveValue("");
+  });
+});
+
+test("an unclear 'nearest' command suggests example commands", async ({ page }) => {
+  // GIVEN a browser with speech recognition
+  await fakeSpeech(page);
+  await page.goto("/");
+
+  // WHEN the visitor asks for the nearest something unknown
+  await page.getByRole("button", { name: "Wpisz głosem" }).click();
+  await speak(page, "najbliższy smok", true);
+  await fakeCall(page, "end");
+
+  // THEN they get examples instead of an empty text search
+  await expect(page.getByRole("note").filter({ hasText: "Nie rozumiem tego polecenia." })).toContainText("najbliższa toaleta");
+});

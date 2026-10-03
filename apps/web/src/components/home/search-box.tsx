@@ -15,16 +15,24 @@ export interface SearchBoxProps {
   onValueChange: (value: string) => void;
   /** Place names matching the current query, shown as suggestions. */
   suggestions: string[];
+  /**
+   * Offered the dictated text and the text typed when Enter is pressed; returns true when it was a command
+   * ("najbliższa toaleta") and handled it, so the field is not filled with the command.
+   */
+  onCommand?: (text: string) => boolean;
 }
 
 /** Search field (combobox) with place-name suggestions; the list below updates as you type. */
-export function SearchBox({ value, onValueChange, suggestions }: SearchBoxProps) {
+export function SearchBox({ value, onValueChange, suggestions, onCommand }: SearchBoxProps) {
   const t = useMessages().home.search;
   const [open, setOpen] = useState(false);
   // An open popup hides the rest of the page from assistive tech, so keep it closed when it
   // has nothing to add (no matches, or the field already holds the only match).
   const useful = suggestions.some((name) => name !== value);
-  const speech = useSpeechInput((text) => onValueChange(text));
+  const speech = useSpeechInput((text, final) => {
+    if (final && onCommand?.(text)) onValueChange("");
+    else onValueChange(text);
+  });
   return (
     <Autocomplete.Root
       items={suggestions}
@@ -41,6 +49,12 @@ export function SearchBox({ value, onValueChange, suggestions }: SearchBoxProps)
         </label>
         <Autocomplete.Input
           id={SEARCH_INPUT_ID}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && onCommand?.(value)) {
+              event.preventDefault();
+              onValueChange("");
+            }
+          }}
           placeholder={speech.active ? t.voice[speech.state === "processing" ? "processing" : "listening"] : t.placeholder}
           className={cn(
             "size-full rounded-full bg-transparent pl-13 text-body outline-none placeholder:text-muted-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring",
