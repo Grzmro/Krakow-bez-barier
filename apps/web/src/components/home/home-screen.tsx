@@ -678,7 +678,7 @@ export function HomeScreen() {
       <div className="absolute inset-0 lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0">
         <PlaceMap
           places={mapPlaces}
-          points={mapPoints}
+          points={mapPoints ?? (places.isPlaceholderData ? [] : undefined)}
           onViewChange={followView}
           selectedId={selectedId}
           onSelect={selectFromMap}

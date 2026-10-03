@@ -86,6 +86,36 @@ describe("GET /api/v1/places/points", () => {
     expect(verdict(kawiarnia.id)).toBe("unknown");
   });
 
+  it("honours the visitor's thresholds and counts a reported outage, like the list", async () => {
+    // GIVEN the hotel, which meets the wheelchair presets with a 95 cm door
+    const verdictOf = async (params: string) =>
+      (await points(`?bbox=${KRAKOW}&q=hotel&profile=wheelchair${params}`)).body.items[0].verdict;
+
+    // WHEN a stricter door width is asked for
+    // THEN the hotel's door blocks it
+    expect(await verdictOf("&minDoorWidthCm=100")).toBe("barrier");
+
+    // WHEN its lift was reported broken 10 minutes ago
+    const previous = repository.current;
+    try {
+      repository.current = createFakePlaceRepository(places, facts, [
+        {
+          id: "7c1d2e3f-4a5b-4c6d-8e7f-9a0b1c2d3e4f",
+          placeId: hotel.id,
+          equipment: "lift",
+          reportedAt: new Date(Date.now() - 10 * 60_000),
+          confirmations: 0,
+          lastConfirmedAt: new Date(Date.now() - 10 * 60_000),
+          workingVotes: 0,
+        },
+      ]);
+      // THEN its point is a barrier too, not met
+      expect(await verdictOf("")).toBe("barrier");
+    } finally {
+      repository.current = previous;
+    }
+  });
+
   it("shows categories hidden by default only with the feature filter that asks for them", async () => {
     // GIVEN a disabled parking space, hidden by default
     // WHEN the disabled-parking filter is on

@@ -37,7 +37,7 @@ export type NeedVerdict = Schemas["NeedVerdict"];
 
 export type ListPlacesQuery = NonNullable<operations["listPlaces"]["parameters"]["query"]>;
 export type ListPlacePointsQuery = operations["listPlacePoints"]["parameters"]["query"];
-export type GetPlaceQuery =NonNullable<operations["getPlace"]["parameters"]["query"]>;
+export type GetPlaceQuery = NonNullable<operations["getPlace"]["parameters"]["query"]>;
 export type ReportCreate = Schemas["ReportCreate"];
 export type Confirmation = Schemas["Confirmation"];
 export type ConfirmationCreate = Schemas["ConfirmationCreate"];

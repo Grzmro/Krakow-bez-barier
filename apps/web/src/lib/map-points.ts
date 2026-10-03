@@ -30,7 +30,10 @@ export const containsBbox = (outer: Bbox, inner: Bbox) =>
  * needs nothing new), otherwise a new `pointsArea` around the view.
  */
 export function nextPointsArea(loaded: Bbox | null, view: Bbox): Bbox {
-  return loaded && containsBbox(loaded, view) ? loaded : pointsArea(view);
+  if (loaded && containsBbox(loaded, view)) return loaded;
+  const next = pointsArea(view);
+  // A view wider than the world is never contained; the same area must stay the same object, or React re-renders.
+  return loaded && next.every((value, i) => value === loaded[i]) ? loaded : next;
 }
 
 /** A list row as a map point, for the map before its own points arrive. */

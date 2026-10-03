@@ -42,6 +42,15 @@ describe("map points area", () => {
     expect(nextPointsArea(null, OLD_TOWN)).toEqual(pointsArea(OLD_TOWN));
     expect(pointsArea([-180, -85, 180, 85])).toEqual([-180, -90, 180, 90]);
   });
+
+  it("keeps the same area object for a view wider than the world, so the map doesn't re-render for nothing", () => {
+    // GIVEN the world loaded
+    const world = pointsArea([-200, -85, 200, 85]);
+
+    // WHEN the same over-wide view comes again
+    // THEN the loaded area is returned as is
+    expect(nextPointsArea(world, [-200, -85, 200, 85])).toBe(world);
+  });
 });
 
 describe("toPoint", () => {
