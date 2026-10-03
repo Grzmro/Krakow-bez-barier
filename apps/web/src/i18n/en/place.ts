@@ -31,6 +31,7 @@ export const place: Messages["place"] = {
   editOsmHint: "Fix the data at the source — it reaches us with the next fetch.",
   mine: {
     report: "Your report",
+    otherReport: "A visitor's report",
     confirmation: "Your confirmation",
     sending: "sending…",
     pendingNote: "Awaiting verification — doesn't change the data above.",

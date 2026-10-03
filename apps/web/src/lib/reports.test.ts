@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createApiClient, createMockFetch, type Place } from "@krakow-bez-barier/contracts";
 import { factViews, osmEditUrl } from "./place-facts";
-import { reportInput, withPending, type PendingEntry } from "./reports";
+import { pendingEntries, reportInput, withPending, type PendingEntry } from "./reports";
 
 const api = createApiClient({ baseUrl: "http://localhost/api/v1", fetch: createMockFetch() });
 
@@ -14,6 +14,7 @@ async function demoPlace(id: string): Promise<Place> {
 const report = (attribute: PendingEntry["attribute"], valueText: string): PendingEntry => ({
   key: `k-${attribute}`,
   kind: "report",
+  mine: true,
   attribute,
   valueText,
   createdAt: "2026-10-03T09:12:00Z",
@@ -35,6 +36,63 @@ describe("withPending", () => {
     expect(rows.find((r) => r.attribute === "toilet_accessible")?.pending).toEqual([pending[0]]);
     expect(rows.find((r) => r.attribute === "lift")?.pending).toEqual([pending[1]]);
     expect(rows.find((r) => r.attribute === "step_count")?.pending).toEqual([]);
+  });
+});
+
+describe("pendingEntries", () => {
+  const served = (place: Place): Place => ({
+    ...place,
+    attributes: place.attributes.map((a) =>
+      a.attribute === "lift"
+        ? {
+            ...a,
+            pendingReports: [
+              { id: "r-other", value: { kind: "boolean", boolean: false }, comment: "winda nie działa", status: "new", createdAt: "2026-10-02T08:00:00Z" },
+              { id: "r-mine", value: { kind: "boolean", boolean: false }, comment: null, status: "needs_info", createdAt: "2026-10-03T09:12:00Z" },
+            ],
+          }
+        : a,
+    ),
+  });
+
+  it("lists every report the API serves, and this visitor's own ones once, as theirs", async () => {
+    // GIVEN the API lists two lift reports, one of them sent from this session, and a report still in the undo window
+    const place = served(await demoPlace("palac-krzysztofory"));
+    const sent = { ...report("lift", "Nie ma"), key: "k-sent", reportId: "r-mine" };
+    const queued = { ...report("bench", "Jest"), key: "k-queued", sending: true };
+
+    // WHEN the card's pending entries are built
+    const entries = pendingEntries(place, [sent, queued], "pl");
+
+    // THEN the served reports come first with their value as text, the own one marked as such and not repeated
+    expect(entries.map((e) => [e.key, e.attribute, e.mine, e.valueText])).toEqual([
+      ["r-other", "lift", false, "Nie ma"],
+      ["r-mine", "lift", true, "Nie ma"],
+      ["k-queued", "bench", true, "Jest"],
+    ]);
+    expect(entries[0]).toMatchObject({ createdAt: "2026-10-02T08:00:00Z", sending: false });
+    // AND an unmoderated comment is not passed on to the card
+    expect(entries[0]).not.toHaveProperty("comment");
+  });
+
+  it("keeps a sent report the API doesn't list yet", async () => {
+    // GIVEN a report the server accepted but the card's data predates (or the mock API never lists)
+    const place = await demoPlace("palac-krzysztofory");
+    const sent = { ...report("lift", "Nie ma"), reportId: "r-new" };
+
+    // WHEN the card's pending entries are built
+    // THEN the visitor still sees their report
+    expect(pendingEntries(place, [sent], "pl")).toEqual([sent]);
+  });
+
+  it("drops a sent report once the API stops listing it, because a moderator has decided", async () => {
+    // GIVEN a report the API listed before and no longer lists (rejected, or accepted and now a fact)
+    const place = await demoPlace("palac-krzysztofory");
+    const decided = { ...report("lift", "Nie ma"), reportId: "r-decided", served: true };
+
+    // WHEN the card's pending entries are built
+    // THEN it is no longer shown as pending
+    expect(pendingEntries(place, [decided], "pl")).toEqual([]);
   });
 });
 

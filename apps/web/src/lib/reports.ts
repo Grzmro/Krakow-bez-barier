@@ -1,7 +1,7 @@
-import { reportRules, type AccessibilityAttribute, type FactValue, type ValueRange } from "@krakow-bez-barier/contracts";
+import { reportRules, type AccessibilityAttribute, type FactValue, type Place, type ValueRange } from "@krakow-bez-barier/contracts";
 import type { Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
-import type { FactView } from "./place-facts";
+import { formatValue, joinValue, type FactView } from "./place-facts";
 
 export type ReportOption = { id: string; label: string; value: FactValue };
 
@@ -43,10 +43,16 @@ export function unitLabel(range: ValueRange, locale: Locale): string {
   return messagesFor(locale).place.unit[range.unit];
 }
 
-/** A visitor's own report or confirmation, kept beside the fact until a moderator decides. */
+/** A report or confirmation awaiting moderation, kept beside the fact until a moderator decides. */
 export interface PendingEntry {
   key: string;
   kind: "report" | "confirmation";
+  /** Sent by this visitor in this session; otherwise someone's report served by the places API. */
+  mine: boolean;
+  /** The report's id once the server has it. */
+  reportId?: string;
+  /** The places API has listed this report; once it stops listing it, a moderator has decided and the entry goes. */
+  served?: boolean;
   attribute: AccessibilityAttribute;
   /** Reported value as text; for a confirmation, the value confirmed. */
   valueText?: string;
@@ -55,10 +61,41 @@ export interface PendingEntry {
   sending: boolean;
 }
 
+/** Ids of the reports the places API lists as pending for this place. */
+export function servedReportIds(place: Place): string[] {
+  return place.attributes.flatMap(({ pendingReports = [] }) => pendingReports.map((r) => r.id));
+}
+
+/**
+ * Every report the API lists as pending (`ResolvedAttribute.pendingReports`), followed by this visitor's entries the
+ * API doesn't list yet — still in the undo window, sent but not refetched, or a confirmation. A sent report the API
+ * listed before and no longer does has been decided by a moderator, so it is dropped. Reports sent from this session
+ * read as "mine". Comments are left out: free text nobody has moderated yet is not shown to other visitors.
+ */
+export function pendingEntries(place: Place, local: PendingEntry[], locale: Locale): PendingEntry[] {
+  const own = new Set(local.flatMap((e) => (e.reportId ? [e.reportId] : [])));
+  const served = place.attributes.flatMap(({ attribute, pendingReports = [] }) =>
+    pendingReports.map(
+      (report): PendingEntry => ({
+        key: report.id,
+        kind: "report",
+        mine: own.has(report.id),
+        reportId: report.id,
+        attribute,
+        valueText: joinValue(formatValue(attribute, report.value, locale)),
+        createdAt: report.createdAt,
+        sending: false,
+      }),
+    ),
+  );
+  const servedIds = new Set(served.map((e) => e.reportId));
+  return [...served, ...local.filter((e) => !e.reportId || (!e.served && !servedIds.has(e.reportId)))];
+}
+
 export type FactWithPending = FactView & { pending: PendingEntry[] };
 
 /**
- * Attaches the visitor's pending entries to the card rows. The row's value, reliability and sources stay exactly as the
+ * Attaches the pending entries — reports the API serves for every visitor and this visitor's own ones — to the card rows. The row's value, reliability and sources stay exactly as the
  * API resolved them — an unmoderated report never changes what the card (or any verdict) says.
  */
 export function withPending(views: FactView[], pending: PendingEntry[]): FactWithPending[] {

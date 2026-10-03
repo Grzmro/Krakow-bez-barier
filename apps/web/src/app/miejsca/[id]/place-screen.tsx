@@ -37,7 +37,7 @@ import { useLocale, useMessages } from "@/i18n/client";
 import { api } from "@/lib/api";
 import { useCategoryLookup } from "@/lib/categories";
 import { CARD_ATTRIBUTES, factViews, failedSources, formatDate, latestSourceDate, osmEditUrl } from "@/lib/place-facts";
-import { withPending, type PendingEntry } from "@/lib/reports";
+import { pendingEntries, servedReportIds, withPending, type PendingEntry } from "@/lib/reports";
 import { usePlaceReports } from "@/lib/use-place-reports";
 import { routes } from "@/lib/routes";
 import { ReportDrawer, type ReportMode, type ReportSubmission } from "./report-drawer";
@@ -109,7 +109,7 @@ function PlaceCard({ place }: { place: Place }) {
   const focusContact = useRef(false);
   const contactRef = useRef<HTMLDivElement>(null);
   const announce = useAnnounce();
-  const reports = usePlaceReports(place.id);
+  const reports = usePlaceReports(place.id, servedReportIds(place));
   const notRightButtons = useRef(new Map<AccessibilityAttribute, HTMLButtonElement>());
   const [openFacts, setOpenFacts] = useState<Partial<Record<AccessibilityAttribute, boolean>>>({});
   const [drawer, setDrawer] = useState<{ open: boolean; mode: ReportMode; attribute: AccessibilityAttribute; key: number }>({
@@ -118,7 +118,7 @@ function PlaceCard({ place }: { place: Place }) {
     attribute: CARD_ATTRIBUTES[0],
     key: 0,
   });
-  const facts = withPending(factViews(place, locale), reports.entries);
+  const facts = withPending(factViews(place, locale), pendingEntries(place, reports.entries, locale));
   const osmEdit = osmEditUrl(place);
   const failed = failedSources(place);
   const conflicts = facts.filter((f) => f.conflict);
@@ -467,7 +467,9 @@ function PendingList({ entries }: { entries: PendingEntry[] }) {
             key={entry.key}
             className="flex flex-wrap items-center gap-1.5 rounded-xl bg-card px-3 py-2 text-caption ring-1 ring-primary/30"
           >
-            <span className="font-semibold">{entry.kind === "report" ? t.mine.report : t.mine.confirmation}:</span>
+            <span className="font-semibold">
+              {entry.kind === "confirmation" ? t.mine.confirmation : entry.mine ? t.mine.report : t.mine.otherReport}:
+            </span>
             {entry.valueText ? <span>{entry.valueText}</span> : null}
             <ReliabilityBadge value="unverified" />
             <span className="text-muted-foreground tabular-nums">

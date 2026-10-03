@@ -1,6 +1,8 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Place } from "@krakow-bez-barier/contracts";
 import { validateResponse } from "@/server/http";
+import { decideReport } from "@/server/reports";
+import { createMemoryReportsStore } from "@/server/reports/memory-store";
 import {
   createFakePlaceRepository,
   factRecord,
@@ -45,6 +47,12 @@ vi.mock("@/server/places/repository", async (importOriginal) => ({
   createDbPlaceRepository: () => repository,
 }));
 
+let reports = createMemoryReportsStore();
+vi.mock("@/server/reports/drizzle-store", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/server/reports/drizzle-store")>()),
+  reportsStore: () => reports.store,
+}));
+
 const { GET } = await import("./route");
 
 async function get(id: string, params = "") {
@@ -57,6 +65,13 @@ async function get(id: string, params = "") {
 }
 
 const attribute = (place: Place, name: string) => place.attributes.find((a) => a.attribute === name);
+
+beforeEach(() => {
+  reports = createMemoryReportsStore({ places: [{ id: palac.id, name: palac.name }] });
+});
+
+const report = (attribute: "lift" | "toilet_accessible", boolean: boolean, comment: string | null = null) =>
+  reports.store.insertReport({ placeId: palac.id, attribute, value: bool(boolean), comment });
 
 describe("GET /api/v1/places/{id}", () => {
   it("returns every attribute of the vocabulary, with both values of a conflict and their sources", async () => {
@@ -135,5 +150,58 @@ describe("GET /api/v1/places/{id}", () => {
     // THEN it resolves like any other place
     expect(status).toBe(200);
     expect(body).toMatchObject({ id: parking.id, category: "parking" });
+  });
+
+  it("lists reports awaiting moderation beside the value as unverified, without changing it", async () => {
+    // GIVEN two visitors say the palace has no lift (one asked for details) and one says the toilet is accessible
+    const first = await report("lift", false, "winda wyłączona");
+    const second = await report("lift", false);
+    await decideReport(reports.store, { reportId: second.id, decision: "needs_info", note: "zdjęcie?" }, "anna");
+    await report("toilet_accessible", true);
+
+    // WHEN the place is read
+    const { body } = await get(palac.id);
+
+    // THEN both lift reports sit beside the confirmed lift, which still says yes, without the unmoderated comment;
+    // attributes without reports list none
+    const lift = attribute(body, "lift");
+    expect(lift).toMatchObject({ state: "known", status: "confirmed", value: { boolean: true } });
+    expect(lift?.pendingReports).toEqual([
+      { id: first.id, value: bool(false), comment: null, status: "new", createdAt: first.createdAt.toISOString() },
+      expect.objectContaining({ id: second.id, status: "needs_info" }),
+    ]);
+    expect(attribute(body, "toilet_accessible")).toMatchObject({ state: "conflict", pendingReports: [expect.objectContaining({ value: bool(true) })] });
+    expect(attribute(body, "ramp")?.pendingReports).toEqual([]);
+  });
+
+  it("still serves the place card when the reports can't be read", async () => {
+    // GIVEN the reports table fails
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    reports.store.listPending = () => Promise.reject(new Error("relation does not exist"));
+
+    // WHEN the place is read
+    const { status, body } = await get(palac.id);
+
+    // THEN the resolved facts come back without pending reports and the failure is logged
+    expect(status).toBe(200);
+    expect(attribute(body, "lift")).toMatchObject({ state: "known", value: { boolean: true } });
+    expect(attribute(body, "lift")?.pendingReports).toBeUndefined();
+    expect(error).toHaveBeenCalled();
+    error.mockRestore();
+  });
+
+  it("drops a report once a moderator rejects or accepts it", async () => {
+    // GIVEN two pending lift reports
+    const rejected = await report("lift", false);
+    const accepted = await report("lift", false);
+
+    // WHEN a moderator rejects one and accepts the other, then the place is read
+    await decideReport(reports.store, { reportId: rejected.id, decision: "rejected" }, "anna");
+    await decideReport(reports.store, { reportId: accepted.id, decision: "accepted" }, "anna");
+    const { body } = await get(palac.id);
+
+    // THEN neither is listed as pending any more (the accepted one became a moderated fact in the store)
+    expect(attribute(body, "lift")?.pendingReports).toEqual([]);
+    expect(reports.facts.map((f) => f.source.name)).toEqual(["Społeczność, zweryfikowane przez moderatora"]);
   });
 });

@@ -18,6 +18,7 @@ import { FEATURE_ATTRIBUTES, featureState } from "@/domain/features";
 import { matchProfile } from "@/domain/matcher";
 import { thresholdsFor } from "@/domain/profiles";
 import { isStale, resolveAttribute } from "@/domain/resolver";
+import { pendingReportsByAttribute, type ReportsStore } from "@/server/reports";
 import {
   createDbPlaceRepository,
   normalizeText,
@@ -255,5 +256,28 @@ export async function getPlace(id: string, query: GetPlaceQuery = {}, deps: Plac
     sources,
     updatedAt: place.updatedAt.toISOString(),
     isSample: isSample(place, records),
+  };
+}
+
+/**
+ * Lists the reports awaiting moderation beside each attribute (`ResolvedAttribute.pendingReports`). They never change
+ * the value, state, status or verdict; accepted and rejected reports drop out (an accepted one is a fact by then).
+ * Comments are withheld: free text nobody has moderated yet is not published. If the reports can't be read, the card
+ * is served without them — the resolved facts don't depend on the reports table.
+ */
+export async function withPendingReports(place: Place, store: ReportsStore): Promise<Place> {
+  let pending: Awaited<ReturnType<typeof pendingReportsByAttribute>>;
+  try {
+    pending = await pendingReportsByAttribute(store, place.id);
+  } catch (error) {
+    console.error(`[places] pending reports for ${place.id} could not be read`, error);
+    return place;
+  }
+  return {
+    ...place,
+    attributes: place.attributes.map((attribute) => ({
+      ...attribute,
+      pendingReports: (pending.get(attribute.attribute) ?? []).map((report) => ({ ...report, comment: null })),
+    })),
   };
 }
