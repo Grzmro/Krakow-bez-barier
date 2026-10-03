@@ -124,9 +124,9 @@ describe("mapOsmElement", () => {
     };
     // WHEN mapping it
     const { place, skipped } = mapOsmElement(el);
-    // THEN only the parking fact is created; plain ramp=yes is not a wheelchair ramp
+    // THEN only the parking fact is created; plain ramp=yes is not a wheelchair ramp, so it is reported, not mapped
     expect(place?.facts.map((f) => f.attribute)).toEqual(["disabled_parking"]);
-    expect(skipped).toEqual(["door:width=90", "kerb:height=5 m"]);
+    expect(skipped).toEqual(["ramp=yes", "door:width=90", "kerb:height=5 m"]);
   });
 
   it("maps the storeys of a venue from its level, or else from its building", () => {
@@ -174,13 +174,13 @@ describe("mapOsmElement", () => {
   });
 
   it("skips unnamed non-toilet places and elements of unknown category", () => {
-    // GIVEN an unnamed cafe and a bench
+    // GIVEN an unnamed cafe and a florist (no category maps shops yet)
     const cafe: OsmElement = { type: "node", id: 2, lat: 1, lon: 1, tags: { amenity: "cafe" } };
-    const bench: OsmElement = { type: "node", id: 3, lat: 1, lon: 1, tags: { amenity: "bench", name: "x" } };
+    const florist: OsmElement = { type: "node", id: 3, lat: 1, lon: 1, tags: { shop: "florist", name: "x" } };
     // WHEN mapping them
     // THEN neither becomes a place
     expect(mapOsmElement(cafe).place).toBeNull();
-    expect(mapOsmElement(bench).place).toBeNull();
+    expect(mapOsmElement(florist).place).toBeNull();
   });
 });
 

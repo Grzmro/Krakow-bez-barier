@@ -32,7 +32,7 @@ see the status column.
 |---|---|
 | Origin | OpenStreetMap community, read through the Overpass API |
 | Endpoint | Overpass API instance configured in the city config (not hard-coded). Fallback when Overpass fails: the Geofabrik regional extract (`sourceConfig.osm.extractUrl`, e.g. `europe/poland/malopolskie-latest.osm.pbf`), cut to the city box and the same category tags |
-| What we read | `tourism` (museum, hotel, hostel, guest_house, gallery, attraction), `amenity` (restaurant, cafe, toilets, pharmacy, theatre, cinema, library); tags `wheelchair`, `toilets:wheelchair`, `wheelchair:description`, `changing_table`, `elevator`, `level` / `building:levels` (→ `levels`; `building:levels` only for venues that fill their building), `check_date`, ... |
+| What we read | `tourism` (museum, hotel, hostel, guest_house, gallery, attraction), `amenity` (restaurant, cafe, toilets, pharmacy, theatre, cinema, library); tags `wheelchair`, `toilets:wheelchair`, `wheelchair:description`, `changing_table`, `elevator`, `level` / `building:levels` (→ `levels`; `building:levels` only for venues that fill their building), `check_date`, ... Beyond venues: `amenity=bench` (→ `bench`), `parking_space=disabled` and `amenity=parking` with `capacity:disabled` (→ `disabled_parking`), `highway=elevator` (→ `lift`), `highway=steps` (→ `step_count`, `ramp=no` / `ramp:wheelchair`), `barrier=kerb` / `kerb=*` (→ `kerb_height_cm`, only `flush` or a measured `kerb:height`) |
 | Licence | Open Database Licence (ODbL) 1.0 |
 | Attribution | "© OpenStreetMap contributors" (shown wherever OSM-derived facts or the map are shown) |
 | Freshness | Per object. `check_date` is stored as `observedAt` when present, otherwise the fact has no observation date and is shown as such |

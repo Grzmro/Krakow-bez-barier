@@ -155,6 +155,8 @@ export const route = {
   // Segment notes written by the routes API (server side).
   note: {
     stairs: "schody",
+    stairsSteps: (counts: number[]) =>
+      counts.length === 1 ? `schody (${counts[0]} ${plural(counts[0], "stopień", "stopnie", "stopni")})` : `schody (stopnie: ${counts.join(", ")})`,
     kerb: (cm: number) => `krawężnik ${String(cm).replace(".", ",")} cm`,
     incline: (pct: number) => `nachylenie do ${pct}%`,
     inclineLow: "płasko (do 1%)",

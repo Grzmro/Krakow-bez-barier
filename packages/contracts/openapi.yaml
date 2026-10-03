@@ -105,6 +105,14 @@ paths:
                       label: Miejsca postojowe
                       singularLabel: Miejsce postojowe
                       icon: car
+                    - id: bench
+                      label: Ławki
+                      singularLabel: Ławka
+                      icon: armchair
+                    - id: elevator
+                      label: Windy
+                      singularLabel: Winda
+                      icon: elevator
                     - id: transit_stop
                       label: Przystanki
                       singularLabel: Przystanek
@@ -142,7 +150,9 @@ paths:
       - name: category
         in: query
         description: Categories to return (ids from `GET /categories`). Without it, categories that are hidden by default
-          (parking spaces, transit stops) are left out; name them here to list them.
+          (parking spaces, transit stops, benches, lifts) are left out unless a `feature` filter asks for what they
+          provide (benches for `bench`, disabled parking for `disabled_parking`, lifts for `lift`); name them here to list
+          them. Bits of the way (steps, kerbs) are never listed by default; their facts describe routes.
         schema:
           type: array
           items:
@@ -1082,7 +1092,7 @@ paths:
         the wheelchair profile does (entrance, door, lift, accessible toilet) plus a smooth surface. Each ranked place
         has a score that is the sum of the points in `criteria`, with the reasons behind it. Aggregates only: no report
         text, no personal data. Every place is counted except the categories hidden on the map by default
-        (`hiddenByDefault` in the category config: parking bays and transit stops), which the wheelchair needs don''t
+        (`hiddenByDefault` in the category config: parking bays, transit stops, benches, lifts, steps, kerbs), which the wheelchair needs don''t
         apply to. Sample (PRZYKŁAD) places, facts and their reports are left out; `isSample` is true only
         when the whole answer is built from sample data (the example-data mode). Requires a moderator bearer token, the
         demo account included (lockout as for the moderation queue).

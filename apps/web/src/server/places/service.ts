@@ -11,7 +11,7 @@ import type {
   Source,
   SummaryChip,
 } from "@krakow-bez-barier/contracts";
-import { categories } from "@krakow-bez-barier/contracts";
+import { categories, hiddenCategoryIds } from "@krakow-bez-barier/contracts";
 import { openapiDocument } from "@krakow-bez-barier/contracts/openapi";
 import { defaultLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
@@ -241,7 +241,7 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
   const limit = query.limit ?? 25;
 
   // Feature filters need resolved facts, so every candidate is resolved before paging (see docs/architecture.md).
-  const hiddenByDefault = categories.filter((c) => c.hiddenByDefault).map((c) => c.id);
+  const hiddenByDefault = hiddenCategoryIds(features);
   const search = (text?: string) =>
     repository.searchPlaces({ text, categories: query.category, excludeCategories: hiddenByDefault, bbox, near });
   let candidates = await search(attempts[0]);

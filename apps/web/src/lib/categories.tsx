@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Armchair, Bank, Bed, Bus, Car, Church, Elevator, ForkKnife, MapPin, MaskHappy, Pill, ShoppingBag, Toilet, type Icon } from "@phosphor-icons/react";
+import { Armchair, Bank, Bed, Bus, Car, Church, Elevator, ForkKnife, MapPin, MaskHappy, Pill, ShoppingBag, Stairs, Toilet, type Icon } from "@phosphor-icons/react";
 import type { Category, CategoryDefinition } from "@krakow-bez-barier/contracts";
 import { useMessages } from "@/i18n/client";
 import { api } from "./api";
@@ -22,6 +22,7 @@ const ICONS: Record<string, Icon> = {
   "map-pin": MapPin,
   armchair: Armchair,
   elevator: Elevator,
+  stairs: Stairs,
 };
 
 /** Icon keys the web UI can draw. */

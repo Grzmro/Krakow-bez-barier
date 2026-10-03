@@ -1,4 +1,9 @@
-import { categories as configuredCategories, type CategoryConfig, type FactValue } from "@krakow-bez-barier/contracts";
+import {
+  categories as configuredCategories,
+  type CategoryConfig,
+  type FactValue,
+  type OsmTagRule,
+} from "@krakow-bez-barier/contracts";
 import type { MappedFact, MappedPlace, MapResult } from "../adapter";
 
 export type OsmElement = {
@@ -79,11 +84,16 @@ export function recordRef(el: OsmElement): string {
   return `osm:${el.type}/${el.id}${suffix ? `@${suffix}` : ""}`;
 }
 
-function categoryOf(tags: Record<string, string>, categories: readonly CategoryConfig[]) {
-  return (
-    categories.find((c) => c.osm.some((rule) => tags[rule.key] !== undefined && rule.values.includes(tags[rule.key]))) ??
-    null
-  );
+export const matchesRule = (tags: Record<string, string>, rule: OsmTagRule) =>
+  tags[rule.key] !== undefined && rule.values.includes(tags[rule.key]) && (!rule.requires || tags[rule.requires] !== undefined);
+
+/** The first category with a rule the tags match, and that rule. */
+export function categoryOf(tags: Record<string, string>, categories: readonly CategoryConfig[]) {
+  for (const category of categories) {
+    const rule = category.osm.find((r) => matchesRule(tags, r));
+    if (rule) return { category, rule };
+  }
+  return null;
 }
 
 /**
@@ -93,11 +103,13 @@ function categoryOf(tags: Record<string, string>, categories: readonly CategoryC
 export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfig[] = configuredCategories): MapResult {
   const tags = el.tags ?? {};
   const skipped: string[] = [];
-  const category = categoryOf(tags, categories);
+  const matched = categoryOf(tags, categories);
   const lat = el.lat ?? el.center?.lat;
   const lon = el.lon ?? el.center?.lon;
-  if (!category || lat === undefined || lon === undefined) return { place: null, skipped };
-  if (!tags.name && !category?.unnamedName) return { place: null, skipped: ["unnamed place"] };
+  if (!matched || lat === undefined || lon === undefined) return { place: null, skipped };
+  const { category, rule } = matched;
+  const unnamedName = rule.unnamedName ?? category.unnamedName;
+  if (!tags.name && !unnamedName) return { place: null, skipped: ["unnamed place"] };
 
   const ref = recordRef(el);
   const observedAt = parseDate(tags.check_date);
@@ -128,6 +140,11 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
   triState("bench", "bench");
   triState("elevator", "lift");
   triState("ramp:wheelchair", "ramp");
+  // A bare `ramp=yes` may be a rail for bikes or prams only, so it says nothing about a wheelchair ramp; `ramp=no` does.
+  if (tags["ramp:wheelchair"] === undefined && tags.ramp !== undefined) {
+    if (tags.ramp === "no") add("ramp", bool(false));
+    else skipped.push(`ramp=${tags.ramp}`);
+  }
 
   if (tags.step_count !== undefined) {
     if (COUNT.test(tags.step_count)) add("step_count", num(Number(tags.step_count), "count"));
@@ -168,6 +185,12 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
     else skipped.push(`capacity:disabled=${tags["capacity:disabled"]}`);
   }
 
+  // The element is the feature itself: a bench, a disabled parking bay, a lift.
+  const has = (attribute: MappedFact["attribute"]) => facts.some((f) => f.attribute === attribute);
+  if (tags.amenity === "bench" && !has("bench")) add("bench", bool(true));
+  if (tags.parking_space === "disabled" && !has("disabled_parking")) add("disabled_parking", bool(true));
+  if (tags.highway === "elevator" && !has("lift")) add("lift", bool(true));
+
   // The venue's own `level` says more than the building's height, and a café's building may be taller than the
   // café, so `building:levels` counts only for venues that fill their building. One fact per record either way.
   if (tags.level !== undefined) {
@@ -181,9 +204,11 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
     else add("levels", num(storeys, "count"), `building:levels=${raw}`);
   }
 
+  if (category.skipWithoutFacts && facts.length === 0) return { place: null, skipped };
+
   const place: MappedPlace = {
     externalRef: `osm:${el.type}/${el.id}`,
-    name: tags.name ?? category.unnamedName ?? "",
+    name: tags.name ?? unnamedName ?? "",
     category: category.id,
     location: { x: lon, y: lat },
     street: tags["addr:street"] ?? null,

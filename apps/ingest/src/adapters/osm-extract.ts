@@ -8,7 +8,7 @@ import type { CategoryConfig } from "@krakow-bez-barier/contracts";
 import { createOSMStream } from "osm-pbf-parser-node";
 import type { FetchContext } from "../adapter";
 import { SourceHttpError } from "../errors";
-import type { OsmElement } from "./osm-map";
+import { matchesRule, type OsmElement } from "./osm-map";
 
 type Bbox = FetchContext["city"]["bbox"];
 type Box = { south: number; west: number; north: number; east: number };
@@ -43,8 +43,7 @@ const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
 const MAX_STALE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const matchesAny = (tags: Record<string, string> | undefined, categories: readonly CategoryConfig[]) =>
-  !!tags &&
-  categories.some((c) => c.osm.some((rule) => tags[rule.key] !== undefined && rule.values.includes(tags[rule.key])));
+  !!tags && categories.some((c) => c.osm.some((rule) => matchesRule(tags, rule)));
 
 const inside = (lat: number, lon: number, b: Box) => lat >= b.south && lat <= b.north && lon >= b.west && lon <= b.east;
 const intersects = (a: Box, b: Box) => a.south <= b.north && a.north >= b.south && a.west <= b.east && a.east >= b.west;

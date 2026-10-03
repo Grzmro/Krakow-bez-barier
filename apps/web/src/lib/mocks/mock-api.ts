@@ -1,5 +1,5 @@
 import {
-  categories,
+  hiddenCategoryIds,
   responseExamples,
   type FeatureFilter,
   type FeatureMatch,
@@ -91,8 +91,6 @@ function matchesText(summary: PlaceSummary, q: string) {
   return normalize(haystack).includes(normalize(q.trim()));
 }
 
-const HIDDEN_BY_DEFAULT = new Set(categories.filter((c) => c.hiddenByDefault).map((c) => c.id));
-
 /**
  * The examples' chip labels are written in Polish. In another language, a labelled chip of a place with facts is
  * labelled like the API does; other chips lose the label, so the list falls back to the attribute name and state.
@@ -115,7 +113,7 @@ function localizedChips(summary: PlaceSummary, locale: Locale): PlaceSummary {
 export function mockListPlaces(query: ListPlacesQuery = {}, locale: Locale = defaultLocale): PlaceList {
   const thresholds = thresholdsFor(query);
   const items = SUMMARIES.filter((s) => (query.q ? matchesText(s, query.q) : true))
-    .filter((s) => (query.category?.length ? query.category.includes(s.category) : !HIDDEN_BY_DEFAULT.has(s.category)))
+    .filter((s) => (query.category?.length ? query.category.includes(s.category) : !hiddenCategoryIds(query.feature).includes(s.category)))
     .filter((s) => inBbox(s, query.bbox))
     .map((s) => withFeatures(s, query))
     .filter((s) => hasFeatures(s, query))

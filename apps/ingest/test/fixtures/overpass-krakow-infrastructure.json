@@ -1,0 +1,206 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-10-03T22:23:11Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+    {
+      "type": "way",
+      "id": 1433524720,
+      "center": {
+        "lat": 50.0644556,
+        "lon": 19.9452157
+      },
+      "tags": {
+        "highway": "elevator",
+        "level": "-1;0",
+        "wheelchair": "designated"
+      }
+    },
+    {
+      "type": "node",
+      "id": 601062457,
+      "lat": 50.0677484,
+      "lon": 19.9479149,
+      "tags": {
+        "highway": "elevator"
+      }
+    },
+    {
+      "type": "node",
+      "id": 1509251113,
+      "lat": 50.061232,
+      "lon": 19.9365276,
+      "tags": {
+        "amenity": "bench",
+        "backrest": "no",
+        "check_date": "2023-03-29",
+        "colour": "gray",
+        "material": "stone"
+      }
+    },
+    {
+      "type": "way",
+      "id": 374517254,
+      "center": {
+        "lat": 50.0621028,
+        "lon": 19.9382614
+      },
+      "tags": {
+        "amenity": "bench",
+        "backrest": "no",
+        "colour": "gray",
+        "material": "stone"
+      }
+    },
+    {
+      "type": "node",
+      "id": 9886421578,
+      "lat": 50.0670565,
+      "lon": 19.9339972,
+      "tags": {
+        "amenity": "parking_space",
+        "capacity": "3",
+        "parking_space": "disabled"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1192477773,
+      "center": {
+        "lat": 50.0546076,
+        "lon": 19.921599
+      },
+      "tags": {
+        "access": "permissive",
+        "amenity": "parking",
+        "capacity:disabled": "2",
+        "parking": "surface"
+      }
+    },
+    {
+      "type": "node",
+      "id": 6727595065,
+      "lat": 50.0592048,
+      "lon": 19.9424389,
+      "tags": {
+        "access": "yes",
+        "amenity": "parking",
+        "capacity": "2",
+        "capacity:disabled": "no",
+        "fee": "no",
+        "kiss_ride": "train|tram|bus",
+        "maxstay": "5 minutes",
+        "name": "Kiss & Ride",
+        "orientation": "parallel",
+        "parking": "lane"
+      }
+    },
+    {
+      "type": "way",
+      "id": 1515551563,
+      "center": {
+        "lat": 50.0678568,
+        "lon": 19.941033
+      },
+      "tags": {
+        "access": "yes",
+        "amenity": "parking",
+        "capacity": "2",
+        "capacity:disabled": "0",
+        "parking": "street_side"
+      }
+    },
+    {
+      "type": "way",
+      "id": 25516309,
+      "center": {
+        "lat": 50.0529564,
+        "lon": 19.9356313
+      },
+      "tags": {
+        "check_date:ramp": "2025-08-07",
+        "handrail:right": "yes",
+        "highway": "steps",
+        "incline": "up",
+        "lit": "yes",
+        "ramp": "no",
+        "source": "gps",
+        "step_count": "42",
+        "surface": "sett",
+        "tactile_paving": "no"
+      }
+    },
+    {
+      "type": "way",
+      "id": 395982452,
+      "center": {
+        "lat": 50.0552258,
+        "lon": 19.9358488
+      },
+      "tags": {
+        "handrail": "yes",
+        "highway": "steps",
+        "incline": "down",
+        "lit": "yes",
+        "ramp": "separate",
+        "ramp:wheelchair": "separate",
+        "step_count": "81",
+        "surface": "sett",
+        "tactile_paving": "no"
+      }
+    },
+    {
+      "type": "way",
+      "id": 398831393,
+      "center": {
+        "lat": 50.0543807,
+        "lon": 19.9374533
+      },
+      "tags": {
+        "access": "customers",
+        "handrail": "yes",
+        "highway": "steps",
+        "incline": "up",
+        "step_count": "13"
+      }
+    },
+    {
+      "type": "node",
+      "id": 2981720160,
+      "lat": 50.0523414,
+      "lon": 19.942599,
+      "tags": {
+        "barrier": "kerb",
+        "kerb": "flush",
+        "tactile_paving": "yes"
+      }
+    },
+    {
+      "type": "node",
+      "id": 3525090249,
+      "lat": 50.0814232,
+      "lon": 20.0528244,
+      "tags": {
+        "barrier": "kerb",
+        "bicycle": "dismount",
+        "kerb": "raised",
+        "kerb:height": "0.4m",
+        "wheelchair": "no"
+      }
+    },
+    {
+      "type": "node",
+      "id": 11544543270,
+      "lat": 50.0558412,
+      "lon": 19.9481951,
+      "tags": {
+        "barrier": "kerb",
+        "kerb": "raised",
+        "tactile_paving": "no"
+      }
+    }
+  ]
+}

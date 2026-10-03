@@ -97,7 +97,7 @@ function routingFact(segmentId: number, attribute: AccessibilityAttribute, value
   };
 }
 
-type SegmentData = { facts: AccessibilityFact[]; surfacePartlyUnknown: boolean };
+type SegmentData = { facts: AccessibilityFact[]; surfacePartlyUnknown: boolean; stepCounts: number[] };
 
 function providerFacts(route: ProviderRoute, id: number, from: number, to: number, fetchedAt: string): SegmentData {
   const facts: AccessibilityFact[] = [];
@@ -125,7 +125,7 @@ function providerFacts(route: ProviderRoute, id: number, from: number, to: numbe
     facts.push(routingFact(id, "incline_pct", { kind: "number", number: pct, unit: "pct" }, fetchedAt, "inferred"));
   }
 
-  return { facts, surfacePartlyUnknown };
+  return { facts, surfacePartlyUnknown, stepCounts: [] };
 }
 
 // Equirectangular projection around the route: metres, accurate enough within a city.
@@ -161,7 +161,7 @@ function surfaceLabel(m: Messages, surface: string) {
 function judge(attributes: Map<AccessibilityAttribute, ResolvedAttribute>, data: SegmentData, th: RouteThresholds | null, m: Messages) {
   const t = m.route.note;
   const barriers: string[] = [];
-  if (booleanOf(attributes.get("stairs")) === true) barriers.push(t.stairs);
+  if (booleanOf(attributes.get("stairs")) === true) barriers.push(data.stepCounts.length ? t.stairsSteps(data.stepCounts) : t.stairs);
   const kerb = numberOf(attributes.get("kerb_height_cm"));
   const incline = numberOf(attributes.get("incline_pct"));
   const surface = textOf(attributes.get("surface"));
@@ -221,8 +221,14 @@ export function buildRoute(input: BuildRouteInput): Route {
 
   const segments: RouteSegment[] = steps.map((step, index) => {
     const id = index + 1;
-    const data = providerFacts(route, id, step.from, step.to, fetchedAt);
-    const facts = [...data.facts, ...(nearbyBySegment.get(index) ?? [])];
+    const provided = providerFacts(route, id, step.from, step.to, fetchedAt);
+    const hasStairs = provided.facts.some((f) => f.attribute === "stairs" && f.value.kind === "boolean" && f.value.boolean);
+    // A mapped flight of steps only says how many steps there are where the provider routes over stairs: its
+    // centre being near the line does not put it on the route.
+    const near = (nearbyBySegment.get(index) ?? []).filter((f) => f.attribute !== "step_count" || hasStairs);
+    const stepCounts = [...new Set(near.flatMap((f) => (f.attribute === "step_count" && f.value.kind === "number" ? [f.value.number] : [])))];
+    const data = { ...provided, stepCounts };
+    const facts = [...data.facts, ...near];
     const attributes = new Map(
       [...new Set(facts.map((f) => f.attribute))].map((attribute) => [attribute, resolveAttribute(attribute, facts, now)]),
     );
