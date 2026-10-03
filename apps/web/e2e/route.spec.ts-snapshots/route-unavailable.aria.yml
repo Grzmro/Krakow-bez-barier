@@ -1,16 +1,4 @@
 - main:
-  - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
-  - paragraph:
-    - link "OpenFreeMap":
-      - /url: https://openfreemap.org
-    - text: ·
-    - link "© OpenMapTiles":
-      - /url: https://www.openmaptiles.org/
-    - text: ·
-    - link "© OpenStreetMap contributors":
-      - /url: https://www.openstreetmap.org/copyright
-  - button "Przybliż"
-  - button "Oddal"
   - link "Wstecz":
     - /url: /miejsca/kawiarnia-przyklad
     - img
@@ -56,3 +44,15 @@
     - button "Ruszamy" [disabled]:
       - img
       - text: ""
+  - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
+  - paragraph:
+    - link "OpenFreeMap":
+      - /url: https://openfreemap.org
+    - text: ·
+    - link "© OpenMapTiles":
+      - /url: https://www.openmaptiles.org/
+    - text: ·
+    - link "© OpenStreetMap contributors":
+      - /url: https://www.openstreetmap.org/copyright
+  - button "Przybliż"
+  - button "Oddal"

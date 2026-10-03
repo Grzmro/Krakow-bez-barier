@@ -10,7 +10,6 @@
     - button "Unikaj schodów" [pressed]
     - button "Najkrótsza"
   - region "Odcinki trasy":
-    - button "Rozwiń arkusz"
     - group "Odcinki trasy":
       - 'heading /Trasa: \d+ minut, \d+,\d+ km/ [level=1]'
       - group "Profil potrzeb":

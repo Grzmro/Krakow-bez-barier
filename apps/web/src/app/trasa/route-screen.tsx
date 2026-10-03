@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type Ref, type RefObject } from "react";
 import Link from "next/link";
 import { ArrowsDownUp, CaretDown, CaretLeft, CaretRight, CloudSlash, NavigationArrow, Train, WarningCircle } from "@phosphor-icons/react";
 import type { AccessibilityFact, Place, Route, RouteSegment } from "@krakow-bez-barier/contracts";
@@ -17,10 +17,16 @@ import { usePlace } from "@/lib/places";
 import type { ProfileSettings } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { routes } from "@/lib/routes";
+import { scrollIntoViewWithin } from "@/lib/scroll-within";
+import { useMediaQuery } from "@/lib/use-media-query";
 import { RouteError, routeRequest, useRoute, type RouteKind } from "@/lib/use-route";
 
 const KINDS: RouteKind[] = ["avoid_stairs", "shortest"];
+// Mobile: the route card floats over the map and the sheet covers its lower half. Desktop: the map has the right column to itself.
 const MAP_PADDING = { top: 190, bottom: 80 };
+// Bottom: the attribution and zoom buttons sit there, and the destination dot must stay clear of them.
+const MAP_PADDING_DESKTOP = { top: 48, bottom: 96 };
+const DESKTOP = "(min-width: 64rem)";
 
 // Entrance facts from the destination's card: what the route ends at.
 const ENTRANCE = new Set(["step_count", "threshold_cm", "door_width_cm", "ramp"]);
@@ -94,6 +100,9 @@ export function RouteScreen({ to }: { to?: string }) {
   const [swapped, setSwapped] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const [goNote, setGoNote] = useState(false);
+  const desktop = useMediaQuery(DESKTOP);
+  const stepRefs = useRef(new Map<number, HTMLButtonElement>());
 
   const place = usePlace(to ?? "", {}, { enabled: Boolean(to) });
   const placeEnd = place.data?.location.coordinates as [number, number] | undefined;
@@ -116,31 +125,51 @@ export function RouteScreen({ to }: { to?: string }) {
     if (current.error) announce(routeErrorText(t, current.error));
   }, [announce, current.error, t]);
 
+  useEffect(() => {
+    if (!goNote) return;
+    const id = setTimeout(() => setGoNote(false), 4000);
+    return () => clearTimeout(id);
+  }, [goNote]);
+
   const switchKind = (next: RouteKind) => {
     setKind(next);
     setSelected(null);
+  };
+
+  // A segment picked on the map opens its step in the list and moves focus there, so the list stays the way back.
+  const selectFromMap = (id: number | null) => {
+    setSelected(id);
+    const step = id === null ? undefined : stepRefs.current.get(id);
+    if (!step) return;
+    scrollIntoViewWithin(step);
+    step.focus({ preventScroll: true });
+  };
+
+  const go = () => {
+    // On desktop a bottom-centred toast would sit on the map's attribution links; the note stays next to the button.
+    if (desktop) {
+      setGoNote(true);
+      announce(t.goSoon);
+    } else toast(t.goSoon, { duration: 3000 });
   };
 
   return (
     <main
       id="main"
       tabIndex={-1}
-      className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[640px] flex-1 overflow-hidden outline-none"
+      data-desktop-fill
+      className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[640px] flex-1 overflow-hidden outline-none lg:mb-0 lg:grid lg:min-h-0 lg:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)]"
     >
-      <div className="absolute inset-x-0 top-0 bottom-[calc(55%-24px)]">
-        <RouteMap route={route} selected={selected} onSelect={setSelected} padding={MAP_PADDING} />
-      </div>
-
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 px-4 pt-3">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 px-4 pt-3 lg:pointer-events-auto lg:static lg:col-start-1 lg:row-start-1 lg:max-h-[45dvh] lg:overflow-y-auto lg:border-r lg:border-border lg:bg-card lg:pt-4">
         <div className="mx-auto flex max-w-xl items-start gap-2 *:pointer-events-auto">
           <Link
             href={to ? routes.place(to) : routes.home}
             aria-label={t.back}
-            className={cn(buttonVariants({ variant: "outline", size: "icon" }), "mt-1 shrink-0 border-0 shadow-float")}
+            className={cn(buttonVariants({ variant: "outline", size: "icon" }), "mt-1 shrink-0 border-0 shadow-float lg:border lg:shadow-none")}
           >
             <CaretLeft weight="bold" />
           </Link>
-          <div className="relative min-w-0 flex-1 rounded-[20px] bg-card p-1 shadow-float">
+          <div className="relative min-w-0 flex-1 rounded-[20px] bg-card p-1 shadow-float lg:shadow-none lg:ring-1 lg:ring-border">
             <p className="flex h-12 items-center gap-3 px-3">
               <span className="grid size-7 shrink-0 place-items-center rounded-full bg-ink text-ink-foreground">
                 <Train weight="bold" className="size-4" aria-hidden />
@@ -174,7 +203,7 @@ export function RouteScreen({ to }: { to?: string }) {
           aria-label={t.kind}
           value={[kind]}
           onValueChange={(value) => value[0] && switchKind(value[0] as RouteKind)}
-          className="mx-auto mt-3 max-w-xl pl-14"
+          className="mx-auto mt-3 max-w-xl pl-14 lg:pb-1"
         >
           {KINDS.map((k) => (
             <Toggle key={k} value={k} className="pointer-events-auto shadow-soft">
@@ -189,17 +218,19 @@ export function RouteScreen({ to }: { to?: string }) {
         expanded={expanded}
         onExpandedChange={setExpanded}
         collapsedHeight="55%"
-        className="mx-auto max-w-xl pb-[env(safe-area-inset-bottom)]"
+        headerClassName="lg:hidden"
+        className="mx-auto max-w-xl pb-[env(safe-area-inset-bottom)] lg:static lg:col-start-1 lg:row-start-2 lg:mx-0 lg:h-auto! lg:max-w-none lg:rounded-none lg:border-r lg:border-border lg:pb-0 lg:shadow-none"
         footer={
           <div className="shrink-0 border-t border-border bg-card/95 px-4 pt-3 pb-4 backdrop-blur">
-            <Button size="lg" className="w-full" disabled={!route} onClick={() => toast(t.goSoon, { duration: 3000 })}>
+            {goNote ? <p className="mb-2 text-center text-body-sm text-muted-foreground">{t.goSoon}</p> : null}
+            <Button size="lg" className="w-full" disabled={!route} onClick={go}>
               <NavigationArrow weight="fill" />
               {t.go}
             </Button>
           </div>
         }
       >
-        <div className="px-4 pt-1 pb-6">
+        <div className="px-4 pt-1 pb-6 lg:pt-4">
           <h1 className="font-display">
             {route ? (
               <>
@@ -242,6 +273,7 @@ export function RouteScreen({ to }: { to?: string }) {
               other={other.data}
               selected={selected}
               onSelect={setSelected}
+              stepRefs={stepRefs}
               onSwitch={() => switchKind(kind === "avoid_stairs" ? "shortest" : "avoid_stairs")}
               noProfile={!profile}
               limits={limits}
@@ -250,6 +282,10 @@ export function RouteScreen({ to }: { to?: string }) {
           {to && place.data ? <Destination place={place.data} /> : null}
         </div>
       </BottomPanel>
+
+      <div className="absolute inset-x-0 top-0 bottom-[calc(55%-24px)] lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0">
+        <RouteMap route={route} selected={selected} onSelect={selectFromMap} padding={desktop ? MAP_PADDING_DESKTOP : MAP_PADDING} />
+      </div>
     </main>
   );
 }
@@ -259,6 +295,7 @@ function RouteDetails({
   other,
   selected,
   onSelect,
+  stepRefs,
   onSwitch,
   noProfile,
   limits,
@@ -267,6 +304,7 @@ function RouteDetails({
   other: Route | undefined;
   selected: number | null;
   onSelect: (id: number | null) => void;
+  stepRefs: RefObject<Map<number, HTMLButtonElement>>;
   onSwitch: () => void;
   noProfile: boolean;
   limits: string;
@@ -362,6 +400,10 @@ function RouteDetails({
             index={index}
             total={total}
             open={selected === segment.id}
+            ref={(node) => {
+              if (node) stepRefs.current.set(segment.id, node);
+              else stepRefs.current.delete(segment.id);
+            }}
             onToggle={() => onSelect(selected === segment.id ? null : segment.id)}
           />
         ))}
@@ -386,12 +428,14 @@ function SegmentItem({
   total,
   open,
   onToggle,
+  ref,
 }: {
   segment: RouteSegment;
   index: number;
   total: number;
   open: boolean;
   onToggle: () => void;
+  ref: Ref<HTMLButtonElement>;
 }) {
   const m = useMessages();
   const t = m.route;
@@ -415,6 +459,7 @@ function SegmentItem({
       </div>
       <div className="min-w-0 flex-1 pb-2">
         <button
+          ref={ref}
           type="button"
           aria-expanded={open}
           aria-controls={detailsId}
