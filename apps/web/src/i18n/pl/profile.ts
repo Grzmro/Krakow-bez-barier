@@ -82,9 +82,10 @@ export const profile = {
   },
   list: {
     details: "Dlaczego?",
-    detailsAria: (place: string) => `Dlaczego? ${place}`,
-    hideDetails: "Ukryj szczegóły",
-    hideDetailsAria: (place: string) => `Ukryj szczegóły: ${place}`,
+    detailsAria: (place: string, state: "met" | "barrier" | "unknown" | "conflict") =>
+      `Dlaczego ${place} ${{ met: "spełnia", barrier: "nie spełnia", unknown: "ma brak danych", conflict: "ma sprzeczne dane" }[state]}?`,
+    hideDetails: "Ukryj",
+    hideDetailsAria: (place: string) => `Ukryj uzasadnienie: ${place}`,
     showAll: "Pokaż wszystkie wyniki",
     filteredEmpty: "Żadne miejsce nie pasuje do wybranego wyniku",
     filteredEmptyHint: "Wyniki ukrywa filtr wyniku profilu.",
