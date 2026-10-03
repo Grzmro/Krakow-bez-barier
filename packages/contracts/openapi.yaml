@@ -929,6 +929,8 @@ paths:
                       fetchedAt: null
                     attribution: © OpenStreetMap contributors
                     isSample: true
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '429':

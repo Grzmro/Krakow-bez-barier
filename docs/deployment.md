@@ -13,6 +13,7 @@ Answers the jury's questions on dependencies, licences, portability and scaling 
 | Ingestion | GitHub Actions cron | No | Any scheduler running `npm run ingest -- --source <id> --city <city>` |
 | Routing | openrouteservice (`ORS_API_KEY`) | No | Another implementation of `RoutingProvider` or self-hosted ORS |
 | Base map tiles | OpenFreeMap | No | Any MapLibre-compatible vector tile source, set in config |
+| API reference (/api/docs) | Scalar script from jsDelivr (pinned version + SRI) | No | Vendor the script into `public/` and change `src/app/api/docs/route.ts`; the spec is served by the app at `/api/openapi.json` |
 | Overpass | Public Overpass instance | No | Another instance or a local extract, set in the city config |
 | Accessibility data | OSM, MSIP | See data-sources | Add adapters |
 
