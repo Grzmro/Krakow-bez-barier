@@ -96,7 +96,6 @@ export async function runIngest(options: RunOptions): Promise<RunSummary> {
     const fetched = await fetchWithRetry();
     const raw = Array.isArray(fetched) ? fetched : fetched.records;
     const note = Array.isArray(fetched) ? null : fetched.note;
-    if (note) log(note);
     if (!Array.isArray(raw) || raw.length === 0) return await fail("Source returned no records");
 
     let written = 0;

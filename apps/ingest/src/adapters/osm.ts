@@ -46,6 +46,17 @@ function fetchOverpass(endpoint: string, { city, userAgent }: FetchContext): Pro
   });
 }
 
+/** One error for both failures, retryable only when the extract's own error is (see `isRetryable`). */
+function bothFailed(overpassError: unknown, extractError: unknown): Error {
+  const text = `Overpass failed: ${message(overpassError)}; extract failed: ${message(extractError)}`;
+  if (extractError instanceof SourceHttpError) {
+    return new SourceHttpError(text, extractError.status, extractError.retryAfterMs);
+  }
+  const error = new Error(text);
+  if (extractError instanceof Error) error.name = extractError.name;
+  return error;
+}
+
 /** Run note and record-ref tag for data read from a Geofabrik extract, e.g. "OSM (Geofabrik, ekstrakt z 2026-10-02)". */
 export function extractProvenance(extractedAt: Date | null): { note: string; via: string } {
   const day = extractedAt ? extractedAt.toISOString().slice(0, 10) : null;
@@ -89,7 +100,7 @@ export const osm: SourceAdapter<OsmElement> = {
       try {
         return await fetchExtract(extractUrl, ctx);
       } catch (extractError) {
-        throw new Error(`Overpass failed: ${message(overpassError)}; extract failed: ${message(extractError)}`);
+        throw bothFailed(overpassError, extractError);
       }
     }
   },

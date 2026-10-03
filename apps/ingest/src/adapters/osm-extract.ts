@@ -39,6 +39,8 @@ export type OsmExtract = {
 const NODE_MARGIN_DEG = 0.02;
 const REVALIDATE_AFTER_MS = 24 * 60 * 60 * 1000;
 const DOWNLOAD_TIMEOUT_MS = 10 * 60 * 1000;
+/** A cached copy older than this is not used when Geofabrik cannot be reached: it would roll facts back. */
+const MAX_STALE_MS = 7 * 24 * 60 * 60 * 1000;
 
 const matchesAny = (tags: Record<string, string> | undefined, categories: readonly CategoryConfig[]) =>
   !!tags &&
@@ -149,7 +151,7 @@ const exists = (file: string) =>
 
 /**
  * Downloads the extract to `dir`, reusing a copy checked within a day and revalidating an older
- * one with If-Modified-Since. When the download fails, an existing copy is used as it is.
+ * one with If-Modified-Since. When the download fails, a copy up to a week old is used as it is.
  */
 export async function downloadExtract(
   url: string,
@@ -183,15 +185,21 @@ export async function downloadExtract(
       throw new SourceHttpError(`Extract download responded ${response.status} ${response.statusText}`, response.status);
     }
     await mkdir(dir, { recursive: true });
-    const partial = `${file}.part`;
-    await pipeline(Readable.fromWeb(response.body as never), createWriteStream(partial));
-    await rename(partial, file);
+    const partial = `${file}.${process.pid}.part`;
+    try {
+      await pipeline(Readable.fromWeb(response.body as never), createWriteStream(partial));
+      await rename(partial, file);
+    } catch (e) {
+      await rm(partial, { force: true });
+      throw e;
+    }
     const fresh: DownloadMeta = { url, lastModified: response.headers.get("Last-Modified"), checkedAt: Date.now() };
     await writeFile(metaFile, JSON.stringify(fresh));
     log(`downloaded ${url}`);
     return result(fresh);
   } catch (e) {
-    if (!cached) throw e;
+    const age = cached ? Date.now() - (cached.lastModified ? Date.parse(cached.lastModified) : cached.checkedAt) : Infinity;
+    if (!cached || !(age < MAX_STALE_MS)) throw e;
     log(`extract revalidation failed (${e instanceof Error ? e.message : String(e)}), using the cached copy`);
     return result(cached);
   }
@@ -210,8 +218,15 @@ export async function loadOsmExtract(
   const dir = cacheDir ?? (await mkdtemp(path.join(tmpdir(), "kbb-osm-extract-")));
   try {
     const { file, lastModified } = await downloadExtract(url, dir, ctx.userAgent, ctx.log);
-    const { elements, replicatedAt } = await readOsmExtract(file, ctx.city.bbox, categories);
-    return { elements, extractedAt: replicatedAt ?? lastModified };
+    try {
+      const { elements, replicatedAt } = await readOsmExtract(file, ctx.city.bbox, categories);
+      return { elements, extractedAt: replicatedAt ?? lastModified };
+    } catch (e) {
+      // A broken copy would otherwise be revalidated (304) and fail on every run.
+      await rm(file, { force: true });
+      await rm(`${file}.meta.json`, { force: true });
+      throw e;
+    }
   } finally {
     if (!cacheDir) await rm(dir, { recursive: true, force: true });
   }

@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { categories } from "@krakow-bez-barier/contracts";
@@ -6,7 +6,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FetchedRecords } from "../src/adapter";
 import { krakow } from "../src/cities/krakow";
 import { osm } from "../src/adapters/osm";
-import { downloadExtract, readOsmExtract } from "../src/adapters/osm-extract";
+import { downloadExtract, loadOsmExtract, readOsmExtract } from "../src/adapters/osm-extract";
+import { isRetryable } from "../src/errors";
 import { mapOsmElement, type OsmElement } from "../src/adapters/osm-map";
 import { writeOsmPbf } from "./helpers/write-osm-pbf";
 
@@ -139,6 +140,23 @@ describe("osm adapter fallback", () => {
       "Overpass failed: fetch failed; extract failed: fetch failed",
     );
   });
+
+  it("keeps the extract error's retryability: a missing extract is not retried, a network error is", async () => {
+    // GIVEN Overpass unreachable and Geofabrik answering 404
+    vi.stubEnv("INGEST_CACHE_DIR", dir);
+    vi.stubEnv("OVERPASS_URL", "https://overpass.invalid/api/interpreter");
+    vi.stubGlobal("fetch", async (input: string | URL) => {
+      if (String(input) !== extractUrl) throw new TypeError("fetch failed");
+      return new Response("not found", { status: 404, statusText: "Not Found" });
+    });
+    // WHEN fetching
+    const notFound = await osm.fetch({ city: krakow, userAgent: "test" }).catch((e: unknown) => e);
+    // THEN the combined error is final, while a network failure of both stays worth another attempt
+    expect(isRetryable(notFound)).toBe(false);
+    stubNetwork({ extract: "down" });
+    const offline = await osm.fetch({ city: krakow, userAgent: "test" }).catch((e: unknown) => e);
+    expect(isRetryable(offline)).toBe(true);
+  });
 });
 
 describe("downloadExtract", () => {
@@ -175,5 +193,63 @@ describe("downloadExtract", () => {
     expect(result.file).toBe(file);
     const saved = JSON.parse(await readFile(`${file}.meta.json`, "utf8"));
     expect(Date.now() - saved.checkedAt).toBeLessThan(60_000);
+  });
+
+  it("replaces an old copy when Geofabrik has a newer one", async () => {
+    // GIVEN a stale cached copy and a server with a newer extract
+    const file = path.join(dir, "malopolskie-latest.osm.pbf");
+    await writeFile(file, "old");
+    const meta = { url: extractUrl, lastModified: "Thu, 01 Oct 2026 21:00:00 GMT", checkedAt: Date.now() - 2 * 86_400_000 };
+    await writeFile(`${file}.meta.json`, JSON.stringify(meta));
+    stubNetwork({ extract: "ok" });
+    // WHEN revalidating it
+    const result = await downloadExtract(extractUrl, dir, "test");
+    // THEN the new file and its date replace the old ones, with no partial file left
+    expect(result.lastModified).toEqual(new Date("2026-10-02T21:00:00Z"));
+    expect(await readFile(file)).toEqual(fixturePbf());
+    expect((await readdir(dir)).sort()).toEqual(["malopolskie-latest.osm.pbf", "malopolskie-latest.osm.pbf.meta.json"]);
+  });
+
+  it("removes the partial file when the download breaks off", async () => {
+    // GIVEN a server whose response body fails half-way
+    vi.stubGlobal("fetch", async () => {
+      const body = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new Uint8Array([1, 2, 3]));
+          controller.error(new Error("connection reset"));
+        },
+      });
+      return new Response(body, { status: 200 });
+    });
+    // WHEN downloading
+    // THEN it fails and leaves nothing behind
+    await expect(downloadExtract(extractUrl, dir, "test")).rejects.toThrow("connection reset");
+    expect(await readdir(dir)).toEqual([]);
+  });
+
+  it("refuses a cached copy older than a week when Geofabrik cannot be reached", async () => {
+    // GIVEN a copy from ten days ago and no network
+    const file = path.join(dir, "malopolskie-latest.osm.pbf");
+    await writeFile(file, fixturePbf());
+    const tenDaysAgo = new Date(Date.now() - 10 * 86_400_000).toUTCString();
+    await writeFile(`${file}.meta.json`, JSON.stringify({ url: extractUrl, lastModified: tenDaysAgo, checkedAt: Date.now() - 2 * 86_400_000 }));
+    stubNetwork({ extract: "down" });
+    // WHEN revalidating it
+    // THEN the download error is reported instead of rolling data back
+    await expect(downloadExtract(extractUrl, dir, "test")).rejects.toThrow("fetch failed");
+  });
+});
+
+describe("loadOsmExtract", () => {
+  it("drops a cached copy that cannot be read, so the next run downloads it again", async () => {
+    // GIVEN a broken file in the cache, checked today
+    vi.stubEnv("INGEST_CACHE_DIR", dir);
+    const file = path.join(dir, "malopolskie-latest.osm.pbf");
+    await writeFile(file, "not a pbf file at all");
+    await writeFile(`${file}.meta.json`, JSON.stringify({ url: extractUrl, lastModified: null, checkedAt: Date.now() }));
+    // WHEN loading the extract
+    // THEN reading fails and the copy and its metadata are gone
+    await expect(loadOsmExtract(extractUrl, { city: krakow, userAgent: "test" }, categories)).rejects.toThrow();
+    expect(await readdir(dir)).toEqual([]);
   });
 });
