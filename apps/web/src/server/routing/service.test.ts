@@ -79,6 +79,15 @@ describe("createRoute — Dworzec Główny → Rynek Główny (recorded openrout
     expect(route.segments.find((s) => s.name === "Floriańska")).toMatchObject({ state: "unknown", note: "brak danych o nawierzchni" });
   });
 
+  it("senior profile: the recorded demo route answers within the senior preset's kerb and incline limits", async () => {
+    // GIVEN the senior profile with its preset thresholds
+    // WHEN the avoid-stairs route is requested
+    const route = await createRoute(request({ avoidStairs: true, profile: "senior" }), { provider: recorded, now });
+
+    // THEN a wheelchair-graph route comes back without a fallback and without known barriers
+    expect(route).toMatchObject({ kind: "avoid_stairs", fallback: false, knownBarrierCount: 0 });
+  });
+
   it("in English: turn instructions and segment notes come in the requested language", async () => {
     // GIVEN the wheelchair profile and an English UI
     // WHEN the avoid-stairs route is requested in English

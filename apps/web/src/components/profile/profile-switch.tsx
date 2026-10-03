@@ -1,7 +1,7 @@
 "use client";
 
 import { useId } from "react";
-import { BabyCarriage, PersonSimpleWalk, Wheelchair, type Icon } from "@phosphor-icons/react";
+import { Armchair, BabyCarriage, PersonSimpleWalk, Wheelchair, type Icon } from "@phosphor-icons/react";
 import type { Profile } from "@krakow-bez-barier/contracts";
 import { cn } from "@/lib/utils";
 import { useMessages } from "@/i18n/client";
@@ -9,7 +9,7 @@ import { PROFILES } from "@/lib/profile/thresholds";
 
 type Option = Profile | "off";
 
-const ICON: Record<Option, Icon> = { off: PersonSimpleWalk, wheelchair: Wheelchair, stroller: BabyCarriage };
+const ICON: Record<Option, Icon> = { off: PersonSimpleWalk, wheelchair: Wheelchair, stroller: BabyCarriage, senior: Armchair };
 
 /** One-tap profile choice as a segmented radio group: arrow keys move, the app never requires a profile. */
 export function ProfileSwitch({
@@ -32,9 +32,15 @@ export function ProfileSwitch({
   const current: Option = value ?? "off";
   const options: Option[] = allowOff ? ["off", ...PROFILES] : [...PROFILES];
   return (
-    <fieldset className={cn("min-w-0", className)}>
+    <fieldset className={cn("@container min-w-0", className)}>
       <legend className="sr-only">{t.switch.label}</legend>
-      <div className="flex w-full rounded-full bg-muted p-1 ring-1 ring-border">
+      <div
+        className={cn(
+          "w-full bg-muted p-1 ring-1 ring-border",
+          // Four segments don't fit one row on a 360 px phone: two rows until the switch is wide enough.
+          options.length > 3 ? "grid grid-cols-2 gap-1 rounded-3xl @md:flex @md:gap-0 @md:rounded-full" : "flex rounded-full",
+        )}
+      >
         {options.map((option) => {
           const I = ICON[option];
           const checked = current === option;

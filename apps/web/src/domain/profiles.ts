@@ -27,7 +27,7 @@ export type ThresholdFlag = (typeof THRESHOLD_FLAGS)[number];
 export type Thresholds = Required<Pick<GetPlaceQuery, "maxThresholdCm" | "minDoorWidthCm" | ThresholdFlag>>;
 
 /**
- * Presets proposed in docs/requirements.md (US-2.1, US-2.2); users can change every value. A new profile
+ * Presets proposed in docs/requirements.md (US-2.1, US-2.2, US-2.8); users can change every value. A new profile
  * needs no matcher change: an entry here (which also makes it selectable), its `Profile` value in the spec,
  * and its `profileName` / `switch.short` labels in `i18n/pl/profile.ts` and `i18n/en/profile.ts` — the compiler
  * flags each one missing.
@@ -53,6 +53,16 @@ export const PROFILE_PRESETS: Record<Profile, Thresholds> = {
     requireSmoothSurface: false,
     requireChangingTable: true,
     requireBench: false,
+  },
+  senior: {
+    maxThresholdCm: 3,
+    minDoorWidthCm: 70,
+    requireStepFree: true,
+    requireLift: true,
+    requireAccessibleToilet: false,
+    requireSmoothSurface: false,
+    requireChangingTable: false,
+    requireBench: true,
   },
 };
 

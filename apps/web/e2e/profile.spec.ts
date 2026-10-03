@@ -165,6 +165,48 @@ test("a facility need switched on in the thresholds drawer joins the verdict", a
   await expect(row(page, "Hotel Przykład")).toContainText("Brak danych · ławka");
 });
 
+test("the senior profile is one tap away on a 360 px phone and judges places by its bench and lift needs", async ({
+  page,
+  expectAccessible,
+  evidence,
+}) => {
+  // GIVEN the home screen on a small 360 px phone
+  await page.setViewportSize({ width: 360, height: 640 });
+  await page.goto("/");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("9 miejsc");
+
+  // THEN every profile segment fits the switch with its label in full
+  const profiles = page.getByRole("group", { name: "Profil potrzeb" });
+  const labels = profiles.locator("label");
+  await expect(labels).toHaveCount(4);
+  for (const label of await labels.all()) {
+    const text = label.locator("span");
+    expect(await text.evaluate((el) => el.scrollWidth <= el.clientWidth)).toBe(true);
+  }
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(360);
+
+  // WHEN the visitor picks the senior profile
+  await page.getByRole("radio", { name: "Senior" }).check();
+
+  // THEN the hotel, without bench data, can't be judged yet, and the profile is announced
+  await expect(row(page, "Hotel Przykład")).toContainText("Brak danych · ławka");
+  await expect(liveRegion(page)).toContainText("Profil: senior.");
+
+  // AND the thresholds drawer opens on the senior preset: no steps, a lift and a bench, no toilet
+  await page.getByRole("button", { name: "Progi profilu" }).click();
+  const drawer = page.getByRole("dialog", { name: "Progi profilu" });
+  await expect(drawer.getByRole("switch", { name: "Bez stopni" })).toBeChecked();
+  await expect(drawer.getByRole("switch", { name: "Winda przy piętrach" })).toBeChecked();
+  await expect(drawer.getByRole("switch", { name: "Ławka lub miejsce odpoczynku" })).toBeChecked();
+  await expect(drawer.getByRole("switch", { name: "Toaleta dostosowana" })).not.toBeChecked();
+  await drawer.getByRole("button", { name: "Gotowe" }).click();
+
+  await expect(page.locator("main")).not.toContainText(/niepełnospraw|diagnoz|choroba/i);
+  await expect(profiles).toMatchAriaSnapshot({ name: "profile-senior.aria.yml" });
+  await expectAccessible();
+  await evidence("home-profile-senior");
+});
+
 test("no-data and conflicting places never meet a profile; turning it off returns the neutral view", async ({ page }) => {
   // GIVEN the stroller profile
   await page.goto("/");

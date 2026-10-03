@@ -41,10 +41,10 @@ describe("profile presets", () => {
   it("keep their verdicts over every facility-data combination", () => {
     // GIVEN the spec's example places and every combination of facility data
     const places = [...examples, ...combinations()];
-    // WHEN each is matched against the wheelchair and stroller presets
+    // WHEN each is matched against every preset
     const verdicts = Object.fromEntries(
       places.flatMap(([key, place]) =>
-        (["wheelchair", "stroller"] as const).map((profile) => {
+        (["wheelchair", "stroller", "senior"] as const).map((profile) => {
           const { state, unconfirmed, reasons, blockers, unknowns, needs } = matchProfile(place, PROFILE_PRESETS[profile], "pl");
           const perNeed = needs?.map((n) => `${n.need}:${n.attribute}:${n.state}${n.unconfirmed ? "?" : ""}`).join(",");
           return [`${profile} ${key}`, `${state}${unconfirmed ? "?" : ""} | ${reasons.join(";")} | ${blockers?.join(",")} | ${unknowns?.join(",")} | ${perNeed}`];

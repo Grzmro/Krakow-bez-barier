@@ -7,7 +7,7 @@ function plural(n: number, one: string, few: string, many: string) {
   return d >= 2 && d <= 4 && (t < 12 || t > 14) ? few : many;
 }
 
-const profileName = { wheelchair: "wózek", stroller: "wózek dziecięcy" } satisfies Record<Profile, string>;
+const profileName = { wheelchair: "wózek", stroller: "wózek dziecięcy", senior: "senior" } satisfies Record<Profile, string>;
 
 const km = (meters: number) => `${(meters / 1000).toFixed(1).replace(".", ",")} km`;
 

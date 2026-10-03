@@ -337,18 +337,9 @@ describe("matchProfile with facts through the resolver", () => {
   });
 });
 
-describe("a profile added only as configuration", () => {
+describe("the senior preset, a profile added only as configuration", () => {
   // US-2.8: no steps, a lift and somewhere to rest — no matcher change, just thresholds.
-  const senior: Thresholds = {
-    maxThresholdCm: 3,
-    minDoorWidthCm: 70,
-    requireStepFree: true,
-    requireLift: true,
-    requireAccessibleToilet: false,
-    requireSmoothSurface: false,
-    requireChangingTable: false,
-    requireBench: true,
-  };
+  const senior = PROFILE_PRESETS.senior;
   const restful = (bench: AccessibilityFact[]) => [
     fact("step_count", numFact(0, "count"), confirmed),
     fact("threshold_cm", numFact(2), confirmed),
@@ -360,7 +351,7 @@ describe("a profile added only as configuration", () => {
   it("is met with a step-free entrance, a lift and a bench, and lists the bench as a need", () => {
     // GIVEN a place with a step-free entrance, a lift and a confirmed bench, but no accessible toilet
     const facts = [...restful([fact("bench", boolFact(true), confirmed)]), fact("toilet_accessible", boolFact(false), confirmed)];
-    // WHEN matched against the senior thresholds
+    // WHEN matched against the senior preset
     const verdict = match(senior, facts);
     // THEN it is met, and the needs are the entrance, the door, the lift and the bench only
     expect(verdict).toMatchObject({ state: "met", unconfirmed: false, reasons: [] });
@@ -371,7 +362,7 @@ describe("a profile added only as configuration", () => {
     // GIVEN the same place once with no bench and once without any bench data
     const noBench = restful([fact("bench", boolFact(false), confirmed)]);
     const noData = restful([]);
-    // WHEN matched against the senior thresholds
+    // WHEN matched against the senior preset
     // THEN a missing bench blocks with its reason, missing data is unknown, never met
     expect(match(senior, noBench)).toMatchObject({ state: "barrier", blockers: ["bench"], reasons: ["ławka: brak"] });
     expect(match(senior, noData)).toMatchObject({ state: "unknown", unknowns: ["bench"], reasons: ["ławka"] });
@@ -386,7 +377,7 @@ describe("a profile added only as configuration", () => {
       fact("lift", boolFact(true), confirmed),
       fact("bench", boolFact(true), confirmed),
     ];
-    // WHEN matched against the senior thresholds
+    // WHEN matched against the senior preset
     // THEN the steps block the entrance
     expect(match(senior, facts)).toMatchObject({ state: "barrier", blockers: ["step_count"], reasons: ["2 stopnie"] });
   });

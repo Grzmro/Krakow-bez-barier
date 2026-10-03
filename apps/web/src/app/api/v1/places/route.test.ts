@@ -181,6 +181,18 @@ describe("GET /api/v1/places", () => {
     expect(body.items[0].verdict.needs.map((n: { need: string }) => n.need)).toEqual(["entrance", "door", "lift", "toilet", "bench"]);
   });
 
+  it("judges the senior profile by its preset: a bench and a lift instead of a toilet", async () => {
+    // GIVEN the hotel has a step-free entrance and a lift on confirmed data, but no bench data
+    // WHEN listing with the senior profile, then without its bench need
+    const preset = await list("?q=hotel&profile=senior");
+    const noBench = await list("?q=hotel&profile=senior&requireBench=false");
+
+    // THEN the bench is a need the hotel can't answer, and dropping it leaves a confirmed match
+    expect(preset.body.items[0].verdict).toMatchObject({ state: "unknown", unknowns: ["bench"], reasons: ["ławka"] });
+    expect(preset.body.items[0].verdict.needs.map((n: { need: string }) => n.need)).toEqual(["entrance", "door", "lift", "bench"]);
+    expect(noBench.body.items[0].verdict).toMatchObject({ state: "met", unconfirmed: false });
+  });
+
   it("never gives the conflicting or the empty place a met verdict", async () => {
     // GIVEN the palace's toilet data conflicts and the café has none
     // WHEN listing with either profile
