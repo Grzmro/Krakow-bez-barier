@@ -32,6 +32,7 @@ export const home = {
   },
   list: {
     label: "Lista miejsc",
+    stow: { hide: "Schowaj listę", show: "Pokaż listę" },
     results: (n: number) => `${n} ${placesWord(n)}`,
     announce: (n: number) => (n === 0 ? "Nie znaleziono miejsc" : `Znaleziono ${n} ${placesWord(n)}`),
     loading: "Szukam miejsc…",
