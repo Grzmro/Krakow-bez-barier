@@ -21,7 +21,11 @@ describe("transit helpers", () => {
 
   it("never shows an unverified or missing vehicle flag as met", () => {
     // GIVEN / WHEN / THEN
-    expect(VEHICLE_STATUS).toEqual({ accessible: "met", inaccessible: "barrier", unverified: "unknown", no_data: "unknown" });
+    expect(VEHICLE_STATUS).toEqual({ accessible: "met", inaccessible: "barrier", unverified: "unknown",
+      no_data: "unknown",
+      declared: "unknown",
+      conflict: "conflict",
+    });
   });
 
   it.each([

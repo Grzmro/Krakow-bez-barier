@@ -64,6 +64,7 @@ export type TransitDepartures = Schemas["TransitDepartures"];
 export type TransitStop = Schemas["TransitStop"];
 export type TransitDeparture = Schemas["TransitDeparture"];
 export type VehicleAccessibility = Schemas["VehicleAccessibility"];
+export type VehicleEvidence = Schemas["VehicleEvidence"];
 
 /** Base path of the v1 API on the app's own origin. */
 export const API_BASE_PATH = "/api/v1";

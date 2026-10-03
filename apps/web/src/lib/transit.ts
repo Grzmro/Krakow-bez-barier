@@ -11,6 +11,8 @@ export const VEHICLE_STATUS: Record<VehicleAccessibility["state"], Status> = {
   inaccessible: "barrier",
   unverified: "unknown",
   no_data: "unknown",
+  declared: "unknown",
+  conflict: "conflict",
 };
 
 const formats = new Map<string, Intl.DateTimeFormat>();

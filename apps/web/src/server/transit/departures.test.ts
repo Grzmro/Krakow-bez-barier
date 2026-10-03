@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { nearbyDepartures, vehicleAccessibility } from "./departures";
+import { fleetEntriesFor, type FleetEntry } from "./fleet";
 import { ZTP_FEEDS, type FeedData } from "./feed";
 
 const [TRAM, BUS] = ZTP_FEEDS;
@@ -88,7 +89,103 @@ describe("vehicleAccessibility", () => {
     const result = vehicleAccessibility(BUS, undefined, undefined);
 
     // THEN
-    expect(result).toEqual({ state: "no_data", reliability: null, label: null, observedAt: null });
+    expect(result).toEqual({ state: "no_data", reliability: null, label: null, observedAt: null, evidence: [] });
+  });
+});
+
+describe("vehicleAccessibility with fleet types", () => {
+  const source = { name: "Test fleet list", license: "CC0", licenseConfirmed: true };
+  const entry = (lowFloor: boolean, kind: "fleet_type" | "carrier_declaration" = "fleet_type"): FleetEntry => ({
+    feedId: "A",
+    labels: ["1"],
+    model: kind === "fleet_type" ? "Solaris Urbino 12" : "niskopodłogowe od 2019",
+    lowFloor,
+    kind,
+    source,
+  });
+
+  it("agrees: the flag and the fleet type say the same, so the fact has both sources", () => {
+    // GIVEN a bus flagged accessible whose model is low-floor
+    // WHEN it is mapped
+    const result = vehicleAccessibility(BUS, { label: "1", wheelchair: 2 }, NOW, [entry(true)]);
+
+    // THEN it is accessible with two pieces of evidence
+    expect(result.state).toBe("accessible");
+    expect(result.evidence.map((e) => e.kind)).toEqual(["operator_flag", "fleet_type"]);
+  });
+
+  it("conflicts: a flag against the fleet type shows both values and never picks one", () => {
+    // GIVEN a bus flagged inaccessible whose model is low-floor
+    // WHEN it is mapped
+    const result = vehicleAccessibility(BUS, { label: "1", wheelchair: 3 }, NOW, [entry(true)]);
+
+    // THEN it is a conflict carrying both statements
+    expect(result.state).toBe("conflict");
+    expect(result.evidence.map((e) => [e.kind, e.accessible])).toEqual([
+      ["operator_flag", false],
+      ["fleet_type", true],
+    ]);
+  });
+
+  it("does not let a default tram flag conflict with, or confirm, the fleet type", () => {
+    // GIVEN a tram flagged accessible (a default for trams) whose model is high-floor
+    // WHEN it is mapped
+    const result = vehicleAccessibility(TRAM, { label: "1", wheelchair: 2 }, NOW, [{ ...entry(false), feedId: "T" }]);
+
+    // THEN only the fleet type speaks
+    expect(result.state).toBe("inaccessible");
+    expect(result.evidence.map((e) => e.kind)).toEqual(["fleet_type"]);
+  });
+
+  it("is not accessible without a flag or a fleet type", () => {
+    // GIVEN / WHEN a vehicle with no flag and no fleet entry
+    const result = vehicleAccessibility(BUS, { label: "1", wheelchair: 1 }, NOW, []);
+
+    // THEN no data
+    expect(result).toMatchObject({ state: "no_data", evidence: [] });
+  });
+
+  it("keeps a carrier declaration alone as a declaration, ranked below a fleet type", () => {
+    // GIVEN a vehicle with no flag and only the carrier saying it is low-floor
+    // WHEN it is mapped
+    const declared = vehicleAccessibility(BUS, { label: "1" }, NOW, [entry(true, "carrier_declaration")]);
+    const typed = vehicleAccessibility(BUS, { label: "1" }, NOW, [entry(true)]);
+
+    // THEN it is "declared" with lower reliability, not a vehicle check
+    expect(declared).toMatchObject({ state: "declared", reliability: "inferred" });
+    expect(typed).toMatchObject({ state: "accessible", reliability: "extracted" });
+  });
+
+  it("conflicts when the declaration disagrees with the operator's flag", () => {
+    // GIVEN a bus the operator flags inaccessible that the carrier declares low-floor
+    // WHEN it is mapped
+    const result = vehicleAccessibility(BUS, { label: "1", wheelchair: 3 }, NOW, [entry(true, "carrier_declaration")]);
+
+    // THEN both are shown
+    expect(result.state).toBe("conflict");
+    expect(result.evidence).toHaveLength(2);
+  });
+});
+
+describe("fleetEntriesFor", () => {
+  const source = (licenseConfirmed: boolean) => ({ name: "List", license: "?", licenseConfirmed });
+  const fleet: FleetEntry[] = [
+    { feedId: "A", labels: { from: 100, to: 199 }, model: "X", lowFloor: true, kind: "fleet_type", source: source(false) },
+    { feedId: "A", labels: ["7"], model: "Y", lowFloor: true, kind: "fleet_type", source: source(true) },
+  ];
+
+  it("matches by feed and fleet number, in ranges and lists", () => {
+    // GIVEN / WHEN / THEN
+    expect(fleetEntriesFor(fleet, "A", "147", { production: false }).map((e) => e.model)).toEqual(["X"]);
+    expect(fleetEntriesFor(fleet, "A", "7", { production: false }).map((e) => e.model)).toEqual(["Y"]);
+    expect(fleetEntriesFor(fleet, "M", "147", { production: false })).toEqual([]);
+    expect(fleetEntriesFor(fleet, "A", undefined, { production: false })).toEqual([]);
+  });
+
+  it("drops entries of a source with an unconfirmed licence in production", () => {
+    // GIVEN / WHEN / THEN
+    expect(fleetEntriesFor(fleet, "A", "147", { production: true })).toEqual([]);
+    expect(fleetEntriesFor(fleet, "A", "7", { production: true })).toHaveLength(1);
   });
 });
 

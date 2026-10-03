@@ -117,6 +117,9 @@ function DepartureRow({ departure }: { departure: TransitDeparture }) {
   const t = useMessages().transit;
   const locale = useLocale();
   const ModeIcon = departure.mode === "tram" ? Tram : Bus;
+  // A lone operator flag is the badge itself; any other statement, or two of them, is listed with its source.
+  const { evidence } = departure.vehicle;
+  const showEvidence = evidence.length > 1 || evidence.some((e) => e.kind !== "operator_flag");
   const details = [
     `${t.departs} ${formatClock(departure.departureAt, locale)}`,
     departure.platform ? t.platform(departure.platform) : null,
@@ -141,6 +144,15 @@ function DepartureRow({ departure }: { departure: TransitDeparture }) {
         ) : null}
         <p className="text-caption text-muted-foreground tabular-nums">{details.join(" · ")}</p>
         <VehicleBadge state={departure.vehicle.state} className="mt-1.5" />
+        {showEvidence ? (
+          <ul aria-label={t.evidenceTitle} className="mt-1 space-y-0.5 text-caption text-muted-foreground">
+            {departure.vehicle.evidence.map((e) => (
+              <li key={e.kind}>
+                {t.evidenceLine(t.evidenceKind[e.kind], t.evidenceValue(e.accessible), t.evidenceReliability[e.reliability], e.detail)}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     </li>
   );
