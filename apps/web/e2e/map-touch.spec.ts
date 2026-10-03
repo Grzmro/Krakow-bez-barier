@@ -52,12 +52,19 @@ async function view(page: Page) {
 // Waits out MapLibre's ease/inertia so the next gesture is measured from a still map.
 async function settledView(page: Page) {
   let last = await view(page);
-  for (;;) {
-    await page.waitForTimeout(120);
-    const next = await view(page);
-    if (Math.abs(next.x - last.x) < 0.5 && Math.abs(next.y - last.y) < 0.5 && Math.abs(next.gap - last.gap) < 0.5) return next;
-    last = next;
-  }
+  await page.waitForTimeout(120);
+  await expect
+    .poll(
+      async () => {
+        const next = await view(page);
+        const still = Math.abs(next.x - last.x) < 0.5 && Math.abs(next.y - last.y) < 0.5 && Math.abs(next.gap - last.gap) < 0.5;
+        last = next;
+        return still;
+      },
+      { message: "map keeps moving", intervals: [120] },
+    )
+    .toBe(true);
+  return last;
 }
 
 /** Where a finger lands on plain map: below the chips, above the attribution and the panel, left of the zoom buttons. */
@@ -92,7 +99,7 @@ for (const [name, device] of [
     // Every touch step waits for a rendered frame of the software-GL map; ten drags take ~7 s alone.
     test.describe.configure({ timeout: 30_000 });
 
-    test("ten drags anywhere on the visible map each pan it, also after the sheet is toggled", async ({ page }) => {
+    test("ten drags anywhere on the visible map each pan it, also after the sheet is toggled", async ({ page, evidence }) => {
       // GIVEN the home screen with every sample pin
       await openHome(page);
       const touch = await touchscreen(page);
@@ -120,6 +127,7 @@ for (const [name, device] of [
         // THEN the map follows the finger
         expect(Math.hypot(after.x - before.x, after.y - before.y), `drag ${i + 1} from ${from.x},${from.y}`).toBeGreaterThan(30);
       }
+      await evidence(`map-touch-${name.replace(" ", "-").toLowerCase()}`);
     });
 
     test("a two-finger pinch zooms the map in and out", async ({ page }) => {
