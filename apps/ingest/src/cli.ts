@@ -27,11 +27,11 @@ const userAgent =
   process.env.INGEST_USER_AGENT ??
   "krakow-bez-barier-ingest/0.1 (HackYeah 2026; https://github.com/Grzmro/Krakow-bez-barier)";
 
-const positiveInt = (name: string, fallback: number) => {
+const nonNegativeInt = (name: string, fallback: number) => {
   const n = Number(process.env[name]);
   return Number.isInteger(n) && n >= 0 && process.env[name] ? n : fallback;
 };
-const retry = { attempts: Math.max(1, positiveInt("INGEST_FETCH_ATTEMPTS", 3)), baseDelayMs: positiveInt("INGEST_RETRY_BASE_MS", 1000) };
+const retry = { attempts: Math.max(1, nonNegativeInt("INGEST_FETCH_ATTEMPTS", 3)), baseDelayMs: nonNegativeInt("INGEST_RETRY_BASE_MS", 1000) };
 const simulateOutage = (process.env.SIMULATE_SOURCE_OUTAGE ?? "").split(",").map((id) => id.trim()).filter(Boolean);
 
 const { db, close } = createDb();

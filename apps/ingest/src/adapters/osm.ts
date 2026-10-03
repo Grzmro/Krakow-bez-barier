@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { FetchContext, SourceAdapter } from "../adapter";
+import { retryAfterMs, SourceHttpError } from "../errors";
 import { mapOsmElement, type OsmElement } from "./osm-map";
 import { OSM_CATEGORIES } from "./osm-categories";
 
@@ -53,7 +54,13 @@ export const osm: SourceAdapter<OsmElement> = {
       body: new URLSearchParams({ data: buildQuery(city.bbox) }),
       signal: AbortSignal.timeout(150_000),
     });
-    if (!response.ok) throw new Error(`Overpass responded ${response.status} ${response.statusText}`);
+    if (!response.ok) {
+      throw new SourceHttpError(
+        `Overpass responded ${response.status} ${response.statusText}`,
+        response.status,
+        retryAfterMs(response.headers.get("Retry-After")),
+      );
+    }
     const body = (await response.json()) as { elements?: unknown; remark?: string };
     if (!Array.isArray(body.elements)) {
       throw new Error(`Overpass returned no elements${body.remark ? `: ${body.remark}` : ""}`);

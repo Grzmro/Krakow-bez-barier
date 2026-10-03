@@ -94,6 +94,10 @@ describe("simulatedOutageIds", () => {
     // GIVEN the env var with spaces and an empty entry
     // WHEN parsing THEN ids are trimmed
     expect(simulatedOutageIds({ SIMULATE_SOURCE_OUTAGE: " a, b ,," })).toEqual(["a", "b"]);
+    expect(simulatedOutageIds({ SIMULATE_SOURCE_OUTAGE: "a", NODE_ENV: "production" })).toEqual([]);
+    expect(
+      simulatedOutageIds({ SIMULATE_SOURCE_OUTAGE: "a", NODE_ENV: "production", ALLOW_SIMULATED_OUTAGE: "true" }),
+    ).toEqual(["a"]);
     expect(simulatedOutageIds({})).toEqual([]);
   });
 });

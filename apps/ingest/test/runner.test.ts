@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { MappedPlace, SourceAdapter, SourceMeta } from "../src/adapter";
 import { krakow } from "../src/cities/krakow";
+import { SourceHttpError } from "../src/errors";
 import { runIngest, SIMULATED_OUTAGE_ERROR, type IngestStore, type RunSummary } from "../src/runner";
 
 const meta: SourceMeta = {
@@ -156,14 +157,14 @@ describe("runIngest", () => {
     expect(calls.source).toEqual([{ ok: true }]);
   });
 
-  it("gives up after the configured attempts and writes only the run row", async () => {
+  it("does not retry a permanent HTTP error and writes only the run row", async () => {
     // GIVEN a source that is always down
     let attempts = 0;
     const adapter: SourceAdapter<number> = {
       meta,
       fetch: async () => {
         attempts++;
-        throw new Error("HTTP 404");
+        throw new SourceHttpError("HTTP 404", 404);
       },
       map: () => ({ place: null, skipped: [] }),
     };
@@ -176,8 +177,8 @@ describe("runIngest", () => {
       userAgent: "test",
       retry: { attempts: 2, baseDelayMs: 0 },
     });
-    // THEN it tried twice, applied nothing and marked the source failed
-    expect(attempts).toBe(2);
+    // THEN a 404 is not retried, nothing is applied and the source is marked failed
+    expect(attempts).toBe(1);
     expect(calls.applied).toEqual([]);
     expect(summary).toMatchObject({ status: "failed", error: "HTTP 404" });
   });
@@ -207,5 +208,48 @@ describe("runIngest", () => {
     expect(calls.applied).toEqual([]);
     expect(summary).toMatchObject({ status: "failed", error: SIMULATED_OUTAGE_ERROR });
     expect(calls.source).toEqual([{ ok: false, error: SIMULATED_OUTAGE_ERROR }]);
+  });
+
+  it("honours Retry-After on 429, caps the wait, and never retries our own timeout", async () => {
+    // GIVEN a source answering 429 with Retry-After 5 s, then 120 s, and a second source timing out
+    let calls = 0;
+    const limited: SourceAdapter<number> = {
+      meta,
+      fetch: async () => {
+        calls++;
+        throw new SourceHttpError("HTTP 429", 429, calls === 1 ? 5000 : 120_000);
+      },
+      map: () => ({ place: null, skipped: [] }),
+    };
+    let timeouts = 0;
+    const slow: SourceAdapter<number> = {
+      meta,
+      fetch: async () => {
+        timeouts++;
+        throw Object.assign(new Error("The operation timed out"), { name: "TimeoutError" });
+      },
+      map: () => ({ place: null, skipped: [] }),
+    };
+    const waits: number[] = [];
+    // WHEN running both with three attempts
+    await runIngest({
+      adapter: limited as SourceAdapter<never>,
+      city: krakow,
+      store: memoryStore().store,
+      userAgent: "test",
+      retry: { attempts: 3, baseDelayMs: 1 },
+      sleep: async (ms) => void waits.push(ms),
+    });
+    await runIngest({
+      adapter: slow as SourceAdapter<never>,
+      city: krakow,
+      store: memoryStore().store,
+      userAgent: "test",
+      retry: { attempts: 3, baseDelayMs: 1 },
+      sleep: async () => {},
+    });
+    // THEN the hint is used and capped at 30 s, and the timeout is tried once
+    expect(waits).toEqual([5000, 30_000]);
+    expect(timeouts).toBe(1);
   });
 });

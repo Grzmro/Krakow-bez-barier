@@ -1,5 +1,6 @@
 import type { MappedPlace, SourceAdapter, SourceMeta } from "./adapter";
 import type { CityConfig } from "./cities/types";
+import { isRetryable, SourceHttpError } from "./errors";
 
 export type RunStatus = "ok" | "partial" | "failed";
 
@@ -37,6 +38,7 @@ export type RunOptions = {
 
 export const SIMULATED_OUTAGE_ERROR = "Simulated outage (SIMULATE_SOURCE_OUTAGE)";
 const DEFAULT_RETRY = { attempts: 3, baseDelayMs: 1000 };
+const MAX_WAIT_MS = 30_000;
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -76,9 +78,10 @@ export async function runIngest(options: RunOptions): Promise<RunSummary> {
       try {
         return await adapter.fetch({ city, userAgent });
       } catch (e) {
-        if (attempt >= attempts) throw e;
+        if (attempt >= attempts || !isRetryable(e)) throw e;
         log(`fetch attempt ${attempt}/${attempts} failed: ${message(e)}`);
-        await sleep(baseDelayMs * 2 ** (attempt - 1));
+        const hinted = e instanceof SourceHttpError ? e.retryAfterMs : undefined;
+        await sleep(Math.min(hinted ?? baseDelayMs * 2 ** (attempt - 1), MAX_WAIT_MS));
       }
     }
   };
@@ -114,6 +117,6 @@ export async function runIngest(options: RunOptions): Promise<RunSummary> {
     await store.markSource(meta.id, { ok: true }, now());
     return summary;
   } catch (e) {
-    return fail(message(e));
+    return await fail(message(e));
   }
 }

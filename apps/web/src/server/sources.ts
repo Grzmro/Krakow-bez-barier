@@ -20,8 +20,12 @@ export const SIMULATED_OUTAGE_NOTE =
   "Symulowana awaria źródła (przełącznik testowy). Pokazujemy ostatnie znane dane jako nieaktualne.";
 const OVERDUE_NOTE = "Źródło nie odświeżało się o czasie. Dane mogą być nieaktualne.";
 
-/** Source ids from `SIMULATE_SOURCE_OUTAGE` (comma separated). Operator-only config, never a request input. */
+/**
+ * Source ids from `SIMULATE_SOURCE_OUTAGE` (comma separated). Operator-only config, never a
+ * request input; ignored in production unless `ALLOW_SIMULATED_OUTAGE=true` (the live demo).
+ */
 export function simulatedOutageIds(env: Record<string, string | undefined> = process.env): string[] {
+  if (env.NODE_ENV === "production" && env.ALLOW_SIMULATED_OUTAGE !== "true") return [];
   return (env.SIMULATE_SOURCE_OUTAGE ?? "")
     .split(",")
     .map((id) => id.trim())

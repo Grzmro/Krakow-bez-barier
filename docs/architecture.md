@@ -21,7 +21,7 @@ Kraków bez barier (Miasto Kraków) — requirements, judging and deadlines in
 ```
 
 - **apps/ingest** — one adapter per source; maps raw records to `AccessibilityFact`s with provenance;
-  logs every run; on failure keeps the previous data and marks the source stale. The web app never
+  logs every run; on failure keeps the previous data and marks the source `outage`; the API reports stale data. The web app never
   calls data sources at request time (R5).
 - **apps/web** — Next.js UI + API route handlers (`src/app/api/`), server logic in `src/server/`. The API resolves facts per attribute (Resolver)
   and matches them against the user's needs (Matcher). Routing is the only on-demand external call,
@@ -96,4 +96,5 @@ Format: `YYYY-MM-DD — decision — why`.
 - 2026-10-03 — A feature filter passes only on known, fresh data (one known alternative is enough, e.g. a ramp for `step_free`); stale or conflicting data passes only with `includeUnknown`, and a feature known to be missing never does — unknown ≠ accessible, and "show places without data" must not show known barriers.
 - 2026-10-03 — `PlaceSummary.features` carries the API's per-filter state (`met`/`absent`/`unknown`/`conflict`) and the list's "Brak danych" badge reads it instead of guessing from chips — chips carry no value, so "2 stopnie" next to an unknown ramp looked like a step-free match.
 - 2026-10-03 — The entrance need takes a known ramp or level entrance when the step count is unknown (same alternatives as the `step_free` filter), and a known missing lift is "Nie wiadomo", not a barrier, until we know a place's floors (KBB-47) — OSM rarely counts steps, and a single-storey place must never get a false barrier.
+- 2026-10-03 — Ingest writes through a `IngestStore` interface (Drizzle implementation in `apps/ingest/src/store.ts`), facts of one OSM element are keyed by the record ref without its `@version`, a failed fetch writes only the run row and marks the source `outage` — adapters and the runner are testable without a database, and an OSM edit refreshes a fact instead of duplicating it.
 - 2026-10-03 — A failed fetch (after bounded retries) always marks the source `outage` with its last success kept; `stale` is derived in `GET /sources` when an `ok` source missed two refresh intervals. The demo switch `SIMULATE_SOURCE_OUTAGE=<id,…>` is server env only (no request input): ingest skips the fetch and fails the run, and the API overlays `outage` on the source — the same outage can be shown without waiting for a real one.
