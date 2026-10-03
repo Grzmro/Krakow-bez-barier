@@ -148,21 +148,28 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
       <p className="mt-3 text-body-sm text-foreground/85">{t.lead}</p>
       {place.isSample ? <p className="mt-2 text-caption font-semibold">{t.sampleNote}</p> : null}
 
-      {sections.map((section) => (
-        <Card key={section.id} id={`event-${section.id}`} title={t.sections[section.id]} icon={SECTION_ICON[section.id]}>
-          {section.id === "entrance" && place.entranceHint ? (
-            <p className="mt-2 text-body-sm">
-              <span className="text-muted-foreground">{t.entranceHint}:</span> {place.entranceHint}
-            </p>
-          ) : null}
-          <FactList facts={section.facts} label={t.sections[section.id]} />
-        </Card>
-      ))}
+      <div className="lg:grid lg:grid-cols-2 lg:gap-x-4 print:block">
+        {sections.map((section) => (
+          <Card
+            key={section.id}
+            id={`event-${section.id}`}
+            title={t.sections[section.id]}
+            icon={SECTION_ICON[section.id]}
+          >
+            {section.id === "entrance" && place.entranceHint ? (
+              <p className="mt-2 text-body-sm">
+                <span className="text-muted-foreground">{t.entranceHint}:</span> {place.entranceHint}
+              </p>
+            ) : null}
+            <FactList facts={section.facts} label={t.sections[section.id]} />
+          </Card>
+        ))}
 
-      {/* TODO(KBB-60): list the nearest ZTP stops with their accessibility facts once the ZTP licence is confirmed. */}
-      <Card id="event-transit" title={t.transit.title} icon={Bus}>
-        <p className="mt-2 text-body-sm text-muted-foreground">{t.transit.noData}</p>
-      </Card>
+        {/* TODO(KBB-60): list the nearest ZTP stops with their accessibility facts once the ZTP licence is confirmed. */}
+        <Card id="event-transit" title={t.transit.title} icon={Bus}>
+          <p className="mt-2 text-body-sm text-muted-foreground">{t.transit.noData}</p>
+        </Card>
+      </div>
 
       <section aria-labelledby="event-sources" className="mt-6 break-inside-avoid">
         <h2 id="event-sources" className="text-caption font-semibold tracking-[0.06em] text-muted-foreground uppercase">
@@ -187,7 +194,9 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
         ) : (
           <p className="mt-2 text-body-sm text-muted-foreground">{t.sourcesNone}</p>
         )}
-        {latest ? <p className="mt-2 text-caption text-muted-foreground">{t.updated(formatDate(latest, locale))}</p> : null}
+        {latest ? (
+          <p className="mt-2 text-caption text-muted-foreground">{t.updated(formatDate(latest, locale))}</p>
+        ) : null}
       </section>
 
       <div className="mt-6 flex flex-wrap items-center gap-2 print:hidden">

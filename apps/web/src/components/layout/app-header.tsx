@@ -3,8 +3,10 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Popover } from "@base-ui/react/popover";
 import {
   CaretRight,
+  Crosshair,
   Database,
   Gavel,
   List,
@@ -26,17 +28,52 @@ import {
 import { useMessages } from "@/i18n/client";
 import type { Messages } from "@/i18n/messages";
 import { isWidgetRoute, routes } from "@/lib/routes";
+import { cn } from "@/lib/utils";
 import { LanguageSwitch } from "./language-switch";
 import { NearMe } from "./near-me";
 
-const menu = (t: Messages["common"]): { href: string; icon: Icon; title: string; sub: string }[] => [
+const menu = (t: Messages["common"]): { href: string; icon: Icon; title: string; short?: string; sub: string }[] => [
   { href: routes.route(), icon: Path, title: t.menu.route, sub: t.menu.routeSub },
   { href: routes.aboutData, icon: Database, title: t.menu.aboutData, sub: t.menu.aboutDataSub },
-  { href: routes.business, icon: Storefront, title: t.menu.business, sub: t.menu.businessSub },
+  {
+    href: routes.business,
+    icon: Storefront,
+    title: t.menu.business,
+    short: t.menu.businessShort,
+    sub: t.menu.businessSub,
+  },
   { href: routes.moderator, icon: Gavel, title: t.menu.moderator, sub: t.menu.moderatorSub },
   { href: routes.privacy, icon: ShieldCheck, title: t.menu.privacy, sub: t.menu.privacySub },
   { href: routes.accessibility, icon: PersonArmsSpread, title: t.menu.a11y, sub: t.menu.a11ySub },
 ];
+
+const isCurrent = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
+
+const navLink =
+  "press flex min-h-10 items-center gap-2 rounded-full px-3 text-[14px] font-semibold whitespace-nowrap hover:bg-muted aria-[current=page]:bg-primary-container";
+
+/** Desktop only: "W mojej okolicy" opens in a popover, as the phone menu shows it as its first card. */
+function NearMePopover() {
+  const t = useMessages().nearby;
+  return (
+    <Popover.Root>
+      <Popover.Trigger className={cn(navLink, "cursor-pointer border border-border")}>
+        <Crosshair weight="bold" className="size-4 shrink-0" aria-hidden />
+        <span className="sr-only xl:not-sr-only">{t.action}</span>
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner side="bottom" align="end" sideOffset={8} className="z-40">
+          <Popover.Popup
+            aria-label={t.action}
+            className="w-[min(24rem,calc(100vw-2rem))] rounded-[20px] bg-card p-2 shadow-sheet ring-1 ring-border outline-none"
+          >
+            <NearMe />
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
+  );
+}
 
 export function AppHeader() {
   const t = useMessages().common;
@@ -46,19 +83,42 @@ export function AppHeader() {
   return (
     <header className="sticky top-[env(safe-area-inset-top)] z-30 border-b border-border bg-background print:hidden">
       <VaulDrawer open={menuOpen} onOpenChange={setMenuOpen}>
-        <nav aria-label={t.layout.mainNav} className="mx-auto flex h-16 w-full max-w-5xl items-center gap-3 px-4">
+        <nav aria-label={t.layout.mainNav} className="flex h-16 w-full items-center gap-3 px-4 lg:gap-4 lg:px-8">
           <Link
             href={routes.home}
             aria-label={t.layout.homeLink}
             className="flex min-h-12 items-center gap-2.5 rounded-full pr-2"
           >
             <LogoMark className="size-9" />
-            <span aria-hidden className="font-display text-title font-extrabold">
+            <span aria-hidden className="font-display text-title font-extrabold lg:max-xl:sr-only">
               {t.app.name}
             </span>
           </Link>
+          <ul className="hidden min-w-0 items-center gap-1 lg:flex">
+            {menu(t)
+              .filter(({ href }) => href !== routes.moderator)
+              .map(({ href, title, short }) => (
+                <li key={href}>
+                  <Link href={href} aria-current={isCurrent(pathname, href) ? "page" : undefined} className={navLink}>
+                    {short ?? title}
+                  </Link>
+                </li>
+              ))}
+          </ul>
+          <div className="ml-auto hidden items-center gap-2 lg:flex">
+            <NearMePopover />
+            <Link
+              href={routes.moderator}
+              aria-current={isCurrent(pathname, routes.moderator) ? "page" : undefined}
+              className={cn(navLink, "border border-border")}
+            >
+              <Gavel weight="bold" className="size-4 shrink-0" aria-hidden />
+              <span className="sr-only xl:not-sr-only">{t.menu.moderator}</span>
+            </Link>
+            <LanguageSwitch compact />
+          </div>
           <VaulDrawerTrigger asChild>
-            <Button variant="outline" size="icon" className="ml-auto" aria-label={t.layout.openMenu}>
+            <Button variant="outline" size="icon" className="ml-auto lg:hidden" aria-label={t.layout.openMenu}>
               <List weight="bold" />
             </Button>
           </VaulDrawerTrigger>

@@ -23,6 +23,7 @@ export const common: Messages["common"] = {
     aboutData: "About the data",
     aboutDataSub: "Sources, licences, reliability",
     business: "For businesses: widget and API",
+    businessShort: "For businesses",
     businessSub: "Accessibility card on your website",
     moderator: "Moderator panel",
     moderatorSub: "Report queue",

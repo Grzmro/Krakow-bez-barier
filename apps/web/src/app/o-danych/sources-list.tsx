@@ -87,7 +87,7 @@ export function SourcesList() {
           {t.sampleNote}
         </p>
       ) : null}
-      <ul className="space-y-2.5">
+      <ul className="grid gap-2.5 lg:grid-cols-2">
         {query.data.map((source) => (
           <li key={source.id} className="rounded-[20px] bg-surface-raised p-4 shadow-soft ring-1 ring-border/70">
             <div className="flex items-start justify-between gap-3">

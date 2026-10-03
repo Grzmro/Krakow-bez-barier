@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function BusinessPage() {
   const m = await getMessages();
   return (
-    <InfoPage title={m.business.page.title} backLabel={m.pages.back} aside={<SampleTag className="shrink-0" />}>
+    <InfoPage title={m.business.page.title} backLabel={m.pages.back} aside={<SampleTag className="shrink-0" />} width="full">
       <BusinessScreen />
     </InfoPage>
   );
