@@ -130,3 +130,28 @@ test("an unknown place shows a not-found message", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Nie znaleźliśmy tego miejsca" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Wróć do wyszukiwania" })).toBeVisible();
 });
+
+test("a long source URL wraps inside its card, so the page and the report form keep the phone's width", async ({ page }) => {
+  // GIVEN the conflicting demo place whose MSIP source link reads as the real, long ArcGIS endpoint
+  await page.goto("/miejsca/palac-krzysztofory");
+  const sources = page.getByRole("region", { name: "Skąd wiemy?" });
+  const link = sources.locator('a[href^="https://msip3.um.krakow.pl"]');
+  await link.evaluate((a) => {
+    const walker = document.createTreeWalker(a, NodeFilter.SHOW_TEXT);
+    walker.nextNode()!.textContent = "msip.um.krakow.pl/arcgis/rest/services/Obserwatorium/WT_WC_2023/MapServer/0";
+  });
+
+  // THEN the link stays inside its card and nothing scrolls sideways
+  const card = (await link.locator("xpath=ancestor::li[1]").boundingBox())!;
+  const box = (await link.boundingBox())!;
+  expect(box.x + box.width).toBeLessThanOrEqual(card.x + card.width);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+
+  // WHEN the visitor opens "To się nie zgadza"
+  await page.getByRole("button", { name: "To się nie zgadza" }).first().click();
+  const drawer = page.getByRole("dialog", { name: "To się nie zgadza" });
+  await expect(drawer).toBeVisible();
+
+  // THEN the form's send button is on screen
+  await expect(drawer.getByRole("button", { name: "Wyślij" })).toBeInViewport();
+});

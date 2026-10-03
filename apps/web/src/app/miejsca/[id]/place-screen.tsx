@@ -539,9 +539,12 @@ function PlaceCard({ place }: { place: Place }) {
                       href={source.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={cn(buttonVariants({ variant: "link", size: "sm" }), "h-10 px-0")}
+                      className={cn(
+                        buttonVariants({ variant: "link", size: "sm" }),
+                        "h-auto min-h-10 max-w-full shrink justify-start px-0 py-2 text-left whitespace-normal",
+                      )}
                     >
-                      {source.url.replace(/^https?:\/\//, "")}
+                      <span className="min-w-0 break-all">{source.url.replace(/^https?:\/\//, "")}</span>
                       <ArrowSquareOut aria-hidden />
                     </a>
                   ) : null}
