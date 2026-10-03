@@ -158,10 +158,14 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
   }, [announce, startMissing, t]);
 
   // The start goes into the link (a place id, or a position rounded to ~100 m), so the route can be shared.
-  const startLink = routes.route(to, startParam(start));
+  // Only `z` is rewritten, on the URL as it is now: the router owns the rest and may be mid-navigation.
+  const startValue = startParam(start);
   useEffect(() => {
-    if (window.location.pathname + window.location.search !== startLink) window.history.replaceState(null, "", startLink);
-  }, [startLink]);
+    const url = new URL(window.location.href);
+    if (url.pathname !== routes.route() || (url.searchParams.get("z") ?? undefined) === startValue) return;
+    const to = url.searchParams.get("do") ?? undefined;
+    window.history.replaceState(null, "", routes.route(to, startValue));
+  }, [startValue]);
 
   const pickStart = async (next: StartPick) => {
     setOrigin(null);
