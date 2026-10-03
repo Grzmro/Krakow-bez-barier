@@ -1,15 +1,13 @@
-export const pl = {
-  app: {
-    name: "Kraków bez barier",
-    description:
-      "Sprawdź, czy miejsce w Krakowie pasuje do Twoich potrzeb — konkretne bariery i udogodnienia, każda informacja ze źródłem i datą.",
-  },
-  layout: {
-    skipToContent: "Przejdź do treści",
-    sampleBanner: "PRZYKŁAD — prototyp, dane mogą być przykładowe",
-  },
-  home: {
-    title: "Kraków bez barier",
-    lead: "Wyszukaj miejsce i zobacz, co wiemy o jego dostępności — i skąd to wiemy.",
-  },
-} as const;
+// All Polish UI copy, split per area so parallel work doesn't conflict. Add strings to the area
+// file (`pl/<area>.ts`); only touch this index when adding a new area.
+import { common } from "./pl/common";
+import { dev } from "./pl/dev";
+import { home } from "./pl/home";
+import { moderator } from "./pl/moderator";
+import { pages } from "./pl/pages";
+import { place } from "./pl/place";
+import { profile } from "./pl/profile";
+
+export const pl = { common, home, place, profile, pages, moderator, dev } as const;
+
+export type Messages = typeof pl;
