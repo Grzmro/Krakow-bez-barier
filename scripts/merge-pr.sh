@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Soft merge queue for agents (GitHub's merge queue isn't available on this repo).
-# Runs the local gate (lint, typecheck, unit, build, e2e of the touched screens) on the rebased commit,
-# then merges only when the fast CI is green on that same commit and main hasn't moved.
+# Pushes the rebased commit, runs the local gate (lint, typecheck, unit, build, e2e of the touched screens)
+# on it while CI runs, then merges only when the fast CI is green on that same commit and main hasn't moved.
+# CI checks not registered yet ("no checks reported") mean wait, up to CHECKS_WAIT seconds (180), not red.
 #
 # Usage: [E2E_SPECS="e2e/a.spec.ts e2e/b.prod.spec.ts"] scripts/merge-pr.sh [PR-number] [spec ...]
 #        scripts/merge-pr.sh --print-specs [spec ...]   # show the e2e selection for HEAD vs origin/main, run nothing
@@ -72,6 +73,32 @@ PR="${PR:-$(gh pr view --json number -q .number)}"
 HEAD_REF="$(gh pr view "$PR" --json headRefName -q .headRefName)"
 log="$(mktemp)"
 trap 'rm -f "$log"' EXIT
+# Seconds to wait for CI checks to register on a pushed commit before calling it red.
+CHECKS_WAIT="${CHECKS_WAIT:-180}"
+
+# Waits for the PR's CI on $1 and returns its result. Right after a push `gh pr checks` says
+# "no checks reported" until GitHub registers the run — that means "not yet", not red.
+wait_for_ci() {
+  local head="$1" deadline seen=""
+  for _ in $(seq 1 60); do
+    [ "$(gh pr view "$PR" --json headRefOid -q .headRefOid)" = "$head" ] && seen=1 && break
+    sleep 5
+  done
+  if [ -z "$seen" ]; then
+    echo "GitHub still doesn't show $head as the PR head after 5 min"
+    return 1
+  fi
+  deadline=$((SECONDS + CHECKS_WAIT))
+  # Not a pipe into grep: with pipefail gh's own exit code (non-zero here) would decide the loop.
+  while [[ "$(gh pr checks "$PR" 2>&1 || true)" == *"no checks reported"* ]]; do
+    if [ "$SECONDS" -ge "$deadline" ]; then
+      echo "no CI checks registered on $head after ${CHECKS_WAIT}s"
+      return 1
+    fi
+    sleep 10
+  done
+  gh pr checks "$PR" --watch --fail-fast --interval 10
+}
 
 for round in $(seq 1 "$MAX_ROUNDS"); do
   echo "── round $round/$MAX_ROUNDS"
@@ -96,6 +123,11 @@ for round in $(seq 1 "$MAX_ROUNDS"); do
     echo "e2e: no UI change and no spec selected — skipping e2e"
   fi
 
+  # Push before the local gate so CI runs on GitHub while the gate runs here.
+  if [ "$(git ls-remote origin "refs/heads/$HEAD_REF" | cut -f1)" != "$head" ]; then
+    git push --force-with-lease="$HEAD_REF" --quiet origin "HEAD:refs/heads/$HEAD_REF"
+  fi
+
   # Reinstall only when the lockfile changed; `npm ci` never rewrites package-lock.json.
   lock_hash="$(git hash-object package-lock.json)"
   if [ "$(cat node_modules/.lock-hash 2>/dev/null)" != "$lock_hash" ]; then
@@ -105,7 +137,7 @@ for round in $(seq 1 "$MAX_ROUNDS"); do
   # Generated contract types are gitignored; regenerate so a teammate's spec change isn't stale here.
   npm run contracts:generate --silent
 
-  echo "local gate on $head"
+  echo "local gate on $head (CI runs meanwhile)"
   # $specs is intentionally unquoted: one argument per spec path (paths have no spaces).
   # shellcheck disable=SC2086
   if ! {
@@ -117,19 +149,8 @@ for round in $(seq 1 "$MAX_ROUNDS"); do
     exit 1
   fi
 
-  if [ "$(git ls-remote origin "refs/heads/$HEAD_REF" | cut -f1)" != "$head" ]; then
-    git push --force-with-lease="$HEAD_REF" --quiet origin "HEAD:refs/heads/$HEAD_REF"
-  fi
-
-  # Wait until GitHub sees the pushed commit as the PR head, then for its checks to register.
-  for _ in $(seq 1 60); do
-    [ "$(gh pr view "$PR" --json headRefOid -q .headRefOid)" = "$head" ] && break
-    sleep 5
-  done
-  sleep 10
-
-  if ! gh pr checks "$PR" --watch --fail-fast --interval 10; then
-    echo "CI red on $head — fix it, then run this script again"
+  if ! wait_for_ci "$head"; then
+    echo "CI not green on $head — fix it (or rerun if CI never started), then run this script again"
     exit 1
   fi
 

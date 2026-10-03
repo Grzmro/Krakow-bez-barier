@@ -43,7 +43,7 @@ Read the full changed files where the diff alone lacks context.
 ## 3. Fix and re-verify
 
 Fix all must-fix and should-fix findings (unless fixing is out of scope — then list it).
-Rerun build, lint, typecheck and unit tests of affected apps, and only the e2e specs of the screens
+Rerun lint, typecheck and unit tests of affected apps (build only per `task` step 5), and only the e2e specs of the screens
 the change touches (`npm run test:e2e -- e2e/<screen>.spec.ts`) — never the full e2e suite.
 
 ## 4. Report
