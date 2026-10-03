@@ -1,6 +1,7 @@
 import type { Profile } from "@krakow-bez-barier/contracts";
-import { PROFILE_PRESETS, type Thresholds } from "@/server/domain/profiles";
+import { PROFILE_PRESETS, THRESHOLD_FLAGS, type Thresholds } from "@/server/domain/profiles";
 
+export { THRESHOLD_FLAGS };
 export type { Thresholds };
 
 export const PROFILES = ["wheelchair", "stroller"] as const satisfies readonly Profile[];
@@ -28,16 +29,15 @@ function clamp(value: unknown, { min, max }: { min: number; max: number }, fallb
 
 function readThresholds(raw: unknown, fallback: Thresholds): Thresholds {
   const value = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
-  const flag = (key: keyof Thresholds) => (typeof value[key] === "boolean" ? (value[key] as boolean) : (fallback[key] as boolean));
-  return {
+  const thresholds: Thresholds = {
+    ...fallback,
     maxThresholdCm: clamp(value.maxThresholdCm, THRESHOLD_LIMITS.maxThresholdCm, fallback.maxThresholdCm),
     minDoorWidthCm: clamp(value.minDoorWidthCm, THRESHOLD_LIMITS.minDoorWidthCm, fallback.minDoorWidthCm),
-    requireStepFree: flag("requireStepFree"),
-    requireLift: flag("requireLift"),
-    requireAccessibleToilet: flag("requireAccessibleToilet"),
-    requireSmoothSurface: flag("requireSmoothSurface"),
-    requireChangingTable: flag("requireChangingTable"),
   };
+  for (const flag of THRESHOLD_FLAGS) {
+    if (typeof value[flag] === "boolean") thresholds[flag] = value[flag];
+  }
+  return thresholds;
 }
 
 /** Parses what localStorage holds; anything missing or malformed falls back to the defaults. */
@@ -53,10 +53,9 @@ export function parseSettings(raw: string | null): ProfileSettings {
   const stored = (value.thresholds && typeof value.thresholds === "object" ? value.thresholds : {}) as Record<string, unknown>;
   return {
     profile: isProfile(value.profile) ? value.profile : null,
-    thresholds: {
-      wheelchair: readThresholds(stored.wheelchair, DEFAULT_THRESHOLDS.wheelchair),
-      stroller: readThresholds(stored.stroller, DEFAULT_THRESHOLDS.stroller),
-    },
+    thresholds: Object.fromEntries(
+      PROFILES.map((profile) => [profile, readThresholds(stored[profile], DEFAULT_THRESHOLDS[profile])]),
+    ) as Record<Profile, Thresholds>,
   };
 }
 

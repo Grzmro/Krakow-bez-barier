@@ -1,6 +1,6 @@
 import type { Need, NeedResult } from "@krakow-bez-barier/contracts";
 import { pl } from "@/i18n/pl";
-import type { Thresholds } from "./profiles";
+import { OPTIONAL_NEEDS, type NeedRule, type Thresholds } from "./profiles";
 import type { AccessibilityAttribute, NeedVerdict, ResolvedAttribute, Verdict } from "./types";
 
 const t = pl.profile.reasons;
@@ -89,12 +89,12 @@ function door(place: PlaceFacts, th: Thresholds): NeedResult {
  * missing lift is "can't say" rather than a barrier — a single-storey café is never blocked by it.
  */
 // TODO(KBB-47): block on lift=false once the place's number of floors is known.
-function lift(place: PlaceFacts): NeedResult {
-  const resolved = resolve(place, "lift");
+function lift(place: PlaceFacts, need: Need, attribute: AccessibilityAttribute): NeedResult {
+  const resolved = resolve(place, attribute);
   if (resolved.kind === "known" && booleanOf(resolved.attribute) === false) {
-    return result("lift", "lift", "unknown", t.liftWithoutFloors);
+    return result(need, attribute, "unknown", t.liftWithoutFloors);
   }
-  return facility(place, "lift", "lift");
+  return facility(place, need, attribute);
 }
 
 function facility(place: PlaceFacts, need: Need, attribute: AccessibilityAttribute): NeedResult {
@@ -107,27 +107,33 @@ function facility(place: PlaceFacts, need: Need, attribute: AccessibilityAttribu
     : result(need, attribute, "barrier", t.missing(need));
 }
 
-function surface(place: PlaceFacts): NeedResult {
-  const resolved = resolve(place, "surface");
-  if (resolved.kind === "unresolved") return unresolved("surface", "surface", resolved.state);
+function surface(place: PlaceFacts, need: Need, attribute: AccessibilityAttribute): NeedResult {
+  const resolved = resolve(place, attribute);
+  if (resolved.kind === "unresolved") return unresolved(need, attribute, resolved.state);
   const value = textOf(resolved.attribute);
-  if (value === null) return unresolved("surface", "surface", "unknown");
+  if (value === null) return unresolved(need, attribute, "unknown");
   return SMOOTH_SURFACES.has(value)
-    ? result("surface", "surface", "met", null, isUnconfirmed(resolved.attribute))
-    : result("surface", "surface", "barrier", t.surface);
+    ? result(need, attribute, "met", null, isUnconfirmed(resolved.attribute))
+    : result(need, attribute, "barrier", t.surface);
 }
 
+const RULES: Record<NeedRule, (place: PlaceFacts, need: Need, attribute: AccessibilityAttribute) => NeedResult> = {
+  facility,
+  lift,
+  surface,
+};
+
 /**
- * Checks each need of the thresholds against a place's resolved attributes: barrier beats conflict
- * beats unknown, and only all-met is met. A conflict on any attribute of the place, needed or not,
- * also rules out met; stale data never counts as met.
+ * Checks the entrance, the door and each optional need the thresholds switch on against a place's
+ * resolved attributes: barrier beats conflict beats unknown, and only all-met is met. A conflict on
+ * any attribute of the place, needed or not, also rules out met; stale data never counts as met.
  */
 export function matchProfile(place: PlaceFacts, thresholds: Thresholds): Verdict {
-  const needs: NeedResult[] = [entrance(place, thresholds), door(place, thresholds)];
-  if (thresholds.requireLift) needs.push(lift(place));
-  if (thresholds.requireAccessibleToilet) needs.push(facility(place, "toilet", "toilet_accessible"));
-  if (thresholds.requireSmoothSurface) needs.push(surface(place));
-  if (thresholds.requireChangingTable) needs.push(facility(place, "changing_table", "changing_table"));
+  const needs: NeedResult[] = [
+    entrance(place, thresholds),
+    door(place, thresholds),
+    ...OPTIONAL_NEEDS.filter(({ flag }) => thresholds[flag]).map(({ rule, need, attribute }) => RULES[rule](place, need, attribute)),
+  ];
 
   const has = (state: NeedVerdict) => needs.some((n) => n.state === state);
   const conflictElsewhere = place.attributes.some((a) => a.state === "conflict");

@@ -1,4 +1,5 @@
 import type { FeatureFilter, GetPlaceQuery, Problem, Profile } from "@krakow-bez-barier/contracts";
+import { THRESHOLD_FLAGS } from "@/server/domain/profiles";
 import { mockGetPlace, mockListPlaces } from "./mock-api";
 
 // Profile-aware `/places` mocks for the example-data mode (NEXT_PUBLIC_API_MOCK). Everything else
@@ -21,11 +22,7 @@ function profileParams(params: URLSearchParams): GetPlaceQuery {
     profile: (params.get("profile") as Profile | null) ?? undefined,
     maxThresholdCm: number("maxThresholdCm"),
     minDoorWidthCm: number("minDoorWidthCm"),
-    requireStepFree: flag("requireStepFree"),
-    requireLift: flag("requireLift"),
-    requireAccessibleToilet: flag("requireAccessibleToilet"),
-    requireSmoothSurface: flag("requireSmoothSurface"),
-    requireChangingTable: flag("requireChangingTable"),
+    ...Object.fromEntries(THRESHOLD_FLAGS.map((key) => [key, flag(key)])),
   };
 }
 

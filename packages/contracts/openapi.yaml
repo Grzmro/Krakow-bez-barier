@@ -173,6 +173,7 @@ paths:
       - $ref: '#/components/parameters/RequireAccessibleToilet'
       - $ref: '#/components/parameters/RequireSmoothSurface'
       - $ref: '#/components/parameters/RequireChangingTable'
+      - $ref: '#/components/parameters/RequireBench'
       - name: limit
         in: query
         schema:
@@ -375,6 +376,7 @@ paths:
       - $ref: '#/components/parameters/RequireAccessibleToilet'
       - $ref: '#/components/parameters/RequireSmoothSurface'
       - $ref: '#/components/parameters/RequireChangingTable'
+      - $ref: '#/components/parameters/RequireBench'
       responses:
         '200':
           description: The place.
@@ -1040,6 +1042,12 @@ components:
       name: requireChangingTable
       in: query
       description: 'Profile need: a baby changing table.'
+      schema:
+        type: boolean
+    RequireBench:
+      name: requireBench
+      in: query
+      description: 'Profile need: a bench or another place to rest.'
       schema:
         type: boolean
   responses:
@@ -1719,6 +1727,7 @@ components:
       - toilet
       - surface
       - changing_table
+      - bench
     SummaryChip:
       type: object
       required:

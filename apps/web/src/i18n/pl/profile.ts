@@ -17,6 +17,7 @@ const needName = {
   toilet: "Toaleta dostosowana",
   surface: "Nawierzchnia",
   changing_table: "Przewijak",
+  bench: "Ławka",
 } satisfies Record<Need, string>;
 
 const counts = (byStatus: Record<Status, number>) =>
@@ -46,6 +47,7 @@ export const profile = {
     requireAccessibleToilet: "Toaleta dostosowana",
     requireSmoothSurface: "Równa nawierzchnia",
     requireChangingTable: "Przewijak",
+    requireBench: "Ławka lub miejsce odpoczynku",
     cm: "cm",
     decrease: (label: string) => `Zmniejsz: ${label}`,
     increase: (label: string) => `Zwiększ: ${label}`,
