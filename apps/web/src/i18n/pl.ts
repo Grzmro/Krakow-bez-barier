@@ -14,5 +14,6 @@ import { profile } from "./pl/profile";
 import { pwa } from "./pl/pwa";
 import { route } from "./pl/route";
 import { summary } from "./pl/summary";
+import { transit } from "./pl/transit";
 
-export const pl = { common, home, place, profile, pages, moderator, nearby, business, event, dev, pwa, summary, route, city } as const;
+export const pl = { common, home, place, profile, pages, moderator, nearby, business, event, dev, pwa, summary, route, city, transit } as const;

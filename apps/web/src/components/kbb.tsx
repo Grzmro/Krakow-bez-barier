@@ -17,7 +17,9 @@ import {
   type StatusBadgeProps,
   type VerdictBlockProps,
 } from "@krakow-bez-barier/ui";
+import type { VehicleAccessibility } from "@krakow-bez-barier/contracts";
 import { useMessages } from "@/i18n/client";
+import { VEHICLE_STATUS } from "@/lib/transit";
 
 type Unconfirmed = { unconfirmed?: boolean };
 
@@ -73,4 +75,10 @@ export function FactRow({ status, reliability, ...props }: FactRowBoundProps) {
 export function BottomPanel(props: Omit<BottomPanelProps, "toggleLabels">) {
   const t = useMessages().common;
   return <UiBottomPanel {...props} toggleLabels={t.bottomPanel} />;
+}
+
+/** Whether the vehicle on a departure takes a wheelchair; only the operator's word for the vehicle is coloured. */
+export function VehicleBadge({ state, className }: { state: VehicleAccessibility["state"]; className?: string }) {
+  const t = useMessages().transit;
+  return <UiStatusBadge status={VEHICLE_STATUS[state]} label={t.vehicle[state]} size="sm" className={className} />;
 }

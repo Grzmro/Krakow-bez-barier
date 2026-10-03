@@ -14,7 +14,8 @@
     "test:e2e": "playwright test",
     "demo:record": "playwright test -c playwright.demo.config.ts",
     "icons": "node scripts/generate-icons.mjs",
-    "routes:record": "node --env-file=../../.env scripts/record-ors-fixtures.mjs"
+    "routes:record": "node --env-file=../../.env scripts/record-ors-fixtures.mjs",
+    "transit:record": "vite-node -c vitest.config.ts scripts/record-transit-fixture.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -30,8 +31,10 @@
     "ajv-formats": "^3.0.1",
     "class-variance-authority": "^0.7.1",
     "drizzle-orm": "^0.44.7",
+    "fflate": "^0.8.3",
     "maplibre-gl": "^6.11.2",
     "next": "16.3.8",
+    "pbf": "^5.1.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "supercluster": "^8.0.1",

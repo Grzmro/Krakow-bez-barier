@@ -16,6 +16,17 @@ describe("withRealRoutes", () => {
     expect(await res.text()).toBe("real");
   });
 
+  it("sends GET /transit/departures to the real API", async () => {
+    // GIVEN the example-data client
+    const fetch = withRealRoutes(mock, real);
+
+    // WHEN departures are requested
+    const res = await fetch(new Request("http://localhost/api/v1/transit/departures?lat=50.06&lon=19.94"));
+
+    // THEN it went to the real endpoint
+    expect(await res.text()).toBe("real");
+  });
+
   it("leaves every other call to the mocks", async () => {
     // GIVEN the example-data client
     const fetch = withRealRoutes(mock, real);

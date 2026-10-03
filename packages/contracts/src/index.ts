@@ -59,6 +59,10 @@ export type OutageState = Schemas["OutageState"];
 export type OutageVote = Schemas["OutageVote"];
 export type OutageCreate = Schemas["OutageCreate"];
 export type OutageVoteCreate = Schemas["OutageVoteCreate"];
+export type TransitDepartures = Schemas["TransitDepartures"];
+export type TransitStop = Schemas["TransitStop"];
+export type TransitDeparture = Schemas["TransitDeparture"];
+export type VehicleAccessibility = Schemas["VehicleAccessibility"];
 
 /** Base path of the v1 API on the app's own origin. */
 export const API_BASE_PATH = "/api/v1";
