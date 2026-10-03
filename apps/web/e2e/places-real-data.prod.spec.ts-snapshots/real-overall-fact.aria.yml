@@ -1,0 +1,10 @@
+- listitem:
+  - 'button "Ogólna dostępność (OSM): Niedostępne dla wózków. Wiarygodność: Niezweryfikowane." [expanded]': Ogólna dostępność (OSM) Niedostępne dla wózków Niezweryfikowane
+  - button "To się nie zgadza":
+    - img
+    - text: ""
+  - button "Potwierdzam, byłem tu":
+    - img
+    - text: ""
+  - list:
+    - listitem: "/Źródło: OpenStreetMap Pozyskano \\d+\\.\\d+\\.\\d+ · społeczność/"

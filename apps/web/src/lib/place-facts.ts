@@ -13,8 +13,9 @@ import { messagesFor } from "@/i18n/messages";
 
 type FactValue = components["schemas"]["FactValue"];
 
-/** Attributes shown on the card, in reading order: entrance first, then facilities. */
+/** Attributes shown on the card, in reading order: the overall wheelchair tag, entrance, then facilities. */
 export const CARD_ATTRIBUTES = [
+  "wheelchair_overall",
   "step_count",
   "step_height_cm",
   "threshold_cm",
@@ -93,6 +94,7 @@ export function formatValue(
       }
       return { value: formatNumber(value.number, locale), unit: value.unit ? t.unit[value.unit] || undefined : undefined };
     case "text":
+      if (attribute === "wheelchair_overall") return { value: t.overall[value.text] ?? value.text };
       return { value: t.surface[value.text] ?? value.text };
   }
 }

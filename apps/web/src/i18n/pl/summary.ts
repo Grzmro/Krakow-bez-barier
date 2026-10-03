@@ -1,5 +1,6 @@
 import type { AccessibilityAttribute, FactValue } from "@krakow-bez-barier/contracts";
 import { common } from "./common";
+import { place } from "./place";
 
 function plural(n: number, one: string, few: string, many: string) {
   if (n === 1) return one;
@@ -10,19 +11,13 @@ function plural(n: number, one: string, few: string, many: string) {
 
 const UNIT = { cm: " cm", pct: "%", count: "", m: " m" } as const;
 
-const OVERALL: Record<string, string> = {
-  yes: "Dostępne dla wózków (OSM)",
-  limited: "Częściowo dostępne dla wózków (OSM)",
-  no: "Niedostępne dla wózków (OSM)",
-};
-
 function valueLabel(attribute: AccessibilityAttribute, value: FactValue): string {
   const name = common.attribute[attribute];
   if (attribute === "step_count" && value.kind === "number") {
     const n = value.number;
     return n === 0 ? "Wejście bez stopni" : `${n} ${plural(n, "stopień", "stopnie", "stopni")} przy wejściu`;
   }
-  if (attribute === "wheelchair_overall" && value.kind === "text" && OVERALL[value.text]) return OVERALL[value.text];
+  if (attribute === "wheelchair_overall" && value.kind === "text" && place.overall[value.text]) return `${place.overall[value.text]} (OSM)`;
   switch (value.kind) {
     case "boolean":
       return value.boolean ? name : `${name}: brak`;

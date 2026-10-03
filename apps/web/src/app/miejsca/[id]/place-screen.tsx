@@ -28,6 +28,7 @@ import {
   Toilet,
   TrendUp,
   WarningDiamond,
+  Wheelchair,
   Wrench,
   type Icon,
 } from "@phosphor-icons/react";
@@ -54,6 +55,7 @@ const noop = () => {};
 const MINUTE_MS = 60_000;
 
 const FACT_ICON: Partial<Record<AccessibilityAttribute, Icon>> = {
+  wheelchair_overall: Wheelchair,
   step_count: Stairs,
   step_height_cm: Stairs,
   threshold_cm: Stairs,

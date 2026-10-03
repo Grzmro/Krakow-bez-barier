@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { createApiClient, createMockFetch, type Place } from "@krakow-bez-barier/contracts";
+import { fact, text } from "@/domain/fixtures";
+import { matchProfile } from "@/domain/matcher";
+import { PROFILE_PRESETS } from "@/domain/profiles";
+import { resolveAttributes } from "@/domain/resolver";
+import { messagesFor } from "@/i18n/messages";
 import { factViews, failedSources, formatValue, latestSourceDate } from "./place-facts";
 
 const api = createApiClient({ baseUrl: "http://localhost/api/v1", fetch: createMockFetch() });
@@ -43,7 +48,10 @@ describe("factViews", () => {
     // THEN the moot rows are gone and the step-free entrance is shown as text
     expect(attributes).not.toContain("ramp");
     expect(attributes).not.toContain("step_height_cm");
-    expect(factViews(place, "pl")[0]).toMatchObject({ attribute: "step_count", value: "Bez stopni", reliability: "confirmed" });
+    expect(factViews(place, "pl").find((r) => r.attribute === "step_count")).toMatchObject({
+      value: "Bez stopni",
+      reliability: "confirmed",
+    });
   });
 
   it("lists every card attribute as unknown for a place without data", async () => {
@@ -54,8 +62,31 @@ describe("factViews", () => {
     const rows = factViews(place, "pl");
 
     // THEN every row is an explicit "no data"
-    expect(rows.length).toBe(12);
+    expect(rows.length).toBe(13);
     expect(rows.every((r) => r.unknown && r.sources.length === 0)).toBe(true);
+  });
+
+  it("shows the OSM overall wheelchair tag when it is the place's only fact, in the list chip's words", () => {
+    // GIVEN a place whose only fact is OSM wheelchair=no
+    const osm = fact("wheelchair_overall", text("no"), {
+      source: { id: "osm", name: "OpenStreetMap", kind: "community", recordRef: "node/1" },
+      fetchedAt: "2026-10-02T10:00:00Z",
+    });
+    const attributes = resolveAttributes([osm]);
+    const place = { attributes } as unknown as Place;
+
+    // WHEN it is turned into card rows
+    const rows = factViews(place, "pl");
+    const overall = rows.find((r) => r.attribute === "wheelchair_overall");
+
+    // THEN the overall row comes first, with the value, the OpenStreetMap source and its date
+    expect(rows[0]).toBe(overall);
+    expect(overall).toMatchObject({ label: "Ogólna dostępność (OSM)", value: "Niedostępne dla wózków", unknown: false });
+    expect(overall?.sources).toMatchObject([{ name: "OpenStreetMap", date: "2.10.2026" }]);
+    // AND the list chip says the same thing
+    expect(messagesFor("pl").summary.chip("wheelchair_overall", "known", osm.value)).toBe(`${overall?.value} (OSM)`);
+    // AND the wheelchair profile names it as the barrier
+    expect(matchProfile(place, PROFILE_PRESETS.wheelchair, "pl")).toMatchObject({ state: "barrier", blockers: ["wheelchair_overall"] });
   });
 
   it("marks outdated facts as outdated with the original date", async () => {
