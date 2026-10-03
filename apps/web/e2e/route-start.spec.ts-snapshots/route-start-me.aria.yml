@@ -27,7 +27,7 @@
       - paragraph: Trasa nie zawiera znanych barier
       - paragraph: brak danych na 0 odcinkach
       - paragraph: Odcinki w skali długości. Szczegóły w „Krok po kroku”.
-      - button "Najkrótsza · 7 min Spełnia · brak danych na 0 odcinkach"
+      - button "Najkrótsza · 7 min Spełnia · Trasa nie zawiera znanych barier"
       - button "Zapisz na telefonie":
         - img
         - text: ""
