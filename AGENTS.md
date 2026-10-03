@@ -84,23 +84,31 @@ Don't create a new app or package without a Linear task for it.
 
 ## Commands
 
-> **Planned** — wired up by KBB-7 (monorepo skeleton). Until it's merged only `packages/ui` has
-> scripts (`build`, `dev`, `typecheck`). Update this list when a script actually exists.
-
 From the repo root. Target a single workspace with `-w <path>` (e.g. `npm run test -w apps/web`).
 
 ```bash
-cp .env.example .env           # DATABASE_URL, ORS_API_KEY
-docker compose up -d db        # local Postgres + PostGIS
-npm install                    # all workspaces; postinstall regenerates contracts
-npm run contracts:generate     # after editing openapi.yaml
+npm install                    # all workspaces
+npx playwright install --only-shell chromium   # once, for e2e
 npm run dev                    # web app (http://localhost:3000)
-npm run build | lint | typecheck | test
-npm run test:e2e               # Playwright smoke of the main screens (apps/web/e2e)
-npm run db:generate            # drizzle-kit generate after a schema change
-npm run db:migrate             # apply migrations
-npm run ingest -- --source <id> --city krakow
+npm run lint                   # ESLint
+npm run typecheck              # next typegen + tsc
+npm run test                   # Vitest (unit)
+npm run build                  # production build
+npm run test:e2e               # Playwright smoke (apps/web/e2e); reuses a running dev server
 ```
+
+Planned — add them here when the task lands: `cp .env.example .env` + `docker compose up -d db` +
+`npm run db:generate` / `db:migrate` (KBB-10), `npm run contracts:generate` (KBB-8),
+`npm run ingest -- --source <id> --city krakow` (KBB-18).
+
+CI (`.github/workflows/ci.yml`) runs the same steps on every PR; agents merge only on green CI.
+
+**Keep tests fast** — the whole CI run should stay within a few minutes:
+- unit tests (Vitest) for logic; no network, no DB unless the test is about the DB;
+- e2e = a short smoke per screen (main path + keyboard pass), Chromium only, no `waitForTimeout`,
+  no retries — a flaky test gets fixed or deleted, not retried.
+- npm blocks dependency install scripts; a new dependency that needs one goes through
+  `npm approve-scripts <pkg>` (recorded in root `package.json` → `allowScripts`).
 
 ## Working with tasks (Linear)
 

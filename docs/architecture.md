@@ -54,3 +54,5 @@ Format: `YYYY-MM-DD — decision — why`.
 - 2026-10-03 — openrouteservice wheelchair profile behind `RoutingProvider` — ready-made incline/kerb/surface parameters; self-hosting a routing engine doesn't fit 24 h; swappable later.
 - 2026-10-03 — MapLibre GL + OpenFreeMap tiles — open source, no API key, commercial use allowed with OSM attribution.
 - 2026-10-03 — shadcn/ui + Tailwind v4 instead of MUI — built both as clickable prototypes (same 7 screens, then the same 20 requirement changes); the team chose B for its look; generated, owned component code; no CSS-in-JS runtime in Server Components. MUI v9 also needed workarounds on every screen (Stack system props, style-override keys).
+- 2026-10-03 — `packages/ui` is consumed as TypeScript source (`transpilePackages`), no build step — a fresh clone runs `npm install && npm run dev` without building packages first.
+- 2026-10-03 — Fast test pipeline: Vitest for logic, Playwright Chromium-only smoke (headless shell, no retries) against the production build made earlier in the same CI job; npm, Next and Playwright caches in CI.

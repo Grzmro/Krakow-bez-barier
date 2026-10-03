@@ -1,57 +1,16 @@
 # @krakow-bez-barier/ui
 
-Front-end UI library for **Kraków bez barier**. It bundles the shared Material UI
-theme and the root application providers (MUI App Router cache, theme, CSS
-baseline and React Query) so every front-end surface stays consistent.
+Shared UI for **Kraków bez barier**: the "Fiolet" design tokens, shared shadcn/ui components and the
+app providers (React Query). Visual reference: [`design/prototype-b`](../../design/prototype-b).
 
-## Contents
+Consumed as TypeScript source (no build step) — `apps/web` lists it in `transpilePackages`.
 
-- `theme` — the default Material UI theme.
-- `Providers` — a client component that wires up MUI + React Query.
-
-## Install
-
-```bash
-npm install @krakow-bez-barier/ui
+```css
+/* apps/web/src/app/globals.css */
+@import "tailwindcss";
+@import "@krakow-bez-barier/ui/styles.css";
 ```
-
-The package expects the following peer dependencies to be installed in the host
-app: `react`, `react-dom`, `@mui/material`, `@mui/material-nextjs`,
-`@emotion/react`, `@emotion/styled` and `@tanstack/react-query`.
-
-## Usage
-
-Wrap your application with `Providers` (for example in a Next.js App Router
-`layout.tsx`):
 
 ```tsx
-import { Providers } from "@krakow-bez-barier/ui";
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <html lang="pl">
-      <body>
-        <Providers>{children}</Providers>
-      </body>
-    </html>
-  );
-}
-```
-
-Use the shared theme directly when you need it:
-
-```tsx
-import { theme } from "@krakow-bez-barier/ui";
-```
-
-## Development
-
-```bash
-npm install
-npm run dev        # rebuild on change
-npm run typecheck  # type-check without emitting
+import { Providers, cn } from "@krakow-bez-barier/ui";
 ```
