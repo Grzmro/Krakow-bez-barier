@@ -56,6 +56,8 @@ export type Decision = {
   decision: ModerationDecisionKind;
   note: string | null;
   moderator: string;
+  /** The demo account: an accepted report becomes a fact from `DEMO_MODERATED_SOURCE` instead of the real one. */
+  demo: boolean;
   at: Date;
   /** Builds the fact an accepted report becomes; written in the same transaction. */
   toFact: (report: ReportRecord) => NewFact;
@@ -91,4 +93,10 @@ export interface ReportsStore {
   decide(decision: Decision): Promise<DecisionResult>;
   /** Reports of a place still awaiting a final decision (`new`, `needs_info`), oldest first. */
   listPending(placeId: string): Promise<ReportRecord[]>;
+  /**
+   * Undoes `moderator`'s decisions made before `before`, atomically: removes them from the history, sets each report's
+   * status back to what its remaining history says (`new` when none is left) and deletes the facts from
+   * `DEMO_MODERATED_SOURCE` fetched before `before`, with their confirmations. Returns how many decisions it undid.
+   */
+  revertDemoDecisions(input: { moderator: string; before: Date }): Promise<number>;
 }

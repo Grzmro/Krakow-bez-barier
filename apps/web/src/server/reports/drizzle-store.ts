@@ -1,7 +1,8 @@
 import type { AccessibilityFact } from "@krakow-bez-barier/contracts";
 import { confirmations, facts, moderationLog, places, reports, sources, type Db } from "@krakow-bez-barier/db";
-import { and, asc, eq, gt, inArray, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, lt, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/server/db";
+import { DEMO_MODERATED_SOURCE } from "./demo";
 import type { ModerationEventRecord, QueueItem, ReportRecord, ReportsStore } from "./store";
 
 /** The source every accepted report is attributed to (US-4.4). */
@@ -152,7 +153,7 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
       }));
     },
 
-    async decide({ reportId, decision, note, moderator, at, toFact: buildFact }) {
+    async decide({ reportId, decision, note, moderator, demo, at, toFact: buildFact }) {
       if (!isUuid(reportId)) return { kind: "not_found" };
       return db.transaction(async (tx) => {
         const [current] = await tx.select().from(reports).where(eq(reports.id, reportId)).for("update");
@@ -170,11 +171,12 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
 
         if (decision === "accepted") {
           const fact = buildFact(toRecord(updated));
-          await tx.insert(sources).values(COMMUNITY_MODERATED_SOURCE).onConflictDoNothing();
+          const source = demo ? DEMO_MODERATED_SOURCE : COMMUNITY_MODERATED_SOURCE;
+          await tx.insert(sources).values(source).onConflictDoNothing();
           // Two reports for one place and attribute accepted at once would both insert an active fact and break the
           // unique index; this serialises them so the second supersedes the first.
           await tx.execute(
-            sql`select pg_advisory_xact_lock(hashtext(${`${COMMUNITY_MODERATED_SOURCE.id}|${fact.sourceRecordRef}|${fact.attribute}`}))`,
+            sql`select pg_advisory_xact_lock(hashtext(${`${source.id}|${fact.sourceRecordRef}|${fact.attribute}`}))`,
           );
           // Facts are never overwritten: the source's earlier fact for this place and attribute is superseded.
           await tx
@@ -182,7 +184,7 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
             .set({ status: "superseded", supersededAt: at })
             .where(
               and(
-                eq(facts.sourceId, COMMUNITY_MODERATED_SOURCE.id),
+                eq(facts.sourceId, source.id),
                 eq(facts.sourceRecordRef, fact.sourceRecordRef),
                 eq(facts.subject, "place"),
                 eq(facts.attribute, fact.attribute),
@@ -195,12 +197,12 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
             attribute: fact.attribute,
             value: fact.value,
             unit: fact.unit,
-            sourceId: COMMUNITY_MODERATED_SOURCE.id,
+            sourceId: source.id,
             sourceRecordRef: fact.sourceRecordRef,
             fetchedAt: fact.fetchedAt,
             observedAt: fact.observedAt,
             confirmedAt: fact.confirmedAt,
-            reliability: COMMUNITY_MODERATED_SOURCE.baseReliability,
+            reliability: source.baseReliability,
             evidence: { comment: fact.comment, photoUrl: fact.photoUrl },
           });
         }
@@ -215,6 +217,45 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
         .where(and(eq(reports.placeId, placeId), inArray(reports.status, ["new", "needs_info"])))
         .orderBy(asc(reports.createdAt), asc(reports.id));
       return rows.map(toRecord);
+    },
+
+    async revertDemoDecisions({ moderator, before }) {
+      return db.transaction(async (tx) => {
+        const undone = await tx
+          .delete(moderationLog)
+          .where(and(eq(moderationLog.moderator, moderator), lt(moderationLog.createdAt, before)))
+          .returning({ reportId: moderationLog.reportId });
+        for (const reportId of new Set(undone.map((u) => u.reportId))) {
+          await tx.select({ id: reports.id }).from(reports).where(eq(reports.id, reportId)).for("update");
+          const [latest] = await tx
+            .select()
+            .from(moderationLog)
+            .where(eq(moderationLog.reportId, reportId))
+            .orderBy(desc(moderationLog.createdAt), desc(moderationLog.id))
+            .limit(1);
+          await tx
+            .update(reports)
+            .set({ status: latest?.decision ?? "new", decidedAt: latest?.createdAt ?? null })
+            .where(eq(reports.id, reportId));
+        }
+
+        const expired = tx
+          .select({ id: facts.id })
+          .from(facts)
+          .where(and(eq(facts.sourceId, DEMO_MODERATED_SOURCE.id), lt(facts.fetchedAt, before)));
+        await tx.delete(confirmations).where(inArray(confirmations.factId, expired));
+        await tx.delete(facts).where(and(eq(facts.sourceId, DEMO_MODERATED_SOURCE.id), lt(facts.fetchedAt, before)));
+        // The demo source exists only while it has facts, so the source list doesn't keep it for good.
+        await tx
+          .delete(sources)
+          .where(
+            and(
+              eq(sources.id, DEMO_MODERATED_SOURCE.id),
+              sql`not exists (select 1 from ${facts} where ${facts.sourceId} = ${DEMO_MODERATED_SOURCE.id})`,
+            ),
+          );
+        return undone.length;
+      });
     },
   };
 }

@@ -36,6 +36,7 @@ export const moderator = {
   before: "Teraz",
   after: "Po zatwierdzeniu",
   afterSource: "Źródło: Społeczność, zweryfikowane przez moderatora",
+  afterSourceDemo: "Źródło: Konto demonstracyjne moderatora (zmiana tymczasowa)",
   noData: "Brak danych",
   sourceLine: (source: string, date: string) => `${source} · ${date}`,
   reportedOn: (date: string) => `Zgłoszone ${date}`,
@@ -57,6 +58,21 @@ export const moderator = {
     rejected: "Odrzucone (tryb przykładowy — nic nie trafia na serwer).",
     needs_info: "Oznaczone „Do wyjaśnienia” (tryb przykładowy). Zgłoszenie zostaje w kolejce.",
   } satisfies Record<ModerationDecisionKind, string>,
+  // Demo account (MODERATOR_DEMO_TOKEN): decisions are real but undone automatically after `minutes`.
+  decidedDemo: {
+    accepted: (minutes: number) =>
+      `Zatwierdzone na koncie demonstracyjnym. Karta miejsca pokazuje nową wartość przez ${minutes} min, potem zmiana zostanie cofnięta.`,
+    rejected: (minutes: number) => `Odrzucone na koncie demonstracyjnym. Po ${minutes} min decyzja zostanie cofnięta.`,
+    needs_info: (minutes: number) =>
+      `Oznaczone „Do wyjaśnienia” na koncie demonstracyjnym. Po ${minutes} min decyzja zostanie cofnięta.`,
+  } satisfies Record<ModerationDecisionKind, (minutes: number) => string>,
+  demo: {
+    heading: "Konto demonstracyjne",
+    body: (minutes: number) =>
+      `To konto do wypróbowania panelu. Decyzje działają naprawdę: zatwierdzone zgłoszenie od razu zmienia kartę miejsca, ze źródłem „Konto demonstracyjne moderatora (zmiana tymczasowa)”. Po ${minutes} min każdą decyzję tego konta cofamy automatycznie, więc dane miejsc nie zmieniają się na stałe.`,
+  },
+  showOnCard: "Zobacz na karcie",
+  showOnCardLabel: (place: string) => `Zobacz na karcie: ${place}`,
   alreadyDecided: "Ktoś już podjął decyzję w tej sprawie. Odświeżyłem kolejkę.",
   decideFailed: "Nie udało się zapisać decyzji. Spróbuj ponownie.",
   history: "Historia zmian",

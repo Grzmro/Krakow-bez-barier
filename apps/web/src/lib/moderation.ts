@@ -39,6 +39,8 @@ export function changePreview(report: ModerationReport, locale: Locale): ChangeP
 export type HistoryEntry = ModerationEvent & {
   key: string;
   reportId: string;
+  placeId: string;
+  placeName: string;
   /** Place, attribute and value — as a change for an approval, as what was reported otherwise. */
   summary: string;
 };
@@ -52,6 +54,8 @@ export function moderationHistory(reports: ModerationReport[], locale: Locale): 
         ...event,
         key: `${report.id}-${i}`,
         reportId: report.id,
+        placeId: report.placeId,
+        placeName: report.placeName,
         summary: m.moderator.historySummary[event.decision === "accepted" ? "accepted" : "reported"](
           report.placeName,
           m.common.attribute[report.attribute],

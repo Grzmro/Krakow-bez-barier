@@ -601,7 +601,8 @@ paths:
       summary: List reports for moderation
       description: 'Reports for moderators, oldest first, each with its decision history. Without `status` every report
         is listed, decided ones included; filter by `status=new` or `status=needs_info` for the open queue. Requires a
-        moderator bearer token; after 5 failed attempts a client is locked out for 15 minutes (`429`).
+        moderator bearer token; after 5 failed attempts a client is locked out for 15 minutes (`429`). `moderator`
+        says who is signed in and whether it is the demo account, whose decisions are undone automatically.
 
         '
       tags:
@@ -634,7 +635,10 @@ paths:
                 required:
                 - items
                 - nextCursor
+                - moderator
                 properties:
+                  moderator:
+                    $ref: '#/components/schemas/ModeratorSession'
                   items:
                     type: array
                     items:
@@ -687,6 +691,10 @@ paths:
                         moderator: anna
                         decidedAt: '2026-10-03T09:50:00Z'
                     nextCursor: null
+                    moderator:
+                      name: anna
+                      demo: false
+                      revertsAfterMinutes: null
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -703,7 +711,9 @@ paths:
         source''s earlier fact for the attribute; facts from other sources stay, so a disagreement shows as a conflict.
         `rejected` hides the report from the public card; `needs_info` keeps it in the queue. Accepted and rejected
         reports are final (`409`). Every decision is appended to the report''s history. Requires a moderator bearer
-        token (lockout as for the queue).
+        token (lockout as for the queue). The demo account (`MODERATOR_DEMO_TOKEN`) decides like any moderator, but its
+        accepted reports become facts from the source "Konto demonstracyjne moderatora (zmiana tymczasowa)" and all its
+        decisions are undone after `revertsAfterMinutes`, so the shared data is never changed for good.
 
         '
       tags:
@@ -2119,6 +2129,27 @@ components:
       - accepted
       - rejected
       - needs_info
+    ModeratorSession:
+      type: object
+      description: The signed-in moderator.
+      required:
+      - name
+      - demo
+      - revertsAfterMinutes
+      properties:
+        name:
+          type: string
+          description: Name recorded in the decision history.
+        demo:
+          type: boolean
+          description: The public demo account (credentials in the project's submission), not a real moderator.
+        revertsAfterMinutes:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          description: Demo account only — its decisions, and the facts they created, are undone this many minutes
+            after they are made. `null` for a real moderator.
     ModerationEvent:
       type: object
       description: One moderation decision in a report's history.

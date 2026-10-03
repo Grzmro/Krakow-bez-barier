@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CheckCircle, LockKey, Question, SignOut, XCircle } from "@phosphor-icons/react";
-import type { ModerationDecisionKind, ModerationReport } from "@krakow-bez-barier/contracts";
+import { CheckCircle, Flask, LockKey, Question, SignOut, XCircle } from "@phosphor-icons/react";
+import type { ModerationDecisionKind, ModerationReport, ModeratorSession } from "@krakow-bez-barier/contracts";
 import { Button, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge } from "@/components/kbb";
 import { InfoSection } from "@/components/layout/info-page";
@@ -11,6 +12,7 @@ import { useLocale, useMessages } from "@/i18n/client";
 import { api, isMockApi } from "@/lib/api";
 import { changePreview, formatDateTime, isOpen, moderationHistory, retryMinutes } from "@/lib/moderation";
 import { formatDate } from "@/lib/place-facts";
+import { routes } from "@/lib/routes";
 
 const TOKEN_KEY = "kbb.moderatorToken";
 const PAGE_SIZE = 100;
@@ -54,9 +56,12 @@ function storeToken(token: string | null) {
   for (const listener of tokenListeners) listener();
 }
 
-/** Every report, decided ones included, so the history covers the whole queue. */
-async function fetchReports(token: string): Promise<ModerationReport[]> {
+type Queue = { items: ModerationReport[]; moderator: ModeratorSession };
+
+/** Every report, decided ones included, so the history covers the whole queue; and who is signed in. */
+async function fetchReports(token: string): Promise<Queue> {
   const items: ModerationReport[] = [];
+  let moderator: ModeratorSession | undefined;
   let cursor: string | undefined;
   do {
     const { data, response } = await api.GET("/moderation/reports", {
@@ -65,9 +70,10 @@ async function fetchReports(token: string): Promise<ModerationReport[]> {
     });
     if (!data) throw new StatusError(response.status, response.headers.get("retry-after"));
     items.push(...data.items);
+    moderator = data.moderator;
     cursor = data.nextCursor ?? undefined;
   } while (cursor);
-  return items;
+  return { items, moderator: moderator! };
 }
 
 export function ModeratorScreen() {
@@ -193,6 +199,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
   const [note, setNote] = useState("");
   const noteId = useId();
   const noteHintId = useId();
+  const demoHeadingId = useId();
   // Sign-out removes every "moderation" query, so the token itself stays out of the cache key.
   const queryKey = ["moderation", "reports"];
 
@@ -211,7 +218,8 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
     if (query.isError && !expired) announce(loadError);
   }, [announce, query.isError, expired, loadError]);
 
-  const reports = query.data ?? [];
+  const reports = query.data?.items ?? [];
+  const session = query.data?.moderator;
   const open = reports.filter(isOpen);
   const current = open.find((r) => r.id === selected) ?? open[0];
 
@@ -227,7 +235,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
   useEffect(() => {
     if (!query.isSuccess || announcedLoad.current) return;
     announcedLoad.current = true;
-    announce(t.loaded(query.data.filter(isOpen).length));
+    announce(t.loaded(query.data.items.filter(isOpen).length));
   }, [announce, query.isSuccess, query.data, t]);
 
   const decide = useMutation({
@@ -240,7 +248,11 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
       return data;
     },
     onSuccess: (_report, { decision }) => {
-      const message = (isMockApi ? t.decidedMock : t.decided)[decision];
+      const message = isMockApi
+        ? t.decidedMock[decision]
+        : session?.demo && session.revertsAfterMinutes
+          ? t.decidedDemo[decision](session.revertsAfterMinutes)
+          : t.decided[decision];
       toast(message);
       announce(message);
       setNote("");
@@ -288,6 +300,19 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
           {t.signOut}
         </Button>
       </div>
+
+      {session?.demo ? (
+        <aside
+          aria-labelledby={demoHeadingId}
+          className="mt-2 rounded-[20px] bg-status-unknown-bg p-4 text-body-sm ring-1 ring-border/70"
+        >
+          <h2 id={demoHeadingId} className="flex items-center gap-2 font-display text-body font-bold">
+            <Flask weight="bold" className="size-5 shrink-0" aria-hidden />
+            {t.demo.heading}
+          </h2>
+          <p className="mt-1 text-foreground/85">{t.demo.body(session.revertsAfterMinutes ?? 0)}</p>
+        </aside>
+      ) : null}
 
       <section className="mt-2">
         <h2
@@ -357,7 +382,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
                 </dd>
               </div>
             </dl>
-            <p className="mt-2 text-caption text-muted-foreground">{t.afterSource}</p>
+            <p className="mt-2 text-caption text-muted-foreground">{session?.demo ? t.afterSourceDemo : t.afterSource}</p>
             {current.comment ? (
               <figure className="mt-3">
                 <figcaption className="text-caption text-muted-foreground">{t.comment}</figcaption>
@@ -440,6 +465,15 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
                     {t.historyEntry(entry.moderator, formatDateTime(entry.decidedAt, locale))}
                   </span>
                   {entry.note ? <span className="block text-foreground/85">„{entry.note}”</span> : null}
+                  {entry.decision === "accepted" ? (
+                    <Link
+                      href={routes.place(entry.placeId)}
+                      aria-label={t.showOnCardLabel(entry.placeName)}
+                      className="mt-1 inline-flex min-h-6 items-center font-semibold text-primary underline underline-offset-2 focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    >
+                      {t.showOnCard}
+                    </Link>
+                  ) : null}
                 </span>
                 <span className="shrink-0 font-semibold">{t.decision[entry.decision]}</span>
               </li>

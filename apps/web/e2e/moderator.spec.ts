@@ -105,6 +105,41 @@ test("approving a report from the keyboard moves it from the queue to the histor
   await evidence("moderator-decided");
 });
 
+test("the demo account is clearly marked and says when its decisions are undone", async ({
+  page,
+  expectAccessible,
+  evidence,
+}) => {
+  // GIVEN the panel signed in with the demo account's token (the mock's stand-in for MODERATOR_DEMO_TOKEN)
+  await page.goto("/moderator");
+  await page.getByLabel("Token moderatora").fill("konto-demo-0123456789");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { name: "Kolejka zgłoszeń (2)" })).toBeVisible();
+
+  // THEN a notice names the account and explains that its decisions are real but undone after 30 minutes
+  const notice = page.getByRole("complementary", { name: "Konto demonstracyjne" });
+  await expect(notice).toContainText("Po 30 min każdą decyzję tego konta cofamy automatycznie");
+  await expect(notice).toMatchAriaSnapshot({ name: "moderator-demo-notice.aria.yml" });
+  // AND the preview names the temporary demo source the approval will use
+  await expect(page.getByRole("main")).toContainText("Źródło: Konto demonstracyjne moderatora (zmiana tymczasowa)");
+  await expectAccessible();
+  await evidence("moderator-demo");
+
+  // WHEN the demo account approves the first report
+  await page.getByRole("button", { name: "Zatwierdź" }).click();
+
+  // THEN the history records it under the demo account's name with a link to the place card
+  const history = page.locator("section").filter({ has: page.getByRole("heading", { name: "Historia zmian" }) });
+  const first = history.getByRole("listitem").first();
+  await expect(first).toContainText("Podziemia Rynku · Winda → Nie ma");
+  await expect(first).toContainText("Konto demonstracyjne ·");
+  await expect(first.getByRole("link", { name: "Zobacz na karcie: Podziemia Rynku" })).toHaveAttribute(
+    "href",
+    "/miejsca/podziemia-rynku",
+  );
+  await expectAccessible();
+});
+
 test("the session survives a reload and ends with Wyloguj", async ({ page }) => {
   // GIVEN a signed-in moderator
   await page.goto("/moderator");

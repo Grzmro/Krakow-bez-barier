@@ -70,6 +70,10 @@ Bez zagadek CAPTCHA, zgodnie z WCAG 3.3.8 (dostępne uwierzytelnianie):
 - Token wpisuje się w pole hasła (działa wklejanie i menedżer haseł, bez zagadek — WCAG 3.3.8);
   panel trzyma go tylko w `sessionStorage` tej karty i wysyła jako nagłówek `Authorization: Bearer`.
 - Historia decyzji zapisuje nazwę moderatora, decyzję i datę (kto, co, kiedy — US-4.4).
+- Konto demonstracyjne dla jury: osobny token `MODERATOR_DEMO_TOKEN` (ta sama blokada po 5 próbach), w
+  panelu oznaczone „Konto demonstracyjne”. Jego zatwierdzenia trafiają do osobnego źródła „Konto
+  demonstracyjne moderatora (zmiana tymczasowa)”, a po 30 minutach wszystkie jego decyzje i fakty są
+  cofane — dane miejsc nie zmieniają się na stałe.
 - Do zrobienia przy usłudze: indywidualne konta z 2FA albo logowanie SSO operatora, rotacja tokenów.
 
 ## Bezpieczne połączenia i konfiguracja

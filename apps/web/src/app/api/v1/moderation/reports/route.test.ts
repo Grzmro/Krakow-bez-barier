@@ -2,7 +2,14 @@ import type { ModerationReport, Report } from "@krakow-bez-barier/contracts";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resolveAttribute } from "@/domain";
 import { validateResponse } from "@/server/http";
-import { COMMUNITY_MODERATED_SOURCE, pendingReportsByAttribute } from "@/server/reports";
+import {
+  COMMUNITY_MODERATED_SOURCE,
+  DEMO_MODERATED_SOURCE,
+  DEMO_MODERATOR_NAME,
+  DEMO_REVERT_MINUTES,
+  pendingReportsByAttribute,
+  revertExpiredDemoDecisions,
+} from "@/server/reports";
 import { jsonRequest, PLACE_ID, seededReportsStore } from "@/server/reports/testing";
 
 let memory = seededReportsStore();
@@ -180,5 +187,80 @@ describe("POST /api/v1/moderation/reports", () => {
 
     // THEN 404
     expect(res.status).toBe(404);
+  });
+});
+
+describe("the demo account", () => {
+  const DEMO = "konto-demo-token-0123456789";
+  const minutesFromNow = (minutes: number) => new Date(Date.now() + minutes * 60_000);
+
+  beforeEach(() => {
+    vi.stubEnv("MODERATOR_DEMO_TOKEN", DEMO);
+  });
+
+  it("signs in with MODERATOR_DEMO_TOKEN and is marked as the demo account, unlike a real moderator", async () => {
+    // WHEN the demo account and a real moderator read the queue
+    const demo = await (await list("", auth(DEMO))).json();
+    const anna = await (await list()).json();
+
+    // THEN the responses are spec-valid and say who is signed in
+    expect(validateResponse("listModerationReports", 200, demo)).toEqual([]);
+    expect(demo.moderator).toEqual({ name: DEMO_MODERATOR_NAME, demo: true, revertsAfterMinutes: DEMO_REVERT_MINUTES });
+    expect(anna.moderator).toEqual({ name: "anna", demo: false, revertsAfterMinutes: null });
+  });
+
+  it("can't be impersonated by a MODERATOR_TOKENS entry with the demo account's name", async () => {
+    // GIVEN a configured moderator named like the demo account
+    const token = "impostor-token-0123456789";
+    vi.stubEnv("MODERATOR_TOKENS", `${DEMO_MODERATOR_NAME}:${token}`);
+
+    // WHEN that token is used
+    const res = await list("", auth(token));
+
+    // THEN it does not sign in
+    expect(res.status).toBe(401);
+  });
+
+  it("accepts into a separate demo source and every decision is undone after the revert time", async () => {
+    // GIVEN a report a real moderator asked about, and a second one
+    const lift = await report("lift", false);
+    const bench = await report("bench", true);
+    await decide({ reportId: lift.id, decision: "needs_info", note: "Które wejście?" });
+
+    // WHEN the demo account accepts the first and rejects the second
+    const accepted = await decide({ reportId: lift.id, decision: "accepted" }, auth(DEMO));
+    const rejected = await decide({ reportId: bench.id, decision: "rejected" }, auth(DEMO));
+
+    // THEN the card changes at once, from the demo source, and real moderated facts are untouched
+    expect(accepted.status).toBe(200);
+    expect(rejected.status).toBe(200);
+    const demoFact = memory.facts.find((f) => f.source.id === DEMO_MODERATED_SOURCE.id);
+    expect(demoFact).toMatchObject({
+      source: { name: "Konto demonstracyjne moderatora (zmiana tymczasowa)", kind: "user_report" },
+      value: { kind: "boolean", boolean: false },
+      status: "active",
+    });
+    expect(memory.facts.some((f) => f.source.id === COMMUNITY_MODERATED_SOURCE.id)).toBe(false);
+    const queue = await (await list("", auth(DEMO))).json();
+    expect(queue.items[0].history.at(-1)).toMatchObject({ decision: "accepted", moderator: DEMO_MODERATOR_NAME });
+
+    // WHEN the revert runs just before and then after the revert time
+    const early = await revertExpiredDemoDecisions(memory.store, minutesFromNow(DEMO_REVERT_MINUTES - 1));
+    const late = await revertExpiredDemoDecisions(memory.store, minutesFromNow(DEMO_REVERT_MINUTES + 1));
+
+    // THEN nothing changes early; afterwards the reports are back where the real history left them
+    expect(early).toBe(0);
+    expect(late).toBe(2);
+    const after = await (await list()).json();
+    expect(after.items.map((r: ModerationReport) => [r.status, r.decidedAt === null])).toEqual([
+      ["needs_info", false],
+      ["new", true],
+    ]);
+    expect(after.items[0].history).toEqual([expect.objectContaining({ decision: "needs_info", moderator: "anna" })]);
+    // AND the demo fact is gone, so the card and its pending reports look as before the demo
+    expect(memory.facts.some((f) => f.source.id === DEMO_MODERATED_SOURCE.id)).toBe(false);
+    expect(resolveAttribute("lift", memory.facts)).toMatchObject({ state: "known", value: { boolean: true } });
+    const pending = await pendingReportsByAttribute(memory.store, PLACE_ID);
+    expect([...pending.keys()].sort()).toEqual(["bench", "lift"]);
   });
 });

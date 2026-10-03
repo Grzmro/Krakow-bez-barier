@@ -37,13 +37,13 @@ describe.skipIf(!url)("place card with pending reports (database)", () => {
     expect(pending.pendingReports?.map((r) => r.id)).toEqual([rejected.id, accepted.id]);
 
     // WHEN a moderator rejects one
-    await decideReport(store, { reportId: rejected.id, decision: "rejected" }, "anna");
+    await decideReport(store, { reportId: rejected.id, decision: "rejected" }, { name: "anna", demo: false });
 
     // THEN it no longer shows on the card
     expect((await read()).pendingReports?.map((r) => r.id)).toEqual([accepted.id]);
 
     // WHEN the moderator accepts the other
-    await decideReport(store, { reportId: accepted.id, decision: "accepted" }, "anna");
+    await decideReport(store, { reportId: accepted.id, decision: "accepted" }, { name: "anna", demo: false });
 
     // THEN the card shows it as a moderated community fact, not as a pending report
     const known = await read();

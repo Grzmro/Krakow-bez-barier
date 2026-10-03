@@ -58,6 +58,7 @@ database tasks on GitHub Actions. Steps marked **owner** need repository admin r
    | `DATABASE_URL` | the pooled string |
    | `NEXT_PUBLIC_API_MOCK` | leave unset: the real API is the default (`true` = example data; read at **build** time) |
    | `MODERATOR_TOKENS` | `name:token`, token from `openssl rand -hex 24`; empty keeps moderation closed |
+   | `MODERATOR_DEMO_TOKEN` | the jury's demo moderator account (16+ characters); its decisions are undone after 30 min. Goes into the HackTribe instructions (`docs/submission/hacktribe.md`); empty disables the account |
    | `ORS_API_KEY` | only when routes (KBB-22) are used |
 
    Leave `SIMULATE_SOURCE_OUTAGE` unset. Previews: set `NEXT_PUBLIC_API_MOCK=true`

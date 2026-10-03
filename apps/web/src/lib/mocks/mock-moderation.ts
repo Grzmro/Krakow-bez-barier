@@ -2,6 +2,7 @@ import {
   responseExamples,
   type ModerationDecision,
   type ModerationReport,
+  type ModeratorSession,
   type Problem,
   type Report,
   type ReportStatus,
@@ -12,6 +13,14 @@ import {
 
 /** Moderator name recorded in the mock history; the real API takes it from `MODERATOR_TOKENS`. */
 export const MOCK_MODERATOR = "demo";
+
+/** Signs in as the demo account (the real API: `MODERATOR_DEMO_TOKEN`), so its notice can be shown and tested. */
+export const MOCK_DEMO_TOKEN = "konto-demo-0123456789";
+
+const session = (token: string): ModeratorSession =>
+  token === MOCK_DEMO_TOKEN
+    ? { name: "Konto demonstracyjne", demo: true, revertsAfterMinutes: 30 }
+    : { name: MOCK_MODERATOR, demo: false, revertsAfterMinutes: null };
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -32,13 +41,16 @@ export function withModerationMocks(fallback: Fetch, reports: ModerationReport[]
     const url = new URL(input.url, "http://mock.local");
     if (url.pathname.replace(/^.*\/api\/v1/, "") !== "/moderation/reports") return fallback(input);
 
-    if (!/^Bearer\s+\S/i.test(input.headers.get("authorization") ?? "")) {
-      return problem(401, "Unauthorized", "A valid moderator token is required.");
-    }
+    const token = /^Bearer\s+(\S.*)$/i.exec(input.headers.get("authorization") ?? "")?.[1]?.trim();
+    if (!token) return problem(401, "Unauthorized", "A valid moderator token is required.");
 
     if (input.method === "GET") {
       const status = url.searchParams.get("status") as ReportStatus | null;
-      return json({ items: reports.filter((r) => !status || r.status === status), nextCursor: null });
+      return json({
+        items: reports.filter((r) => !status || r.status === status),
+        nextCursor: null,
+        moderator: session(token),
+      });
     }
 
     if (input.method === "POST") {
@@ -51,7 +63,7 @@ export function withModerationMocks(fallback: Fetch, reports: ModerationReport[]
       const decidedAt = new Date().toISOString();
       report.status = body.decision;
       report.decidedAt = decidedAt;
-      report.history.push({ decision: body.decision, note: body.note?.trim() || null, moderator: MOCK_MODERATOR, decidedAt });
+      report.history.push({ decision: body.decision, note: body.note?.trim() || null, moderator: session(token).name, decidedAt });
       const { id, placeId, attribute, value, comment, photoUrl, status, createdAt } = report;
       return json({ id, placeId, attribute, value, comment, photoUrl, status, createdAt, decidedAt } satisfies Report);
     }
