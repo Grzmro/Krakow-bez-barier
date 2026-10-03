@@ -115,9 +115,11 @@ E2E_SPECS="e2e/route.spec.ts e2e/home.spec.ts" scripts/merge-pr.sh
 
 CI only runs lint, typecheck and unit tests (fast); build and e2e run on this machine inside the
 script, on the rebased commit. **E2E runs only the specs of the screens you changed**: pass them in
-`E2E_SPECS` (paths relative to `apps/web`, or as arguments after the PR number). Without it the script
-takes the spec files changed vs `origin/main` (incl. their `-snapshots/`), and stops with an error
-when the change touches `apps/web/src` or `packages/ui` but no spec is selected. A `*.prod.spec.ts` in
+`E2E_SPECS` (paths relative to `apps/web`, no globs, or as arguments after the PR number). The script
+adds the spec files changed vs `origin/main` (incl. their `-snapshots/`), and stops with an error
+when the change can affect the UI — `apps/web` code (server and API too), public files, e2e helpers or
+config, `packages/ui`, `packages/contracts` — but no spec is selected (an API-only change: name e.g.
+`e2e/public-api.spec.ts`). A `*.prod.spec.ts` in
 the list runs with `E2E_PROD=1` on the fresh build. `scripts/merge-pr.sh --print-specs` shows the
 selection without running anything. It retries up to 3 rounds when `main` moves and exits non-zero (PR
 stays open) on a rebase conflict, a red local gate or red CI. Fix, then run it again. Don't merge

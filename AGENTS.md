@@ -124,8 +124,9 @@ Planned — add them here when the task lands: `cp .env.example .env` + `docker 
 
 CI (`.github/workflows/ci.yml`) is deliberately tiny — lint, typecheck, unit (~30 s). Build and e2e
 run locally: `scripts/merge-pr.sh` runs lint, typecheck, unit, build and the e2e specs of the changed
-screens on the rebased commit before merging (`E2E_SPECS`, default: spec files changed vs `origin/main`;
-a UI change with no spec selected is an error; `--print-specs` shows the selection).
+screens on the rebased commit before merging (`E2E_SPECS` plus the spec files changed vs `origin/main`;
+a change to `apps/web`, `packages/ui` or `packages/contracts` with no spec selected is an error;
+`--print-specs` shows the selection).
 
 **Keep tests fast** — local gate within a couple of minutes, CI within ~30 s:
 - unit tests (Vitest) for logic; no network, no DB unless the test is about the DB;

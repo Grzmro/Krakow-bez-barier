@@ -65,5 +65,5 @@ copy and interactions; requirements in `docs/requirements.md` win where they dif
   (axe WCAG 2.2 A/AA, zero violations) and an `evidence()` screenshot. axe catches roughly a third of
   issues — still do a keyboard pass; VoiceOver checks are manual, say so in the PR.
 - Run only the specs of the screens you changed (`npm run test:e2e -- e2e/<screen>.spec.ts`) and pass the
-  same list to `scripts/merge-pr.sh` (`E2E_SPECS`). Changed a shared component (`components/`,
+  same list to `scripts/merge-pr.sh` (`E2E_SPECS`; it adds the spec files you changed). Changed a shared component (`components/`,
   `packages/ui`)? Add the specs of the screens that use it. Never the full suite by default.

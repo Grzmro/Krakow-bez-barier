@@ -5,9 +5,10 @@
 #
 # Usage: [E2E_SPECS="e2e/a.spec.ts e2e/b.prod.spec.ts"] scripts/merge-pr.sh [PR-number] [spec ...]
 #        scripts/merge-pr.sh --print-specs [spec ...]   # show the e2e selection for HEAD vs origin/main, run nothing
-# E2E specs (paths relative to apps/web): the ones given (args or E2E_SPECS), else the spec files changed vs
-# origin/main (a changed `<name>.spec.ts-snapshots/` counts as its spec). A UI change (apps/web/src, packages/ui)
-# with no spec selected is an error: name the specs of the screens you changed. The full suite never runs by default.
+# E2E specs (paths relative to apps/web, no globs): the ones given (args or E2E_SPECS) plus the spec files changed
+# vs origin/main (a changed `<name>.spec.ts-snapshots/` counts as its spec). A change that can affect the UI
+# (apps/web code, public, e2e helpers or config, packages/ui, packages/contracts) with no spec selected is an
+# error: name the specs of the screens you changed. The full suite never runs by default.
 # *.prod.spec.ts run (with E2E_PROD=1, on the fresh build) only when selected.
 # Exit codes: 0 merged, 1 local gate / CI red / conflict / no specs for a UI change / gave up (PR stays open).
 set -euo pipefail
@@ -27,29 +28,35 @@ for arg in "$@"; do
   esac
 done
 
-# Prints the selected specs (one per line, relative to apps/web); fails when a UI change has none.
+# What the dev-server specs render: app code, its static files and config, the e2e helpers, shared UI and the
+# contract (its examples are the specs' sample data).
+UI_PATHS="^($WEB_DIR/(src|public|e2e)/|$WEB_DIR/[^/]+\.(ts|mjs|json)\$|packages/(ui|contracts)/)"
+
+# Prints the selected specs (one per line, relative to apps/web): the given ones plus the changed ones.
+# Fails when a given spec is missing, or when the change can affect the UI and nothing is selected.
 select_specs() {
   local changed spec specs=""
-  if [ -n "${given// /}" ]; then
-    for spec in $given; do
-      spec="${spec#./}"
-      spec="${spec#"$WEB_DIR"/}"
-      if [ ! -f "$WEB_DIR/$spec" ]; then
-        echo "E2E spec not found: $WEB_DIR/$spec" >&2
-        return 1
-      fi
-      specs="$specs$spec"$'\n'
-    done
-  else
-    changed="$(git diff --name-only --diff-filter=d origin/main...HEAD)"
-    specs="$(printf '%s\n' "$changed" \
-      | sed -n -e "s#^$WEB_DIR/\(e2e/.*\.spec\.ts\)\$#\1#p" -e "s#^$WEB_DIR/\(e2e/[^/]*\.spec\.ts\)-snapshots/.*#\1#p" \
-      | while read -r spec; do [ -f "$WEB_DIR/$spec" ] && echo "$spec"; done)"
-    if [ -z "$specs" ] && printf '%s\n' "$changed" | grep -qE "^($WEB_DIR/src|packages/ui)/"; then
-      echo "This change touches the UI ($WEB_DIR/src or packages/ui) but no e2e spec changed." >&2
-      echo "Name the specs of the screens you changed, e.g.: E2E_SPECS=\"e2e/route.spec.ts\" scripts/merge-pr.sh" >&2
+  set -f
+  for spec in $given; do
+    spec="${spec#./}"
+    spec="${spec#"$WEB_DIR"/}"
+    if [ ! -f "$WEB_DIR/$spec" ]; then
+      set +f
+      echo "E2E spec not found: $WEB_DIR/$spec (paths relative to $WEB_DIR, no globs)" >&2
       return 1
     fi
+    specs="$specs$spec"$'\n'
+  done
+  set +f
+  changed="$(git diff --name-only --diff-filter=d origin/main...HEAD)"
+  for spec in $(printf '%s\n' "$changed" \
+    | sed -n -e "s#^$WEB_DIR/\(e2e/.*\.spec\.ts\)\$#\1#p" -e "s#^$WEB_DIR/\(e2e/[^/]*\.spec\.ts\)-snapshots/.*#\1#p"); do
+    if [ -f "$WEB_DIR/$spec" ]; then specs="$specs$spec"$'\n'; fi
+  done
+  if [ -z "${specs//$'\n'/}" ] && printf '%s\n' "$changed" | grep -qE "$UI_PATHS"; then
+    echo "This change can affect the UI (app code, e2e helpers, packages/ui or the contract) but no e2e spec changed." >&2
+    echo "Name the specs of the screens you changed, e.g.: E2E_SPECS=\"e2e/route.spec.ts\" scripts/merge-pr.sh" >&2
+    return 1
   fi
   printf '%s' "$specs" | sed '/^$/d' | sort -u
 }
