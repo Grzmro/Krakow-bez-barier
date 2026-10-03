@@ -1,0 +1,2027 @@
+openapi: 3.1.0
+info:
+  title: Kraków bez barier API
+  version: 1.0.0
+  summary: Read/write API for accessibility facts about places in Kraków.
+  description: 'Spec-first contract (v1) shared by `apps/web` (route handlers) and every client.
+
+    Types and the typed client are generated from this file (`npm run contracts:generate`).
+
+
+    Product invariants encoded here:
+
+    - Every accessibility value is an `AccessibilityFact` carrying its source, `fetchedAt` and reliability.
+
+    - Unknown is not accessible: a missing value is reported as `unknown` ("Brak danych"), never as met.
+
+    - Conflicting sources are returned side by side (`state: conflict`), never merged silently.
+
+    - Facts from a source that failed to refresh keep their last value and are marked `stale`.
+
+    - Sample data has `reliability: sample` and sources of kind `sample` (UI label "PRZYKŁAD").
+
+    - No personal data: reports and confirmations carry no e-mail and no IP address.
+
+    '
+  license:
+    name: MIT
+    identifier: MIT
+servers:
+- url: /api/v1
+  description: Same-origin Next.js route handlers
+tags:
+- name: places
+  description: Search and read places with their accessibility facts.
+- name: sources
+  description: Data sources, licences and refresh status.
+- name: reports
+  description: Anonymous user corrections and confirmations.
+- name: moderation
+  description: Moderator queue (authenticated).
+- name: routes
+  description: Accessible routing.
+- name: widget
+  description: Read-only embeddable card for venues and organisers.
+paths:
+  /places:
+    get:
+      operationId: listPlaces
+      summary: Search places
+      description: 'Full-text and filtered search. Feature filters keep only places whose attribute is *known* to be met;
+
+        set `includeUnknown=true` to also return places with no data for the filter (they are marked unknown in `summary`).
+
+        '
+      tags:
+      - places
+      parameters:
+      - name: q
+        in: query
+        description: Free text matched against name and address.
+        schema:
+          type: string
+          maxLength: 200
+      - name: category
+        in: query
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+        style: form
+        explode: false
+      - name: feature
+        in: query
+        description: Feature filters (e.g. `step_free`, `lift`, `toilet_accessible`).
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/FeatureFilter'
+        style: form
+        explode: false
+      - name: bbox
+        in: query
+        description: Bounding box `minLon,minLat,maxLon,maxLat` (WGS84).
+        schema:
+          type: array
+          items:
+            type: number
+          minItems: 4
+          maxItems: 4
+        style: form
+        explode: false
+      - name: includeUnknown
+        in: query
+        description: Also return places with no data for the requested features.
+        schema:
+          type: boolean
+          default: false
+      - name: profile
+        in: query
+        description: Optional needs profile; adds `verdict` to every summary. Thresholds default to the profile's presets.
+        schema:
+          $ref: '#/components/schemas/Profile'
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: cursor
+        in: query
+        description: Opaque cursor from `nextCursor`.
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Matching places (possibly empty).
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlaceList'
+              examples:
+                withUnknown:
+                  summary: Step-free filter with includeUnknown=true
+                  value:
+                    items:
+                    - id: palac-krzysztofory
+                      name: Pałac Krzysztofory
+                      category: museum
+                      location:
+                        type: Point
+                        coordinates:
+                        - 19.9381
+                        - 50.0623
+                      address:
+                        street: Rynek Główny
+                        houseNumber: '35'
+                        postalCode: 31-010
+                        city: Kraków
+                      summary:
+                      - attribute: step_count
+                        state: known
+                        status: confirmed
+                        label: Wejście bez stopni
+                      - attribute: toilet_accessible
+                        state: conflict
+                        status: conflict
+                        label: 'Toaleta: sprzeczne dane'
+                      - attribute: lift
+                        state: unknown
+                        status: no_data
+                        label: 'Winda: brak danych'
+                      verdict: null
+                      isSample: true
+                    - id: kawiarnia-przyklad
+                      name: Kawiarnia Przykład
+                      category: restaurant
+                      location:
+                        type: Point
+                        coordinates:
+                        - 19.9445
+                        - 50.0612
+                      address:
+                        street: ul. Floriańska
+                        houseNumber: '12'
+                        postalCode: 31-021
+                        city: Kraków
+                      summary:
+                      - attribute: step_count
+                        state: unknown
+                        status: no_data
+                        label: 'Wejście: brak danych'
+                      - attribute: toilet_accessible
+                        state: unknown
+                        status: no_data
+                        label: 'Toaleta: brak danych'
+                      verdict: null
+                      isSample: true
+                    nextCursor: null
+                    total: 2
+                empty:
+                  summary: No results
+                  value:
+                    items: []
+                    nextCursor: null
+                    total: 0
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /places/{id}:
+    get:
+      operationId: getPlace
+      summary: Get a place with all accessibility facts
+      description: 'Returns every attribute resolved to a state (`known`, `unknown`, `conflict`, `stale`) together with the
+        underlying facts.
+
+        Conflicting facts are all returned. Facts from unavailable sources stay present and are marked `stale`.
+
+        '
+      tags:
+      - places
+      parameters:
+      - $ref: '#/components/parameters/PlaceId'
+      - name: profile
+        in: query
+        schema:
+          $ref: '#/components/schemas/Profile'
+      responses:
+        '200':
+          description: The place.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Place'
+              examples:
+                conflicting:
+                  $ref: '#/components/examples/PlaceConflict'
+                  summary: Demo 1 — conflicting sources (toilet differs between ZIW and OSM)
+                noData:
+                  $ref: '#/components/examples/PlaceNoData'
+                  summary: Demo 2 — incomplete (no facts at all)
+                outdated:
+                  $ref: '#/components/examples/PlaceOutdated'
+                  summary: Demo 3 — outdated data (last confirmed 2022)
+                sourceUnavailable:
+                  $ref: '#/components/examples/PlaceSourceUnavailable'
+                  summary: Demo 4 — source unavailable (ZIW outage, last data kept and marked stale)
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /sources:
+    get:
+      operationId: listSources
+      summary: List data sources
+      description: Sources with licence, attribution and refresh status. A source in `outage` still serves its last data (marked
+        stale).
+      tags:
+      - sources
+      responses:
+        '200':
+          description: All known sources.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - items
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Source'
+              examples:
+                default:
+                  summary: Includes an unavailable source
+                  value:
+                    items:
+                    - id: osm
+                      name: OpenStreetMap
+                      kind: community
+                      license: ODbL 1.0
+                      attribution: © OpenStreetMap contributors
+                      url: https://www.openstreetmap.org
+                      refreshInterval: daily
+                      refreshStatus: ok
+                      lastSuccessAt: '2026-10-03T03:00:00Z'
+                      lastAttemptAt: '2026-10-03T03:00:00Z'
+                      statusNote: null
+                      isSample: false
+                    - id: ziw
+                      name: Zintegrowany Informator Wojewódzki (ZIW)
+                      kind: official_open_data
+                      license: Do sprawdzenia
+                      attribution: null
+                      url: https://msim3.um.krakow.pl
+                      refreshInterval: daily
+                      refreshStatus: outage
+                      lastSuccessAt: '2023-11-14T03:00:00Z'
+                      lastAttemptAt: '2026-10-03T03:00:00Z'
+                      statusNote: Źródło niedostępne (HTTP 404). Pokazujemy ostatnie znane dane jako nieaktualne.
+                      isSample: false
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reports:
+    post:
+      operationId: createReport
+      summary: Submit a correction (anonymous)
+      description: 'Creates a user report with status `new`. No account, no e-mail, no IP is stored.
+
+        Photos are uploaded separately and referenced by `photoUrl` (EXIF stripped server-side).
+
+        '
+      tags:
+      - reports
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportCreate'
+            examples:
+              elevatorBroken:
+                summary: Elevator reported as not working
+                value:
+                  placeId: podziemia-rynku
+                  attribute: lift
+                  value:
+                    kind: boolean
+                    boolean: false
+                  comment: Winda nie działa od tygodnia.
+              doorWidth:
+                summary: Door width in cm
+                value:
+                  placeId: hotel-przyklad
+                  attribute: door_width_cm
+                  value:
+                    kind: number
+                    number: 90
+                    unit: cm
+      responses:
+        '201':
+          description: Report accepted for moderation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+              examples:
+                created:
+                  value:
+                    id: rep_01J9Z3KQ8M
+                    placeId: podziemia-rynku
+                    attribute: lift
+                    value:
+                      kind: boolean
+                      boolean: false
+                    comment: Winda nie działa od tygodnia.
+                    photoUrl: null
+                    status: new
+                    createdAt: '2026-10-03T09:12:00Z'
+                    decidedAt: null
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /places/{id}/confirmations:
+    post:
+      operationId: createConfirmation
+      summary: Confirm a current fact ("still true")
+      description: Adds an anonymous confirmation to an existing fact; may raise its confirmedAt/reliability after moderation
+        rules.
+      tags:
+      - reports
+      parameters:
+      - $ref: '#/components/parameters/PlaceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmationCreate'
+            examples:
+              default:
+                value:
+                  factId: fact_osm_podziemia_lift
+                  comment: Sprawdzone dziś
+                  winda działa.: null
+      responses:
+        '201':
+          description: Confirmation recorded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Confirmation'
+              examples:
+                created:
+                  value:
+                    id: conf_01J9Z4A1XD
+                    placeId: podziemia-rynku
+                    factId: fact_osm_podziemia_lift
+                    comment: Sprawdzone dziś, winda działa.
+                    createdAt: '2026-10-03T09:30:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /moderation/reports:
+    get:
+      operationId: listModerationReports
+      summary: List reports for moderation
+      description: Moderator queue. Requires a bearer token.
+      tags:
+      - moderation
+      security:
+      - bearerAuth: []
+      parameters:
+      - name: status
+        in: query
+        schema:
+          $ref: '#/components/schemas/ReportStatus'
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 25
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Reports in the queue.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - items
+                - nextCursor
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ModerationReport'
+                  nextCursor:
+                    type:
+                    - string
+                    - 'null'
+              examples:
+                queue:
+                  value:
+                    items:
+                    - id: rep_01J9Z3KQ8M
+                      placeId: podziemia-rynku
+                      placeName: Podziemia Rynku
+                      attribute: lift
+                      value:
+                        kind: boolean
+                        boolean: false
+                      currentValue:
+                        kind: boolean
+                        boolean: true
+                      comment: Winda nie działa od tygodnia.
+                      photoUrl: null
+                      status: new
+                      createdAt: '2026-10-03T09:12:00Z'
+                      decidedAt: null
+                    nextCursor: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    post:
+      operationId: decideModerationReport
+      summary: Accept or reject a report
+      description: Accepting turns the report into an `AccessibilityFact` (source kind `user_report`). Requires a bearer token.
+      tags:
+      - moderation
+      security:
+      - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ModerationDecision'
+            examples:
+              accept:
+                value:
+                  reportId: rep_01J9Z3KQ8M
+                  decision: accepted
+              reject:
+                value:
+                  reportId: rep_01J9Z3KQ8M
+                  decision: rejected
+                  note: Brak potwierdzenia.
+      responses:
+        '200':
+          description: Updated report.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+              examples:
+                accepted:
+                  value:
+                    id: rep_01J9Z3KQ8M
+                    placeId: podziemia-rynku
+                    attribute: lift
+                    value:
+                      kind: boolean
+                      boolean: false
+                    comment: Winda nie działa od tygodnia.
+                    photoUrl: null
+                    status: accepted
+                    createdAt: '2026-10-03T09:12:00Z'
+                    decidedAt: '2026-10-03T10:00:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /routes:
+    post:
+      operationId: createRoute
+      summary: Compute an accessible route
+      description: 'Returns a route split into segments. Each segment has a state; segments without data are `unknown`
+
+        and are never treated as barrier-free. Without `profile` the route only avoids known stairs when `avoidStairs` is
+        set.
+
+        '
+      tags:
+      - routes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouteRequest'
+            examples:
+              noStairs:
+                value:
+                  from:
+                    type: Point
+                    coordinates:
+                    - 19.9449
+                    - 50.0647
+                  to:
+                    type: Point
+                    coordinates:
+                    - 19.9373
+                    - 50.0619
+                  avoidStairs: true
+                  profile: wheelchair
+      responses:
+        '200':
+          description: Computed route.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Route'
+              examples:
+                noStairs:
+                  summary: Avoid-stairs route with one unknown segment
+                  value:
+                    kind: avoid_stairs
+                    durationMinutes: 16
+                    distanceMeters: 1200
+                    geometry:
+                      type: LineString
+                      coordinates:
+                      - - 19.9449
+                        - 50.0647
+                      - - 19.9412
+                        - 50.0635
+                      - - 19.9373
+                        - 50.0619
+                    knownBarrierCount: 0
+                    unknownSegmentCount: 1
+                    unknownMeters: 140
+                    segments:
+                    - id: 1
+                      name: Dworzec Główny – ul. Basztowa
+                      instruction: Przejdź podziemnym przejściem windą
+                      lengthMeters: 320
+                      state: met
+                      facts: []
+                      geometry:
+                        type: LineString
+                        coordinates:
+                        - - 19.9449
+                          - 50.0647
+                        - - 19.9425
+                          - 50.0641
+                    - id: 2
+                      name: ul. Szpitalna
+                      instruction: Skręć w lewo
+                      lengthMeters: 140
+                      state: unknown
+                      facts: []
+                      geometry:
+                        type: LineString
+                        coordinates:
+                        - - 19.9425
+                          - 50.0641
+                        - - 19.9412
+                          - 50.0635
+                    attribution: © OpenStreetMap contributors, openrouteservice
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '422':
+          $ref: '#/components/responses/Unprocessable'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /widget/{placeId}:
+    get:
+      operationId: getWidgetCard
+      summary: Embeddable card data for a place
+      description: Compact read-only subset of a place for venue websites. Includes attribution required by source licences.
+      tags:
+      - widget
+      parameters:
+      - name: placeId
+        in: path
+        required: true
+        schema:
+          type: string
+      - name: profile
+        in: query
+        schema:
+          $ref: '#/components/schemas/Profile'
+      responses:
+        '200':
+          description: Widget card.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WidgetCard'
+              examples:
+                hotel:
+                  value:
+                    placeId: hotel-przyklad
+                    name: Hotel Przykład
+                    verdict:
+                      state: unknown
+                      reasons:
+                      - Brak danych o przewijaku
+                    facts:
+                    - attribute: door_width_cm
+                      state: known
+                      value:
+                        kind: number
+                        number: 90
+                        unit: cm
+                      reliability: confirmed
+                      status: confirmed
+                      sourceName: Dane obiektu
+                      fetchedAt: '2026-09-12T08:00:00Z'
+                    - attribute: changing_table
+                      state: unknown
+                      value: null
+                      reliability: null
+                      status: no_data
+                      sourceName: null
+                      fetchedAt: null
+                    attribution: © OpenStreetMap contributors
+                    isSample: true
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Moderator token.
+  parameters:
+    PlaceId:
+      name: id
+      in: path
+      required: true
+      description: Stable place identifier (slug or OSM-derived id).
+      schema:
+        type: string
+        examples:
+        - palac-krzysztofory
+  responses:
+    BadRequest:
+      description: Malformed request.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            default:
+              value:
+                type: https://krakow-bez-barier.example/problems/bad-request
+                title: Bad request
+                status: 400
+                detail: Query parameter "bbox" must contain four numbers.
+    Unauthorized:
+      description: Missing or invalid credentials.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            default:
+              value:
+                type: https://krakow-bez-barier.example/problems/unauthorized
+                title: Unauthorized
+                status: 401
+    Forbidden:
+      description: Authenticated but not a moderator.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            default:
+              value:
+                type: https://krakow-bez-barier.example/problems/forbidden
+                title: Forbidden
+                status: 403
+    NotFound:
+      description: Resource not found.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            default:
+              value:
+                type: https://krakow-bez-barier.example/problems/not-found
+                title: Not found
+                status: 404
+                detail: Place "xyz" does not exist.
+    Unprocessable:
+      description: Request is well formed but semantically invalid (e.g. value does not fit the attribute).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            default:
+              value:
+                type: https://krakow-bez-barier.example/problems/unprocessable
+                title: Unprocessable
+                status: 422
+                detail: Attribute "door_width_cm" requires a number between 10 and 300.
+                errors:
+                - field: value.number
+                  message: must be between 10 and 300
+    TooManyRequests:
+      description: Rate limit exceeded.
+      headers:
+        Retry-After:
+          description: Seconds to wait.
+          schema:
+            type: integer
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            default:
+              value:
+                type: https://krakow-bez-barier.example/problems/rate-limited
+                title: Too many requests
+                status: 429
+    BadGateway:
+      description: Routing provider unavailable.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            default:
+              value:
+                type: https://krakow-bez-barier.example/problems/upstream-unavailable
+                title: Routing provider unavailable
+                status: 502
+    ServerError:
+      description: Unexpected server error.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            default:
+              value:
+                type: https://krakow-bez-barier.example/problems/internal
+                title: Internal server error
+                status: 500
+  schemas:
+    Problem:
+      type: object
+      description: RFC 9457 problem details.
+      required:
+      - type
+      - title
+      - status
+      properties:
+        type:
+          type: string
+          format: uri-reference
+        title:
+          type: string
+        status:
+          type: integer
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri-reference
+        errors:
+          type: array
+          items:
+            type: object
+            required:
+            - field
+            - message
+            properties:
+              field:
+                type: string
+              message:
+                type: string
+    Category:
+      type: string
+      enum:
+      - restaurant
+      - museum
+      - toilet
+      - hotel
+      - monument
+      - theatre
+      - shop
+      - other
+    AccessibilityAttribute:
+      type: string
+      description: Shared vocabulary of measurable accessibility attributes.
+      enum:
+      - step_count
+      - step_height_cm
+      - threshold_cm
+      - ramp
+      - lift
+      - door_width_cm
+      - entrance_level
+      - toilet_accessible
+      - changing_table
+      - surface
+      - smoothness
+      - incline_pct
+      - kerb_height_cm
+      - bench
+      - disabled_parking
+      - wheelchair_overall
+    FeatureFilter:
+      type: string
+      description: Quick filter shown on the home screen; each maps to one or more attributes.
+      enum:
+      - step_free
+      - lift
+      - toilet_accessible
+      - bench
+      - disabled_parking
+      - changing_table
+    Profile:
+      type: string
+      description: Optional needs profile (stored only in the browser, sent as a plain parameter).
+      enum:
+      - wheelchair
+      - stroller
+    Reliability:
+      type: string
+      description: Grade of the underlying fact, strongest first.
+      enum:
+      - confirmed
+      - community
+      - extracted
+      - user_report
+      - inferred
+      - sample
+    ReliabilityStatus:
+      type: string
+      description: 'User-facing status: potwierdzone, niezweryfikowane, nieaktualne, sprzeczne, brak danych.'
+      enum:
+      - confirmed
+      - unverified
+      - outdated
+      - conflict
+      - no_data
+    FactStatus:
+      type: string
+      enum:
+      - active
+      - superseded
+      - disputed
+    ResolvedState:
+      type: string
+      description: State of an attribute after resolving all its facts. `unknown` never means accessible.
+      enum:
+      - known
+      - unknown
+      - conflict
+      - stale
+    NeedVerdict:
+      type: string
+      enum:
+      - met
+      - barrier
+      - unknown
+      - conflict
+    SourceKind:
+      type: string
+      enum:
+      - official_open_data
+      - community
+      - venue_owner
+      - user_report
+      - sample
+    SourceRefreshStatus:
+      type: string
+      enum:
+      - ok
+      - stale
+      - outage
+      - never
+    ReportStatus:
+      type: string
+      enum:
+      - new
+      - accepted
+      - rejected
+    Point:
+      type: object
+      description: GeoJSON Point, WGS84, `[lon, lat]`.
+      required:
+      - type
+      - coordinates
+      properties:
+        type:
+          const: Point
+        coordinates:
+          type: array
+          items:
+            type: number
+          minItems: 2
+          maxItems: 2
+    LineString:
+      type: object
+      description: GeoJSON LineString, WGS84, `[lon, lat]`.
+      required:
+      - type
+      - coordinates
+      properties:
+        type:
+          const: LineString
+        coordinates:
+          type: array
+          minItems: 2
+          items:
+            type: array
+            items:
+              type: number
+            minItems: 2
+            maxItems: 2
+    FactValue:
+      description: Typed attribute value.
+      oneOf:
+      - type: object
+        required:
+        - kind
+        - boolean
+        properties:
+          kind:
+            const: boolean
+          boolean:
+            type: boolean
+      - type: object
+        required:
+        - kind
+        - number
+        properties:
+          kind:
+            const: number
+          number:
+            type: number
+          unit:
+            type: string
+            enum:
+            - cm
+            - pct
+            - count
+            - m
+      - type: object
+        required:
+        - kind
+        - text
+        properties:
+          kind:
+            const: text
+          text:
+            type: string
+            description: Controlled value, e.g. "flat", "cobblestone".
+      discriminator:
+        propertyName: kind
+    Source:
+      type: object
+      required:
+      - id
+      - name
+      - kind
+      - license
+      - refreshStatus
+      - lastSuccessAt
+      properties:
+        id:
+          type: string
+          examples:
+          - osm
+        name:
+          type: string
+        kind:
+          $ref: '#/components/schemas/SourceKind'
+        license:
+          type: string
+          examples:
+          - ODbL 1.0
+        attribution:
+          type:
+          - string
+          - 'null'
+        url:
+          type:
+          - string
+          - 'null'
+          format: uri
+        refreshInterval:
+          type:
+          - string
+          - 'null'
+          description: Human readable cadence, e.g. "daily".
+        refreshStatus:
+          $ref: '#/components/schemas/SourceRefreshStatus'
+        lastSuccessAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        lastAttemptAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        statusNote:
+          type:
+          - string
+          - 'null'
+        isSample:
+          type: boolean
+          default: false
+    AccessibilityFact:
+      type: object
+      required:
+      - id
+      - attribute
+      - value
+      - source
+      - fetchedAt
+      - reliability
+      - status
+      properties:
+        id:
+          type: string
+        attribute:
+          $ref: '#/components/schemas/AccessibilityAttribute'
+        value:
+          $ref: '#/components/schemas/FactValue'
+        unit:
+          type:
+          - string
+          - 'null'
+          description: Convenience copy of `value.unit`.
+        source:
+          type: object
+          required:
+          - id
+          - name
+          - kind
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            kind:
+              $ref: '#/components/schemas/SourceKind'
+            recordRef:
+              type:
+              - string
+              - 'null'
+              description: Id of the record in the source (e.g. OSM node id).
+        fetchedAt:
+          type: string
+          format: date-time
+        observedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        confirmedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+        reliability:
+          $ref: '#/components/schemas/Reliability'
+        evidence:
+          type:
+          - object
+          - 'null'
+          properties:
+            photoUrl:
+              type:
+              - string
+              - 'null'
+              format: uri
+            comment:
+              type:
+              - string
+              - 'null'
+            confirmations:
+              type: integer
+              minimum: 0
+        status:
+          $ref: '#/components/schemas/FactStatus'
+        stale:
+          type: boolean
+          description: True when the source failed to refresh or the fact is older than 12 months.
+          default: false
+    ResolvedAttribute:
+      type: object
+      description: One attribute of a place after resolving its facts.
+      required:
+      - attribute
+      - state
+      - status
+      - facts
+      properties:
+        attribute:
+          $ref: '#/components/schemas/AccessibilityAttribute'
+        state:
+          $ref: '#/components/schemas/ResolvedState'
+        status:
+          $ref: '#/components/schemas/ReliabilityStatus'
+        value:
+          description: Winning value; null when unknown or in conflict.
+          oneOf:
+          - $ref: '#/components/schemas/FactValue'
+          - type: 'null'
+        facts:
+          type: array
+          description: All active facts; for `conflict` every conflicting fact is present.
+          items:
+            $ref: '#/components/schemas/AccessibilityFact'
+    Address:
+      type: object
+      properties:
+        street:
+          type:
+          - string
+          - 'null'
+        houseNumber:
+          type:
+          - string
+          - 'null'
+        postalCode:
+          type:
+          - string
+          - 'null'
+        city:
+          type: string
+          default: Kraków
+    Contact:
+      type: object
+      properties:
+        phone:
+          type:
+          - string
+          - 'null'
+        website:
+          type:
+          - string
+          - 'null'
+          format: uri
+        email:
+          type:
+          - string
+          - 'null'
+          description: Venue's public e-mail from the source
+          never a user's.: null
+    Verdict:
+      type: object
+      description: Result of comparing facts with a profile's thresholds.
+      required:
+      - state
+      - reasons
+      properties:
+        state:
+          $ref: '#/components/schemas/NeedVerdict'
+        unconfirmed:
+          type: boolean
+          default: false
+          description: True when `met` rests on unverified data.
+        reasons:
+          type: array
+          items:
+            type: string
+        blockers:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessibilityAttribute'
+        unknowns:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessibilityAttribute'
+    SummaryChip:
+      type: object
+      required:
+      - attribute
+      - state
+      - status
+      properties:
+        attribute:
+          $ref: '#/components/schemas/AccessibilityAttribute'
+        state:
+          $ref: '#/components/schemas/ResolvedState'
+        status:
+          $ref: '#/components/schemas/ReliabilityStatus'
+        label:
+          type: string
+          description: 'Short Polish text, e.g. "Winda" or "Toaleta: brak danych".'
+    PlaceSummary:
+      type: object
+      required:
+      - id
+      - name
+      - category
+      - location
+      - summary
+      - isSample
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        category:
+          $ref: '#/components/schemas/Category'
+        location:
+          $ref: '#/components/schemas/Point'
+        address:
+          $ref: '#/components/schemas/Address'
+        summary:
+          type: array
+          description: Short list of facts for result lists; missing data is listed explicitly as `unknown`.
+          items:
+            $ref: '#/components/schemas/SummaryChip'
+        verdict:
+          oneOf:
+          - $ref: '#/components/schemas/Verdict'
+          - type: 'null'
+          description: Present only when a profile was requested.
+        isSample:
+          type: boolean
+    Place:
+      type: object
+      required:
+      - id
+      - name
+      - category
+      - location
+      - attributes
+      - sources
+      - updatedAt
+      - isSample
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        category:
+          $ref: '#/components/schemas/Category'
+        location:
+          $ref: '#/components/schemas/Point'
+        address:
+          $ref: '#/components/schemas/Address'
+        contact:
+          $ref: '#/components/schemas/Contact'
+        entranceHint:
+          type:
+          - string
+          - 'null'
+          description: Text hint on where the accessible entrance is.
+        attributes:
+          type: array
+          description: One entry per attribute in the vocabulary, including unknown ones.
+          items:
+            $ref: '#/components/schemas/ResolvedAttribute'
+        verdict:
+          oneOf:
+          - $ref: '#/components/schemas/Verdict'
+          - type: 'null'
+        sources:
+          type: array
+          description: Sources that contributed, with their current refresh status.
+          items:
+            $ref: '#/components/schemas/Source'
+        updatedAt:
+          type: string
+          format: date-time
+        isSample:
+          type: boolean
+    PlaceList:
+      type: object
+      required:
+      - items
+      - nextCursor
+      - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PlaceSummary'
+        nextCursor:
+          type:
+          - string
+          - 'null'
+        total:
+          type: integer
+          minimum: 0
+    ReportCreate:
+      type: object
+      required:
+      - placeId
+      - attribute
+      - value
+      properties:
+        placeId:
+          type: string
+        attribute:
+          $ref: '#/components/schemas/AccessibilityAttribute'
+        value:
+          $ref: '#/components/schemas/FactValue'
+        comment:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+        photoUrl:
+          type:
+          - string
+          - 'null'
+          format: uri
+          description: Uploaded photo with EXIF removed.
+    Report:
+      type: object
+      required:
+      - id
+      - placeId
+      - attribute
+      - value
+      - status
+      - createdAt
+      properties:
+        id:
+          type: string
+        placeId:
+          type: string
+        attribute:
+          $ref: '#/components/schemas/AccessibilityAttribute'
+        value:
+          $ref: '#/components/schemas/FactValue'
+        comment:
+          type:
+          - string
+          - 'null'
+        photoUrl:
+          type:
+          - string
+          - 'null'
+          format: uri
+        status:
+          $ref: '#/components/schemas/ReportStatus'
+        createdAt:
+          type: string
+          format: date-time
+        decidedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    ModerationReport:
+      allOf:
+      - $ref: '#/components/schemas/Report'
+      - type: object
+        required:
+        - placeName
+        properties:
+          placeName:
+            type: string
+          currentValue:
+            description: Value currently shown for the attribute, for comparison.
+            oneOf:
+            - $ref: '#/components/schemas/FactValue'
+            - type: 'null'
+    ModerationDecision:
+      type: object
+      required:
+      - reportId
+      - decision
+      properties:
+        reportId:
+          type: string
+        decision:
+          type: string
+          enum:
+          - accepted
+          - rejected
+        note:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+    ConfirmationCreate:
+      type: object
+      required:
+      - factId
+      properties:
+        factId:
+          type: string
+        comment:
+          type:
+          - string
+          - 'null'
+          maxLength: 500
+    Confirmation:
+      type: object
+      required:
+      - id
+      - placeId
+      - factId
+      - createdAt
+      properties:
+        id:
+          type: string
+        placeId:
+          type: string
+        factId:
+          type: string
+        comment:
+          type:
+          - string
+          - 'null'
+        createdAt:
+          type: string
+          format: date-time
+    RouteRequest:
+      type: object
+      required:
+      - from
+      - to
+      properties:
+        from:
+          $ref: '#/components/schemas/Point'
+        to:
+          $ref: '#/components/schemas/Point'
+        avoidStairs:
+          type: boolean
+          default: false
+        profile:
+          $ref: '#/components/schemas/Profile'
+    RouteSegment:
+      type: object
+      required:
+      - id
+      - name
+      - instruction
+      - lengthMeters
+      - state
+      - facts
+      - geometry
+      properties:
+        id:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+        instruction:
+          type: string
+        lengthMeters:
+          type: number
+          minimum: 0
+        state:
+          $ref: '#/components/schemas/NeedVerdict'
+        note:
+          type:
+          - string
+          - 'null'
+        facts:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccessibilityFact'
+        geometry:
+          $ref: '#/components/schemas/LineString'
+    Route:
+      type: object
+      required:
+      - kind
+      - durationMinutes
+      - distanceMeters
+      - geometry
+      - segments
+      - knownBarrierCount
+      - unknownSegmentCount
+      - unknownMeters
+      properties:
+        kind:
+          type: string
+          enum:
+          - avoid_stairs
+          - shortest
+        durationMinutes:
+          type: number
+          minimum: 0
+        distanceMeters:
+          type: number
+          minimum: 0
+        geometry:
+          $ref: '#/components/schemas/LineString'
+        knownBarrierCount:
+          type: integer
+          minimum: 0
+        unknownSegmentCount:
+          type: integer
+          minimum: 0
+        unknownMeters:
+          type: number
+          minimum: 0
+        segments:
+          type: array
+          items:
+            $ref: '#/components/schemas/RouteSegment'
+        attribution:
+          type: string
+    WidgetFact:
+      type: object
+      required:
+      - attribute
+      - state
+      - status
+      properties:
+        attribute:
+          $ref: '#/components/schemas/AccessibilityAttribute'
+        state:
+          $ref: '#/components/schemas/ResolvedState'
+        value:
+          oneOf:
+          - $ref: '#/components/schemas/FactValue'
+          - type: 'null'
+        reliability:
+          oneOf:
+          - $ref: '#/components/schemas/Reliability'
+          - type: 'null'
+        status:
+          $ref: '#/components/schemas/ReliabilityStatus'
+        sourceName:
+          type:
+          - string
+          - 'null'
+        fetchedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+    WidgetCard:
+      type: object
+      required:
+      - placeId
+      - name
+      - facts
+      - attribution
+      - isSample
+      properties:
+        placeId:
+          type: string
+        name:
+          type: string
+        verdict:
+          oneOf:
+          - $ref: '#/components/schemas/Verdict'
+          - type: 'null'
+        facts:
+          type: array
+          items:
+            $ref: '#/components/schemas/WidgetFact'
+        attribution:
+          type: string
+        isSample:
+          type: boolean
+  examples:
+    SourceOsm:
+      value:
+        id: osm
+        name: OpenStreetMap
+        kind: community
+        license: ODbL 1.0
+        attribution: © OpenStreetMap contributors
+        url: https://www.openstreetmap.org
+        refreshInterval: daily
+        refreshStatus: ok
+        lastSuccessAt: '2026-10-03T03:00:00Z'
+        lastAttemptAt: '2026-10-03T03:00:00Z'
+        statusNote: null
+        isSample: false
+    SourceZiwOutage:
+      value:
+        id: ziw
+        name: Zintegrowany Informator Wojewódzki (ZIW)
+        kind: official_open_data
+        license: Do sprawdzenia
+        attribution: null
+        url: https://msim3.um.krakow.pl
+        refreshInterval: daily
+        refreshStatus: outage
+        lastSuccessAt: '2023-11-14T03:00:00Z'
+        lastAttemptAt: '2026-10-03T03:00:00Z'
+        statusNote: Źródło niedostępne (HTTP 404). Pokazujemy ostatnie znane dane jako nieaktualne.
+        isSample: false
+    PlaceSummaryConflict:
+      value:
+        id: palac-krzysztofory
+        name: Pałac Krzysztofory
+        category: museum
+        location:
+          type: Point
+          coordinates:
+          - 19.9381
+          - 50.0623
+        address:
+          street: Rynek Główny
+          houseNumber: '35'
+          postalCode: 31-010
+          city: Kraków
+        summary:
+        - attribute: step_count
+          state: known
+          status: confirmed
+          label: Wejście bez stopni
+        - attribute: toilet_accessible
+          state: conflict
+          status: conflict
+          label: 'Toaleta: sprzeczne dane'
+        - attribute: lift
+          state: unknown
+          status: no_data
+          label: 'Winda: brak danych'
+        verdict: null
+        isSample: true
+    PlaceSummaryNoData:
+      value:
+        id: kawiarnia-przyklad
+        name: Kawiarnia Przykład
+        category: restaurant
+        location:
+          type: Point
+          coordinates:
+          - 19.9445
+          - 50.0612
+        address:
+          street: ul. Floriańska
+          houseNumber: '12'
+          postalCode: 31-021
+          city: Kraków
+        summary:
+        - attribute: step_count
+          state: unknown
+          status: no_data
+          label: 'Wejście: brak danych'
+        - attribute: toilet_accessible
+          state: unknown
+          status: no_data
+          label: 'Toaleta: brak danych'
+        verdict: null
+        isSample: true
+    PlaceConflict:
+      value:
+        id: palac-krzysztofory
+        name: Pałac Krzysztofory
+        category: museum
+        location:
+          type: Point
+          coordinates:
+          - 19.9381
+          - 50.0623
+        address:
+          street: Rynek Główny
+          houseNumber: '35'
+          postalCode: 31-010
+          city: Kraków
+        contact:
+          phone: null
+          website: https://muzeumkrakowa.pl
+          email: null
+        entranceHint: Wejście główne od Rynku, bez stopni.
+        attributes:
+        - attribute: step_count
+          state: known
+          status: confirmed
+          value:
+            kind: number
+            number: 0
+            unit: count
+          facts:
+          - id: fact_osm_krzysztofory_steps
+            attribute: step_count
+            value:
+              kind: number
+              number: 0
+              unit: count
+            unit: count
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: node/123456
+            fetchedAt: '2026-10-03T03:00:00Z'
+            observedAt: null
+            confirmedAt: '2026-08-20T10:00:00Z'
+            reliability: confirmed
+            evidence:
+              photoUrl: null
+              comment: null
+              confirmations: 2
+            status: active
+            stale: false
+        - attribute: toilet_accessible
+          state: conflict
+          status: conflict
+          value: null
+          facts:
+          - id: fact_ziw_krzysztofory_toilet
+            attribute: toilet_accessible
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: ziw
+              name: Zintegrowany Informator Wojewódzki (ZIW)
+              kind: official_open_data
+              recordRef: ziw-77
+            fetchedAt: '2023-11-14T03:00:00Z'
+            observedAt: null
+            confirmedAt: null
+            reliability: extracted
+            evidence: null
+            status: disputed
+            stale: true
+          - id: fact_osm_krzysztofory_toilet
+            attribute: toilet_accessible
+            value:
+              kind: boolean
+              boolean: false
+            unit: null
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: node/123456
+            fetchedAt: '2026-10-03T03:00:00Z'
+            observedAt: '2026-07-01T00:00:00Z'
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: disputed
+            stale: false
+        - attribute: lift
+          state: unknown
+          status: no_data
+          value: null
+          facts: []
+        verdict:
+          state: conflict
+          unconfirmed: false
+          reasons:
+          - 'Toaleta: źródła się różnią'
+          blockers: []
+          unknowns:
+          - lift
+        sources:
+        - id: osm
+          name: OpenStreetMap
+          kind: community
+          license: ODbL 1.0
+          attribution: © OpenStreetMap contributors
+          url: https://www.openstreetmap.org
+          refreshInterval: daily
+          refreshStatus: ok
+          lastSuccessAt: '2026-10-03T03:00:00Z'
+          lastAttemptAt: '2026-10-03T03:00:00Z'
+          statusNote: null
+          isSample: false
+        - id: ziw
+          name: Zintegrowany Informator Wojewódzki (ZIW)
+          kind: official_open_data
+          license: Do sprawdzenia
+          attribution: null
+          url: https://msim3.um.krakow.pl
+          refreshInterval: daily
+          refreshStatus: outage
+          lastSuccessAt: '2023-11-14T03:00:00Z'
+          lastAttemptAt: '2026-10-03T03:00:00Z'
+          statusNote: Źródło niedostępne (HTTP 404). Pokazujemy ostatnie znane dane jako nieaktualne.
+          isSample: false
+        updatedAt: '2026-10-03T03:00:00Z'
+        isSample: true
+    PlaceNoData:
+      value:
+        id: kawiarnia-przyklad
+        name: Kawiarnia Przykład
+        category: restaurant
+        location:
+          type: Point
+          coordinates:
+          - 19.9445
+          - 50.0612
+        address:
+          street: ul. Floriańska
+          houseNumber: '12'
+          postalCode: 31-021
+          city: Kraków
+        contact:
+          phone: +48 12 000 00 00
+          website: null
+          email: null
+        entranceHint: null
+        attributes:
+        - attribute: step_count
+          state: unknown
+          status: no_data
+          value: null
+          facts: []
+        - attribute: door_width_cm
+          state: unknown
+          status: no_data
+          value: null
+          facts: []
+        - attribute: toilet_accessible
+          state: unknown
+          status: no_data
+          value: null
+          facts: []
+        verdict:
+          state: unknown
+          unconfirmed: false
+          reasons:
+          - Brak danych o wejściu i toalecie
+          blockers: []
+          unknowns:
+          - step_count
+          - toilet_accessible
+        sources: []
+        updatedAt: '2026-10-03T03:00:00Z'
+        isSample: true
+    PlaceOutdated:
+      value:
+        id: teatr-slowackiego
+        name: Teatr im. Juliusza Słowackiego
+        category: theatre
+        location:
+          type: Point
+          coordinates:
+          - 19.9419
+          - 50.064
+        address:
+          street: pl. Świętego Ducha
+          houseNumber: '1'
+          postalCode: 31-023
+          city: Kraków
+        contact:
+          phone: null
+          website: https://slowacki.krakow.pl
+          email: null
+        entranceHint: null
+        attributes:
+        - attribute: ramp
+          state: stale
+          status: outdated
+          value:
+            kind: boolean
+            boolean: true
+          facts:
+          - id: fact_decl_slowackiego_ramp
+            attribute: ramp
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: decl
+              name: Deklaracja dostępności
+              kind: official_open_data
+              recordRef: null
+            fetchedAt: '2022-05-10T00:00:00Z'
+            observedAt: null
+            confirmedAt: '2022-05-10T00:00:00Z'
+            reliability: extracted
+            evidence: null
+            status: active
+            stale: true
+        verdict:
+          state: unknown
+          unconfirmed: true
+          reasons:
+          - Dane starsze niż 12 miesięcy
+          blockers: []
+          unknowns:
+          - ramp
+        sources:
+        - id: osm
+          name: OpenStreetMap
+          kind: community
+          license: ODbL 1.0
+          attribution: © OpenStreetMap contributors
+          url: https://www.openstreetmap.org
+          refreshInterval: daily
+          refreshStatus: ok
+          lastSuccessAt: '2026-10-03T03:00:00Z'
+          lastAttemptAt: '2026-10-03T03:00:00Z'
+          statusNote: null
+          isSample: false
+        updatedAt: '2026-10-03T03:00:00Z'
+        isSample: true
+    PlaceSourceUnavailable:
+      value:
+        id: palac-krzysztofory
+        name: Pałac Krzysztofory
+        category: museum
+        location:
+          type: Point
+          coordinates:
+          - 19.9381
+          - 50.0623
+        address:
+          street: Rynek Główny
+          houseNumber: '35'
+          postalCode: 31-010
+          city: Kraków
+        contact: null
+        entranceHint: null
+        attributes:
+        - attribute: toilet_accessible
+          state: stale
+          status: outdated
+          value:
+            kind: boolean
+            boolean: true
+          facts:
+          - id: fact_ziw_krzysztofory_toilet
+            attribute: toilet_accessible
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: ziw
+              name: Zintegrowany Informator Wojewódzki (ZIW)
+              kind: official_open_data
+              recordRef: ziw-77
+            fetchedAt: '2023-11-14T03:00:00Z'
+            observedAt: null
+            confirmedAt: null
+            reliability: extracted
+            evidence: null
+            status: active
+            stale: true
+        verdict:
+          state: unknown
+          unconfirmed: true
+          reasons:
+          - Źródło ZIW niedostępne
+          - pokazujemy ostatnie znane dane
+          blockers: []
+          unknowns:
+          - toilet_accessible
+        sources:
+        - id: ziw
+          name: Zintegrowany Informator Wojewódzki (ZIW)
+          kind: official_open_data
+          license: Do sprawdzenia
+          attribution: null
+          url: https://msim3.um.krakow.pl
+          refreshInterval: daily
+          refreshStatus: outage
+          lastSuccessAt: '2023-11-14T03:00:00Z'
+          lastAttemptAt: '2026-10-03T03:00:00Z'
+          statusNote: Źródło niedostępne (HTTP 404). Pokazujemy ostatnie znane dane jako nieaktualne.
+          isSample: false
+        updatedAt: '2023-11-14T03:00:00Z'
+        isSample: true
