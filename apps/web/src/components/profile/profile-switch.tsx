@@ -38,7 +38,7 @@ export function ProfileSwitch({
         className={cn(
           "w-full bg-muted p-1 ring-1 ring-border",
           // Four segments don't fit one row on a 360 px phone: two rows until the switch is wide enough.
-          options.length > 3 ? "grid grid-cols-2 gap-1 rounded-3xl @md:flex @md:gap-0 @md:rounded-full" : "flex rounded-full",
+          options.length > 3 ? "grid grid-cols-2 gap-1 rounded-3xl @sm:flex @sm:gap-0 @sm:rounded-full" : "flex rounded-full",
         )}
       >
         {options.map((option) => {
