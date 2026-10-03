@@ -18,6 +18,32 @@ const INTERVAL_MS: Partial<Record<string, number>> = {
 /** A successful source is "stale" once it has missed this many refresh intervals. */
 const STALE_AFTER_INTERVALS = 2;
 
+// Raw wording ingest and the seed write in English; never shown to readers as is.
+const PENDING_LICENSE = /^to be confirmed\b/i;
+const SEEDED_NOTE = /^seeded from\b/i;
+
+type SourceText = Pick<Source, "kind" | "license" | "refreshStatus" | "statusNote">;
+
+/**
+ * Swaps the internal licence and status wording of a source for copy in the reader's language: a licence still
+ * being confirmed, user-report "licences" and seed notes; a source never fetched gets a note saying why.
+ */
+export function localizeSourceText<T extends SourceText>(source: T, locale: Locale = defaultLocale): T {
+  const t = messagesFor(locale).pages.aboutData;
+  const pending = PENDING_LICENSE.test(source.license);
+  const license = pending
+    ? t.licenseNote.pending
+    : source.kind === "user_report"
+      ? t.licenseNote.userReports
+      : source.license;
+  let statusNote = source.statusNote;
+  if (statusNote && SEEDED_NOTE.test(statusNote)) statusNote = t.statusNote.seeded;
+  if (!statusNote && source.refreshStatus === "never") {
+    statusNote = pending ? t.statusNote.awaitingLicense : t.statusNote.notFetched;
+  }
+  return { ...source, license, statusNote };
+}
+
 /**
  * Source ids from `SIMULATE_SOURCE_OUTAGE` (comma separated). Operator-only config, never a
  * request input; ignored in production unless `ALLOW_SIMULATED_OUTAGE=true` (the live demo).
@@ -46,7 +72,7 @@ export function toSource(row: SourceRow, now: Date, simulated: readonly string[]
     }
   }
 
-  return {
+  const source: Source = {
     id: row.id,
     name: row.name,
     kind: row.kind,
@@ -60,6 +86,7 @@ export function toSource(row: SourceRow, now: Date, simulated: readonly string[]
     statusNote,
     isSample: row.isSample,
   };
+  return localizeSourceText(source, locale);
 }
 
 export async function listSources(

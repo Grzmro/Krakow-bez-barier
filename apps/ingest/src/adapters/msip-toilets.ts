@@ -101,7 +101,7 @@ export const msipToilets: SourceAdapter<MsipToilet> = {
     name: "MSIP: Toalety publiczne",
     kind: "official_open_data",
     url: "https://msip.um.krakow.pl/arcgis/rest/services/Obserwatorium/WT_WC_2023/MapServer/0",
-    license: "To be confirmed (KBB-20)",
+    license: "To be confirmed",
     licenseConfirmed: false,
     termsUrl: "https://msip.krakow.pl/?dok_id=228972",
     attribution: "Gmina Miejska Kraków, Portal MSIP Obserwatorium (https://msip.krakow.pl)",

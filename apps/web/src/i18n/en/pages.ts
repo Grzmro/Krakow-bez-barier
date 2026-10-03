@@ -32,10 +32,19 @@ export const pages: Messages["pages"] = {
       monthly: "monthly",
       yearly: "yearly",
       realtime: "real time",
+      continuous: "continuously",
+      unknown: "one-off import",
     },
     statusNote: {
       simulatedOutage: "Simulated source outage (test switch). We show the last known data as outdated.",
       overdue: "The source didn't refresh on time. The data may be outdated.",
+      seeded: "Data loaded once, without automatic updates.",
+      awaitingLicense: "We're waiting for the city to confirm the licence. Until then we don't fetch data from this source.",
+      notFetched: "We haven't fetched data from this source yet.",
+    },
+    licenseNote: {
+      pending: "to be confirmed with the city",
+      userReports: "residents' reports checked by a moderator, not open data",
     },
     verificationByKind: {
       official_open_data: "venue manager or the city",

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { validateResponse } from "@/server/http";
 import { catalogs } from "@/i18n/messages";
-import { listSources, simulatedOutageIds, toSource } from "./sources";
+import { listSources, localizeSourceText, simulatedOutageIds, toSource } from "./sources";
 
 type Row = Parameters<typeof toSource>[0];
 const now = new Date("2026-10-03T12:00:00Z");
@@ -101,6 +101,54 @@ describe("listSources", () => {
       "The source didn't refresh on time. The data may be outdated.",
       "Simulated source outage (test switch). We show the last known data as outdated.",
     ]);
+  });
+});
+
+describe("localizeSourceText", () => {
+  const pl = catalogs.pl.pages.aboutData;
+  const en = catalogs.en.pages.aboutData;
+
+  it("replaces the internal licence and seed wording with Polish copy", async () => {
+    // GIVEN a seeded source whose licence is still being confirmed, and a source never fetched for that reason
+    const rows = [
+      row({
+        id: "msip-toilets",
+        kind: "official_open_data",
+        license: "To be confirmed (KBB-20)",
+        refreshInterval: "unknown",
+        statusNote: "Seeded from a one-off query, not an ingestion run",
+      }),
+      row({
+        id: "msip-koh",
+        kind: "official_open_data",
+        license: "To be confirmed",
+        refreshInterval: "unknown",
+        refreshStatus: "never",
+        lastSuccessAt: null,
+        lastAttemptAt: null,
+      }),
+    ];
+
+    // WHEN listing
+    const items = await listSources(async () => rows, now, []);
+
+    // THEN no raw English or task id reaches the reader, and the never-fetched source says why
+    expect(items[0]).toMatchObject({ license: pl.licenseNote.pending, statusNote: pl.statusNote.seeded });
+    expect(items[1]).toMatchObject({ license: pl.licenseNote.pending, statusNote: pl.statusNote.awaitingLicense });
+    expect(JSON.stringify(items)).not.toMatch(/KBB-|To be confirmed|Seeded from/);
+  });
+
+  it("describes user reports instead of their internal licence and keeps real licences", () => {
+    // GIVEN a user-report source and a never-fetched source with a known licence
+    const reports = { kind: "user_report", license: "Not open data: user reports", refreshStatus: "ok", statusNote: null } as const;
+    const osm = { kind: "community", license: "ODbL 1.0", refreshStatus: "never", statusNote: null } as const;
+
+    // WHEN localizing for English
+    const [r, o] = [localizeSourceText(reports, "en"), localizeSourceText(osm, "en")];
+
+    // THEN the report licence is described, ODbL stays and the new source is plainly "not fetched yet"
+    expect(r.license).toBe(en.licenseNote.userReports);
+    expect(o).toMatchObject({ license: "ODbL 1.0", statusNote: en.statusNote.notFetched });
   });
 });
 
