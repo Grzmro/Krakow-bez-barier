@@ -1,3 +1,4 @@
+import { MOCK_DEMO_TOKEN } from "../src/lib/mocks/mock-moderation";
 import { expect, test } from "./fixtures";
 
 // The client runs in mock mode: the queue starts from the spec's example (Podziemia Rynku, Hotel Przykład)
@@ -112,7 +113,7 @@ test("the demo account is clearly marked and says when its decisions are undone"
 }) => {
   // GIVEN the panel signed in with the demo account's token (the mock's stand-in for MODERATOR_DEMO_TOKEN)
   await page.goto("/moderator");
-  await page.getByLabel("Token moderatora").fill("konto-demo-0123456789");
+  await page.getByLabel("Token moderatora").fill(MOCK_DEMO_TOKEN);
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { name: "Kolejka zgłoszeń (2)" })).toBeVisible();
 

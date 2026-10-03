@@ -104,8 +104,11 @@ z Vercela (16+ znaków, np. `openssl rand -hex 12`) — wpisujemy ją tylko w fo
 > **[MODERATOR_DEMO_TOKEN — PLACEHOLDER]** → „Zaloguj”. To konto demonstracyjne (tak je oznaczamy w panelu):
 > decyzje działają naprawdę — zatwierdzone zgłoszenie od razu zmienia kartę miejsca (link „Zobacz na karcie”
 > w historii), ze źródłem „Konto demonstracyjne moderatora (zmiana tymczasowa)” — a po 30 minutach cofamy je
-> automatycznie, żeby nie zmieniać danych na stałe. Ścieżka: otwórz dowolne miejsce → „To się nie zgadza” albo
-> „Uzupełnij” → wyślij zgłoszenie → panel moderatora → „Zatwierdź” → „Zobacz na karcie”.
+> automatycznie, żeby nie zmieniać danych na stałe. Przez ten czas całe miejsce ma oznaczenie „PRZYKŁAD” (na karcie,
+> liście, stronie wydarzenia i w widżecie), bo źródło demonstracyjne traktujemy jak dane przykładowe. Ścieżka: otwórz
+> dowolne miejsce → „To się nie zgadza” albo „Uzupełnij” → wyślij zgłoszenie → panel moderatora → w kolejce wybierz
+> swoje zgłoszenie (najnowsze jest na końcu listy; kolejka zawiera też prawdziwe zgłoszenia innych osób) →
+> „Zatwierdź” → „Zobacz na karcie”.
 > Po 5 błędnych tokenach panel blokuje się na 15 minut.
 
 ## Linki

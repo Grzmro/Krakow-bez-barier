@@ -1,4 +1,4 @@
-import type { PlaceList, Report } from "@krakow-bez-barier/contracts";
+import type { Place, PlaceList, Report } from "@krakow-bez-barier/contracts";
 import { expect, test } from "./fixtures";
 
 // The jury's path with the demo account: a report → the moderator panel → approval → the change on the card.
@@ -60,6 +60,10 @@ test("the jury signs in with the demo account, approves a report and sees the ch
     })
   ).json();
   expect(decided.items.map((r: Report) => r.id)).toContain(report.id);
+  // AND, as the demo source is labelled sample data, the whole place is marked PRZYKŁAD until the revert
+  expect(place!.isSample).toBe(false);
+  const detail = (await (await request.get(`/api/v1/places/${place!.id}`)).json()) as Place;
+  expect(detail.isSample).toBe(true);
 
   // WHEN the jury follows the link to the card
   await entry.getByRole("link", { name: `Zobacz na karcie: ${PLACE}` }).click();

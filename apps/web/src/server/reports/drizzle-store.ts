@@ -172,6 +172,9 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
         if (decision === "accepted") {
           const fact = buildFact(toRecord(updated));
           const source = demo ? DEMO_MODERATED_SOURCE : COMMUNITY_MODERATED_SOURCE;
+          // The revert drops the demo source row once it has no facts; this keeps it from doing so between the
+          // upsert below and the fact insert, which would then break the facts → sources foreign key.
+          if (demo) await tx.execute(sql`select pg_advisory_xact_lock_shared(hashtext(${DEMO_SOURCE_LOCK}))`);
           await tx.insert(sources).values(source).onConflictDoNothing();
           // Two reports for one place and attribute accepted at once would both insert an active fact and break the
           // unique index; this serialises them so the second supersedes the first.
@@ -246,6 +249,7 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
         await tx.delete(confirmations).where(inArray(confirmations.factId, expired));
         await tx.delete(facts).where(and(eq(facts.sourceId, DEMO_MODERATED_SOURCE.id), lt(facts.fetchedAt, before)));
         // The demo source exists only while it has facts, so the source list doesn't keep it for good.
+        await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${DEMO_SOURCE_LOCK}))`);
         await tx
           .delete(sources)
           .where(
@@ -259,6 +263,8 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
     },
   };
 }
+
+const DEMO_SOURCE_LOCK = `sources|${DEMO_MODERATED_SOURCE.id}`;
 
 /** The store the route handlers use, over the shared database client. */
 export function reportsStore(): ReportsStore {

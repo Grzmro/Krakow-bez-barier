@@ -55,7 +55,7 @@ export const moderator: Messages["moderator"] = {
   },
   decidedDemo: {
     accepted: (minutes: number) =>
-      `Approved on the demo account. The place card shows the new value for ${minutes} min, then the change is undone.`,
+      `Approved on the demo account. The place card shows this report as a fact from the demo source (the place is marked SAMPLE) for ${minutes} min, then the change is undone.`,
     rejected: (minutes: number) => `Rejected on the demo account. The decision is undone after ${minutes} min.`,
     needs_info: (minutes: number) =>
       `Marked “Needs clarification” on the demo account. The decision is undone after ${minutes} min.`,

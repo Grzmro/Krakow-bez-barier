@@ -61,7 +61,7 @@ export const moderator = {
   // Demo account (MODERATOR_DEMO_TOKEN): decisions are real but undone automatically after `minutes`.
   decidedDemo: {
     accepted: (minutes: number) =>
-      `Zatwierdzone na koncie demonstracyjnym. Karta miejsca pokazuje nową wartość przez ${minutes} min, potem zmiana zostanie cofnięta.`,
+      `Zatwierdzone na koncie demonstracyjnym. Karta miejsca pokazuje to zgłoszenie jako fakt ze źródłem demonstracyjnym (miejsce dostaje oznaczenie PRZYKŁAD) przez ${minutes} min, potem zmiana zostanie cofnięta.`,
     rejected: (minutes: number) => `Odrzucone na koncie demonstracyjnym. Po ${minutes} min decyzja zostanie cofnięta.`,
     needs_info: (minutes: number) =>
       `Oznaczone „Do wyjaśnienia” na koncie demonstracyjnym. Po ${minutes} min decyzja zostanie cofnięta.`,
