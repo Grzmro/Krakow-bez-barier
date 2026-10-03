@@ -1,6 +1,6 @@
 import type { Confirmation } from "@krakow-bez-barier/contracts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { resolveAttribute } from "@/server/domain";
+import { resolveAttribute } from "@/domain";
 import { validateResponse } from "@/server/http";
 import { jsonRequest, LIFT_FACT_ID, OTHER_PLACE_ID, PLACE_ID, seededReportsStore } from "@/server/reports/testing";
 

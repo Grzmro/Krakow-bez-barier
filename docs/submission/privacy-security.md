@@ -56,7 +56,7 @@ Bez zagadek CAPTCHA, zgodnie z WCAG 3.3.8 (dostępne uwierzytelnianie):
   przez moderatora”, więc różnica z innym aktualnym źródłem jest widoczna jako „Sprzeczne”. Wyjątek:
   fakt nieaktualny (starszy niż 12 miesięcy) nie bierze udziału w werdykcie, gdy istnieje fakt
   aktualny — wtedy wygrywa świeży fakt, bez oznaczenia „Sprzeczne” (`resolveAttribute`,
-  `server/domain/resolver.ts`).
+  `domain/resolver.ts`).
 - Odrzucone zgłoszenie nie trafia do widoku publicznego.
 - Ograniczenie: limity są w pamięci jednej instancji serwera (zatrzymują serię, nie są globalnym
   limitem). Przy wielu instancjach — wspólny magazyn limitów (np. Redis) — do zrobienia.

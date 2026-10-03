@@ -1,0 +1,55 @@
+- main:
+  - heading "Mapa i lista miejsc" [level=1]
+  - link "Przejdź do listy":
+    - /url: "#lista"
+  - search:
+    - text: Wyszukaj miejsce
+    - combobox "Wyszukaj miejsce"
+  - group "Kategorie":
+    - button "Wszystko" [pressed]
+    - button "Restauracje"
+    - button "Muzea"
+    - button "Toalety"
+    - button "Hotele"
+    - button "Zabytki"
+    - button "Teatry i kina"
+    - button "Apteki"
+    - button "Miejsca postojowe"
+    - button "Przystanki"
+    - button "Handel"
+    - button "Inne"
+  - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
+  - paragraph:
+    - link "OpenFreeMap":
+      - /url: https://openfreemap.org
+    - text: ·
+    - link "© OpenMapTiles":
+      - /url: https://www.openmaptiles.org/
+    - text: ·
+    - link "© OpenStreetMap contributors":
+      - /url: https://www.openstreetmap.org/copyright
+  - button "Przybliż"
+  - button "Oddal"
+  - region "Lista miejsc":
+    - button "Rozwiń arkusz"
+    - group "Lista miejsc":
+      - group "Profil potrzeb":
+        - text: ""
+        - radio "Profil wyłączony, widok dla każdego" [checked]
+        - text: Dla każdego
+        - radio "Wózek"
+        - text: Wózek
+        - radio "Wózek dziecięcy"
+        - text: Dziecięcy
+      - button "W mojej okolicy"
+      - text: Pokaż miejsca od najbliższych
+      - paragraph: Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.
+      - group "Filtry cech":
+        - button "Bez schodów"
+        - button "Winda"
+        - button "Toaleta dostosowana"
+        - button "Ławki"
+        - button "Parking N"
+        - button "Przewijak"
+      - heading /\d+ miejsc/ [level=2]
+      - list

@@ -1,6 +1,6 @@
 import type { ModerationReport, Report } from "@krakow-bez-barier/contracts";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { resolveAttribute } from "@/server/domain";
+import { resolveAttribute } from "@/domain";
 import { validateResponse } from "@/server/http";
 import { COMMUNITY_MODERATED_SOURCE, pendingReportsByAttribute } from "@/server/reports";
 import { jsonRequest, PLACE_ID, seededReportsStore } from "@/server/reports/testing";

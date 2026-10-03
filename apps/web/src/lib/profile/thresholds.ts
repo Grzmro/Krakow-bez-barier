@@ -1,5 +1,5 @@
 import type { Profile } from "@krakow-bez-barier/contracts";
-import { PROFILE_PRESETS, THRESHOLD_FLAGS, type Thresholds } from "@/server/domain/profiles";
+import { PROFILE_PRESETS, THRESHOLD_FLAGS, type Thresholds } from "@/domain/profiles";
 
 export { THRESHOLD_FLAGS };
 export type { Thresholds };

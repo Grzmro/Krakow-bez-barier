@@ -13,9 +13,10 @@ export function worktreePort(dir: string): number {
 const port = Number(process.env.PORT ?? (isCI ? 3000 : worktreePort(__dirname)));
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${port}`;
 
-// Offline specs (*.prod.spec.ts) need the production service worker setup — the dev client doesn't
-// hydrate offline. They run only on request (E2E_PROD=1, set by scripts/merge-pr.sh right after its
-// build) against `next start` of the current build, or against E2E_PROD_BASE_URL.
+// *.prod.spec.ts run against `next start` of the current build, which uses the real API: the offline specs need the
+// production service worker (the dev client doesn't hydrate offline), the real-data specs need the database and
+// skip themselves without one. They run only on request (E2E_PROD=1, set by scripts/merge-pr.sh right after its
+// build) or against E2E_PROD_BASE_URL.
 const prodPort = port + 1000;
 const prodURL = process.env.E2E_PROD_BASE_URL ?? (isCI ? baseURL : `http://localhost:${prodPort}`);
 const runProdSpecs = process.env.E2E_PROD === "1" || !!process.env.E2E_PROD_BASE_URL;
@@ -24,6 +25,8 @@ const startProdServer = runProdSpecs && !isCI && !process.env.E2E_PROD_BASE_URL;
 const device = { ...devices["Pixel 7"], browserName: "chromium" as const };
 // Routes come from the recorded openrouteservice answers, never the live API (the root .env may hold a key).
 const env = { ORS_API_KEY: "" };
+// The dev-server specs open the openapi.yaml sample places by id, so that server answers from the examples.
+const devEnv = { ...env, NEXT_PUBLIC_API_MOCK: "true" };
 const servers: PlaywrightTestConfig["webServer"] = [
   ...(process.env.E2E_BASE_URL
     ? []
@@ -33,7 +36,7 @@ const servers: PlaywrightTestConfig["webServer"] = [
           url: baseURL,
           reuseExistingServer: !isCI,
           timeout: 60_000,
-          env,
+          env: devEnv,
         },
       ]),
   ...(startProdServer
