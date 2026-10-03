@@ -184,3 +184,22 @@ test("in English the side panel keeps the same layout", async ({ page, context, 
   const side = (await panel.boundingBox())!;
   expect(side.x + side.width).toBeLessThanOrEqual(map.x + 1);
 });
+
+test("the map stays one window tall however long the step list is, with zoom and attribution in view", async ({ page }) => {
+  // GIVEN a 1440×900 window and a route of 33 steps, far taller than the window
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/trasa");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
+
+  for (const kind of ["Najkrótsza", "Unikaj schodów"]) {
+    // WHEN the route kind is picked
+    await page.getByRole("group", { name: "Rodzaj trasy" }).getByRole("button", { name: kind }).click();
+
+    // THEN the map ends at the window's bottom edge, so its zoom buttons and the OSM attribution are on screen
+    await expect
+      .poll(() => page.evaluate(() => document.querySelector(".maplibregl-map")!.getBoundingClientRect().bottom), { message: kind })
+      .toBeLessThanOrEqual(900);
+    await expect(page.getByRole("button", { name: "Przybliż" })).toBeInViewport();
+    await expect(page.getByRole("link", { name: /OpenStreetMap/ })).toBeInViewport();
+  }
+});
