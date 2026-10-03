@@ -5,8 +5,10 @@ import { ArrowSquareOut } from "@phosphor-icons/react";
 import { buttonVariants, cn } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
 import { EVENT_NAME_MAX } from "@/lib/event-link";
+import { config } from "@/lib/config";
 import { usePlaces } from "@/lib/places";
 import { routes } from "@/lib/routes";
+import { bestDocumented } from "@/lib/showcase-place";
 import { useOrigin } from "@/lib/use-origin";
 import { CodeBlock } from "./code-block";
 
@@ -25,10 +27,11 @@ export function EventLinkGenerator() {
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const q = useDeferredValue(search.trim());
-  const places = usePlaces({ ...(q ? { q } : {}), limit: PLACES_SHOWN });
+  // Without a search the venues near the Rynek are offered, and the best-documented one is preselected.
+  const places = usePlaces(q ? { q, limit: PLACES_SHOWN } : { near: config.cityCenter, limit: PLACES_SHOWN });
   const items = places.data?.items ?? [];
-  // A choice that the current search filtered out falls back to the first result.
-  const placeId = items.some((p) => p.id === chosen) ? chosen : items[0]?.id;
+  // A choice that the current search filtered out falls back to the default.
+  const placeId = items.some((p) => p.id === chosen) ? chosen : (q ? items[0] : bestDocumented(items))?.id;
   const path = placeId ? routes.event(placeId, { name, date }) : undefined;
 
   return (

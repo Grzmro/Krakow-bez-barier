@@ -4,13 +4,14 @@ import { Bed, LockSimple } from "@phosphor-icons/react";
 import { API_BASE_PATH } from "@krakow-bez-barier/contracts";
 import { InfoSection } from "@/components/layout/info-page";
 import { useMessages } from "@/i18n/client";
+import { formatAddress } from "@/lib/place-features";
 import { routes } from "@/lib/routes";
+import { useShowcasePlace } from "@/lib/showcase-place";
 import { useOrigin } from "@/lib/use-origin";
 import { useWidgetCard } from "@/lib/use-widget-card";
 import { CodeBlock } from "./code-block";
 import { EventLinkGenerator } from "./event-link-generator";
 
-const DEMO_PLACE_ID = "hotel-przyklad";
 const IFRAME_HEIGHT = 640;
 
 function embedSnippet(origin: string, placeId: string, title: string) {
@@ -25,8 +26,17 @@ export function BusinessScreen() {
   const m = useMessages();
   const t = m.business.page;
   const origin = useOrigin();
-  const widget = useWidgetCard(DEMO_PLACE_ID);
-  const iframeTitle = t.iframeTitle(t.hotelName);
+  const showcase = useShowcasePlace("hotel");
+  const hotel = showcase.place;
+  const widget = useWidgetCard(hotel?.id);
+  const iframeTitle = hotel ? t.iframeTitle(hotel.name) : "";
+  const noHotelText = showcase.isError ? t.showcaseError : showcase.isPending ? t.showcaseLoading : t.showcaseNone;
+  // Only the first copy is a live region, so a screen reader hears the state once.
+  const noHotel = (live: boolean) => (
+    <p role={live ? (showcase.isError ? "alert" : "status") : undefined} className="mt-3 text-body-sm text-muted-foreground">
+      {noHotelText}
+    </p>
+  );
 
   return (
     <>
@@ -47,15 +57,25 @@ export function BusinessScreen() {
                 <div aria-hidden className="grid h-24 place-items-center rounded-2xl bg-primary-container text-primary">
                   <Bed weight="duotone" className="size-10" />
                 </div>
-                <p className="mt-3 font-display text-title font-bold">{t.hotelName}</p>
-                <p className="mt-0.5 text-caption text-muted-foreground">{t.hotelRoom}</p>
+                {hotel ? (
+                  <>
+                    <p className="mt-3 font-display text-title font-bold">{hotel.name}</p>
+                    {hotel.address ? (
+                      <p className="mt-0.5 text-caption text-muted-foreground">{formatAddress(hotel.address)}</p>
+                    ) : null}
+                  </>
+                ) : (
+                  noHotel(true)
+                )}
               </div>
-              <iframe
-                src={routes.widget(DEMO_PLACE_ID)}
-                title={iframeTitle}
-                height={IFRAME_HEIGHT}
-                className="block w-full border-0"
-              />
+              {hotel ? (
+                <iframe
+                  src={routes.widget(hotel.id)}
+                  title={iframeTitle}
+                  height={IFRAME_HEIGHT}
+                  className="block w-full border-0"
+                />
+              ) : null}
             </div>
           </InfoSection>
         </div>
@@ -63,11 +83,11 @@ export function BusinessScreen() {
         <div>
           <InfoSection title={t.codeTitle}>
             <p className="text-body-sm text-foreground/85">{t.codeLead}</p>
-            <CodeBlock
-              code={embedSnippet(origin, DEMO_PLACE_ID, iframeTitle)}
-              label={t.codeLabel}
-              copyLabel={t.copyCode}
-            />
+            {hotel ? (
+              <CodeBlock code={embedSnippet(origin, hotel.id, iframeTitle)} label={t.codeLabel} copyLabel={t.copyCode} />
+            ) : (
+              noHotel(false)
+            )}
           </InfoSection>
 
           <InfoSection title={m.business.event.title}>
@@ -76,13 +96,23 @@ export function BusinessScreen() {
 
           <InfoSection title={t.apiTitle}>
             <p className="text-body-sm text-foreground/85">{t.apiLead}</p>
-            <p className="mt-3 font-mono text-caption font-semibold break-all">{`${t.apiMethod} ${API_BASE_PATH}/widget/${encodeURIComponent(DEMO_PLACE_ID)}`}</p>
-            {widget.data ? (
-              <CodeBlock code={JSON.stringify(widget.data, null, 2)} label={t.apiLabel} copyLabel={t.copyApi} />
+            {hotel ? (
+              <>
+                <p className="mt-3 font-mono text-caption font-semibold break-all">{`${t.apiMethod} ${API_BASE_PATH}/widget/${encodeURIComponent(hotel.id)}`}</p>
+                {widget.data ? (
+                  <CodeBlock code={JSON.stringify(widget.data, null, 2)} label={t.apiLabel} copyLabel={t.copyApi} />
+                ) : widget.isPending ? (
+                  <p role="status" className="mt-3 text-body-sm text-muted-foreground">
+                    {t.apiLoading}
+                  </p>
+                ) : (
+                  <p role="alert" className="mt-3 text-body-sm">
+                    {m.business.widget.loadError}
+                  </p>
+                )}
+              </>
             ) : (
-              <p role="status" className="mt-3 text-body-sm text-muted-foreground">
-                {t.apiLoading}
-              </p>
+              noHotel(false)
             )}
           </InfoSection>
 

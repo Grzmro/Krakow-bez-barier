@@ -9,6 +9,12 @@ export function matchFeature(place: Pick<PlaceSummary, "features">, feature: Fea
   return place.features?.find((match) => match.feature === feature)?.state ?? "unknown";
 }
 
+/** "Street 12, City" from whatever parts the address has; empty when there's none. */
+export function formatAddress(address: PlaceSummary["address"]): string {
+  if (!address) return "";
+  return [[address.street, address.houseNumber].filter(Boolean).join(" "), address.city].filter(Boolean).join(", ");
+}
+
 const EARTH_RADIUS_M = 6_371_000;
 
 /** Great-circle distance in metres between two `[lon, lat]` points, rounded to 10 m. */

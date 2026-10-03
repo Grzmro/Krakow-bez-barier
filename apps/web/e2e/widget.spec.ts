@@ -89,7 +89,7 @@ test("the business page previews the widget and copies the embed code", async ({
   const main = page.locator("main");
   const preview = page.frameLocator('iframe[title="Dostępność: Hotel Przykład — Kraków bez barier"]');
   await expect(preview.getByRole("heading", { level: 1, name: "Hotel Przykład" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Przykładowa odpowiedź API" })).toContainText('"changing_table"');
+  await expect(page.getByRole("region", { name: "Odpowiedź API dla tego hotelu" })).toContainText('"changing_table"');
   await expect(main).toMatchAriaSnapshot({ name: "business.aria.yml" });
   // Checked before copying: axe misreads the toast's contrast while it fades in.
   await expectAccessible();
