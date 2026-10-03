@@ -639,7 +639,7 @@ export function HomeScreen() {
           aria-label={t.categoriesLabel}
           value={[category]}
           onValueChange={(value) => value[0] && setCategory(value[0])}
-          // The row, not just its chips, takes touches: iOS WebKit won't pan a scroller that has pointer-events: none.
+          // iOS WebKit won't pan a scroller with pointer-events: none, even under chips that have auto.
           className={cn(CHIP_ROW, "pointer-events-auto mx-auto mt-1.5 max-w-xl pl-4")}
         >
           <Toggle value={ALL} className={cn("shadow-soft", CHIP)}>

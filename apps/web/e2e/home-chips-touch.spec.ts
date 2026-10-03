@@ -10,16 +10,32 @@ test.describe.configure({ timeout: 30_000 });
 
 type Watched = HTMLElement & { movedByTest?: boolean };
 
-/** Opens home with a still map that remembers whether it moved from now on. */
+/** Opens home; `watchMap` (call it right before the gesture) waits for a still map and records whether it moves from then on. */
 async function openHome(page: Page) {
   await page.addInitScript(() => localStorage.setItem("kbb:install-dismissed", "1"));
   await page.goto("/");
   const map = page.locator("main .maplibregl-map");
   await expect(map).toHaveAttribute("data-moving", "false");
-  await map.evaluate((el: Watched) => {
-    new MutationObserver(() => (el.movedByTest ||= el.dataset.moving === "true")).observe(el, { attributes: true });
-  });
-  return { mapMoved: () => map.evaluate((el: Watched) => el.movedByTest ?? false) };
+  return {
+    async watchMap() {
+      await expect
+        .poll(() =>
+          map.evaluate(async (el) => {
+            // Still over two rendered frames: a fit or padding jump from the setup has finished.
+            const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+            await frame();
+            await frame();
+            return (el as HTMLElement).dataset.moving;
+          }),
+        )
+        .toBe("false");
+      await map.evaluate((el: Watched) => {
+        el.movedByTest = false;
+        new MutationObserver(() => (el.movedByTest ||= el.dataset.moving === "true")).observe(el, { attributes: true });
+      });
+    },
+    mapMoved: () => map.evaluate((el: Watched) => el.movedByTest ?? false),
+  };
 }
 
 /** The middle of the gap between a row's first two chips: no chip under the finger, only the row. */
@@ -33,10 +49,11 @@ const pageScroll = (page: Page) => page.evaluate(() => document.scrollingElement
 
 test("a slanted swipe that starts between two category chips scrolls the row, not the map or the page", async ({ page, evidence }) => {
   // GIVEN the home screen with more category chips than fit the width
-  const { mapMoved } = await openHome(page);
+  // (the swipe starts in a gap: there only the row, not a chip, is under the finger, which Chromium can tell apart)
+  const { watchMap, mapMoved } = await openHome(page);
   const chips = page.getByRole("group", { name: "Kategorie" });
   await expect(chips.getByRole("button").nth(3)).toBeVisible();
-  expect(await chips.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeGreaterThan(150);
+  await watchMap();
 
   // WHEN a finger lands in the gap between the first two chips and swipes left, drifting down a little
   await (await finger(page)).drag(await firstGap(chips), { x: -150, y: 20 });
@@ -50,8 +67,9 @@ test("a slanted swipe that starts between two category chips scrolls the row, no
 
 test("a drag on the map just below the category row still pans the map", async ({ page }) => {
   // GIVEN the home screen
-  const { mapMoved } = await openHome(page);
+  const { watchMap, mapMoved } = await openHome(page);
   const row = (await page.getByRole("group", { name: "Kategorie" }).boundingBox())!;
+  await watchMap();
 
   // WHEN a finger drags the map a few pixels under the row
   await (await finger(page)).drag({ x: row.x + row.width / 2, y: row.y + row.height + 12 }, { x: 40, y: 60 });
@@ -62,14 +80,14 @@ test("a drag on the map just below the category row still pans the map", async (
 
 test("a slanted swipe that starts between two feature filters scrolls them, not the panel or the map", async ({ page }) => {
   // GIVEN the list panel brought up at half height
-  const { mapMoved } = await openHome(page);
+  const { watchMap, mapMoved } = await openHome(page);
   const panel = page.getByRole("region", { name: "Lista miejsc" });
   await panel.getByRole("button", { name: "Pokaż listę" }).click();
   await expect(panel).toHaveAttribute("data-stowed", "false");
   await expect.poll(() => panel.evaluate((el) => el.getAnimations().length)).toBe(0);
   const filters = panel.getByRole("group", { name: "Filtry cech" });
   await filters.scrollIntoViewIfNeeded();
-  expect(await filters.evaluate((el) => el.scrollWidth - el.clientWidth)).toBeGreaterThan(150);
+  await watchMap();
 
   // WHEN a finger lands between the first two filters and swipes left, drifting down a little
   await (await finger(page)).drag(await firstGap(filters), { x: -150, y: 20 });
