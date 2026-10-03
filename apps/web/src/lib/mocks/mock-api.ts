@@ -14,9 +14,10 @@ import { matchProfile } from "@/domain/matcher";
 import { thresholdsFor } from "@/domain/profiles";
 import { defaultLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
+import { byDistance } from "@/lib/nearby";
 
 // In-browser stand-in for the places API, for tests and the demo recording only (NEXT_PUBLIC_API_MOCK=true),
-// built only from the spec's `examples`. Supports `q`, `category`, `feature` + `includeUnknown`, `bbox` and the profile
+// built only from the spec's `examples`. Supports `q`, `category`, `feature` + `includeUnknown`, `bbox`, `near` (nearest first, one page) and the profile
 // parameters; verdicts come from the same `matchProfile` the API uses.
 
 function uniqueById<T extends { id: string }>(items: T[]): T[] {
@@ -115,7 +116,9 @@ export function mockListPlaces(query: ListPlacesQuery = {}, locale: Locale = def
       ...localizedChips(s, locale),
       verdict: thresholds ? matchProfile(factsOf(s), thresholds, locale) : null,
     }));
-  return { items, nextCursor: null, total: items.length };
+  const [lon, lat] = query.near ?? [];
+  const ordered = lon === undefined || lat === undefined ? items : byDistance(items, [lon, lat]).map(({ place }) => place);
+  return { items: ordered, nextCursor: null, total: ordered.length };
 }
 
 export function mockGetPlace(id: string, query: GetPlaceQuery = {}, locale: Locale = defaultLocale): Place | null {

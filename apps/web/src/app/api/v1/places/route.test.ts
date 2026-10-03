@@ -218,6 +218,38 @@ describe("GET /api/v1/places", () => {
     expect(second.body.nextCursor).toBeNull();
   });
 
+  it("orders by distance with near and pages with a cursor tied to that point", async () => {
+    // GIVEN four places, the hotel being nearest to the point
+    // WHEN reading two pages of two near it
+    const first = await list("?near=19.94,50.06&limit=2");
+    const second = await list(`?near=19.94,50.06&limit=2&cursor=${first.body.nextCursor}`);
+
+    // THEN the nearest come first without overlap
+    const all = names(first.body).concat(names(second.body));
+    expect(all[0]).toBe("Hotel Dostępny");
+    expect(new Set(all).size).toBe(4);
+    expect(second.body.nextCursor).toBeNull();
+  });
+
+  it("answers 400 for a name cursor with near, a near cursor without it and a bad point", async () => {
+    // GIVEN cursors of both orders
+    const byName = (await list("?limit=1")).body.nextCursor;
+    const byNear = (await list("?near=19.94,50.06&limit=1")).body.nextCursor;
+
+    // WHEN they are mixed up
+    const responses = await Promise.all([
+      list(`?near=19.94,50.06&cursor=${byName}`),
+      list(`?cursor=${byNear}`),
+      list("?near=19.94,120"),
+      list("?near=19.94"),
+    ]);
+
+    // THEN each is a 400 problem
+    for (const { status } of responses) expect(status).toBe(400);
+    expect(responses[0].body.errors[0].field).toBe("query.cursor");
+    expect(responses[2].body.errors[0].field).toBe("query.near");
+  });
+
   it("answers 400 with a Problem for an inverted bbox, a forged cursor or an unknown category", async () => {
     // GIVEN requests the spec or the semantics reject
     // WHEN listing

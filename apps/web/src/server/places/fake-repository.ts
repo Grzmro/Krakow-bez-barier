@@ -2,6 +2,7 @@ import type { FactValue } from "@krakow-bez-barier/contracts";
 import {
   normalizeText,
   type FactRecord,
+  type PlaceHit,
   type PlaceRecord,
   type PlaceRepository,
   type SourceRecord,
@@ -29,6 +30,12 @@ export function sourceRecord(overrides: Partial<SourceRecord> = {}): SourceRecor
     isSample: false,
     ...overrides,
   };
+}
+
+function haversineMeters([lon1, lat1]: [number, number], [lon2, lat2]: [number, number]): number {
+  const rad = Math.PI / 180;
+  const a = Math.sin(((lat2 - lat1) * rad) / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(((lon2 - lon1) * rad) / 2) ** 2;
+  return 2 * 6371008.8 * Math.asin(Math.sqrt(a));
 }
 
 let seq = 0;
@@ -88,8 +95,8 @@ export function factRecord(
 
 export function createFakePlaceRepository(places: PlaceRecord[], facts: FactRecord[]): PlaceRepository {
   return {
-    async searchPlaces({ text, categories, excludeCategories, bbox }) {
-      return places.filter((p) => {
+    async searchPlaces({ text, categories, excludeCategories, bbox, near }) {
+      const hits = places.filter((p) => {
         const haystack = normalizeText([p.name, p.street, p.houseNumber].filter(Boolean).join(" "));
         if (text && !haystack.includes(text)) return false;
         if (categories?.length && !categories.includes(p.category)) return false;
@@ -101,6 +108,10 @@ export function createFakePlaceRepository(places: PlaceRecord[], facts: FactReco
         }
         return true;
       });
+      if (!near) return hits;
+      return hits
+        .map((p): PlaceHit => ({ ...p, distance: haversineMeters(near, [p.location.x, p.location.y]) }))
+        .sort((a, b) => a.distance! - b.distance! || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
     },
     async findPlace(id) {
       return places.find((p) => p.id === id) ?? null;

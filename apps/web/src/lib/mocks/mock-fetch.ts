@@ -47,6 +47,7 @@ export const withPlacesMocks = (fallback: Fetch): Fetch => async (input) => {
       return values.length ? values : undefined;
     };
     const bbox = list("bbox")?.map(Number);
+    const near = list("near")?.map(Number);
     return json(
       mockListPlaces({
         q: params.get("q") ?? undefined,
@@ -54,6 +55,7 @@ export const withPlacesMocks = (fallback: Fetch): Fetch => async (input) => {
         feature: list("feature") as FeatureFilter[] | undefined,
         includeUnknown: params.has("includeUnknown") ? params.get("includeUnknown") === "true" : undefined,
         bbox: bbox?.length === 4 ? bbox : undefined,
+        near: near?.length === 2 ? near : undefined,
         ...profileParams(params),
       }, locale),
     );

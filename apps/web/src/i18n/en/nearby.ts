@@ -20,8 +20,8 @@ export const nearby: Messages["nearby"] = {
     announce: "Near you, nearest first",
     you: "You",
     emptyHint: "You're searching only near you (within about 2 km).",
-    truncated: (shown: number, total: number) =>
-      `The list covers ${shown} of ${total} matching places nearby, so the nearest ones may be missing. Narrow the search with a name, category or filter.`,
+    nearestOnly: (shown: number, total: number) =>
+      `Showing the ${shown} nearest of ${total} places nearby. Narrow the search with a name, category or filter to see the rest.`,
   },
   devPage: {
     title: "Native features",

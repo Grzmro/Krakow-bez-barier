@@ -23,6 +23,7 @@ import {
   createDbPlaceRepository,
   normalizeText,
   type FactRecord,
+  type PlaceHit,
   type PlaceRecord,
   type PlaceRepository,
   type SourceRecord,
@@ -130,21 +131,65 @@ function summaryChips(attributes: ResolvedAttribute[], extra: AccessibilityAttri
     }));
 }
 
-type Cursor = { name: string; id: string };
+type NameCursor = { name: string; id: string };
+type Near = [number, number];
+type NearCursor = { near: Near; distance: number; id: string };
 
 const collator = new Intl.Collator("pl", { sensitivity: "base" });
-const byNameThenId = (a: Cursor, b: Cursor) => collator.compare(a.name, b.name) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+const byId = (a: { id: string }, b: { id: string }) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+const byNameThenId = (a: NameCursor, b: NameCursor) => collator.compare(a.name, b.name) || byId(a, b);
+const byDistanceThenId = (a: { distance: number; id: string }, b: { distance: number; id: string }) =>
+  a.distance - b.distance || byId(a, b);
+const distanceOf = (place: PlaceHit) => ({ id: place.id, distance: place.distance ?? Number.POSITIVE_INFINITY });
 
-const encodeCursor = ({ name, id }: Cursor) => Buffer.from(JSON.stringify([name, id])).toString("base64url");
+const encode = (parts: unknown[]) => Buffer.from(JSON.stringify(parts)).toString("base64url");
+const encodeNameCursor = ({ name, id }: NameCursor) => encode([name, id]);
+const encodeNearCursor = ({ near, distance, id }: NearCursor) => encode(["near", near[0], near[1], distance, id]);
 
-function decodeCursor(cursor: string): Cursor {
+const notACursor = () => new InvalidQueryError("query.cursor", "is not a cursor returned in nextCursor for this query");
+
+function parseCursor(cursor: string): unknown[] {
   try {
-    const [name, id] = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8")) as unknown[];
-    if (typeof name === "string" && typeof id === "string") return { name, id };
+    const parts: unknown = JSON.parse(Buffer.from(cursor, "base64url").toString("utf8"));
+    if (Array.isArray(parts)) return parts;
   } catch {
     // falls through to the error below
   }
-  throw new InvalidQueryError("query.cursor", "is not a cursor returned in nextCursor");
+  throw notACursor();
+}
+
+/** A name-order cursor; one issued for a `near` list is refused. */
+function decodeNameCursor(cursor: string): NameCursor {
+  const [name, id, ...rest] = parseCursor(cursor);
+  if (typeof name === "string" && typeof id === "string" && rest.length === 0) return { name, id };
+  throw notACursor();
+}
+
+/** A distance-order cursor for exactly this `near` point; a name-order cursor, or one for another point, is refused. */
+function decodeNearCursor(cursor: string, near: Near): NearCursor {
+  const [kind, lon, lat, distance, id, ...rest] = parseCursor(cursor);
+  if (
+    kind === "near" &&
+    lon === near[0] &&
+    lat === near[1] &&
+    typeof distance === "number" &&
+    Number.isFinite(distance) &&
+    distance >= 0 &&
+    typeof id === "string" &&
+    rest.length === 0
+  ) {
+    return { near, distance, id };
+  }
+  throw notACursor();
+}
+
+function readNear(near: number[] | undefined): Near | undefined {
+  if (!near) return undefined;
+  const [lon, lat] = near;
+  if (!(lon >= -180 && lon <= 180 && lat >= -90 && lat <= 90)) {
+    throw new InvalidQueryError("query.near", "must be lon,lat within WGS84 bounds");
+  }
+  return [lon, lat];
 }
 
 function readBbox(bbox: number[] | undefined): [number, number, number, number] | undefined {
@@ -159,7 +204,7 @@ function readBbox(bbox: number[] | undefined): [number, number, number, number] 
 }
 
 /**
- * Searches places (text on name and address, category, bbox in PostGIS), resolves their facts and applies
+ * Searches places (text on name and address, category, bbox in PostGIS; with `near`, nearest first from that point), resolves their facts and applies
  * feature filters: a place passes a filter only when the feature is known to be there; with
  * `includeUnknown`, places we can't say about pass too (`features[].state` says which, and every
  * attribute behind the feature gets a chip, "brak danych" included), but a feature known to be missing
@@ -172,7 +217,7 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
   if (unknownCategory) {
     throw new InvalidQueryError("query.category", `names "${unknownCategory}", which is not a configured category`);
   }
-  const after = query.cursor ? decodeCursor(query.cursor) : null;
+  const near = readNear(query.near);
   const text = query.q ? normalizeText(query.q) : "";
   const features = [...new Set(query.feature ?? [])];
   const thresholds = thresholdsFor(query);
@@ -185,6 +230,7 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
     categories: query.category,
     excludeCategories: hiddenByDefault,
     bbox,
+    near,
   });
   const factsByPlace = Map.groupBy(await repository.activeFacts(candidates.map((p) => p.id)), (f) => f.placeId);
 
@@ -198,9 +244,16 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
     .filter(({ matches }) =>
       query.includeUnknown ? matches.every((m) => m.state !== "absent") : matches.every((m) => m.state === "met"),
     )
-    .sort((a, b) => byNameThenId(a.place, b.place));
+    .sort((a, b) => (near ? byDistanceThenId(distanceOf(a.place), distanceOf(b.place)) : byNameThenId(a.place, b.place)));
 
-  const remaining = after ? matching.filter(({ place }) => byNameThenId(place, after) > 0) : matching;
+  let remaining = matching;
+  if (query.cursor && near) {
+    const after = decodeNearCursor(query.cursor, near);
+    remaining = matching.filter(({ place }) => byDistanceThenId(distanceOf(place), after) > 0);
+  } else if (query.cursor) {
+    const after = decodeNameCursor(query.cursor);
+    remaining = matching.filter(({ place }) => byNameThenId(place, after) > 0);
+  }
   const page = remaining.slice(0, limit);
   // entrance_level only ever proves step_free, so its missing data isn't worth a "brak danych" chip.
   const featureAttributes = features.flatMap((f) => FEATURE_ATTRIBUTES[f]).filter((a) => a !== "entrance_level");
@@ -220,7 +273,12 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
   const last = page.at(-1);
   return {
     items,
-    nextCursor: remaining.length > page.length && last ? encodeCursor(last.place) : null,
+    nextCursor:
+      remaining.length > page.length && last
+        ? near
+          ? encodeNearCursor({ near, ...distanceOf(last.place) })
+          : encodeNameCursor(last.place)
+        : null,
     total: matching.length,
   };
 }
