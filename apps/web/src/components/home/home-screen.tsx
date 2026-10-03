@@ -19,6 +19,7 @@ import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { countByStatus, filterByVerdict, missingNeeds, STATUS_ORDER } from "@/lib/profile/verdict-list";
 import { scrollIntoViewWithin, scrollParent } from "@/lib/scroll-within";
+import { useDebounced } from "@/lib/use-debounced";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useSessionFlag } from "@/lib/use-session-flag";
 import { PlaceMap } from "./place-map";
@@ -54,15 +55,6 @@ const COUNTER_PRESSED: Record<Status, string> = {
   conflict: "aria-pressed:bg-status-conflict-bg aria-pressed:ring-status-conflict",
   unknown: "aria-pressed:bg-status-unknown-bg aria-pressed:ring-status-unknown",
 };
-
-function useDebounced<T>(value: T, delay = 200): T {
-  const [debounced, setDebounced] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-  return debounced;
-}
 
 export function HomeScreen() {
   const m = useMessages();

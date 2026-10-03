@@ -1,0 +1,77 @@
+- main:
+  - link "Wstecz":
+    - /url: /
+  - text: Start
+  - combobox "Start": Moja lokalizacja
+  - paragraph: "Cel: Rynek Główny"
+  - button "Zamień start i cel":
+    - img
+  - group "Rodzaj trasy":
+    - button "Unikaj schodów" [pressed]
+    - button "Najkrótsza"
+  - region "Odcinki trasy":
+    - button "Rozwiń arkusz"
+    - group "Odcinki trasy":
+      - 'heading /Trasa: 7 minut, \d+,\d+ km/ [level=1]'
+      - group "Profil potrzeb":
+        - text: ""
+        - radio "Profil wyłączony, widok dla każdego" [checked]
+        - text: Dla każdego
+        - radio "Wózek"
+        - text: Wózek
+        - radio "Wózek dziecięcy"
+        - text: Dziecięcy
+        - radio "Senior"
+        - text: Senior
+      - paragraph: Bez profilu sprawdzamy schody i nawierzchnię. Włącz profil, by ocenić krawężniki i nachylenie.
+      - paragraph: Trasa nie zawiera znanych barier
+      - paragraph: brak danych na 0 odcinkach
+      - paragraph: Pasek pokazuje odcinki w skali długości. Szczegóły w liście „Krok po kroku”.
+      - button "Najkrótsza · 7 min Spełnia · brak danych na 0 odcinkach"
+      - heading "Krok po kroku" [level=2]
+      - list "Odcinki trasy, tekstowa wersja mapy":
+        - listitem:
+          - 'button /Odcinek 1 z \d+\. Kieruj się na zachód, \d+ metrów\. Spełnia: asfalt\./': "/Kieruj się na zachód Spełnia: asfalt \\d+ m/"
+        - listitem:
+          - 'button /Odcinek 2 z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: asfalt\./': "/Skręć w lewo Spełnia: asfalt \\d+ m/"
+        - listitem:
+          - 'button /Odcinek 3 z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w lewo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek 4 z \d+\. Skręć w prawo na Pijarska, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w prawo na Pijarska Pijarska · Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek 5 z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w lewo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek 6 z \d+\. Skręć w prawo, 6 metrów\. Spełnia: płyty chodnikowe\./': "Skręć w prawo Spełnia: płyty chodnikowe 6 m"
+        - listitem:
+          - 'button /Odcinek 7 z \d+\. Kontynuuj prosto na Zaułek Niewiernego Tomasza, 1 metr\. Spełnia: płyty chodnikowe\./': "Kontynuuj prosto na Zaułek Niewiernego Tomasza Zaułek Niewiernego Tomasza · Spełnia: płyty chodnikowe 1 m"
+        - listitem:
+          - 'button /Odcinek 8 z \d+\. Skręć w prawo, \d+ metry\. Spełnia: płyty chodnikowe\./': "/Skręć w prawo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek 9 z \d+\. Skręć w prawo, 3 metry\. Spełnia: płyty chodnikowe\./': "Skręć w prawo Spełnia: płyty chodnikowe 3 m"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w lewo na Świętego Jana, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w lewo na Świętego Jana Świętego Jana · Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Kieruj się w lewo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Kieruj się w lewo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w lewo, 2 metry\. Spełnia: płyty chodnikowe\./': "Skręć w lewo Spełnia: płyty chodnikowe 2 m"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, \d+ metrów\. Spełnia: płyty chodnikowe\./': "/Skręć w prawo Spełnia: płyty chodnikowe \\d+ m/"
+        - listitem:
+          - 'button /Odcinek \d+ z \d+\. Skręć w prawo, 3 metry\. Spełnia: płyty chodnikowe\./': "Skręć w prawo Spełnia: płyty chodnikowe 3 m"
+      - paragraph: "Trasa: © OpenStreetMap contributors, openrouteservice"
+    - button "Ruszamy":
+      - img
+      - text: ""
+  - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
+  - paragraph:
+    - link "OpenFreeMap":
+      - /url: https://openfreemap.org
+    - text: ·
+    - link "© OpenMapTiles":
+      - /url: https://www.openmaptiles.org/
+    - text: ·
+    - link "© OpenStreetMap contributors":
+      - /url: https://www.openstreetmap.org/copyright
+    - text: · openrouteservice
+  - button "Przybliż"
+  - button "Oddal"

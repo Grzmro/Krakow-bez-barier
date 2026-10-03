@@ -1,0 +1,507 @@
+{
+  "request": {
+    "profile": "foot-walking",
+    "body": {
+      "coordinates": [
+        [
+          19.942,
+          50.065
+        ],
+        [
+          19.9373,
+          50.0617
+        ]
+      ],
+      "extra_info": [
+        "surface",
+        "steepness",
+        "waytype"
+      ],
+      "instructions": true,
+      "language": "pl",
+      "units": "m"
+    }
+  },
+  "recordedAt": "2026-10-03T21:20:54.943Z",
+  "status": 200,
+  "response": {
+    "type": "FeatureCollection",
+    "bbox": [
+      19.937314,
+      50.061701,
+      19.941987,
+      50.065062
+    ],
+    "features": [
+      {
+        "bbox": [
+          19.937314,
+          50.061701,
+          19.941987,
+          50.065062
+        ],
+        "type": "Feature",
+        "properties": {
+          "segments": [
+            {
+              "distance": 574.2,
+              "duration": 413.4,
+              "steps": [
+                {
+                  "distance": 25.7,
+                  "duration": 18.5,
+                  "type": 11,
+                  "instruction": "Kieruj się na zachód",
+                  "name": "-",
+                  "way_points": [
+                    0,
+                    1
+                  ]
+                },
+                {
+                  "distance": 26.7,
+                  "duration": 19.2,
+                  "type": 0,
+                  "instruction": "Skręć w lewo",
+                  "name": "-",
+                  "way_points": [
+                    1,
+                    5
+                  ]
+                },
+                {
+                  "distance": 9.6,
+                  "duration": 6.9,
+                  "type": 0,
+                  "instruction": "Skręć w lewo",
+                  "name": "-",
+                  "way_points": [
+                    5,
+                    8
+                  ]
+                },
+                {
+                  "distance": 107.5,
+                  "duration": 77.4,
+                  "type": 1,
+                  "instruction": "Skręć w prawo na Pijarska",
+                  "name": "Pijarska",
+                  "way_points": [
+                    8,
+                    15
+                  ]
+                },
+                {
+                  "distance": 206.3,
+                  "duration": 148.5,
+                  "type": 0,
+                  "instruction": "Skręć w lewo",
+                  "name": "-",
+                  "way_points": [
+                    15,
+                    26
+                  ]
+                },
+                {
+                  "distance": 5.7,
+                  "duration": 4.1,
+                  "type": 1,
+                  "instruction": "Skręć w prawo",
+                  "name": "-",
+                  "way_points": [
+                    26,
+                    29
+                  ]
+                },
+                {
+                  "distance": 0.9,
+                  "duration": 0.6,
+                  "type": 6,
+                  "instruction": "Kontynuuj prosto na Zaułek Niewiernego Tomasza",
+                  "name": "Zaułek Niewiernego Tomasza",
+                  "way_points": [
+                    29,
+                    31
+                  ]
+                },
+                {
+                  "distance": 84.4,
+                  "duration": 60.8,
+                  "type": 1,
+                  "instruction": "Skręć w prawo",
+                  "name": "-",
+                  "way_points": [
+                    31,
+                    34
+                  ]
+                },
+                {
+                  "distance": 3.4,
+                  "duration": 2.5,
+                  "type": 1,
+                  "instruction": "Skręć w prawo",
+                  "name": "-",
+                  "way_points": [
+                    34,
+                    35
+                  ]
+                },
+                {
+                  "distance": 29.6,
+                  "duration": 21.3,
+                  "type": 0,
+                  "instruction": "Skręć w lewo na Świętego Jana",
+                  "name": "Świętego Jana",
+                  "way_points": [
+                    35,
+                    37
+                  ]
+                },
+                {
+                  "distance": 19.5,
+                  "duration": 14,
+                  "type": 12,
+                  "instruction": "Kieruj się w lewo",
+                  "name": "-",
+                  "way_points": [
+                    37,
+                    39
+                  ]
+                },
+                {
+                  "distance": 2,
+                  "duration": 1.4,
+                  "type": 0,
+                  "instruction": "Skręć w lewo",
+                  "name": "-",
+                  "way_points": [
+                    39,
+                    40
+                  ]
+                },
+                {
+                  "distance": 49.6,
+                  "duration": 35.7,
+                  "type": 1,
+                  "instruction": "Skręć w prawo",
+                  "name": "-",
+                  "way_points": [
+                    40,
+                    41
+                  ]
+                },
+                {
+                  "distance": 3.3,
+                  "duration": 2.4,
+                  "type": 1,
+                  "instruction": "Skręć w prawo",
+                  "name": "-",
+                  "way_points": [
+                    41,
+                    42
+                  ]
+                },
+                {
+                  "distance": 0,
+                  "duration": 0,
+                  "type": 10,
+                  "instruction": "Dotrzesz do celu po lewej stronie",
+                  "name": "-",
+                  "way_points": [
+                    42,
+                    42
+                  ]
+                }
+              ]
+            }
+          ],
+          "extras": {
+            "waytype": {
+              "values": [
+                [
+                  0,
+                  42,
+                  7
+                ]
+              ],
+              "summary": [
+                {
+                  "value": 7,
+                  "distance": 574.2,
+                  "amount": 100
+                }
+              ]
+            },
+            "surface": {
+              "values": [
+                [
+                  0,
+                  5,
+                  3
+                ],
+                [
+                  5,
+                  42,
+                  14
+                ]
+              ],
+              "summary": [
+                {
+                  "value": 14,
+                  "distance": 521.8,
+                  "amount": 90.87
+                },
+                {
+                  "value": 3,
+                  "distance": 52.4,
+                  "amount": 9.13
+                }
+              ]
+            },
+            "steepness": {
+              "values": [
+                [
+                  0,
+                  42,
+                  0
+                ]
+              ],
+              "summary": [
+                {
+                  "value": 0,
+                  "distance": 574.2,
+                  "amount": 100
+                }
+              ]
+            }
+          },
+          "warnings": [
+            {
+              "code": 4,
+              "message": "Extra info requested but not available: roadaccessrestrictions"
+            }
+          ],
+          "way_points": [
+            0,
+            42
+          ],
+          "summary": {
+            "distance": 574.2,
+            "duration": 413.4
+          }
+        },
+        "geometry": {
+          "type": "LineString",
+          "coordinates": [
+            [
+              19.941987,
+              50.064978
+            ],
+            [
+              19.941651,
+              50.065062
+            ],
+            [
+              19.941617,
+              50.065029
+            ],
+            [
+              19.941547,
+              50.065014
+            ],
+            [
+              19.94148,
+              50.064882
+            ],
+            [
+              19.941459,
+              50.064886
+            ],
+            [
+              19.941448,
+              50.06486
+            ],
+            [
+              19.941435,
+              50.064824
+            ],
+            [
+              19.941427,
+              50.064802
+            ],
+            [
+              19.941334,
+              50.064809
+            ],
+            [
+              19.941242,
+              50.064816
+            ],
+            [
+              19.94071,
+              50.064857
+            ],
+            [
+              19.940596,
+              50.064854
+            ],
+            [
+              19.940369,
+              50.06481
+            ],
+            [
+              19.940309,
+              50.064805
+            ],
+            [
+              19.939938,
+              50.064781
+            ],
+            [
+              19.939944,
+              50.06475
+            ],
+            [
+              19.939851,
+              50.064733
+            ],
+            [
+              19.939401,
+              50.064162
+            ],
+            [
+              19.939268,
+              50.063992
+            ],
+            [
+              19.939265,
+              50.063988
+            ],
+            [
+              19.939247,
+              50.063965
+            ],
+            [
+              19.939231,
+              50.063943
+            ],
+            [
+              19.939228,
+              50.063938
+            ],
+            [
+              19.939013,
+              50.06364
+            ],
+            [
+              19.938691,
+              50.063197
+            ],
+            [
+              19.938696,
+              50.063142
+            ],
+            [
+              19.938681,
+              50.063138
+            ],
+            [
+              19.938663,
+              50.063114
+            ],
+            [
+              19.938653,
+              50.063101
+            ],
+            [
+              19.938651,
+              50.063097
+            ],
+            [
+              19.938648,
+              50.063094
+            ],
+            [
+              19.938623,
+              50.063097
+            ],
+            [
+              19.9386,
+              50.063079
+            ],
+            [
+              19.938109,
+              50.062432
+            ],
+            [
+              19.938066,
+              50.062445
+            ],
+            [
+              19.937975,
+              50.062323
+            ],
+            [
+              19.937813,
+              50.062245
+            ],
+            [
+              19.937682,
+              50.062147
+            ],
+            [
+              19.937646,
+              50.062106
+            ],
+            [
+              19.937671,
+              50.062098
+            ],
+            [
+              19.937354,
+              50.061701
+            ],
+            [
+              19.937314,
+              50.061716
+            ]
+          ]
+        }
+      }
+    ],
+    "metadata": {
+      "attribution": "openrouteservice.org | OpenStreetMap contributors",
+      "service": "routing",
+      "timestamp": 1791062454881,
+      "query": {
+        "coordinates": [
+          [
+            19.942,
+            50.065
+          ],
+          [
+            19.9373,
+            50.0617
+          ]
+        ],
+        "profile": "foot-walking",
+        "profileName": "foot-walking",
+        "format": "geojson",
+        "units": "m",
+        "language": "pl",
+        "instructions": true,
+        "extra_info": [
+          "surface",
+          "steepness",
+          "waytype"
+        ]
+      },
+      "engine": {
+        "version": "9.10.0",
+        "build_date": "2026-08-13T11:53:14Z",
+        "graph_date": "2026-09-20T06:31:34Z",
+        "osm_date": "2026-09-13T23:59:59Z"
+      }
+    }
+  }
+}
