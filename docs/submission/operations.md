@@ -25,11 +25,11 @@ infrastrukturze; Miasto nie hostuje, nie utrzymuje bazy i nie daje dostępu do s
 Architektura nie zależy od jednego dostawcy ([deployment.md](../deployment.md) → „Moving to other
 infrastructure”):
 
-| Komponent | Prototyp (PR #44, w toku) | Zamiennik |
+| Komponent | Prototyp | Zamiennik |
 |---|---|---|
-| Aplikacja web + API (Next.js) | Vercel, region fra1 (UE) | dowolny host Node.js 20+ lub kontener |
-| Baza Postgres + PostGIS | zarządzany Postgres (Neon) | dowolny Postgres z PostGIS |
-| Ingest | GitHub Actions cron, codziennie 03:17 UTC (`.github/workflows/ingest.yml`) | cron, systemd timer, Kubernetes CronJob |
+| Aplikacja web + API (Next.js) | Vercel, region fra1 (UE) — PR #44, w toku | dowolny host Node.js 22+ lub kontener |
+| Baza Postgres + PostGIS | zarządzany Postgres (Neon) — PR #44, w toku | dowolny Postgres z PostGIS |
+| Ingest | GitHub Actions cron, codziennie 03:17 UTC (`.github/workflows/ingest.yml`) — jest w `main`, działa po ustawieniu sekretu `DATABASE_URL` (bez niego jest pomijany z ostrzeżeniem) | cron, systemd timer, Kubernetes CronJob |
 | Mapa bazowa | OpenFreeMap (bez klucza, atrybucja OSM) | dowolne kafle wektorowe MapLibre |
 | Aplikacja iOS/Android | Capacitor, ładuje wdrożoną aplikację web przez HTTPS | — |
 
@@ -62,7 +62,8 @@ niepełnosprawności; profil zostaje w przeglądarce.
 - Zgłoszenia bez konta trafiają do kolejki moderatora; decyzje: zatwierdź, odrzuć, do wyjaśnienia;
   historia „kto, co, kiedy”.
 - Zatwierdzone zgłoszenie staje się faktem „Społeczność, zweryfikowane przez moderatora” i nie
-  nadpisuje danych innych źródeł (różnica = „Sprzeczne”).
+  nadpisuje danych innych źródeł (różnica z faktem aktualnym = „Sprzeczne”; fakt starszy niż
+  12 miesięcy ustępuje świeżemu).
 - Obsada: moderator operatora 0,25–0,5 etatu w 1. roku **(szacunek)**; po uruchomieniu panelu
   właściciela (US-9.3) właściciele obiektów potwierdzają swoje dane (status „Deklaracja
   właściciela”, nigdy „certyfikat”).

@@ -8,7 +8,7 @@ Answers the jury's questions on dependencies, licences, portability and scaling 
 
 | Component | Provided by | Required? | Replace with |
 |---|---|---|---|
-| Web + API (Next.js 16) | Vercel | No, any Node host | Any Node.js 20+ host or container (`npm run build`, `npm start`) |
+| Web + API (Next.js 16) | Vercel | No, any Node host | Any Node.js 22+ host or container (`npm run build`, `npm start`) |
 | Database | Managed Postgres with PostGIS | PostGIS needed | Any Postgres + PostGIS (`docker compose up -d db` locally); set `DATABASE_URL` |
 | Ingestion | GitHub Actions cron | No | Any scheduler running `npm run ingest -- --source <id> --city <city>` |
 | Routing | openrouteservice (`ORS_API_KEY`) | No | Another implementation of `RoutingProvider` or self-hosted ORS |

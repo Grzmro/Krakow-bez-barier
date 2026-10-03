@@ -8,9 +8,11 @@ jest w kodzie; to, czego kod jeszcze nie wymusza, jest oznaczone **„deklaracja
 
 - Żaden ekran nie pyta o niepełnosprawność, diagnozę, wiek ani tożsamość (US-1.1, R4). Dopasowanie
   wyników opiera się tylko na progach barier i udogodnień (np. „szerokość wejścia min. 90 cm”).
-- **Profil potrzeb i progi zostają w przeglądarce** (`localStorage`); serwer dostaje tylko progi jako
-  parametry zapytania `GET /places`, bez identyfikatora użytkownika i bez zapisu
-  (`apps/web/src/lib/profile/`, decyzja w [architecture.md](../architecture.md)).
+- **Profil potrzeb i progi zostają w przeglądarce** (`localStorage`); serwer dostaje nazwę profilu
+  (np. `profile=wheelchair`) i progi jako parametry zapytania `GET /places`, bez identyfikatora
+  użytkownika; aplikacja ich nie zapisuje (`profileQuery`, `apps/web/src/lib/profile/thresholds.ts`;
+  decyzja w [architecture.md](../architecture.md)). Logi dostępowe hostingu (adres URL żądania) są
+  poza kodem aplikacji.
 - **Lokalizacja zostaje na urządzeniu**: „W mojej okolicy” ustala pozycję przez przeglądarkę albo
   natywnie w aplikacji (za zgodą systemu) i nie wysyła jej na serwer
   (`apps/web/src/lib/native/geolocation.ts`, `components/layout/near-me.tsx`).
@@ -47,11 +49,14 @@ Bez zagadek CAPTCHA, zgodnie z WCAG 3.3.8 (dostępne uwierzytelnianie):
 | Pułapka na boty | ukryte pole `website` musi być puste | `server/reports/service.ts` |
 | Walidacja wartości | zakresy z kontraktu (`ReportCreate.x-value-ranges`, np. szerokość w cm), tekst 1–100 znaków; błąd 422 | `checkReportValue` |
 | Walidacja każdego żądania | schemat OpenAPI 3.1 (Ajv) | `server/http/route.ts` |
-| Klucz klienta | adres widziany przez proxy hostingu, nie nagłówki podane przez klienta | `clientKey` w `server/http` |
+| Klucz klienta | za proxy hostingu (Vercel) — adres widziany przez proxy; bez proxy nagłówki `x-forwarded-for` / `x-real-ip` mogą pochodzić od klienta, więc wdrożenie musi stać za zaufanym proxy | `clientKey` w `server/http/rate-limit.ts` |
 
 - **Zgłoszenie nigdy nie nadpisuje danych źródła.** Przed moderacją nie zmienia wartości ani werdyktu
   (zgłaszający widzi je obok faktu jako „Niezweryfikowane”; dla innych użytkowników — KBB-49); po zatwierdzeniu staje się osobnym faktem ze źródła „Społeczność, zweryfikowane
-  przez moderatora”, więc różnica z innym źródłem jest widoczna jako „Sprzeczne”.
+  przez moderatora”, więc różnica z innym aktualnym źródłem jest widoczna jako „Sprzeczne”. Wyjątek:
+  fakt nieaktualny (starszy niż 12 miesięcy) nie bierze udziału w werdykcie, gdy istnieje fakt
+  aktualny — wtedy wygrywa świeży fakt, bez oznaczenia „Sprzeczne” (`resolveAttribute`,
+  `server/domain/resolver.ts`).
 - Odrzucone zgłoszenie nie trafia do widoku publicznego.
 - Ograniczenie: limity są w pamięci jednej instancji serwera (zatrzymują serię, nie są globalnym
   limitem). Przy wielu instancjach — wspólny magazyn limitów (np. Redis) — do zrobienia.
@@ -80,7 +85,10 @@ Bez zagadek CAPTCHA, zgodnie z WCAG 3.3.8 (dostępne uwierzytelnianie):
   sekretach GitHub; w repozytorium są tylko `.env.example` z pustymi wartościami.
 - Przełącznik demo awarii źródła (`SIMULATE_SOURCE_OUTAGE`) to zmienna serwera, nie parametr
   żądania; w produkcji działa tylko z `ALLOW_SIMULATED_OUTAGE=true`.
-- Logi serwera: tylko błędy API (nazwa operacji i błąd), bez treści zgłoszeń i bez adresów IP.
+- Logi serwera: tylko błędy API (nazwa operacji i błąd), bez adresów IP. **Ograniczenie:** przy
+  awarii bazy błąd zapytania (`DrizzleQueryError`) zawiera parametry zapytania, więc nieudany zapis
+  zgłoszenia lub potwierdzenia może trafić do logu z wartością i komentarzem
+  (`server/http/route.ts`) — do poprawy przed pilotażem.
 
 ## Plan przed usługą
 
@@ -89,3 +97,4 @@ Bez zagadek CAPTCHA, zgodnie z WCAG 3.3.8 (dostępne uwierzytelnianie):
 3. Wspólny magazyn limitów dla wielu instancji.
 4. HSTS i polityka CSP dla całej aplikacji, test penetracyjny raz w roku.
 5. Rejestr czynności przetwarzania (RODO) i umowa powierzenia z hostingiem w UE.
+6. Logi błędów bez parametrów zapytań do bazy (tylko nazwa i kod błędu).

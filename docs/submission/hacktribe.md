@@ -18,14 +18,14 @@ Kraków bez barier — każde miejsce ma drugą stronę
 
 Kraków bez barier to aplikacja webowa — także instalowalna PWA z trybem offline i aplikacja iOS/Android z tego samego kodu — w której mieszkańcy i turyści sprawdzają, czy miejsce pasuje do ich potrzeb. Zamiast etykiety „dostępne / niedostępne” pokazujemy konkretne fakty: stopnie, próg, szerokość drzwi, windę, nawierzchnię, toaletę dostosowaną, przewijak, miejsca odpoczynku i parking. Każdy fakt ma „drugą stronę” (przycisk „Skąd wiemy?”): źródło, datę pozyskania lub potwierdzenia i poziom wiarygodności.
 
-Bez konta i bez pytań o zdrowie: użytkownik może jednym kliknięciem włączyć profil potrzeb („Wózek” albo „Wózek dziecięcy”). Profil porównuje fakty z progami użytkownika i pokazuje werdykt: „Spełnia”, „Nie spełnia”, „Sprzeczne” albo „Brak danych”. Brak informacji nigdy nie jest pokazywany jako dostępność. Brakujące lub błędne dane można uzupełnić albo potwierdzić bez konta; zgłoszenie trafia do panelu moderatora (kolejka, decyzja, historia „kto, co, kiedy”) i nigdy nie nadpisuje danych innego źródła — po zatwierdzeniu różnica jest pokazywana jako „Sprzeczne”.
+Bez konta i bez pytań o zdrowie: użytkownik może jednym kliknięciem włączyć profil potrzeb („Wózek” albo „Wózek dziecięcy”). Profil porównuje fakty z progami użytkownika i pokazuje werdykt: „Spełnia”, „Nie spełnia”, „Sprzeczne” albo „Brak danych”. Brak informacji nigdy nie jest pokazywany jako dostępność. Brakujące lub błędne dane można uzupełnić albo potwierdzić bez konta; zgłoszenie trafia do panelu moderatora (kolejka, decyzja, historia „kto, co, kiedy”) i nigdy nie nadpisuje danych innego źródła — po zatwierdzeniu różnica z aktualnym faktem innego źródła jest pokazywana jako „Sprzeczne” (fakt starszy niż 12 miesięcy ustępuje świeżemu).
 
 Te same dane trafiają do partnerów: hotel lub organizator osadza kartę dostępności na swojej stronie jako widget (`<iframe>`, bez konta), a aplikacje turystyczne i systemy rezerwacji pobierają je przez publiczne API tylko do odczytu (OpenAPI 3.1, dokumentacja pod `/api/docs`) — każda cecha ze źródłem, datą, statusem i licencją.
 
 ## Problem
 
 - Etykieta „dostępne” nie pozwala ocenić, czy konkretna osoba wjedzie, wejdzie i skorzysta z toalety.
-- Danych szczegółowych prawie nie ma: w OpenStreetMap tylko 8,7% miejsc w Krakowie (2 674 z 30 573 POI) ma jakąkolwiek informację o dostępności dla wózków (ekstrakt Geofabrik z 3.10.2026, analiza własna), a w centrum (Stare Miasto + Kazimierz) żadne z 649 miejsc nie ma liczby stopni ani szerokości drzwi (OSM, 3.10.2026).
+- Danych szczegółowych prawie nie ma: w centrum (Stare Miasto + Kazimierz + Stradom) tylko 99 z 649 miejsc w OpenStreetMap (15%) ma jakąkolwiek informację o dostępności dla wózków, a żadne nie ma liczby stopni ani szerokości drzwi (odczyt Overpass z 3.10.2026, opis w `docs/demo-data.md`). Dla całego Krakowa nasza analiza wstępna daje 8,7% (2 674 z 30 573 POI, ekstrakt Geofabrik z 3.10.2026) — analiza własna, skrypt i metoda nie są jeszcze w repozytorium.
 - 42% osób z potrzebami dostępności rezygnuje z miejsca, jeśli nie znajdzie informacji, a tylko 13% czuje się pewnie, idąc w nowe miejsce (Euan’s Guide Access Survey 2025, UK).
 - Dane, które istnieją, są rozproszone (OSM, MSIP, ZTP), mają różną świeżość i często sobie przeczą. Miasto nie chce utrzymywać własnej bazy ręcznie.
 
@@ -35,7 +35,7 @@ Prototyp skupia się na dwóch grupach: **osobach poruszających się na wózku*
 
 Scenariusz: użytkownik wyszukuje miejsce (mapa + równoważna lista tekstowa), włącza profil „Wózek”, widzi werdykt z konkretem (np. „Nie spełnia” z grupą „Blokuje”: „Wejście: 3 stopnie”), otwiera „Skąd wiemy?”, żeby sprawdzić źródło i datę, a gdy czegoś brakuje — uzupełnia informację w kilku krokach, bez konta. Kartę miejsca można udostępnić linkiem. Hotel lub organizator osadza tę samą kartę na swojej stronie jako widget (strona „Dla firm” daje gotowy kod), a moderator zatwierdza zgłoszenia w panelu `/moderator`. Na telefonie aplikację można zainstalować jako PWA albo aplikację iOS/Android; „W mojej okolicy” ustala pozycję na urządzeniu i nie wysyła jej na serwer.
 
-Dostępność cyfrowa (cel WCAG 2.2 AA): automatyczny audyt axe i snapshoty ARIA w każdym teście e2e, pełna obsługa klawiaturą, lista równoważna mapie, statusy rozróżnialne bez koloru (ikona + kształt + słowo), deklaracja dostępności z listą ograniczeń. Do zrobienia: testy z użytkownikami czytników ekranu, zewnętrzny audyt WCAG i wersja angielska.
+Dostępność cyfrowa (cel WCAG 2.2 AA): automatyczny audyt axe i snapshoty ARIA w każdym teście e2e, pełna obsługa klawiaturą, lista równoważna mapie, statusy rozróżnialne bez koloru (ikona + kształt + słowo), deklaracja dostępności z listą ograniczeń. Do zrobienia: testy z użytkownikami czytników ekranu, zewnętrzny audyt WCAG i wersja angielska (zaplanowana).
 
 ## Źródła danych oraz ocena świeżości i wiarygodności
 
@@ -45,7 +45,7 @@ Używamy wyłącznie otwartych danych, bez dostępu do systemów UMK/MJO i bez b
 |---|---|---|---|---|
 | OpenStreetMap (Overpass API) | Miejsca, `wheelchair`, `toilets:wheelchair`, opis dostępności, przewijak, `check_date` | ODbL 1.0, atrybucja „© OpenStreetMap contributors” | codziennie (cron ingest) | ostatnia dobra kopia z datą, status „awaria” |
 | MSIP Kraków: toalety publiczne (warstwa WT_WC_2023, dane ISDP) | 50 toalet: dostępność, rodzaj dostosowania (poziom 0 / platforma / winda / pochylnia), przewijak, godziny | regulamin MSIP — **licencja do potwierdzenia z miastem**; adapter gotowy, regularnie nie ładujemy do potwierdzenia; w danych demo jednorazowy odczyt 9 toalet z 3.10.2026 (przypadek „sprzeczne”) | zbiór z 2023 r. | ostatnia kopia z datą i oznaczeniem „może być nieaktualne” |
-| ZDMK: miejsca postojowe dla osób z niepełnosprawnościami (ArcGIS Online) | 2 037 miejsc parkingowych | **licencja do potwierdzenia**; adapter gotowy, nie ładujemy do potwierdzenia | brak harmonogramu | ostatnia kopia z datą |
+| ZDMK: miejsca postojowe dla osób z niepełnosprawnościami (ArcGIS Online) | 2 037 miejsc parkingowych (odczyt warstwy 3.10.2026, `docs/data-sources.md`; że zbiór prowadzi ZDMK — do potwierdzenia) | **licencja do potwierdzenia**; adapter gotowy, nie ładujemy do potwierdzenia | brak harmonogramu | ostatnia kopia z datą |
 | ZTP Kraków: inwentaryzacja przystanków (ArcGIS Online) | przystanki: ławki, nawierzchnia peronu | **licencja do potwierdzenia**; adapter gotowy, nie ładujemy do potwierdzenia | data edycji rekordu | ostatnia kopia z datą |
 | Zgłoszenia użytkowników (moderowane) | uzupełnienia, korekty, potwierdzenia | regulamin usługi | na bieżąco | — |
 
@@ -96,7 +96,7 @@ Pełne materiały w repozytorium: `docs/submission/features.md` (wykaz funkcji),
 ## Linki
 
 - Demo: **[link do demo — PLACEHOLDER]** (wdrożenie w toku, KBB-21)
-- Publiczne API i dokumentacja: **[link do demo — PLACEHOLDER]**`/api/docs`
+- Publiczne API i dokumentacja: **[link do demo]/api/docs — PLACEHOLDER**
 - Repozytorium: **[link do repozytorium — PLACEHOLDER]** (kandydat: https://github.com/Grzmro/Krakow-bez-barier, sprawdzić dostęp publiczny)
 - Film (MP4, do 3 min): **[link do filmu — PLACEHOLDER]**
 - Prezentacja (PDF, 10 slajdów): **[link do PDF — PLACEHOLDER]** (eksport z https://claude.ai/artifact/CUZoLZxBkFv77dpRreWyDU)

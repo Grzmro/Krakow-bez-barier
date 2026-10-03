@@ -5,14 +5,14 @@ Materiał do oceny („Wykaz funkcji już dostępnych i elementów wymagających
 „Gotowe” ma scalony PR w repozytorium; numery US-x.y odnoszą się do
 [requirements.md](../requirements.md), R1–R8 do [challenge.md](../challenge.md).
 
-> Tekst zgłoszenia jest po polsku, bo jury i zgłoszenie są po polsku.
-
 ## Jak uruchomić prototyp
 
 - Domyślnie aplikacja webowa działa na **danych przykładowych z kontraktu API** (`NEXT_PUBLIC_API_MOCK=true`,
   stały baner „PRZYKŁAD”). Z `NEXT_PUBLIC_API_MOCK=false` i bazą PostGIS (`DATABASE_URL`) korzysta z
   prawdziwego API i danych z [demo-data.md](../demo-data.md).
-- Publiczne wdrożenie (Vercel + Postgres/PostGIS + cron ingest) jest w PR #44 (KBB-21) — **w toku**.
+- Cron ingest jest w `main` (`.github/workflows/ingest.yml`, codziennie 03:17 UTC) i działa po
+  ustawieniu sekretu `DATABASE_URL`. Publiczne wdrożenie Vercel + Postgres/PostGIS jest w PR #44
+  (KBB-21) — **w toku**.
   Link do demo: **[link do demo — do uzupełnienia]**.
 
 ## Gotowe (scalone do `main`)
@@ -98,12 +98,19 @@ Materiał do oceny („Wykaz funkcji już dostępnych i elementów wymagających
 
 | Element | Zadanie |
 |---|---|
-| Publiczne wdrożenie: Vercel + Postgres/PostGIS + codzienny ingest | KBB-21 (PR #44) |
-| „W mojej okolicy” na ekranie głównym: sortowanie i mapa wg pozycji | KBB-54 (US-6.6) |
-| Strona „Dojazd i wejście bez barier” dla organizatora wydarzenia | KBB-55 (US-9.4) |
-| Nowy profil (np. senior) z samej konfiguracji | KBB-48 (US-2.8) |
+| Publiczne wdrożenie: Vercel + Postgres/PostGIS (cron ingest jest już w `main`) | KBB-21 (PR #44) |
+| „W mojej okolicy” na ekranie głównym: sortowanie i mapa wg pozycji | KBB-54 (US-6.6, PR #47) |
+| Strona „Dojazd i wejście bez barier” dla organizatora wydarzenia | KBB-55 (US-9.4, PR #49) |
+| Nowy profil (np. senior) z samej konfiguracji | KBB-48 (US-2.8, PR #46) |
+| Scenariusz demo, automatyczne nagranie i kontrola dostępności | KBB-50 (PR #45) |
+| Dostępne trasy: openrouteservice, bariery wzdłuż trasy, ekran trasy | KBB-22 (E7) |
+
+## Zaplanowane (jeszcze nie zaczęte)
+
+| Element | Zadanie |
+|---|---|
 | Wersja angielska | KBB-57 (US-8.6) |
-| Film demo (max 3 min) i kontrola dostępności głównego scenariusza | KBB-50, KBB-31 |
+| Film demo (max 3 min, napisy PL) | KBB-31 |
 
 ## Wymaga dalszych prac
 
@@ -113,7 +120,6 @@ Materiał do oceny („Wykaz funkcji już dostępnych i elementów wymagających
 | Oczekujące zgłoszenia z API widoczne na karcie jako „Niezweryfikowane” | dziś tylko lokalnie po wysłaniu | KBB-49 |
 | Winda blokuje tylko w miejscach z piętrami | brak danych o kondygnacjach; dziś brak windy = „Nie wiadomo” | KBB-47 |
 | Ładowanie źródeł miejskich | licencje MSIP / ZDMK / ZTP do potwierdzenia z miastem; kategorie parking/przystanek | KBB-52, KBB-53 |
-| Dostępne trasy (E7) | poza zakresem prototypu | KBB-22 |
 | Panel właściciela obiektu (US-9.3), zdjęcia w zgłoszeniach (US-4.6), wycofanie zgłoszenia linkiem (US-8.4), link do edycji w OSM (US-4.7) | wartość dodana, nie zaczęte | — |
 | Retencja zgłoszeń 24 mies. (deklarowana na stronie „Prywatność”) | brak automatycznego usuwania w kodzie | — |
 | Testy z użytkownikami czytników ekranu, zewnętrzny audyt WCAG 2.2 AA, audyt licencji zależności | wymaga ludzi i czasu poza hackathonem | — |
