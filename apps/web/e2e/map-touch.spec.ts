@@ -76,20 +76,8 @@ async function view(page: Page) {
 
 // Waits out MapLibre's ease/inertia so the next gesture is measured from a still map.
 async function settledView(page: Page) {
-  let last = await view(page);
-  await page.waitForTimeout(120);
-  await expect
-    .poll(
-      async () => {
-        const next = await view(page);
-        const still = Math.abs(next.x - last.x) < 0.5 && Math.abs(next.y - last.y) < 0.5 && Math.abs(next.gap - last.gap) < 0.5;
-        last = next;
-        return still;
-      },
-      { message: "map keeps moving", intervals: [120] },
-    )
-    .toBe(true);
-  return last;
+  await markersSettled(page);
+  return view(page);
 }
 
 /** Where a finger lands on plain map: below the chips, above the attribution and the panel, left of the zoom buttons. */
@@ -125,8 +113,9 @@ for (const [name, device] of [
   test.describe(`map touch gestures on ${name}`, () => {
     const { viewport, userAgent, deviceScaleFactor, isMobile, hasTouch } = device;
     test.use({ viewport, userAgent, deviceScaleFactor, isMobile, hasTouch });
-    // Every touch step waits for a rendered frame of the software-GL map; ten drags take ~7 s alone.
-    test.describe.configure({ timeout: 30_000 });
+    // Every touch step and ease waits for rendered frames of the software-GL map. Idle, ten drags take ~7 s; with
+    // parallel agents on the machine a frame can take a second and opening the map alone ~18 s.
+    test.describe.configure({ timeout: 60_000 });
 
     test("ten drags anywhere on the visible map each pan it, also after the sheet is toggled", async ({ page, evidence }) => {
       // GIVEN the home screen zoomed in to single sample pins
@@ -141,6 +130,10 @@ for (const [name, device] of [
           await sheetToggle.click();
           await page.getByRole("button", { name: "Zwiń arkusz" }).click();
           await expect(sheetToggle).toBeVisible();
+          // The sheet slides back down over 420 ms; until then it covers the low part of the map.
+          await page
+            .getByRole("region", { name: "Lista miejsc" })
+            .evaluate((el) => Promise.allSettled(el.getAnimations().map((animation) => animation.finished)));
           await settledView(page);
         }
         // WHEN a finger drags from a different spot of the map each time, back and forth
