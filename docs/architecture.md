@@ -15,7 +15,7 @@ Kraków bez barier (Miasto Kraków) — requirements, judging and deadlines in
  GTFS · reports · …           + provenance, run log              ingestion_runs · reports
                                                                         │
                        apps/web (Next.js)                               ▼
-   browser  ◄──►  UI (MUI, MapLibre)  ◄──►  API route handlers ──► Resolver → Matcher
+   browser  ◄──►  UI (shadcn, MapLibre) ◄──►  API route handlers ──► Resolver → Matcher
                   needs profile in            │
                   localStorage                └──► RoutingProvider (openrouteservice)
 ```
@@ -29,7 +29,7 @@ Kraków bez barier (Miasto Kraków) — requirements, judging and deadlines in
 - **packages/contracts** — `openapi.yaml`, the single source of truth for the API; generated types
   and client.
 - **packages/db** — Drizzle schema, migrations and client, shared by web and ingest.
-- **packages/ui** — MUI theme and providers.
+- **packages/ui** — "Fiolet" tokens and shared shadcn/ui components; visual reference in `design/prototype-b/`.
 
 Fact model and principles: `.claude/context/accessibility-facts.md`.
 
@@ -53,3 +53,4 @@ Format: `YYYY-MM-DD — decision — why`.
 - 2026-10-03 — Ingestion as a separate app writing normalized facts with provenance — R2/R5; a source outage degrades to stale data, never to missing data shown as accessible.
 - 2026-10-03 — openrouteservice wheelchair profile behind `RoutingProvider` — ready-made incline/kerb/surface parameters; self-hosting a routing engine doesn't fit 24 h; swappable later.
 - 2026-10-03 — MapLibre GL + OpenFreeMap tiles — open source, no API key, commercial use allowed with OSM attribution.
+- 2026-10-03 — shadcn/ui + Tailwind v4 instead of MUI — built both as clickable prototypes (same 7 screens, then the same 20 requirement changes); the team chose B for its look; generated, owned component code; no CSS-in-JS runtime in Server Components. MUI v9 also needed workarounds on every screen (Stack system props, style-override keys).

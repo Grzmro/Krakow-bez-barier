@@ -6,13 +6,33 @@ paths:
   - "packages/ui/**"
 ---
 
-# Web app — Next.js, MUI, MapLibre, WCAG 2.2 AA
+# Web app — Next.js, shadcn/ui, MapLibre, WCAG 2.2 AA
+
+**Visual reference: `design/prototype-b/`** (run it, port from it — see its README). Match its look,
+copy and interactions; requirements in `docs/requirements.md` win where they differ.
 
 - App Router. Server Components by default; `"use client"` only for interactivity (map, forms,
-  React Query hooks). Wrap the app in `Providers` from `@krakow-bez-barier/ui`.
-- Styling through the MUI theme in `packages/ui` — no hard-coded colors or ad-hoc CSS files
-  (except `maplibre-gl/dist/maplibre-gl.css`; map layer colors come from theme tokens). Any new
-  color pair must meet WCAG contrast (4.5:1 text, 3:1 UI/graphics).
+  React Query hooks).
+- UI: shadcn/ui (style `base-nova`, built on **Base UI, not Radix**) + Tailwind v4. Shared
+  components and the "Fiolet" tokens live in `packages/ui`; add primitives with
+  `npx shadcn@latest add <name>`, then fix what the generator gets wrong (below).
+- Styling only through tokens (shadcn CSS variables + our status/brand tokens) and Tailwind
+  classes — no hard-coded colors (except `maplibre-gl/dist/maplibre-gl.css`; map layer colors come
+  from tokens). Any new color pair must meet WCAG contrast (4.5:1 text, 3:1 UI/graphics).
+- Icons: Phosphor (`@phosphor-icons/react`). Fonts: Manrope (headings), Inter (body).
+
+## shadcn gotchas (learned in the prototype)
+
+- Generated files import icons from lucide and `sonner.tsx` imports `next-themes` — switch to Phosphor
+  and our theme handling.
+- Generated files import `cn` from the npm package `"cn"`; use our `@/lib/utils` `cn` everywhere.
+- The base-nova `drawer.tsx` is Base UI's Drawer, not Vaul. For modal sheets (report form, threshold
+  editor) use the Vaul drawer from the prototype (`components/ui/vaul-drawer.tsx`).
+- **Don't use Vaul snap points for the map/list sheet** — inner scroll only works at the last snap
+  point and it's modal. Use the non-modal `BottomPanel` (two heights, grabber + button alternative).
+- Vaul overlay: black at 40%, not the ink token (ink is near-white in dark mode).
+- Button: `rounded-full`, 48 px default / 56 px large; focus = 3 px outline with 2 px offset.
+- Status variants live in Badge via `cva`; "Brak danych" has a dashed border.
 - **All user-facing text is Polish and lives in one messages module** (`apps/web/src/i18n/pl.ts`) so
   English can be added later. No string literals in components.
 - Client components: React Query + the generated `openapi-fetch` client. Server Components: call

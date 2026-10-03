@@ -41,7 +41,7 @@ This file holds only what's needed in every session. Keep it short.
 | Task touches | Read |
 |---|---|
 | API endpoints, `packages/contracts/**`, `apps/web/src/app/api/**`, `apps/web/src/server/**` | `.claude/rules/contracts.md`, `.claude/context/openapi-spec-first.md` |
-| UI: `apps/web/src/app/**` pages, `components/`, `i18n/`, `packages/ui/**` | `.claude/rules/web.md` |
+| UI: `apps/web/src/app/**` pages, `components/`, `i18n/`, `packages/ui/**` | `.claude/rules/web.md`, `design/prototype-b/` |
 | DB schema, migrations, SQL: `packages/db/**` | `.claude/rules/database.md` |
 | Data sources: `apps/ingest/**` | `.claude/rules/ingest.md` |
 | Anything that stores, matches or shows accessibility data (facts, Resolver, Matcher, place/route UI) | `.claude/context/accessibility-facts.md` |
@@ -54,8 +54,10 @@ TypeScript everywhere, npm workspaces monorepo. Why each piece was chosen: `docs
   truth; TS types (`openapi-typescript`) and the client (`openapi-fetch`) are generated from it.
   Geometry is GeoJSON. API docs (Scalar) served from the spec.
 - **Web + API:** Next.js 16 (App Router, `src/` layout) in `apps/web`; the API lives in Route
-  Handlers under `src/app/api/`, server-only logic in `src/server/`. UI: MUI + `@krakow-bez-barier/ui` (theme, providers), React Query, MapLibre GL with
-  OpenFreeMap tiles (OSM attribution required).
+  Handlers under `src/app/api/`, server-only logic in `src/server/`. UI: shadcn/ui (Base UI) +
+  Tailwind v4 + `@krakow-bez-barier/ui` (tokens, shared components), Vaul, Sonner, Phosphor icons,
+  React Query, MapLibre GL with OpenFreeMap tiles (OSM attribution required).
+  **Visual reference: `design/prototype-b/`.**
 - **Data:** Postgres + PostGIS; schema, migrations and client with Drizzle ORM in `packages/db`
   (shared by web and ingest).
 - **Ingestion:** `apps/ingest` — one adapter per data source, run by a GitHub Actions cron, writes normalized
@@ -73,8 +75,9 @@ apps/web/src/i18n/      # all Polish UI strings (pl.ts)
 apps/ingest/            # data source adapters → normalized accessibility facts in the DB
 packages/contracts/     # openapi.yaml + generated types/client (src/generated/: gitignored, never edit)
 packages/db/            # Drizzle schema, migrations, client
-packages/ui/            # MUI theme and app providers
-docs/                # challenge, architecture and decisions
+packages/ui/            # "Fiolet" tokens + shared shadcn/ui components
+design/                 # UI prototype (reference, not a workspace) and screen concept
+docs/                   # challenge, architecture and decisions
 ```
 
 Don't create a new app or package without a Linear task for it.
