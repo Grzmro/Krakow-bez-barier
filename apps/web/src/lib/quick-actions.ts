@@ -25,7 +25,7 @@ export const QUICK_ACTIONS = [
   { id: "rest", features: ["bench"], icon: "armchair" },
   { id: "lift", features: ["lift"], icon: "elevator" },
   { id: "pharmacy", category: "pharmacy", features: ["step_free"], icon: "pill" },
-  // TODO(KBB-52): enable once the ZTP stops source has its licence confirmed (`ztp-stops` → `licenseConfirmed`).
+  // TODO(KBB-96): enable once the ZTP stops source has its licence confirmed (`ztp-stops` → `licenseConfirmed`).
   { id: "transit_stop", category: "transit_stop", features: ["step_free"], icon: "bus", unavailable: "awaitingTransitData" },
 ] as const satisfies readonly QuickActionConfig[];
 
