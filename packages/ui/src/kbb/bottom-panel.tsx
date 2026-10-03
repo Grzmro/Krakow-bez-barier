@@ -59,7 +59,15 @@ export function BottomPanel({
         </button>
         {headerRight ? <div className="absolute top-1/2 right-3 -translate-y-1/2">{headerRight}</div> : null}
       </div>
-      <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div>
+      {/* Focusable so keyboard users can scroll it even when it holds no focusable content (WCAG 2.1.1). */}
+      <div
+        tabIndex={0}
+        role="group"
+        aria-label={label}
+        className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      >
+        {children}
+      </div>
       {footer}
     </section>
   );

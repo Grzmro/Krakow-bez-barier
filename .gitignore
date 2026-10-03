@@ -9,3 +9,7 @@ dist/
 .next/
 coverage/
 packages/contracts/src/generated/
+# Agent worktrees (Claude Code)
+.claude/worktrees/
+# Playwright CLI output (may contain credentials)
+.playwright-cli/
