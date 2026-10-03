@@ -54,7 +54,12 @@ function entrance(t: Reasons, place: PlaceFacts, th: Thresholds): NeedResult {
     if (alternative?.kind === "known") {
       return result("entrance", alternative.attribute.attribute, "met", null, isUnconfirmed(alternative.attribute));
     }
-    return unresolved(t, "entrance", "step_count", steps.kind === "unresolved" ? steps.state : "unknown");
+    const state = steps.kind === "unresolved" ? steps.state : "unknown";
+    const summary = overall.kind === "known" ? textOf(overall.attribute) : null;
+    if (state === "unknown" && (summary === "yes" || summary === "limited")) {
+      return result("entrance", "step_count", "unknown", t.overallOnly(summary));
+    }
+    return unresolved(t, "entrance", "step_count", state);
   }
 
   if (count === 0 || (!th.requireStepFree && count <= 1)) {
