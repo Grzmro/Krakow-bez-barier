@@ -3,6 +3,7 @@ import { confirmations, facts, places, sources, type Db } from "@krakow-bez-bari
 import { and, eq, inArray, notInArray, sql, type SQL } from "drizzle-orm";
 import type { OutageRecord } from "@/domain/outages";
 import { getDb } from "../db";
+import { isWithheld, withheldSourceIds } from "../sources";
 import { createDrizzleOutagesStore } from "../outages/drizzle-store";
 
 export type PlaceRecord = typeof places.$inferSelect;
@@ -28,7 +29,7 @@ export type PlaceHit = PlaceRecord & { distance?: number };
 export interface PlaceRepository {
   searchPlaces(search: PlaceSearch): Promise<PlaceHit[]>;
   findPlace(id: string): Promise<PlaceRecord | null>;
-  /** Active facts of the given places, each with its source and number of confirmations. */
+  /** Active facts of the given places, each with its source and number of confirmations; never facts of a withheld source (`isWithheld`). */
   activeFacts(placeIds: string[]): Promise<FactRecord[]>;
   /** Outages of the given places reported or confirmed at or after `since`, with their votes counted. */
   recentOutages(placeIds: string[], since: Date): Promise<OutageRecord[]>;
@@ -87,7 +88,10 @@ export function createDbPlaceRepository(db: Db = getDb()): PlaceRepository {
         .from(facts)
         .innerJoin(sources, eq(facts.sourceId, sources.id))
         .where(and(inArray(facts.placeId, placeIds), eq(facts.status, "active")));
-      return rows.map(({ fact, source, confirmations: count }) => ({ ...fact, source, confirmations: Number(count) }));
+      const withheld = withheldSourceIds();
+      return rows
+        .filter(({ source }) => !isWithheld(source, withheld))
+        .map(({ fact, source, confirmations: count }) => ({ ...fact, source, confirmations: Number(count) }));
     },
 
     recentOutages: (placeIds, since) => createDrizzleOutagesStore(db).listRecent(placeIds, since),

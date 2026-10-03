@@ -22,13 +22,37 @@ const STALE_AFTER_INTERVALS = 2;
 const PENDING_LICENSE = /^to be confirmed\b/i;
 const SEEDED_NOTE = /^seeded from\b/i;
 
-type SourceText = Pick<Source, "kind" | "license" | "refreshStatus" | "statusNote">;
+type SourceText = Pick<Source, "id" | "kind" | "license" | "refreshStatus" | "statusNote">;
+
+/**
+ * Source ids switched off by config (`WITHHELD_SOURCES`, comma separated), e.g. a source whose licence turns out to
+ * be doubtful after it was loaded. Operator-only config, never a request input.
+ */
+export function withheldSourceIds(env: Record<string, string | undefined> = process.env): string[] {
+  return (env.WITHHELD_SOURCES ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
+/**
+ * A source whose facts the API never serves: its licence is still to be confirmed (ingest refuses to load such a
+ * source, but a database may hold facts loaded before), or it is switched off in `WITHHELD_SOURCES`.
+ */
+export function isWithheld(source: Pick<SourceRow, "id" | "license">, withheld: readonly string[] = withheldSourceIds()): boolean {
+  return PENDING_LICENSE.test(source.license) || withheld.includes(source.id);
+}
 
 /**
  * Swaps the internal licence and status wording of a source for copy in the reader's language: a licence still
- * being confirmed, user-report "licences" and seed notes; a source never fetched gets a note saying why.
+ * being confirmed, user-report "licences" and seed notes; a source never fetched gets a note saying why, and a
+ * withheld one (see `isWithheld`) says that its data is not shown and why.
  */
-export function localizeSourceText<T extends SourceText>(source: T, locale: Locale = defaultLocale): T {
+export function localizeSourceText<T extends SourceText>(
+  source: T,
+  locale: Locale = defaultLocale,
+  withheld: readonly string[] = withheldSourceIds(),
+): T {
   const t = messagesFor(locale).pages.aboutData;
   const pending = PENDING_LICENSE.test(source.license);
   const license = pending
@@ -38,7 +62,10 @@ export function localizeSourceText<T extends SourceText>(source: T, locale: Loca
       : source.license;
   let statusNote = source.statusNote;
   if (statusNote && SEEDED_NOTE.test(statusNote)) statusNote = t.statusNote.seeded;
-  if (!statusNote && source.refreshStatus === "never") {
+  const reason = t.statusNote.withheldBySource[source.id];
+  if (isWithheld(source, withheld) && (reason || source.refreshStatus !== "never" || !pending)) {
+    statusNote = reason ?? t.statusNote.withheld;
+  } else if (!statusNote && source.refreshStatus === "never") {
     statusNote = pending ? t.statusNote.awaitingLicense : t.statusNote.notFetched;
   }
   return { ...source, license, statusNote };

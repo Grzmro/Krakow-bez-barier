@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { validateResponse } from "@/server/http";
 import { catalogs } from "@/i18n/messages";
-import { listSources, localizeSourceText, simulatedOutageIds, toSource } from "./sources";
+import { isWithheld, listSources, localizeSourceText, simulatedOutageIds, toSource, withheldSourceIds } from "./sources";
 
 type Row = Parameters<typeof toSource>[0];
 const now = new Date("2026-10-03T12:00:00Z");
@@ -132,16 +132,16 @@ describe("localizeSourceText", () => {
     // WHEN listing
     const items = await listSources(async () => rows, now, []);
 
-    // THEN no raw English or task id reaches the reader, and the never-fetched source says why
-    expect(items[0]).toMatchObject({ license: pl.licenseNote.pending, statusNote: pl.statusNote.seeded });
+    // THEN no raw English or task id reaches the reader, the withheld MSIP layer and the never-fetched source say why
+    expect(items[0]).toMatchObject({ license: pl.licenseNote.pending, statusNote: pl.statusNote.withheldBySource["msip-toilets"] });
     expect(items[1]).toMatchObject({ license: pl.licenseNote.pending, statusNote: pl.statusNote.awaitingLicense });
     expect(JSON.stringify(items)).not.toMatch(/KBB-|To be confirmed|Seeded from/);
   });
 
   it("describes user reports instead of their internal licence and keeps real licences", () => {
     // GIVEN a user-report source and a never-fetched source with a known licence
-    const reports = { kind: "user_report", license: "Not open data: user reports", refreshStatus: "ok", statusNote: null } as const;
-    const osm = { kind: "community", license: "ODbL 1.0", refreshStatus: "never", statusNote: null } as const;
+    const reports = { id: "community-moderated", kind: "user_report", license: "Not open data: user reports", refreshStatus: "ok", statusNote: null } as const;
+    const osm = { id: "osm", kind: "community", license: "ODbL 1.0", refreshStatus: "never", statusNote: null } as const;
 
     // WHEN localizing for English
     const [r, o] = [localizeSourceText(reports, "en"), localizeSourceText(osm, "en")];
@@ -149,6 +149,34 @@ describe("localizeSourceText", () => {
     // THEN the report licence is described, ODbL stays and the new source is plainly "not fetched yet"
     expect(r.license).toBe(en.licenseNote.userReports);
     expect(o).toMatchObject({ license: "ODbL 1.0", statusNote: en.statusNote.notFetched });
+  });
+
+  it("says a source switched off by config is not shown, whatever its own note", () => {
+    // GIVEN a licensed source that the operator switched off, with its own status note
+    const source = { id: "krakow-pl-toilets", kind: "official_open_data", license: "krakow.pl", refreshStatus: "ok", statusNote: "x" } as const;
+
+    // WHEN localizing with that source withheld, and without
+    const off = localizeSourceText(source, "pl", ["krakow-pl-toilets"]);
+    const on = localizeSourceText(source, "pl", []);
+
+    // THEN only the withheld one says its data is not shown
+    expect(off.statusNote).toBe(pl.statusNote.withheld);
+    expect(on.statusNote).toBe("x");
+  });
+});
+
+describe("isWithheld", () => {
+  it("withholds a source whose licence is still to be confirmed, or one listed in WITHHELD_SOURCES", () => {
+    // GIVEN the MSIP layer (licence pending), OSM, and a config switch for krakow.pl
+    const withheld = withheldSourceIds({ WITHHELD_SOURCES: " krakow-pl-toilets, ," });
+
+    // WHEN checking each source
+    // THEN facts of MSIP and of the switched-off source are not served, OSM's are
+    expect(withheld).toEqual(["krakow-pl-toilets"]);
+    expect(isWithheld({ id: "msip-toilets", license: "To be confirmed (KBB-20)" }, [])).toBe(true);
+    expect(isWithheld({ id: "krakow-pl-toilets", license: "krakow.pl" }, withheld)).toBe(true);
+    expect(isWithheld({ id: "osm", license: "ODbL 1.0" }, withheld)).toBe(false);
+    expect(withheldSourceIds({})).toEqual([]);
   });
 });
 

@@ -46,6 +46,12 @@ export const pages: Messages["pages"] = {
       seeded: "Data loaded once, without automatic updates.",
       awaitingLicense: "We're waiting for the city to confirm the licence. Until then we don't fetch data from this source.",
       notFetched: "We haven't fetched data from this source yet.",
+      withheld: "Switched off: we don't show data from this source until its licence is confirmed.",
+      // Why a specific source is switched off, by source id; others get `withheld`.
+      withheldBySource: {
+        "msip-toilets":
+          "Switched off: this MSIP layer is not in the city's OPEN DATA catalogue, so we don't show its data until the city confirms the terms of reuse. Public toilets come from krakow.pl and OpenStreetMap.",
+      } as Partial<Record<string, string>>,
     },
     licenseNote: {
       pending: "to be confirmed with the city",
