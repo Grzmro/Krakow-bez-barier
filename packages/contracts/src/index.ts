@@ -35,6 +35,12 @@ export type ListPlacesQuery = NonNullable<operations["listPlaces"]["parameters"]
 export type GetPlaceQuery = NonNullable<operations["getPlace"]["parameters"]["query"]>;
 export type ReportCreate = Schemas["ReportCreate"];
 export type Confirmation = Schemas["Confirmation"];
+export type ConfirmationCreate = Schemas["ConfirmationCreate"];
+export type PendingReport = Schemas["PendingReport"];
+export type ModerationReport = Schemas["ModerationReport"];
+export type ModerationDecision = Schemas["ModerationDecision"];
+export type ModerationDecisionKind = Schemas["ModerationDecisionKind"];
+export type ModerationEvent = Schemas["ModerationEvent"];
 
 /** Base path of the v1 API on the app's own origin. */
 export const API_BASE_PATH = "/api/v1";

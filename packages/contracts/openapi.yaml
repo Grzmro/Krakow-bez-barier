@@ -406,9 +406,13 @@ paths:
     post:
       operationId: createReport
       summary: Submit a correction (anonymous)
-      description: 'Creates a user report with status `new`. No account, no e-mail, no IP is stored.
+      description: 'Creates a user report with status `new`. No account, no e-mail, no IP is stored; e-mail addresses
+        and phone numbers typed into `comment` are redacted before saving. The report never changes the place''s
+        facts: it is listed beside the value as unverified (`ResolvedAttribute.pendingReports`) until a moderator
+        accepts it.
 
-        Photos are uploaded separately and referenced by `photoUrl` (EXIF stripped server-side).
+        Abuse protection without puzzles (WCAG 3.3.8): a per-client limit (`429`) and the `website` honeypot.
+        Photo upload is not available yet, so a non-null `photoUrl` is answered with `422`.
 
         '
       tags:
@@ -473,8 +477,11 @@ paths:
     post:
       operationId: createConfirmation
       summary: Confirm a current fact ("still true")
-      description: Adds an anonymous confirmation to an existing fact; may raise its confirmedAt/reliability after moderation
-        rules.
+      description: 'Adds an anonymous confirmation to an active fact of the place. It sets the fact''s `confirmedAt` to now
+        and counts it in `evidence.confirmations`; with 2 confirmations a community or user-report fact is shown as
+        "Potwierdzone przez społeczność" (`status: confirmed`). One confirmation per fact per client (`429` on repeat).
+
+        '
       tags:
       - reports
       parameters:
@@ -517,7 +524,10 @@ paths:
     get:
       operationId: listModerationReports
       summary: List reports for moderation
-      description: Moderator queue. Requires a bearer token.
+      description: 'Moderator queue, oldest first, each report with its decision history. Requires a moderator bearer
+        token; after 5 failed attempts a client is locked out for 15 minutes (`429`).
+
+        '
       tags:
       - moderation
       security:
@@ -576,17 +586,46 @@ paths:
                       status: new
                       createdAt: '2026-10-03T09:12:00Z'
                       decidedAt: null
+                      history: []
+                    - id: rep_01J9Z5B7QW
+                      placeId: hotel-przyklad
+                      placeName: Hotel Przykład
+                      attribute: door_width_cm
+                      value:
+                        kind: number
+                        number: 90
+                        unit: cm
+                      currentValue: null
+                      comment: Zmierzone taśmą.
+                      photoUrl: null
+                      status: needs_info
+                      createdAt: '2026-10-03T08:40:00Z'
+                      decidedAt: '2026-10-03T09:50:00Z'
+                      history:
+                      - decision: needs_info
+                        note: Które wejście, główne czy boczne?
+                        moderator: anna
+                        decidedAt: '2026-10-03T09:50:00Z'
                     nextCursor: null
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
     post:
       operationId: decideModerationReport
-      summary: Accept or reject a report
-      description: Accepting turns the report into an `AccessibilityFact` (source kind `user_report`). Requires a bearer token.
+      summary: Accept, reject or ask about a report
+      description: 'Accepting turns the report into an `AccessibilityFact` from the source "Społeczność, zweryfikowane przez
+        moderatora" (kind `user_report`, reliability `confirmed`, `confirmedAt` = decision time). It supersedes only that
+        source''s earlier fact for the attribute; facts from other sources stay, so a disagreement shows as a conflict.
+        `rejected` hides the report from the public card; `needs_info` keeps it in the queue. Accepted and rejected
+        reports are final (`409`). Every decision is appended to the report''s history. Requires a moderator bearer
+        token (lockout as for the queue).
+
+        '
       tags:
       - moderation
       security:
@@ -607,6 +646,11 @@ paths:
                   reportId: rep_01J9Z3KQ8M
                   decision: rejected
                   note: Brak potwierdzenia.
+              needsInfo:
+                value:
+                  reportId: rep_01J9Z5B7QW
+                  decision: needs_info
+                  note: Które wejście, główne czy boczne?
       responses:
         '200':
           description: Updated report.
@@ -636,6 +680,10 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
   /routes:
@@ -975,6 +1023,19 @@ components:
                 title: Not found
                 status: 404
                 detail: Place "xyz" does not exist.
+    Conflict:
+      description: The resource is in a state that does not allow this change.
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+          examples:
+            default:
+              value:
+                type: https://krakow-bez-barier.example/problems/conflict
+                title: Conflict
+                status: 409
+                detail: Report "rep_01J9Z3KQ8M" is already accepted.
     Unprocessable:
       description: Request is well formed but semantically invalid (e.g. value does not fit the attribute).
       content:
@@ -1224,8 +1285,10 @@ components:
       - never
     ReportStatus:
       type: string
+      description: '`needs_info` (do wyjaśnienia) stays in the moderation queue and on the card as unverified.'
       enum:
       - new
+      - needs_info
       - accepted
       - rejected
     Point:
@@ -1457,6 +1520,12 @@ components:
           description: All active facts; for `conflict` every conflicting fact is present.
           items:
             $ref: '#/components/schemas/AccessibilityFact'
+        pendingReports:
+          type: array
+          description: User reports awaiting moderation (`new`, `needs_info`), shown beside the value as
+            "Niezweryfikowane". They never change `value`, `state`, `status` or any verdict.
+          items:
+            $ref: '#/components/schemas/PendingReport'
     Address:
       type: object
       properties:
@@ -1723,7 +1792,39 @@ components:
           - string
           - 'null'
           format: uri
-          description: Uploaded photo with EXIF removed.
+          description: Uploaded photo with EXIF removed. Not available yet; a non-null value is answered with `422`.
+        website:
+          type:
+          - string
+          - 'null'
+          maxLength: 200
+          description: Honeypot for bots. Forms keep this field hidden from people and assistive technology; a report
+            with a non-empty value is refused with `422`.
+    PendingReport:
+      type: object
+      description: An unmoderated report, as shown on the place card.
+      required:
+      - id
+      - value
+      - status
+      - createdAt
+      properties:
+        id:
+          type: string
+        value:
+          $ref: '#/components/schemas/FactValue'
+        comment:
+          type:
+          - string
+          - 'null'
+        status:
+          type: string
+          enum:
+          - new
+          - needs_info
+        createdAt:
+          type: string
+          format: date-time
     Report:
       type: object
       required:
@@ -1767,9 +1868,15 @@ components:
       - type: object
         required:
         - placeName
+        - history
         properties:
           placeName:
             type: string
+          history:
+            type: array
+            description: Every decision on this report, oldest first.
+            items:
+              $ref: '#/components/schemas/ModerationEvent'
           currentValue:
             description: Value currently shown for the attribute, for comparison.
             oneOf:
@@ -1784,15 +1891,39 @@ components:
         reportId:
           type: string
         decision:
-          type: string
-          enum:
-          - accepted
-          - rejected
+          $ref: '#/components/schemas/ModerationDecisionKind'
         note:
           type:
           - string
           - 'null'
           maxLength: 500
+    ModerationDecisionKind:
+      type: string
+      description: '`accepted` (zatwierdź), `rejected` (odrzuć), `needs_info` (do wyjaśnienia).'
+      enum:
+      - accepted
+      - rejected
+      - needs_info
+    ModerationEvent:
+      type: object
+      description: One moderation decision in a report's history.
+      required:
+      - decision
+      - moderator
+      - decidedAt
+      properties:
+        decision:
+          $ref: '#/components/schemas/ModerationDecisionKind'
+        note:
+          type:
+          - string
+          - 'null'
+        moderator:
+          type: string
+          description: Moderator name from the server configuration (never a reporter's data).
+        decidedAt:
+          type: string
+          format: date-time
     ConfirmationCreate:
       type: object
       required:

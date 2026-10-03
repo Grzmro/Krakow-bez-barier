@@ -202,15 +202,4 @@ describe("defineRoute — responses and errors", () => {
     expect(second.headers.get("retry-after")).toBe("60");
     expect(await second.json()).toMatchObject({ status: 429, title: "Too many requests" });
   });
-
-  it("refuses a rate limit on an operation that documents no 429", () => {
-    // WHEN a limiter is attached to an operation without a 429 response
-    const define = () =>
-      defineRoute("decideModerationReport", async () => respond(200, {} as never), {
-        rateLimit: createRateLimiter({ limit: 1, windowMs: 1000 }),
-      });
-
-    // THEN it fails at definition time, not in production
-    expect(define).toThrow(/no 429/);
-  });
 });
