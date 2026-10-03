@@ -1,6 +1,6 @@
 import { expect, test } from "./fixtures";
 
-// Places come from the openapi.yaml examples served by the mock API (TODO(KBB-46)).
+// Places come from the openapi.yaml examples served by the mock API.
 
 const EVENT_PATH = "/wydarzenie/palac-krzysztofory?nazwa=Koncert+jesienny&data=2026-10-10";
 
