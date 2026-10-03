@@ -1,15 +1,6 @@
-import type { AccessibilityAttribute, FeatureFilter, SummaryChip } from "@krakow-bez-barier/contracts";
+import type { FeatureFilter, SummaryChip } from "@krakow-bez-barier/contracts";
 import type { Status } from "@krakow-bez-barier/ui";
-
-/** Attributes that satisfy each home-screen feature filter (any one of them is enough). */
-export const FEATURE_ATTRIBUTES: Record<FeatureFilter, AccessibilityAttribute[]> = {
-  step_free: ["step_count", "ramp", "entrance_level"],
-  lift: ["lift"],
-  toilet_accessible: ["toilet_accessible"],
-  bench: ["bench"],
-  disabled_parking: ["disabled_parking"],
-  changing_table: ["changing_table"],
-};
+import { FEATURE_ATTRIBUTES } from "@/server/domain/features";
 
 export type FeatureMatch = "known" | "unknown" | "conflict";
 

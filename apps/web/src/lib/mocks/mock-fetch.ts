@@ -1,7 +1,7 @@
 import type { Category, FeatureFilter, GetPlaceQuery, Problem, Profile } from "@krakow-bez-barier/contracts";
 import { mockGetPlace, mockListPlaces } from "./mock-api";
 
-// TODO(KBB-28): profile-aware `/places` mocks while the API isn't implemented. Everything else
+// Profile-aware `/places` mocks for the example-data mode (NEXT_PUBLIC_API_MOCK). Everything else
 // falls through to the generic spec-examples mock from packages/contracts.
 
 const json = (body: unknown, status = 200) =>
