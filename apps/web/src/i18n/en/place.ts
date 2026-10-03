@@ -154,6 +154,8 @@ export const place: Messages["place"] = {
   lastConfirmed: (date: string) => `last confirmed ${date}`,
   confirmations: (n: number) => `${n}/2 confirmations`,
   communityConfirmed: "confirmed by the community",
+  sourceAsOf: (date: string) => `as of ${date} per the source`,
+  sourcePage: "Source page",
   category: {
     restaurant: "Restaurant",
     museum: "Museum",

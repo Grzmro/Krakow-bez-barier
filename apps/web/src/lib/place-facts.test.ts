@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createApiClient, createMockFetch, type Place } from "@krakow-bez-barier/contracts";
-import { fact, text } from "@/domain/fixtures";
+import { bool, fact, text } from "@/domain/fixtures";
 import { matchProfile } from "@/domain/matcher";
 import { PROFILE_PRESETS } from "@/domain/profiles";
 import { resolveAttributes } from "@/domain/resolver";
@@ -87,6 +87,47 @@ describe("factViews", () => {
     expect(messagesFor("pl").summary.chip("wheelchair_overall", "known", osm.value)).toBe(overall?.value);
     // AND the wheelchair profile names it as the barrier
     expect(matchProfile(place, PROFILE_PRESETS.wheelchair, "pl")).toMatchObject({ state: "barrier", blockers: ["wheelchair_overall"] });
+  });
+
+  it("shows the quoted sentence, the source page and the source's own date of a fact read from a page", () => {
+    // GIVEN a lift read from a BIP MK page updated on 19 March 2026
+    const bip = fact("lift", bool(true), {
+      source: { id: "bip-mk", name: "BIP Miasta Krakowa: dostępność architektoniczna", kind: "official_open_data", recordRef: "bip-mk:page/19180/zajezdnia@2026-03-19" },
+      reliability: "extracted",
+      fetchedAt: "2026-10-04T03:00:00Z",
+      observedAt: "2026-03-19T00:00:00Z",
+      evidence: { comment: "„Komunikację pomiędzy piętrami zapewnia winda.”", url: "https://www.bip.krakow.pl/?mmi=19180" },
+    });
+    const place = { attributes: resolveAttributes([bip], new Date("2026-10-04T12:00:00Z")) } as unknown as Place;
+
+    // WHEN it is turned into card rows
+    const [source] = factViews(place, "pl").find((r) => r.attribute === "lift")?.sources ?? [];
+
+    // THEN the provenance names the quote, links the page and says when the source last stated it
+    expect(source).toMatchObject({
+      name: "BIP Miasta Krakowa: dostępność architektoniczna",
+      date: "4.10.2026",
+      detail: "odczytane automatycznie · stan na 19.03.2026 wg źródła",
+      note: "„Komunikację pomiędzy piętrami zapewnia winda.”",
+      link: { href: "https://www.bip.krakow.pl/?mmi=19180", label: "Strona źródła" },
+    });
+  });
+
+  it("keeps a visitor's report comment off the card", () => {
+    // GIVEN an accepted report whose fact carries the visitor's comment
+    const report = fact("ramp", bool(true), {
+      source: { id: "user-reports", name: "Zgłoszenia", kind: "user_report", recordRef: "report/1" },
+      reliability: "user_report",
+      evidence: { comment: "Byłam wczoraj, pochylnia jest", confirmations: 0 },
+    });
+    const place = { attributes: resolveAttributes([report]) } as unknown as Place;
+
+    // WHEN it is turned into card rows
+    const [source] = factViews(place, "pl").find((r) => r.attribute === "ramp")?.sources ?? [];
+
+    // THEN the comment is not shown as the source's words
+    expect(source?.note).toBeUndefined();
+    expect(source?.link).toBeUndefined();
   });
 
   it("names the city's MSIP, not OSM, when MSIP is the only source of the overall tag", () => {

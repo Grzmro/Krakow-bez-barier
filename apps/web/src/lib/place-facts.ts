@@ -110,6 +110,7 @@ function factSource(fact: AccessibilityFact, withValue: boolean, locale: Locale)
   const detail = [
     t.level[fact.reliability],
     fact.confirmedAt ? t.lastConfirmed(formatDate(fact.confirmedAt, locale)) : null,
+    fact.observedAt && !fact.confirmedAt ? t.sourceAsOf(formatDate(fact.observedAt, locale)) : null,
     fact.reliability === "community" && confirmations > 0
       ? confirmations >= 2
         ? t.communityConfirmed
@@ -125,6 +126,9 @@ function factSource(fact: AccessibilityFact, withValue: boolean, locale: Locale)
     value: withValue ? joinValue(formatValue(fact.attribute, fact.value, locale)) : undefined,
     detail,
     staleNote: fact.stale ? m.common.fact.maybeOutdated(formatDate(asOf, locale)) : undefined,
+    // A visitor's report comment is moderation material, not a statement of the source.
+    note: fact.source.kind === "user_report" ? undefined : (fact.evidence?.comment ?? undefined),
+    link: fact.evidence?.url ? { href: fact.evidence.url, label: t.sourcePage } : undefined,
   };
 }
 

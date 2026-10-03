@@ -37,8 +37,8 @@
           - 'cell "MSIP: Toalety publiczne odczytane automatycznie"'
           - cell "Jest"
           - cell /\d+\.\d+\.\d+ Może być nieaktualne · \d+\.\d+\.\d+/
-        - row /OpenStreetMap społeczność Nie ma \d+\.\d+\.\d+/:
-          - cell "OpenStreetMap społeczność"
+        - row /OpenStreetMap społeczność · stan na \d+\.\d+\.\d+ wg źródła Nie ma \d+\.\d+\.\d+/:
+          - cell /OpenStreetMap społeczność · stan na \d+\.\d+\.\d+ wg źródła/
           - cell "Nie ma"
           - cell /\d+\.\d+\.\d+/
     - region "Fakty":
