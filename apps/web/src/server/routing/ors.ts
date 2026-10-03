@@ -18,7 +18,7 @@ const EXTRAS = ["surface", "steepness", "waytype"] as const;
 const NO_ROUTE = 2009;
 const POINT_NOT_FOUND = 2010;
 
-export function orsRequest({ from, to, mode, avoidSteps, restrictions }: ProviderRequest): OrsRequest {
+export function orsRequest({ from, to, mode, avoidSteps, restrictions, locale }: ProviderRequest): OrsRequest {
   const options: Record<string, unknown> = {};
   // The wheelchair profile never routes over steps; only the foot profile needs telling.
   if (avoidSteps && mode === "foot") options.avoid_features = ["steps"];
@@ -37,7 +37,7 @@ export function orsRequest({ from, to, mode, avoidSteps, restrictions }: Provide
       coordinates: [from, to],
       extra_info: [...EXTRAS],
       instructions: true,
-      language: "pl",
+      language: locale,
       units: "m",
       ...(Object.keys(options).length > 0 && { options }),
     },

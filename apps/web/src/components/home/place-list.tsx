@@ -6,18 +6,16 @@ import type { FeatureFilter, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { Button, cn } from "@krakow-bez-barier/ui";
 import { SampleTag, StatusBadge } from "@/components/kbb";
 import { NeedGroups } from "@/components/profile/need-groups";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
+import type { Messages } from "@/i18n/messages";
 import { useCategoryLookup } from "@/lib/categories";
 import { filterGapStatus, matchFeature, summaryLine } from "@/lib/place-features";
 import { routes } from "@/lib/routes";
 
-const t = pl.home;
-const tp = pl.profile.list;
-
-function chipFallback(chip: PlaceSummary["summary"][number]) {
-  const name = pl.common.attribute[chip.attribute];
-  if (chip.state === "unknown") return `${name}: ${pl.common.status.unknown.toLowerCase()}`;
-  if (chip.state === "conflict") return `${name}: ${pl.common.status.conflict.toLowerCase()}`;
+function chipFallback(chip: PlaceSummary["summary"][number], t: Messages["common"]) {
+  const name = t.attribute[chip.attribute];
+  if (chip.state === "unknown") return `${name}: ${t.status.unknown.toLowerCase()}`;
+  if (chip.state === "conflict") return `${name}: ${t.status.conflict.toLowerCase()}`;
   return name;
 }
 
@@ -42,6 +40,9 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
   { place, distance, fromUser = false, features, selected, onHighlight },
   ref,
 ) {
+  const m = useMessages();
+  const t = m.home;
+  const tp = m.profile.list;
   const [open, setOpen] = useState(false);
   const I = useCategoryLookup()(place.category).icon;
   const verdict = place.verdict;
@@ -90,7 +91,7 @@ export const PlaceRow = forwardRef<HTMLAnchorElement, PlaceRowProps>(function Pl
           <span className="block truncate text-caption text-muted-foreground">{address(place)}</span>
           {verdict ? null : (
             <span className="mt-1 block text-caption leading-[18px] font-medium text-foreground/80">
-              {summaryLine(place.summary, chipFallback)}
+              {summaryLine(place.summary, (chip) => chipFallback(chip, m.common))}
             </span>
           )}
         </span>

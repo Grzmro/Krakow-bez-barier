@@ -1,0 +1,37 @@
+import type { Messages } from "../messages";
+
+export const event: Messages["event"] = {
+  pageTitle: "Step-free access and entry",
+  kicker: "Step-free access and entry",
+  organizerProvided: "Name and date provided by the event organiser.",
+  venue: "Venue",
+  date: "Date",
+  loading: "Loading the venue's accessibility data…",
+  loadError: "Couldn't load the venue's accessibility data.",
+  retry: "Try again",
+  notFound: "We couldn't find this place",
+  notFoundHint: "The link may be incomplete. Ask the organiser for a new one or search for the place in the app.",
+  goHome: "Search for a place",
+  lead: "Accessibility facts about the event venue — each with its source and date. No overall rating: check the features that matter to you.",
+  sampleNote: "Data marked SAMPLE is sample data — don't plan your visit based on it.",
+  entranceHint: "How to get in",
+  sections: {
+    entrance: "Entrance",
+    toilet: "Toilet",
+    parking: "Parking",
+  },
+  transit: {
+    title: "Stops nearby",
+    noData: "No accessibility data for nearby stops — the ZTP data is awaiting licence confirmation.",
+  },
+  noSource: "Nobody has checked yet.",
+  sourceLine: (source: string, date: string, value?: string) => (value ? `${value} — ${source} · ${date}` : `${source} · ${date}`),
+  sourcesTitle: "Data sources",
+  sourcesNone: "No source has data about this place yet.",
+  sourceOutage: "The source is unavailable right now — data may be outdated.",
+  lastSuccess: (date?: string) => (date ? `last fetched ${date}` : "not fetched yet"),
+  updated: (date: string) => `As of ${date}.`,
+  fullCard: "Full place card",
+  fullCardPrint: (url: string) => `Full card and reporting changes: ${url}`,
+  print: "Print",
+};

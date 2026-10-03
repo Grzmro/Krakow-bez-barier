@@ -3,16 +3,19 @@ import { Info } from "@phosphor-icons/react/ssr";
 import { RELIABILITIES } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge } from "@/components/kbb";
 import { InfoPage, InfoSection } from "@/components/layout/info-page";
-import { pl } from "@/i18n/pl";
+import { getMessages } from "@/i18n/server";
 import { SourcesList } from "./sources-list";
 
-const t = pl.pages.aboutData;
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await getMessages();
+  return { title: `${m.pages.aboutData.title} · ${m.common.app.name}` };
+}
 
-export const metadata: Metadata = { title: `${t.title} · ${pl.common.app.name}` };
-
-export default function AboutDataPage() {
+export default async function AboutDataPage() {
+  const m = await getMessages();
+  const t = m.pages.aboutData;
   return (
-    <InfoPage title={t.title}>
+    <InfoPage title={t.title} backLabel={m.pages.back}>
       <p className="text-body text-foreground/85">{t.lead}</p>
       <InfoSection title={t.sources}>
         <SourcesList />

@@ -3,9 +3,7 @@
 import { useState } from "react";
 import { MagnifyingGlass, MapPin, X } from "@phosphor-icons/react";
 import { Autocomplete } from "@base-ui/react/autocomplete";
-import { pl } from "@/i18n/pl";
-
-const t = pl.home.search;
+import { useMessages } from "@/i18n/client";
 
 export interface SearchBoxProps {
   value: string;
@@ -16,6 +14,7 @@ export interface SearchBoxProps {
 
 /** Search field (combobox) with place-name suggestions; the list below updates as you type. */
 export function SearchBox({ value, onValueChange, suggestions }: SearchBoxProps) {
+  const t = useMessages().home.search;
   const [open, setOpen] = useState(false);
   // An open popup hides the rest of the page from assistive tech, so keep it closed when it
   // has nothing to add (no matches, or the field already holds the only match).

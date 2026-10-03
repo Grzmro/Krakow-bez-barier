@@ -19,7 +19,7 @@ export const common = {
   },
   menu: {
     title: "Menu",
-    description: "Strony dodatkowe",
+    description: "Strony dodatkowe i ustawienia",
     route: "Zaplanuj trasę",
     routeSub: "Dworzec Główny → Rynek, bez schodów",
     aboutData: "O danych",
@@ -32,6 +32,9 @@ export const common = {
     privacySub: "Co zbieramy i na jak długo",
     a11y: "Deklaracja dostępności",
     a11ySub: "Co działa, znane ograniczenia",
+  },
+  language: {
+    label: "Język",
   },
   status: {
     met: "Spełnia",

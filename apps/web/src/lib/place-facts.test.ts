@@ -16,7 +16,7 @@ describe("factViews", () => {
     const place = await demoPlace("palac-krzysztofory");
 
     // WHEN it is turned into card rows
-    const rows = factViews(place);
+    const rows = factViews(place, "pl");
     const toilet = rows.find((r) => r.attribute === "toilet_accessible");
     const lift = rows.find((r) => r.attribute === "lift");
 
@@ -38,12 +38,12 @@ describe("factViews", () => {
     const place = await demoPlace("palac-krzysztofory");
 
     // WHEN it is turned into card rows
-    const attributes = factViews(place).map((r) => r.attribute);
+    const attributes = factViews(place, "pl").map((r) => r.attribute);
 
     // THEN the moot rows are gone and the step-free entrance is shown as text
     expect(attributes).not.toContain("ramp");
     expect(attributes).not.toContain("step_height_cm");
-    expect(factViews(place)[0]).toMatchObject({ attribute: "step_count", value: "Bez stopni", reliability: "confirmed" });
+    expect(factViews(place, "pl")[0]).toMatchObject({ attribute: "step_count", value: "Bez stopni", reliability: "confirmed" });
   });
 
   it("lists every card attribute as unknown for a place without data", async () => {
@@ -51,7 +51,7 @@ describe("factViews", () => {
     const place = await demoPlace("kawiarnia-przyklad");
 
     // WHEN it is turned into card rows
-    const rows = factViews(place);
+    const rows = factViews(place, "pl");
 
     // THEN every row is an explicit "no data"
     expect(rows.length).toBe(12);
@@ -63,7 +63,7 @@ describe("factViews", () => {
     const place = await demoPlace("teatr-slowackiego");
 
     // WHEN it is turned into card rows
-    const ramp = factViews(place).find((r) => r.attribute === "ramp");
+    const ramp = factViews(place, "pl").find((r) => r.attribute === "ramp");
 
     // THEN the value is kept but flagged
     expect(ramp).toMatchObject({ value: "Jest", reliability: "outdated" });
@@ -76,12 +76,12 @@ describe("formatValue", () => {
     // GIVEN typed values
     // WHEN formatted
     // THEN numbers keep their unit and words are translated
-    expect(formatValue("step_count", { kind: "number", number: 3, unit: "count" })).toEqual({ value: "3 stopnie" });
-    expect(formatValue("step_count", { kind: "number", number: 5, unit: "count" })).toEqual({ value: "5 stopni" });
-    expect(formatValue("door_width_cm", { kind: "number", number: 80, unit: "cm" })).toEqual({ value: "80", unit: "cm" });
-    expect(formatValue("incline_pct", { kind: "number", number: 6.5, unit: "pct" })).toEqual({ value: "6,5", unit: "%" });
-    expect(formatValue("surface", { kind: "text", text: "cobblestone" })).toEqual({ value: "kostka brukowa" });
-    expect(formatValue("surface", { kind: "text", text: "lava" })).toEqual({ value: "lava" });
+    expect(formatValue("step_count", { kind: "number", number: 3, unit: "count" }, "pl")).toEqual({ value: "3 stopnie" });
+    expect(formatValue("step_count", { kind: "number", number: 5, unit: "count" }, "pl")).toEqual({ value: "5 stopni" });
+    expect(formatValue("door_width_cm", { kind: "number", number: 80, unit: "cm" }, "pl")).toEqual({ value: "80", unit: "cm" });
+    expect(formatValue("incline_pct", { kind: "number", number: 6.5, unit: "pct" }, "pl")).toEqual({ value: "6,5", unit: "%" });
+    expect(formatValue("surface", { kind: "text", text: "cobblestone" }, "pl")).toEqual({ value: "kostka brukowa" });
+    expect(formatValue("surface", { kind: "text", text: "lava" }, "pl")).toEqual({ value: "lava" });
   });
 });
 

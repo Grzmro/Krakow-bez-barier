@@ -3,11 +3,12 @@ import type { Icon } from "@phosphor-icons/react";
 import { CaretRight, CheckCircle, Question } from "@phosphor-icons/react/ssr";
 import { cn } from "@/lib/utils";
 import { InfoPage, InfoSection } from "@/components/layout/info-page";
-import { pl } from "@/i18n/pl";
+import { getMessages } from "@/i18n/server";
 
-const t = pl.pages.a11y;
-
-export const metadata: Metadata = { title: `${t.title} · ${pl.common.app.name}` };
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await getMessages();
+  return { title: `${m.pages.a11y.title} · ${m.common.app.name}` };
+}
 
 function Bullets({ items, icon: I, tone }: { items: readonly string[]; icon: Icon; tone: string }) {
   return (
@@ -22,9 +23,11 @@ function Bullets({ items, icon: I, tone }: { items: readonly string[]; icon: Ico
   );
 }
 
-export default function AccessibilityStatementPage() {
+export default async function AccessibilityStatementPage() {
+  const m = await getMessages();
+  const t = m.pages.a11y;
   return (
-    <InfoPage title={t.title}>
+    <InfoPage title={t.title} backLabel={m.pages.back}>
       <p className="text-body text-foreground/85">{t.lead}</p>
       <InfoSection title={t.works}>
         <Bullets items={t.worksList} icon={CheckCircle} tone="text-status-met" />

@@ -1,15 +1,18 @@
 import type { MetadataRoute } from "next";
-import { pl } from "@/i18n/pl";
+import { defaultLocale } from "@/i18n/locale";
+import { messagesFor } from "@/i18n/messages";
 import { brandColors } from "@/lib/pwa/brand-colors";
 import { routes } from "@/lib/routes";
 
+// Fetched by the browser without cookies, so it is always in the default language.
 export default function manifest(): MetadataRoute.Manifest {
+  const t = messagesFor(defaultLocale);
   return {
     id: routes.home,
-    name: pl.common.app.name,
-    short_name: pl.pwa.shortName,
-    description: pl.common.app.description,
-    lang: "pl",
+    name: t.common.app.name,
+    short_name: t.pwa.shortName,
+    description: t.common.app.description,
+    lang: defaultLocale,
     dir: "ltr",
     start_url: routes.home,
     scope: routes.home,

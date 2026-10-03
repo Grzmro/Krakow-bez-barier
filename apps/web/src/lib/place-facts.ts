@@ -8,11 +8,10 @@ import type {
   components,
 } from "@krakow-bez-barier/contracts";
 import type { FactSource, Reliability } from "@krakow-bez-barier/ui";
-import { pl } from "@/i18n/pl";
+import { intlLocale, type Locale } from "@/i18n/locale";
+import { messagesFor } from "@/i18n/messages";
 
 type FactValue = components["schemas"]["FactValue"];
-
-const t = pl.place;
 
 /** Attributes shown on the card, in reading order: entrance first, then facilities. */
 export const CARD_ATTRIBUTES = [
@@ -52,19 +51,39 @@ export interface FactView {
   confirmFactId?: string;
 }
 
-const dateFormat = new Intl.DateTimeFormat("pl-PL", {
-  day: "numeric",
-  month: "numeric",
-  year: "numeric",
-  timeZone: "Europe/Warsaw",
-});
+const dateFormats = new Map<Locale, Intl.DateTimeFormat>();
+const numberFormats = new Map<Locale, Intl.NumberFormat>();
 
-export function formatDate(iso: string): string {
-  return dateFormat.format(new Date(iso));
+export function formatDate(iso: string, locale: Locale): string {
+  let format = dateFormats.get(locale);
+  if (!format) {
+    format = new Intl.DateTimeFormat(intlLocale[locale], {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+      timeZone: "Europe/Warsaw",
+    });
+    dateFormats.set(locale, format);
+  }
+  return format.format(new Date(iso));
+}
+
+function formatNumber(n: number, locale: Locale): string {
+  let format = numberFormats.get(locale);
+  if (!format) {
+    format = new Intl.NumberFormat(intlLocale[locale], { maximumFractionDigits: 2, useGrouping: false });
+    numberFormats.set(locale, format);
+  }
+  return format.format(n);
 }
 
 /** Formats one typed value; the unit is split off so the UI can style it. */
-export function formatValue(attribute: AccessibilityAttribute, value: FactValue): { value: string; unit?: string } {
+export function formatValue(
+  attribute: AccessibilityAttribute,
+  value: FactValue,
+  locale: Locale,
+): { value: string; unit?: string } {
+  const t = messagesFor(locale).place;
   switch (value.kind) {
     case "boolean":
       return { value: value.boolean ? t.value.yes : t.value.no };
@@ -72,7 +91,7 @@ export function formatValue(attribute: AccessibilityAttribute, value: FactValue)
       if (attribute === "step_count") {
         return { value: value.number === 0 ? t.value.noSteps : t.value.steps(value.number) };
       }
-      return { value: String(value.number).replace(".", ","), unit: value.unit ? t.unit[value.unit] || undefined : undefined };
+      return { value: formatNumber(value.number, locale), unit: value.unit ? t.unit[value.unit] || undefined : undefined };
     case "text":
       return { value: t.surface[value.text] ?? value.text };
   }
@@ -82,11 +101,13 @@ export function joinValue(v: { value: string; unit?: string }) {
   return v.unit ? `${v.value} ${v.unit}` : v.value;
 }
 
-function factSource(fact: AccessibilityFact, withValue: boolean): FactSource {
+function factSource(fact: AccessibilityFact, withValue: boolean, locale: Locale): FactSource {
+  const m = messagesFor(locale);
+  const t = m.place;
   const confirmations = fact.evidence?.confirmations ?? 0;
   const detail = [
     t.level[fact.reliability],
-    fact.confirmedAt ? t.lastConfirmed(formatDate(fact.confirmedAt)) : null,
+    fact.confirmedAt ? t.lastConfirmed(formatDate(fact.confirmedAt, locale)) : null,
     fact.reliability === "community" && confirmations > 0
       ? confirmations >= 2
         ? t.communityConfirmed
@@ -98,15 +119,16 @@ function factSource(fact: AccessibilityFact, withValue: boolean): FactSource {
   const asOf = fact.confirmedAt ?? fact.observedAt ?? fact.fetchedAt;
   return {
     name: fact.source.name,
-    date: formatDate(fact.fetchedAt),
-    value: withValue ? joinValue(formatValue(fact.attribute, fact.value)) : undefined,
+    date: formatDate(fact.fetchedAt, locale),
+    value: withValue ? joinValue(formatValue(fact.attribute, fact.value, locale)) : undefined,
     detail,
-    staleNote: fact.stale ? pl.common.fact.maybeOutdated(formatDate(asOf)) : undefined,
+    staleNote: fact.stale ? m.common.fact.maybeOutdated(formatDate(asOf, locale)) : undefined,
   };
 }
 
 /** One card row per attribute; attributes the API didn't return are named as missing, never hidden. */
-export function factViews(place: Place): FactView[] {
+export function factViews(place: Place, locale: Locale): FactView[] {
+  const m = messagesFor(locale);
   const byAttribute = new Map<AccessibilityAttribute, ResolvedAttribute>(place.attributes.map((a) => [a.attribute, a]));
   const stepsKnownZero = (() => {
     const steps = byAttribute.get("step_count");
@@ -120,18 +142,18 @@ export function factViews(place: Place): FactView[] {
     return (byAttribute.get(attribute)?.facts.length ?? 0) > 0;
   }).map((attribute) => {
     const resolved = byAttribute.get(attribute);
-    const label = pl.common.attribute[attribute];
+    const label = m.common.attribute[attribute];
     if (!resolved || resolved.state === "unknown" || resolved.facts.length === 0) {
       return { attribute, label, reliability: "unknown", sources: [], unknown: true, conflict: false };
     }
     const conflict = resolved.state === "conflict";
-    const sources = resolved.facts.map((f) => factSource(f, conflict));
+    const sources = resolved.facts.map((f) => factSource(f, conflict, locale));
     if (conflict) {
-      const values = [...new Set(resolved.facts.map((f) => joinValue(formatValue(attribute, f.value))))];
-      return { attribute, label, value: values.join(t.value.separator), reliability: "conflict", sources, unknown: false, conflict };
+      const values = [...new Set(resolved.facts.map((f) => joinValue(formatValue(attribute, f.value, locale))))];
+      return { attribute, label, value: values.join(m.place.value.separator), reliability: "conflict", sources, unknown: false, conflict };
     }
     const shown = resolved.value ?? resolved.facts[0].value;
-    const formatted = formatValue(attribute, shown);
+    const formatted = formatValue(attribute, shown, locale);
     const shownFact = resolved.facts.find((f) => JSON.stringify(f.value) === JSON.stringify(shown)) ?? resolved.facts[0];
     return {
       attribute,

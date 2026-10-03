@@ -1,17 +1,18 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "@phosphor-icons/react/ssr";
-import { pl } from "@/i18n/pl";
 import { routes } from "@/lib/routes";
 
+type InfoPageProps = { title: string; backLabel: string; aside?: ReactNode; children: ReactNode };
+
 /** Secondary page from the menu: back link, one h1, then the content. Owns the skip-link target. */
-export function InfoPage({ title, aside, children }: { title: string; aside?: ReactNode; children: ReactNode }) {
+export function InfoPage({ title, backLabel, aside, children }: InfoPageProps) {
   return (
     <main id="main" tabIndex={-1} className="mx-auto w-full max-w-xl flex-1 px-4 pt-3 pb-10 outline-none">
       <div className="flex items-center gap-2">
         <Link
           href={routes.home}
-          aria-label={pl.pages.back}
+          aria-label={backLabel}
           className="press grid size-12 shrink-0 place-items-center rounded-full hover:bg-muted"
         >
           <ArrowLeft weight="bold" className="size-5" aria-hidden />

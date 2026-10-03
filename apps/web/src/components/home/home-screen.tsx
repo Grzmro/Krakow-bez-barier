@@ -7,7 +7,7 @@ import { MagnifyingGlass, SlidersHorizontal } from "@phosphor-icons/react";
 import { BottomPanel } from "@/components/kbb";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
 import { ThresholdsDrawer } from "@/components/profile/thresholds-drawer";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
 import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
 import type { DevicePosition } from "@/lib/native/geolocation";
@@ -20,10 +20,6 @@ import { PlaceMap } from "./place-map";
 import { NearbyToggle } from "./nearby-toggle";
 import { PlaceRow } from "./place-list";
 import { SearchBox } from "./search-box";
-
-const t = pl.home;
-const tp = pl.profile;
-const tn = pl.nearby.home;
 
 const ALL = "all";
 const FEATURES: FeatureFilter[] = ["step_free", "lift", "toilet_accessible", "bench", "disabled_parking", "changing_table"];
@@ -47,6 +43,10 @@ function useDebounced<T>(value: T, delay = 200): T {
 }
 
 export function HomeScreen() {
+  const m = useMessages();
+  const t = m.home;
+  const tp = m.profile;
+  const tn = m.nearby.home;
   const announce = useAnnounce();
   const { settings, setProfile } = useProfile();
   const profile = settings.profile;
@@ -207,7 +207,7 @@ export function HomeScreen() {
                       key={status}
                       pressed={statusFilter === status}
                       onPressedChange={() => toggleStatus(status)}
-                      aria-label={tp.counter(counts[status], pl.common.status[status])}
+                      aria-label={tp.counter(counts[status], m.common.status[status])}
                       className={cn("h-11 min-w-0 gap-1.5 px-3 aria-pressed:ring-2", COUNTER_PRESSED[status])}
                     >
                       <StatusIcon status={status} className="size-5!" />

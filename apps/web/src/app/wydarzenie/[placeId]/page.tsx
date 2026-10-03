@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { pl } from "@/i18n/pl";
+import { getMessages } from "@/i18n/server";
 import { readEventDetails } from "@/lib/event-link";
 import { EventScreen } from "./event-screen";
 
 export async function generateMetadata({ searchParams }: PageProps<"/wydarzenie/[placeId]">): Promise<Metadata> {
   const { name } = readEventDetails(await searchParams);
-  return { title: [name, pl.event.pageTitle, pl.common.app.name].filter(Boolean).join(" · ") };
+  const m = await getMessages();
+  return { title: [name, m.event.pageTitle, m.common.app.name].filter(Boolean).join(" · ") };
 }
 
 // Shared by an event organizer: no account, everything comes from the place id and the query.

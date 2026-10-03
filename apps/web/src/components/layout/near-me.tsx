@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useEffectEvent, useId, useState } from "react";
 import { CircleNotch, Crosshair } from "@phosphor-icons/react";
 import { useAnnounce } from "@krakow-bez-barier/ui";
-import { pl } from "@/i18n/pl";
+import { useLocale, useMessages } from "@/i18n/client";
+import { intlLocale, type Locale } from "@/i18n/locale";
+import type { Messages } from "@/i18n/messages";
 import { locateDevice, type LocateResult } from "@/lib/native/geolocation";
 
-const t = pl.nearby;
-const coordinate = new Intl.NumberFormat("pl-PL", { minimumFractionDigits: 5, maximumFractionDigits: 5 });
-
-function describe(result: LocateResult): string {
+function describe(result: LocateResult, t: Messages["nearby"], locale: Locale): string {
   if (!result.ok) return t.errors[result.reason];
   const { latitude, longitude, accuracyMeters } = result.position;
+  const coordinate = new Intl.NumberFormat(intlLocale[locale], { minimumFractionDigits: 5, maximumFractionDigits: 5 });
   return t.found(coordinate.format(latitude), coordinate.format(longitude), accuracyMeters);
 }
 
@@ -20,6 +20,8 @@ function describe(result: LocateResult): string {
  * `autoStart` asks right away (the /dev/native diagnostics page) instead of waiting for a tap.
  */
 export function NearMe({ autoStart = false }: { autoStart?: boolean }) {
+  const t = useMessages().nearby;
+  const locale = useLocale();
   const announce = useAnnounce();
   const privacyId = useId();
   const [locating, setLocating] = useState(autoStart);
@@ -31,8 +33,10 @@ export function NearMe({ autoStart = false }: { autoStart?: boolean }) {
     const next = await locateDevice();
     setResult(next);
     setLocating(false);
-    announce(describe(next));
+    announce(describe(next, t, locale));
   }
+
+  const announceResult = useEffectEvent((next: LocateResult) => announce(describe(next, t, locale)));
 
   useEffect(() => {
     if (!autoStart) return;
@@ -41,12 +45,12 @@ export function NearMe({ autoStart = false }: { autoStart?: boolean }) {
       if (!active) return;
       setResult(next);
       setLocating(false);
-      announce(describe(next));
+      announceResult(next);
     });
     return () => {
       active = false;
     };
-  }, [autoStart, announce]);
+  }, [autoStart]);
 
   return (
     <div className="rounded-2xl bg-primary-container p-2">
@@ -69,7 +73,7 @@ export function NearMe({ autoStart = false }: { autoStart?: boolean }) {
           <span className="block text-caption text-muted-foreground">{locating ? t.locating : t.actionSub}</span>
         </span>
       </button>
-      {result && <p className="px-2 pt-2 text-body font-semibold">{describe(result)}</p>}
+      {result && <p className="px-2 pt-2 text-body font-semibold">{describe(result, t, locale)}</p>}
       <p id={privacyId} className="px-2 pt-1 pb-1 text-caption text-muted-foreground">
         {t.privacy}
       </p>

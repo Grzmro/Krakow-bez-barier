@@ -1,9 +1,7 @@
 import type { NeedResult, Verdict } from "@krakow-bez-barier/contracts";
 import { StatusBadge } from "@/components/kbb";
 import { cn } from "@/lib/utils";
-import { pl } from "@/i18n/pl";
-
-const t = pl.profile;
+import { useMessages } from "@/i18n/client";
 
 type Group = "barrier" | "met" | "unknown";
 
@@ -12,6 +10,7 @@ const ORDER: Group[] = ["barrier", "met", "unknown"];
 
 /** The place card's "Blokuje / Pasuje / Nie wiadomo" groups for the active profile (US-2.5). */
 export function NeedGroups({ verdict, headingLevel = 3, className }: { verdict: Verdict; headingLevel?: 2 | 3 | 4; className?: string }) {
+  const t = useMessages().profile;
   const Heading = `h${headingLevel}` as const;
   const needs = verdict.needs ?? [];
   return (

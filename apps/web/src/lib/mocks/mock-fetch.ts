@@ -1,5 +1,6 @@
 import type { FeatureFilter, GetPlaceQuery, Problem, Profile } from "@krakow-bez-barier/contracts";
 import { THRESHOLD_FLAGS, type ThresholdFlag } from "@/server/domain/profiles";
+import { localeFromCookies } from "@/i18n/locale";
 import { mockGetPlace, mockListPlaces } from "./mock-api";
 
 // Profile-aware `/places` mocks for the example-data mode (NEXT_PUBLIC_API_MOCK). Everything else
@@ -36,6 +37,8 @@ export const withPlacesMocks = (fallback: Fetch): Fetch => async (input) => {
   const url = new URL(input.url, "http://mock.local");
   const path = url.pathname.replace(/^.*\/api\/v1/, "");
   const params = url.searchParams;
+  // The real API reads the language cookie from the request; in the browser the mock reads it directly.
+  const locale = localeFromCookies(typeof document === "undefined" ? null : document.cookie);
 
   if (input.method === "GET" && path === "/places") {
     // openapi-fetch explodes arrays (`bbox=1&bbox=2…`); the spec's form style joins them with commas. Accept both.
@@ -52,14 +55,14 @@ export const withPlacesMocks = (fallback: Fetch): Fetch => async (input) => {
         includeUnknown: params.has("includeUnknown") ? params.get("includeUnknown") === "true" : undefined,
         bbox: bbox?.length === 4 ? bbox : undefined,
         ...profileParams(params),
-      }),
+      }, locale),
     );
   }
 
   const place = path.match(/^\/places\/([^/]+)$/);
   if (input.method === "GET" && place) {
     const id = decodeURIComponent(place[1]);
-    const body = mockGetPlace(id, profileParams(params));
+    const body = mockGetPlace(id, profileParams(params), locale);
     return body ? json(body) : problem(404, "Not found", `Place "${id}" does not exist.`);
   }
 

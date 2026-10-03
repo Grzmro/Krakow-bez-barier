@@ -3,14 +3,15 @@
 import { ArrowSquareOut } from "@phosphor-icons/react";
 import { Button, LogoMark, buttonVariants, cn } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge, SampleTag } from "@/components/kbb";
-import { pl } from "@/i18n/pl";
+import { useLocale, useMessages } from "@/i18n/client";
 import { routes } from "@/lib/routes";
 import { useWidgetCard } from "@/lib/use-widget-card";
 import { widgetFactView } from "@/lib/widget-facts";
 
-const t = pl.business.widget;
-
 export function WidgetCard({ placeId }: { placeId: string }) {
+  const m = useMessages();
+  const t = m.business.widget;
+  const locale = useLocale();
   const query = useWidgetCard(placeId);
 
   if (query.isPending) {
@@ -35,7 +36,7 @@ export function WidgetCard({ placeId }: { placeId: string }) {
   }
 
   const card = query.data;
-  const facts = card.facts.map(widgetFactView);
+  const facts = card.facts.map((fact) => widgetFactView(fact, locale));
   return (
     <article aria-labelledby="widget-name" className="rounded-[20px] bg-card p-4 shadow-float ring-1 ring-primary/25">
       <div className="flex items-start justify-between gap-2">
@@ -77,7 +78,7 @@ export function WidgetCard({ placeId }: { placeId: string }) {
         </a>
         <p className="flex items-center gap-1.5 text-caption font-semibold text-primary">
           <LogoMark className="size-4" />
-          {pl.common.app.name}
+          {m.common.app.name}
         </p>
       </div>
       <p className="mt-1 text-caption text-muted-foreground">{card.attribution}</p>

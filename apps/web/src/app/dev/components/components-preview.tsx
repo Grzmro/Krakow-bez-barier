@@ -24,9 +24,7 @@ import {
   StatusBadge,
   VerdictBlock,
 } from "@/components/kbb";
-import { pl } from "@/i18n/pl";
-
-const t = pl.dev;
+import { useMessages } from "@/i18n/client";
 
 function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
@@ -40,6 +38,8 @@ function Section({ id, title, children }: { id: string; title: string; children:
 }
 
 export function ComponentsPreview() {
+  const m = useMessages();
+  const t = m.dev;
   const [expanded, setExpanded] = useState(false);
   const [found, setFound] = useState(12);
   const announce = useAnnounce();
@@ -131,7 +131,7 @@ export function ComponentsPreview() {
                 name: f.sourceOsm,
                 date: "4.05.2021",
                 detail: f.confirmations,
-                staleNote: pl.common.fact.maybeOutdated("4.05.2021"),
+                staleNote: m.common.fact.maybeOutdated("4.05.2021"),
               },
             ]}
             notice={
@@ -207,7 +207,7 @@ export function ComponentsPreview() {
                 {t.feedback.drawerBody}
               </VaulDrawerDescription>
               <VaulDrawerClose asChild>
-                <Button variant="secondary">{pl.common.app.close}</Button>
+                <Button variant="secondary">{m.common.app.close}</Button>
               </VaulDrawerClose>
             </div>
           </VaulDrawerContent>

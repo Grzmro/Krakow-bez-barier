@@ -45,7 +45,7 @@ describe("profile presets", () => {
     const verdicts = Object.fromEntries(
       places.flatMap(([key, place]) =>
         (["wheelchair", "stroller"] as const).map((profile) => {
-          const { state, unconfirmed, reasons, blockers, unknowns, needs } = matchProfile(place, PROFILE_PRESETS[profile]);
+          const { state, unconfirmed, reasons, blockers, unknowns, needs } = matchProfile(place, PROFILE_PRESETS[profile], "pl");
           const perNeed = needs?.map((n) => `${n.need}:${n.attribute}:${n.state}${n.unconfirmed ? "?" : ""}`).join(",");
           return [`${profile} ${key}`, `${state}${unconfirmed ? "?" : ""} | ${reasons.join(";")} | ${blockers?.join(",")} | ${unknowns?.join(",")} | ${perNeed}`];
         }),

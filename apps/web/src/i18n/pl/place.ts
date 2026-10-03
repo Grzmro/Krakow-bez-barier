@@ -141,6 +141,8 @@ export const place = {
     shop: "Handel",
     other: "Inne",
   } satisfies Record<string, string>,
+  // Category names from GET /categories are Polish already; other languages translate them by id.
+  categoryNames: {} as Record<string, { label: string; singularLabel: string }>,
   value: {
     yes: "Jest",
     no: "Nie ma",

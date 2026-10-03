@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
 import { SampleTag } from "@/components/kbb";
 import { InfoPage } from "@/components/layout/info-page";
-import { pl } from "@/i18n/pl";
+import { getMessages } from "@/i18n/server";
 import { BusinessScreen } from "./business-screen";
 
-export const metadata: Metadata = {
-  title: `${pl.business.page.title} · ${pl.common.app.name}`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await getMessages();
+  return { title: `${m.business.page.title} · ${m.common.app.name}` };
+}
 
-export default function BusinessPage() {
+export default async function BusinessPage() {
+  const m = await getMessages();
   return (
-    <InfoPage title={pl.business.page.title} aside={<SampleTag className="shrink-0" />}>
+    <InfoPage title={m.business.page.title} backLabel={m.pages.back} aside={<SampleTag className="shrink-0" />}>
       <BusinessScreen />
     </InfoPage>
   );

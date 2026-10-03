@@ -10,16 +10,15 @@ import {
   VaulDrawerDescription,
   VaulDrawerTitle,
 } from "@krakow-bez-barier/ui";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
 import { THRESHOLD_FLAGS, THRESHOLD_LIMITS, type Thresholds } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { ProfileSwitch } from "./profile-switch";
 
-const t = pl.profile.thresholds;
-
 type NumberKey = keyof typeof THRESHOLD_LIMITS;
 
 function Stepper({ label, value, limits, onChange }: { label: string; value: number; limits: (typeof THRESHOLD_LIMITS)[NumberKey]; onChange: (v: number) => void }) {
+  const t = useMessages().profile.thresholds;
   const id = useId();
   return (
     <div className="flex min-h-14 items-center justify-between gap-3">
@@ -59,6 +58,7 @@ function Stepper({ label, value, limits, onChange }: { label: string; value: num
 
 /** Edits the active profile's thresholds; changes apply (and persist) immediately. */
 export function ThresholdsDrawer({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const t = useMessages().profile.thresholds;
   const { settings, setProfile, setThresholds, resetThresholds } = useProfile();
   const profile = settings.profile;
   if (!profile) return null;

@@ -4,10 +4,8 @@ import { useId } from "react";
 import { BabyCarriage, PersonSimpleWalk, Wheelchair, type Icon } from "@phosphor-icons/react";
 import type { Profile } from "@krakow-bez-barier/contracts";
 import { cn } from "@/lib/utils";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
 import { PROFILES } from "@/lib/profile/thresholds";
-
-const t = pl.profile;
 
 type Option = Profile | "off";
 
@@ -29,6 +27,7 @@ export function ProfileSwitch({
   size?: "default" | "sm";
   className?: string;
 }) {
+  const t = useMessages().profile;
   const name = useId();
   const current: Option = value ?? "off";
   const options: Option[] = allowOff ? ["off", ...PROFILES] : [...PROFILES];

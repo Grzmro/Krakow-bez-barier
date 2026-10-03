@@ -1,9 +1,10 @@
 import type { Need, NeedResult } from "@krakow-bez-barier/contracts";
-import { pl } from "@/i18n/pl";
+import type { Locale } from "@/i18n/locale";
+import { messagesFor, type Messages } from "@/i18n/messages";
 import { OPTIONAL_NEEDS, type NeedRule, type Thresholds } from "./profiles";
 import type { AccessibilityAttribute, NeedVerdict, ResolvedAttribute, Verdict } from "./types";
 
-const t = pl.profile.reasons;
+type Reasons = Messages["profile"]["reasons"];
 
 type PlaceFacts = { attributes: ResolvedAttribute[] };
 
@@ -30,11 +31,11 @@ function result(need: Need, attribute: AccessibilityAttribute, state: NeedVerdic
   return { need, attribute, state, reason, unconfirmed: state === "met" && unconfirmed };
 }
 
-function unresolved(need: Need, attribute: AccessibilityAttribute, state: "unknown" | "conflict"): NeedResult {
+function unresolved(t: Reasons, need: Need, attribute: AccessibilityAttribute, state: "unknown" | "conflict"): NeedResult {
   return result(need, attribute, state, t.unresolved(need));
 }
 
-function entrance(place: PlaceFacts, th: Thresholds): NeedResult {
+function entrance(t: Reasons, place: PlaceFacts, th: Thresholds): NeedResult {
   // OSM's overall tag is one fact among others: "no" blocks a step-free entrance, "yes" never proves one.
   const overall = resolve(place, "wheelchair_overall");
   if (th.requireStepFree && overall.kind === "known" && textOf(overall.attribute) === "no") {
@@ -51,14 +52,14 @@ function entrance(place: PlaceFacts, th: Thresholds): NeedResult {
     if (alternative?.kind === "known") {
       return result("entrance", alternative.attribute.attribute, "met", null, isUnconfirmed(alternative.attribute));
     }
-    return unresolved("entrance", "step_count", steps.kind === "unresolved" ? steps.state : "unknown");
+    return unresolved(t, "entrance", "step_count", steps.kind === "unresolved" ? steps.state : "unknown");
   }
 
   if (count === 0 || (!th.requireStepFree && count <= 1)) {
     const threshold = resolve(place, "threshold_cm");
-    if (threshold.kind === "unresolved") return unresolved("entrance", "threshold_cm", threshold.state);
+    if (threshold.kind === "unresolved") return unresolved(t, "entrance", "threshold_cm", threshold.state);
     const cm = numberOf(threshold.attribute);
-    if (cm === null) return unresolved("entrance", "threshold_cm", "unknown");
+    if (cm === null) return unresolved(t, "entrance", "threshold_cm", "unknown");
     const unconfirmed = isUnconfirmed(steps.attribute) || isUnconfirmed(threshold.attribute);
     return cm <= th.maxThresholdCm
       ? result("entrance", "step_count", "met", null, unconfirmed)
@@ -66,19 +67,19 @@ function entrance(place: PlaceFacts, th: Thresholds): NeedResult {
   }
 
   const ramp = resolve(place, "ramp");
-  if (ramp.kind === "unresolved") return unresolved("entrance", "ramp", ramp.state);
+  if (ramp.kind === "unresolved") return unresolved(t, "entrance", "ramp", ramp.state);
   const hasRamp = booleanOf(ramp.attribute);
-  if (hasRamp === null) return unresolved("entrance", "ramp", "unknown");
+  if (hasRamp === null) return unresolved(t, "entrance", "ramp", "unknown");
   return hasRamp
     ? result("entrance", "ramp", "met", null, isUnconfirmed(ramp.attribute))
     : result("entrance", "step_count", "barrier", t.steps(count));
 }
 
-function door(place: PlaceFacts, th: Thresholds): NeedResult {
+function door(t: Reasons, place: PlaceFacts, th: Thresholds): NeedResult {
   const width = resolve(place, "door_width_cm");
-  if (width.kind === "unresolved") return unresolved("door", "door_width_cm", width.state);
+  if (width.kind === "unresolved") return unresolved(t, "door", "door_width_cm", width.state);
   const cm = numberOf(width.attribute);
-  if (cm === null) return unresolved("door", "door_width_cm", "unknown");
+  if (cm === null) return unresolved(t, "door", "door_width_cm", "unknown");
   return cm >= th.minDoorWidthCm
     ? result("door", "door_width_cm", "met", null, isUnconfirmed(width.attribute))
     : result("door", "door_width_cm", "barrier", t.door(cm));
@@ -89,39 +90,39 @@ function door(place: PlaceFacts, th: Thresholds): NeedResult {
  * a known missing lift blocks only above one storey, and with the storeys unknown it is "can't say" —
  * a single-storey café is never blocked by a missing lift.
  */
-function lift(place: PlaceFacts, need: Need, attribute: AccessibilityAttribute): NeedResult {
+function lift(t: Reasons, place: PlaceFacts, need: Need, attribute: AccessibilityAttribute): NeedResult {
   const levels = resolve(place, "levels");
   const storeys = levels.kind === "known" ? numberOf(levels.attribute) : null;
   if (levels.kind === "known" && storeys === 1) return result(need, "levels", "met", null, isUnconfirmed(levels.attribute));
 
   const resolved = resolve(place, attribute);
-  if (resolved.kind !== "known" || booleanOf(resolved.attribute) !== false) return facility(place, need, attribute);
+  if (resolved.kind !== "known" || booleanOf(resolved.attribute) !== false) return facility(t, place, need, attribute);
   if (storeys !== null && storeys > 1) return result(need, attribute, "barrier", t.missing(need));
   if (levels.kind === "unresolved" && levels.state === "conflict") return result(need, "levels", "conflict", t.liftFloorsConflict);
   return result(need, attribute, "unknown", t.liftWithoutFloors);
 }
 
-function facility(place: PlaceFacts, need: Need, attribute: AccessibilityAttribute): NeedResult {
+function facility(t: Reasons, place: PlaceFacts, need: Need, attribute: AccessibilityAttribute): NeedResult {
   const resolved = resolve(place, attribute);
-  if (resolved.kind === "unresolved") return unresolved(need, attribute, resolved.state);
+  if (resolved.kind === "unresolved") return unresolved(t, need, attribute, resolved.state);
   const present = booleanOf(resolved.attribute);
-  if (present === null) return unresolved(need, attribute, "unknown");
+  if (present === null) return unresolved(t, need, attribute, "unknown");
   return present
     ? result(need, attribute, "met", null, isUnconfirmed(resolved.attribute))
     : result(need, attribute, "barrier", t.missing(need));
 }
 
-function surface(place: PlaceFacts, need: Need, attribute: AccessibilityAttribute): NeedResult {
+function surface(t: Reasons, place: PlaceFacts, need: Need, attribute: AccessibilityAttribute): NeedResult {
   const resolved = resolve(place, attribute);
-  if (resolved.kind === "unresolved") return unresolved(need, attribute, resolved.state);
+  if (resolved.kind === "unresolved") return unresolved(t, need, attribute, resolved.state);
   const value = textOf(resolved.attribute);
-  if (value === null) return unresolved(need, attribute, "unknown");
+  if (value === null) return unresolved(t, need, attribute, "unknown");
   return SMOOTH_SURFACES.has(value)
     ? result(need, attribute, "met", null, isUnconfirmed(resolved.attribute))
     : result(need, attribute, "barrier", t.surface);
 }
 
-const RULES: Record<NeedRule, (place: PlaceFacts, need: Need, attribute: AccessibilityAttribute) => NeedResult> = {
+const RULES: Record<NeedRule, (t: Reasons, place: PlaceFacts, need: Need, attribute: AccessibilityAttribute) => NeedResult> = {
   facility,
   lift,
   surface,
@@ -132,11 +133,14 @@ const RULES: Record<NeedRule, (place: PlaceFacts, need: Need, attribute: Accessi
  * resolved attributes: barrier beats conflict beats unknown, and only all-met is met. A conflict on
  * any attribute of the place, needed or not, also rules out met; stale data never counts as met.
  */
-export function matchProfile(place: PlaceFacts, thresholds: Thresholds): Verdict {
+export function matchProfile(place: PlaceFacts, thresholds: Thresholds, locale: Locale): Verdict {
+  const t = messagesFor(locale).profile.reasons;
   const needs: NeedResult[] = [
-    entrance(place, thresholds),
-    door(place, thresholds),
-    ...OPTIONAL_NEEDS.filter(({ flag }) => thresholds[flag]).map(({ rule, need, attribute }) => RULES[rule](place, need, attribute)),
+    entrance(t, place, thresholds),
+    door(t, place, thresholds),
+    ...OPTIONAL_NEEDS.filter(({ flag }) => thresholds[flag]).map(({ rule, need, attribute }) =>
+      RULES[rule](t, place, need, attribute),
+    ),
   ];
 
   const has = (state: NeedVerdict) => needs.some((n) => n.state === state);

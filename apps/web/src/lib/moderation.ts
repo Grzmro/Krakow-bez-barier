@@ -3,10 +3,9 @@ import type {
   ModerationReport,
   ReportStatus,
 } from "@krakow-bez-barier/contracts";
-import { pl } from "@/i18n/pl";
+import { intlLocale, type Locale } from "@/i18n/locale";
+import { messagesFor } from "@/i18n/messages";
 import { formatDate, formatValue, joinValue } from "./place-facts";
-
-const t = pl.moderator;
 
 /** Statuses still waiting for a moderator; `accepted` and `rejected` are final. */
 export const OPEN_STATUSES: readonly ReportStatus[] = ["new", "needs_info"];
@@ -23,14 +22,16 @@ export type ChangePreview = {
   beforeKnown: boolean;
 };
 
-export function changePreview(report: ModerationReport): ChangePreview {
+export function changePreview(report: ModerationReport, locale: Locale): ChangePreview {
+  const m = messagesFor(locale);
+  const t = m.moderator;
   const current = report.currentValue ?? null;
   const source = report.currentSource ?? null;
   return {
-    attribute: pl.common.attribute[report.attribute],
-    before: current ? joinValue(formatValue(report.attribute, current)) : t.noData,
-    beforeSource: current && source ? t.sourceLine(source.name, formatDate(source.asOf)) : null,
-    after: joinValue(formatValue(report.attribute, report.value)),
+    attribute: m.common.attribute[report.attribute],
+    before: current ? joinValue(formatValue(report.attribute, current, locale)) : t.noData,
+    beforeSource: current && source ? t.sourceLine(source.name, formatDate(source.asOf, locale)) : null,
+    after: joinValue(formatValue(report.attribute, report.value, locale)),
     beforeKnown: current !== null,
   };
 }
@@ -43,17 +44,18 @@ export type HistoryEntry = ModerationEvent & {
 };
 
 /** Every decision across the reports — who, what and when — newest first. */
-export function moderationHistory(reports: ModerationReport[]): HistoryEntry[] {
+export function moderationHistory(reports: ModerationReport[], locale: Locale): HistoryEntry[] {
+  const m = messagesFor(locale);
   return reports
     .flatMap((report) =>
       report.history.map((event, i) => ({
         ...event,
         key: `${report.id}-${i}`,
         reportId: report.id,
-        summary: t.historySummary[event.decision === "accepted" ? "accepted" : "reported"](
+        summary: m.moderator.historySummary[event.decision === "accepted" ? "accepted" : "reported"](
           report.placeName,
-          pl.common.attribute[report.attribute],
-          joinValue(formatValue(report.attribute, report.value)),
+          m.common.attribute[report.attribute],
+          joinValue(formatValue(report.attribute, report.value, locale)),
         ),
       })),
     )
@@ -66,8 +68,8 @@ export function retryMinutes(retryAfter: string | null): number {
   return Number.isFinite(seconds) && seconds > 0 ? Math.ceil(seconds / 60) : 15;
 }
 
-const dateTime = new Intl.DateTimeFormat("pl-PL", { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Warsaw" });
-
-export function formatDateTime(iso: string): string {
-  return dateTime.format(new Date(iso));
+export function formatDateTime(iso: string, locale: Locale): string {
+  return new Intl.DateTimeFormat(intlLocale[locale], { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Warsaw" }).format(
+    new Date(iso),
+  );
 }

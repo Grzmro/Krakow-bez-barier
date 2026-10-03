@@ -10,6 +10,6 @@
   - heading "Jak długo" [level=2]
   - paragraph: /Zgłoszenia przechowujemy \d+ miesiące, potem zostaje tylko zatwierdzona wartość i data\./
   - heading "Ustawienia" [level=2]
-  - paragraph: Profil i progi zapisujemy tylko w Twojej przeglądarce. Możesz je usunąć, czyszcząc dane strony.
+  - paragraph: Profil i progi zapisujemy tylko w Twojej przeglądarce. Język zapisujemy w ciasteczku kbb-lang (tylko „pl” albo „en”); przeglądarka wysyła je do serwera, żeby pokazać stronę w tym języku. Wszystko usuniesz, czyszcząc dane strony.
   - heading "Trackery" [level=2]
   - paragraph: Nie używamy reklam, analityki śledzącej ani pikseli zewnętrznych.

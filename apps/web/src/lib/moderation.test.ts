@@ -22,7 +22,7 @@ describe("changePreview", () => {
   it("shows a missing current value as Brak danych, not as a value", () => {
     // GIVEN a report for an attribute the card knows nothing about
     // WHEN previewing the change
-    const preview = changePreview(report());
+    const preview = changePreview(report(), "pl");
 
     // THEN the card goes from "Brak danych" to the reported width
     expect(preview).toEqual({
@@ -43,7 +43,7 @@ describe("changePreview", () => {
     });
 
     // WHEN previewing the change
-    const preview = changePreview(lift);
+    const preview = changePreview(lift, "pl");
 
     // THEN both values read as words
     expect(preview.before).toBe("Jest");
@@ -85,7 +85,7 @@ describe("moderationHistory", () => {
     ];
 
     // WHEN building the history
-    const history = moderationHistory(reports);
+    const history = moderationHistory(reports, "pl");
 
     // THEN decisions are ordered by time and carry the place, attribute and value
     expect(history.map((h) => [h.reportId, h.decision, h.moderator])).toEqual([

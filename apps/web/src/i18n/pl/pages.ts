@@ -38,6 +38,11 @@ export const pages = {
       yearly: "co rok",
       realtime: "na bieżąco",
     } satisfies Record<string, string>,
+    // Notes the sources API writes itself (not from the source's own data).
+    statusNote: {
+      simulatedOutage: "Symulowana awaria źródła (przełącznik testowy). Pokazujemy ostatnie znane dane jako nieaktualne.",
+      overdue: "Źródło nie odświeżało się o czasie. Dane mogą być nieaktualne.",
+    },
     verificationByKind: {
       official_open_data: "zarządca lub miasto",
       community: "społeczność, potwierdzenia użytkowników",
@@ -69,7 +74,7 @@ export const pages = {
       ["Jak długo", "Zgłoszenia przechowujemy 24 miesiące, potem zostaje tylko zatwierdzona wartość i data."],
       [
         "Ustawienia",
-        "Profil i progi zapisujemy tylko w Twojej przeglądarce. Możesz je usunąć, czyszcząc dane strony.",
+        "Profil i progi zapisujemy tylko w Twojej przeglądarce. Język zapisujemy w ciasteczku kbb-lang (tylko „pl” albo „en”); przeglądarka wysyła je do serwera, żeby pokazać stronę w tym języku. Wszystko usuniesz, czyszcząc dane strony.",
       ],
       ["Trackery", "Nie używamy reklam, analityki śledzącej ani pikseli zewnętrznych."],
     ] as [string, string][],
@@ -96,13 +101,13 @@ export const pages = {
       "Pinezki na mapie są ukryte przed czytnikami ekranu i nie da się do nich przejść klawiszem Tab — te same miejsca są na liście.",
       "Nie sprawdzaliśmy trybu wysokiego kontrastu systemu.",
       "Część danych jest przykładowa; oznaczamy ją „PRZYKŁAD”.",
-      "Brak wersji angielskiej.",
+      "Nazw miejsc i wartości z danych źródłowych nie tłumaczymy na angielski.",
     ],
     plan: "Plan usunięcia ograniczeń",
     planList: [
       "Przed pilotażem: ręczne testy głównego scenariusza z VoiceOver, TalkBack i NVDA oraz audyt WCAG 2.2 AA.",
       "W pilotażu: testy z osobami na wózkach i rodzicami z wózkami dziecięcymi.",
-      "Po pilotażu: tryb wysokiego kontrastu i wersja angielska.",
+      "Po pilotażu: tryb wysokiego kontrastu.",
     ],
     contact: "Uwagi o dostępności zgłoś zespołowi projektu — poprawimy je przed pilotażem.",
   },

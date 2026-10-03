@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { pl } from "@/i18n/pl";
+import { getMessages } from "@/i18n/server";
 import { WidgetCard } from "./widget-card";
 
-export const metadata: Metadata = {
-  title: `${pl.business.widget.pageTitle} · ${pl.common.app.name}`,
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await getMessages();
+  return { title: `${m.business.widget.pageTitle} · ${m.common.app.name}` };
+}
 
 // Embedded in an iframe on venue websites: no app header, no account, one compact card.
 export default async function WidgetPage({ params }: PageProps<"/widget/[placeId]">) {

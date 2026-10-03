@@ -19,7 +19,7 @@ otherwise. The jury watches a live demo for one user group, checks where every p
 from, and looks hard at the business model — optimize for that.
 
 Respond in the language of the prompt. Code, comments, commits, PRs and docs are in English.
-User-facing UI text is in Polish (the jury and the city are Polish); keep it in one place (`apps/web/src/i18n/pl/<area>.ts`, indexed by `pl.ts`) so English can be added later.
+User-facing UI text is in Polish (the jury and the city are Polish); keep it in one place (`apps/web/src/i18n/pl/<area>.ts`, indexed by `pl.ts`) with its English twin in `i18n/en/<area>.ts`.
 
 ## How instructions are organized
 
@@ -71,7 +71,7 @@ TypeScript everywhere, npm workspaces monorepo. Why each piece was chosen: `docs
 ```
 apps/web/src/app/       # Next.js pages; api/ = route handlers
 apps/web/src/server/    # server-only: Resolver, Matcher, RoutingProvider, DB queries
-apps/web/src/i18n/      # all Polish UI strings: pl/<area>.ts per screen area, pl.ts = index
+apps/web/src/i18n/      # all UI strings: pl/<area>.ts + en/<area>.ts per screen area, pl.ts / en.ts = index
 apps/mobile/            # Capacitor shell: iOS/Android apps that load the web app (native: lib/native in web)
 apps/ingest/            # data source adapters → normalized accessibility facts in the DB
 packages/contracts/     # openapi.yaml + generated types/client (src/generated/: gitignored, never edit)

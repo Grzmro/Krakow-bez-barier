@@ -29,7 +29,7 @@ describe("matchProfile with resolved attributes", () => {
   it("returns met only when every need is known and met", () => {
     // GIVEN a place whose every wheelchair need is confirmed
     // WHEN it is checked against the wheelchair presets
-    const verdict = matchProfile(fullyAccessible, wheelchair);
+    const verdict = matchProfile(fullyAccessible, wheelchair, "pl");
     // THEN it is met and not marked unconfirmed
     expect(verdict.state).toBe("met");
     expect(verdict.unconfirmed).toBe(false);
@@ -40,8 +40,8 @@ describe("matchProfile with resolved attributes", () => {
     // GIVEN a place with no attributes at all
     // WHEN it is checked against either preset
     // THEN the verdict is unknown, never met
-    expect(matchProfile({ attributes: [] }, wheelchair).state).toBe("unknown");
-    expect(matchProfile({ attributes: [] }, stroller).state).toBe("unknown");
+    expect(matchProfile({ attributes: [] }, wheelchair, "pl").state).toBe("unknown");
+    expect(matchProfile({ attributes: [] }, stroller, "pl").state).toBe("unknown");
   });
 
   it("never returns met when a needed attribute is in conflict", () => {
@@ -52,7 +52,7 @@ describe("matchProfile with resolved attributes", () => {
       ),
     };
     // WHEN it is checked
-    const verdict = matchProfile(place, wheelchair);
+    const verdict = matchProfile(place, wheelchair, "pl");
     // THEN the verdict is conflict and the toilet need says so
     expect(verdict.state).toBe("conflict");
     expect(verdict.needs?.find((n) => n.need === "toilet")?.state).toBe("conflict");
@@ -67,7 +67,7 @@ describe("matchProfile with resolved attributes", () => {
     };
     // WHEN it is checked
     // THEN the verdict is unknown
-    expect(matchProfile(place, wheelchair).state).toBe("unknown");
+    expect(matchProfile(place, wheelchair, "pl").state).toBe("unknown");
   });
 
   it("applies the user's thresholds", () => {
@@ -78,11 +78,11 @@ describe("matchProfile with resolved attributes", () => {
     const entranceOnly = { ...wheelchair, requireLift: false, requireAccessibleToilet: false };
     const relaxed = { ...entranceOnly, maxThresholdCm: 3, minDoorWidthCm: 80 };
     // WHEN checked against the preset limits and against relaxed thresholds
-    const strict = matchProfile(place, entranceOnly);
+    const strict = matchProfile(place, entranceOnly, "pl");
     // THEN the presets block it with reasons, the relaxed thresholds accept it
     expect(strict.state).toBe("barrier");
     expect(strict.reasons).toEqual(["próg 3 cm", "drzwi 80 cm"]);
-    expect(matchProfile(place, relaxed).state).toBe("met");
+    expect(matchProfile(place, relaxed, "pl").state).toBe("met");
   });
 
   it("accepts one step for the stroller preset but not for the wheelchair preset", () => {
@@ -93,8 +93,8 @@ describe("matchProfile with resolved attributes", () => {
     const noFacilities = { requireLift: false, requireAccessibleToilet: false, requireChangingTable: false };
     // WHEN checked against both presets without facility needs
     // THEN the stroller preset accepts it and the wheelchair preset blocks it
-    expect(matchProfile(place, { ...stroller, ...noFacilities }).state).toBe("met");
-    expect(matchProfile(place, { ...wheelchair, ...noFacilities }).state).toBe("barrier");
+    expect(matchProfile(place, { ...stroller, ...noFacilities }, "pl").state).toBe("met");
+    expect(matchProfile(place, { ...wheelchair, ...noFacilities }, "pl").state).toBe("barrier");
   });
 
   it("never rates one step better than a step-free entrance when the threshold is unknown", () => {
@@ -105,7 +105,7 @@ describe("matchProfile with resolved attributes", () => {
     // WHEN checked against the stroller preset
     // THEN both are unknown on the threshold, neither is met
     for (const place of [stepFree, oneStep]) {
-      const verdict = matchProfile(place, noFacilities);
+      const verdict = matchProfile(place, noFacilities, "pl");
       expect(verdict.state).toBe("unknown");
       expect(verdict.unknowns).toEqual(["threshold_cm"]);
     }
@@ -117,11 +117,21 @@ describe("matchProfile with resolved attributes", () => {
     const noRampData = { attributes: [known("step_count", num(2)), known("door_width_cm", num(90))] };
     const noRamp = { attributes: [...noRampData.attributes, known("ramp", bool(false))] };
     // WHEN checked against the wheelchair preset
-    const unknownRamp = matchProfile(noRampData, entranceOnly);
+    const unknownRamp = matchProfile(noRampData, entranceOnly, "pl");
     // THEN missing ramp data is unknown, a known lack of ramp blocks
     expect(unknownRamp.state).toBe("unknown");
     expect(unknownRamp.unknowns).toEqual(["ramp"]);
-    expect(matchProfile(noRamp, entranceOnly)).toMatchObject({ state: "barrier", reasons: ["2 stopnie"] });
+    expect(matchProfile(noRamp, entranceOnly, "pl")).toMatchObject({ state: "barrier", reasons: ["2 stopnie"] });
+  });
+
+  it("gives the reasons in the requested language", () => {
+    // GIVEN two steps and no ramp
+    const entranceOnly = { ...wheelchair, requireLift: false, requireAccessibleToilet: false };
+    const place = { attributes: [known("step_count", num(2)), known("door_width_cm", num(90)), known("ramp", bool(false))] };
+    // WHEN checked in English
+    const verdict = matchProfile(place, entranceOnly, "en");
+    // THEN the verdict is the same and its reason is English
+    expect(verdict).toMatchObject({ state: "barrier", reasons: ["2 steps"] });
   });
 
   it("accepts a known ramp or level entrance when the number of steps is unknown, like the step_free filter", () => {
@@ -133,23 +143,23 @@ describe("matchProfile with resolved attributes", () => {
     const noRamp = { attributes: [door, known("ramp", bool(false))] };
     // WHEN checked against the wheelchair preset
     // THEN a ramp or a level entrance meets the entrance need, no ramp alone can't say
-    expect(matchProfile(withRamp, entranceOnly)).toMatchObject({ state: "met", unconfirmed: true });
-    expect(matchProfile(withRamp, entranceOnly).needs?.[0]).toMatchObject({ need: "entrance", attribute: "ramp", state: "met" });
-    expect(matchProfile(level, entranceOnly).state).toBe("met");
-    expect(matchProfile(noRamp, entranceOnly)).toMatchObject({ state: "unknown", unknowns: ["step_count"] });
+    expect(matchProfile(withRamp, entranceOnly, "pl")).toMatchObject({ state: "met", unconfirmed: true });
+    expect(matchProfile(withRamp, entranceOnly, "pl").needs?.[0]).toMatchObject({ need: "entrance", attribute: "ramp", state: "met" });
+    expect(matchProfile(level, entranceOnly, "pl").state).toBe("met");
+    expect(matchProfile(noRamp, entranceOnly, "pl")).toMatchObject({ state: "unknown", unknowns: ["step_count"] });
   });
 
   describe("lift and storeys", () => {
     const withoutLift = (...extra: ResolvedAttribute[]) => ({
       attributes: [...fullyAccessible.attributes.map((a) => (a.attribute === "lift" ? known("lift", bool(false)) : a)), ...extra],
     });
-    const liftNeed = (place: Pick<Place, "attributes">) => matchProfile(place, wheelchair).needs?.find((n) => n.need === "lift");
+    const liftNeed = (place: Pick<Place, "attributes">) => matchProfile(place, wheelchair, "pl").needs?.find((n) => n.need === "lift");
 
     it("blocks on a missing lift where the place has floors", () => {
       // GIVEN an otherwise accessible place on two storeys without a lift
       const place = withoutLift(known("levels", num(2), "unverified"));
       // WHEN checked against the wheelchair preset
-      const verdict = matchProfile(place, wheelchair);
+      const verdict = matchProfile(place, wheelchair, "pl");
       // THEN the missing lift is the barrier
       expect(verdict).toMatchObject({ state: "barrier", blockers: ["lift"], unknowns: [], reasons: ["winda: brak"] });
     });
@@ -160,9 +170,9 @@ describe("matchProfile with resolved attributes", () => {
       const noLiftData = { attributes: [...fullyAccessible.attributes.filter((a) => a.attribute !== "lift"), known("levels", num(1))] };
       // WHEN checked against the wheelchair preset
       // THEN the lift need is met by the storey count, unconfirmed when that rests on community data
-      expect(matchProfile(noLift, wheelchair)).toMatchObject({ state: "met", unconfirmed: true, blockers: [] });
+      expect(matchProfile(noLift, wheelchair, "pl")).toMatchObject({ state: "met", unconfirmed: true, blockers: [] });
       expect(liftNeed(noLift)).toMatchObject({ attribute: "levels", state: "met", unconfirmed: true });
-      expect(matchProfile(noLiftData, wheelchair)).toMatchObject({ state: "met", unconfirmed: false });
+      expect(matchProfile(noLiftData, wheelchair, "pl")).toMatchObject({ state: "met", unconfirmed: false });
     });
 
     it("meets the lift need through the lift where the place has floors", () => {
@@ -170,7 +180,7 @@ describe("matchProfile with resolved attributes", () => {
       const place = { attributes: [...fullyAccessible.attributes, known("levels", num(3))] };
       // WHEN checked against the wheelchair preset
       // THEN the lift itself meets the need
-      expect(matchProfile(place, wheelchair)).toMatchObject({ state: "met", blockers: [] });
+      expect(matchProfile(place, wheelchair, "pl")).toMatchObject({ state: "met", blockers: [] });
       expect(liftNeed(place)).toMatchObject({ attribute: "lift", state: "met" });
     });
 
@@ -186,14 +196,14 @@ describe("matchProfile with resolved attributes", () => {
       // WHEN checked against the wheelchair preset
       // THEN the lift need is met by the storey count, and the overall verdict is a conflict elsewhere
       expect(liftNeed(place)).toMatchObject({ attribute: "levels", state: "met" });
-      expect(matchProfile(place, wheelchair).state).toBe("conflict");
+      expect(matchProfile(place, wheelchair, "pl").state).toBe("conflict");
     });
 
     it("can't say on a missing lift while the number of storeys is unknown", () => {
       // GIVEN an otherwise accessible place known to have no lift, with no storey data
       const place = withoutLift();
       // WHEN checked against the wheelchair preset
-      const verdict = matchProfile(place, wheelchair);
+      const verdict = matchProfile(place, wheelchair, "pl");
       // THEN the lift is "can't say" with its reason, not a barrier and not met
       expect(verdict).toMatchObject({ state: "unknown", blockers: [], unknowns: ["lift"] });
       expect(verdict.reasons).toEqual(["winda: brak, piętra: brak danych"]);
@@ -205,7 +215,7 @@ describe("matchProfile with resolved attributes", () => {
       // WHEN checked against the wheelchair preset
       // THEN the lift need is a conflict on the storeys, not a barrier
       expect(liftNeed(place)).toMatchObject({ attribute: "levels", state: "conflict", reason: "winda: brak, piętra: sprzeczne dane" });
-      expect(matchProfile(place, wheelchair).state).toBe("conflict");
+      expect(matchProfile(place, wheelchair, "pl").state).toBe("conflict");
     });
   });
 
@@ -218,7 +228,7 @@ describe("matchProfile with resolved attributes", () => {
       ],
     };
     // WHEN checked against the wheelchair preset, which doesn't require a smooth surface
-    const verdict = matchProfile(place, wheelchair);
+    const verdict = matchProfile(place, wheelchair, "pl");
     // THEN the verdict is conflict with a reason, not met
     expect(verdict.state).toBe("conflict");
     expect(verdict.reasons).toEqual(["sprzeczne dane o miejscu"]);
@@ -230,7 +240,7 @@ describe("matchProfile with resolved attributes", () => {
       attributes: fullyAccessible.attributes.map((a) => (a.attribute === "lift" ? { ...a, status: "unverified" as const } : a)),
     };
     // WHEN checked
-    const verdict = matchProfile(place, wheelchair);
+    const verdict = matchProfile(place, wheelchair, "pl");
     // THEN it is met but unconfirmed
     expect(verdict.state).toBe("met");
     expect(verdict.unconfirmed).toBe(true);
@@ -248,7 +258,7 @@ const wheelchairOk = (extra: Partial<AccessibilityFact> = {}): AccessibilityFact
 ];
 
 const match = (thresholds: Thresholds, facts: AccessibilityFact[]) =>
-  matchProfile({ attributes: resolveAttributes(facts, NOW) }, thresholds);
+  matchProfile({ attributes: resolveAttributes(facts, NOW) }, thresholds, "pl");
 
 describe("matchProfile with facts through the resolver", () => {
   it("never says met for a place with no data (US-3.4)", () => {

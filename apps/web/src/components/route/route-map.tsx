@@ -5,11 +5,9 @@ import type { Route } from "@krakow-bez-barier/contracts";
 import { cn } from "@krakow-bez-barier/ui";
 import type { GeoJSONSource, Map as MapLibreMap } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { pl } from "@/i18n/pl";
+import { useMessages } from "@/i18n/client";
 import { config } from "@/lib/config";
 import { MapControls } from "../map/map-controls";
-
-const t = pl.route.map;
 
 const SOURCE = "route";
 const ENDS = "route-ends";
@@ -102,6 +100,7 @@ export interface RouteMapProps {
  * same order, are the "Krok po kroku" list.
  */
 export function RouteMap({ route, selected, onSelect, padding, className }: RouteMapProps) {
+  const t = useMessages().route.map;
   const containerRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -127,7 +126,6 @@ export function RouteMap({ route, selected, onSelect, padding, className }: Rout
           attributionControl: false,
           dragRotate: false,
           pitchWithRotate: false,
-          locale: { "Map.Title": t.label },
         });
         instance.touchZoomRotate.disableRotation();
         instance.once("load", () => !disposed && setLoaded(true));
@@ -141,6 +139,11 @@ export function RouteMap({ route, selected, onSelect, padding, className }: Rout
       instance?.remove();
     };
   }, []);
+
+  // MapLibre names the canvas once, at creation; this keeps it in the current language.
+  useEffect(() => {
+    map?.getCanvas().setAttribute("aria-label", t.label);
+  }, [map, t.label]);
 
   useEffect(() => {
     if (!map || !loaded) return;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { validateResponse } from "@/server/http";
-import { listSources, simulatedOutageIds, SIMULATED_OUTAGE_NOTE, toSource } from "./sources";
+import { catalogs } from "@/i18n/messages";
+import { listSources, simulatedOutageIds, toSource } from "./sources";
 
 type Row = Parameters<typeof toSource>[0];
 const now = new Date("2026-10-03T12:00:00Z");
@@ -82,10 +83,24 @@ describe("listSources", () => {
     expect(items[0].refreshStatus).toBe("ok");
     expect(items[1]).toMatchObject({
       refreshStatus: "outage",
-      statusNote: SIMULATED_OUTAGE_NOTE,
+      statusNote: catalogs.pl.pages.aboutData.statusNote.simulatedOutage,
       lastSuccessAt: "2026-10-03T03:00:00.000Z",
     });
     expect(validateResponse("listSources", 200, { items })).toEqual([]);
+  });
+
+  it("writes its own notes in the requested language", async () => {
+    // GIVEN an overdue source and a simulated outage
+    const rows = [row({ lastSuccessAt: new Date("2026-09-30T12:00:00Z") }), row({ id: "msip-toilets", name: "MSIP" })];
+
+    // WHEN listing for an English UI
+    const items = await listSources(async () => rows, now, ["msip-toilets"], "en");
+
+    // THEN both notes are English
+    expect(items.map((i) => i.statusNote)).toEqual([
+      "The source didn't refresh on time. The data may be outdated.",
+      "Simulated source outage (test switch). We show the last known data as outdated.",
+    ]);
   });
 });
 

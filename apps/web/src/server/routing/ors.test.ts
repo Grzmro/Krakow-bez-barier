@@ -4,7 +4,7 @@ import { createOrsProvider, orsRequest } from "./ors";
 import type { ProviderRequest } from "./provider";
 import { DEMO_ROUTES } from "./recorded-provider";
 
-const ends = { from: config.routeStart, to: config.routeEnd };
+const ends = { from: config.routeStart, to: config.routeEnd, locale: "pl" as const };
 
 function fakeFetch(status: number, body: unknown) {
   const calls: { url: string; init: RequestInit }[] = [];
@@ -20,13 +20,13 @@ const provider = (fetch: typeof globalThis.fetch, apiKey: string | undefined = "
 
 describe("orsRequest", () => {
   it("builds exactly the requests the demo fixtures were recorded with", () => {
-    // GIVEN the four requests the route screen makes for Dworzec Główny → Rynek Główny
-    const requests: ProviderRequest[] = [
-      { ...ends, mode: "foot", avoidSteps: false },
-      { ...ends, mode: "foot", avoidSteps: true },
-      { ...ends, mode: "wheelchair", avoidSteps: true, restrictions: { maxKerbCm: 2, maxInclinePct: 6, smoothSurface: false } },
-      { ...ends, mode: "wheelchair", avoidSteps: true, restrictions: { maxKerbCm: 3, maxInclinePct: 8, smoothSurface: false } },
-    ];
+    // GIVEN the four requests the route screen makes for Dworzec Główny → Rynek Główny, in each language
+    const requests: ProviderRequest[] = (["pl", "en"] as const).flatMap((locale) => [
+      { ...ends, locale, mode: "foot", avoidSteps: false },
+      { ...ends, locale, mode: "foot", avoidSteps: true },
+      { ...ends, locale, mode: "wheelchair", avoidSteps: true, restrictions: { maxKerbCm: 2, maxInclinePct: 6, smoothSurface: false } },
+      { ...ends, locale, mode: "wheelchair", avoidSteps: true, restrictions: { maxKerbCm: 3, maxInclinePct: 8, smoothSurface: false } },
+    ]);
 
     // WHEN each is turned into an openrouteservice request
     const built = requests.map(orsRequest);

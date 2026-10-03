@@ -11,7 +11,7 @@ describe("widgetFactView", () => {
     if (!data) throw new Error("no widget example");
 
     // WHEN its facts are turned into widget rows
-    const rows = data.facts.map(widgetFactView);
+    const rows = data.facts.map((fact) => widgetFactView(fact, "pl"));
     const byAttribute = Object.fromEntries(rows.map((r) => [r.attribute, r]));
 
     // THEN known facts carry the formatted value, reliability and their source with the date
@@ -44,7 +44,7 @@ describe("widgetFactView", () => {
     const fact = { attribute: "lift", state: "known", status: "confirmed", value: null } as const;
 
     // WHEN it is turned into a row
-    const row = widgetFactView(fact);
+    const row = widgetFactView(fact, "pl");
 
     // THEN it reads as missing data, never as a confirmed lift
     expect(row).toMatchObject({ value: "Brak danych", reliability: "unknown", unknown: true });
@@ -63,7 +63,7 @@ describe("widgetFactView", () => {
     } as const;
 
     // WHEN it is turned into a row
-    const row = widgetFactView(fact);
+    const row = widgetFactView(fact, "pl");
 
     // THEN it says the sources differ and points to the full card, without either value
     expect(row).toEqual({

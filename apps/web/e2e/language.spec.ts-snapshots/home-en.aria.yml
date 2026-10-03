@@ -1,0 +1,98 @@
+- main:
+  - heading "Map and list of places" [level=1]
+  - link "Skip to the list":
+    - /url: "#lista"
+  - search:
+    - text: Search for a place
+    - combobox "Search for a place"
+  - group "Categories":
+    - button "Everything" [pressed]
+    - button "Restaurants"
+    - button "Museums"
+    - button "Toilets"
+    - button "Hotels"
+    - button "Monuments"
+    - button "Theatres and cinemas"
+    - button "Pharmacies"
+    - button "Shops"
+    - button "Other"
+  - region "Map of places. Arrow keys move the view, plus and minus change the zoom. The list has the same places."
+  - paragraph:
+    - link "OpenFreeMap":
+      - /url: https://openfreemap.org
+    - text: ·
+    - link "© OpenMapTiles":
+      - /url: https://www.openmaptiles.org/
+    - text: ·
+    - link "© OpenStreetMap contributors":
+      - /url: https://www.openstreetmap.org/copyright
+  - button "Zoom in"
+  - button "Zoom out"
+  - region "List of places":
+    - button "Expand sheet"
+    - group "List of places":
+      - group "Needs profile":
+        - text: ""
+        - radio "Profile off, view for everyone"
+        - text: For everyone
+        - radio "Wheelchair" [checked]
+        - text: Wheelchair
+        - radio "Pushchair"
+        - text: Pushchair
+      - button "Near me"
+      - text: Show nearest places first
+      - paragraph: Your exact position stays on the device. For the search we send only an approximate area within about 2 km, not your position.
+      - group "Show only places with the result":
+        - button "1 meets"
+        - button "1 conflicting"
+        - button "6 no data"
+        - button "1 doesn't meet"
+      - button "Profile thresholds":
+        - img
+      - text: Hide places that don't meet
+      - switch "Hide places that don't meet"
+      - group "Feature filters":
+        - button "Step-free"
+        - button "Lift"
+        - button "Accessible toilet"
+        - button "Benches"
+        - button "Disabled parking"
+        - button "Changing table"
+      - heading "9 places" [level=2]
+      - list:
+        - listitem:
+          - link /Meets · unconfirmed Hotel Przykład ul\. Sienna 5, Kraków Sample data \d+ m from the Main Square/:
+            - /url: /miejsca/hotel-przyklad
+          - button "Why? Hotel Przykład"
+        - listitem:
+          - link /Conflicting · entrance Pałac Krzysztofory Rynek Główny \d+, Kraków Sample data \d+ m from the Main Square/:
+            - /url: /miejsca/palac-krzysztofory
+          - button "Why? Pałac Krzysztofory"
+        - listitem:
+          - link /No data · entrance Podziemia Rynku Rynek Główny 1, Kraków Sample data \d+ m from the Main Square/:
+            - /url: /miejsca/podziemia-rynku
+          - button "Why? Podziemia Rynku"
+        - listitem:
+          - link /No data · entrance Sukiennice Rynek Główny 1-3, Kraków Sample data \d+ m from the Main Square/:
+            - /url: /miejsca/sukiennice
+          - button "Why? Sukiennice"
+        - listitem:
+          - link /No data · entrance Bistro Przykład ul\. Grodzka \d+, Kraków Sample data \d+ m from the Main Square/:
+            - /url: /miejsca/bistro-przyklad
+          - button "Why? Bistro Przykład"
+        - listitem:
+          - link /No data · entrance Teatr im\. Juliusza Słowackiego pl\. Świętego Ducha 1, Kraków Sample data \d+ m from the Main Square/:
+            - /url: /miejsca/teatr-slowackiego
+          - button "Why? Teatr im. Juliusza Słowackiego"
+        - listitem:
+          - link /No data · entrance Kawiarnia Przykład ul\. Floriańska \d+, Kraków Sample data \d+ m from the Main Square/:
+            - /url: /miejsca/kawiarnia-przyklad
+          - button "Why? Kawiarnia Przykład"
+        - listitem:
+          - link /No data · entrance Toaleta publiczna Planty \(przykład\) ul\. Basztowa 1, Kraków Sample data \d+ m from the Main Square/:
+            - /url: /miejsca/toaleta-planty-przyklad
+          - button "Why? Toaleta publiczna Planty (przykład)"
+        - listitem:
+          - link /Doesn't meet · 2 steps Restauracja Przykład ul\. Szewska 8, Kraków Sample data \d+ m from the Main Square/:
+            - /url: /miejsca/restauracja-przyklad
+          - button "Why? Restauracja Przykład"
