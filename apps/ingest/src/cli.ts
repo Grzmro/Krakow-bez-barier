@@ -43,7 +43,7 @@ try {
   for (const id of sourceIds) {
     const summary = await runIngest({ adapter: adapters[id], city, store, userAgent, retry, simulateOutage, log: console.log });
     console.log(
-      `${id}/${city.id}: ${summary.status} — seen ${summary.recordsSeen}, written ${summary.recordsWritten}, skipped values ${summary.recordsSkipped}${summary.error ? `, error: ${summary.error}` : ""}`,
+      `${id}/${city.id}: ${summary.status} — seen ${summary.recordsSeen}, written ${summary.recordsWritten}, skipped values ${summary.recordsSkipped}${summary.note ? `, from ${summary.note}` : ""}${summary.error ? `, error: ${summary.error}` : ""}`,
     );
     if (summary.status === "failed") failed = true;
   }

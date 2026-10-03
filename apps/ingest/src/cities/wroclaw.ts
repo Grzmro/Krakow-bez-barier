@@ -11,6 +11,9 @@ export const wroclaw: CityConfig = {
   sources: ["osm"],
   categories: ["restaurant", "museum", "toilet", "hotel", "pharmacy"],
   sourceConfig: {
-    osm: { endpoint: "https://overpass-api.de/api/interpreter" },
+    osm: {
+      endpoint: "https://overpass-api.de/api/interpreter",
+      extractUrl: "https://download.geofabrik.de/europe/poland/dolnoslaskie-latest.osm.pbf",
+    },
   },
 };

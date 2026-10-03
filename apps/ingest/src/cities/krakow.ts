@@ -9,7 +9,10 @@ export const krakow: CityConfig = {
   defaults: { center: [19.9373, 50.0614], zoom: 15 },
   sources: ["osm", "msip-toilets", "zdmk-parking-ozn", "ztp-stops"],
   sourceConfig: {
-    osm: { endpoint: "https://overpass-api.de/api/interpreter" },
+    osm: {
+      endpoint: "https://overpass-api.de/api/interpreter",
+      extractUrl: "https://download.geofabrik.de/europe/poland/malopolskie-latest.osm.pbf",
+    },
     "msip-toilets": {
       endpoint: "https://msip.um.krakow.pl/arcgis/rest/services/Obserwatorium/WT_WC_2023/MapServer/0",
     },

@@ -50,10 +50,14 @@ export type MapResult = {
 export type FetchContext = {
   city: CityConfig;
   userAgent: string;
+  log?: (message: string) => void;
 };
+
+/** Records with a note on where they came from, when that is not the source's usual endpoint. */
+export type FetchedRecords<Raw> = { records: Raw[]; note: string };
 
 export interface SourceAdapter<Raw = unknown> {
   meta: SourceMeta;
-  fetch(ctx: FetchContext): Promise<Raw[]>;
+  fetch(ctx: FetchContext): Promise<Raw[] | FetchedRecords<Raw>>;
   map(record: Raw): MapResult;
 }

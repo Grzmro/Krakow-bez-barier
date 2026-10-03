@@ -58,7 +58,24 @@ describe("runIngest", () => {
     // THEN both places are stored, the skipped value is counted and the source is marked ok
     expect(calls.applied).toEqual(["artificial:1", "artificial:2"]);
     expect(summary).toMatchObject({ status: "ok", recordsSeen: 2, recordsWritten: 2, recordsSkipped: 1 });
-    expect(calls.source).toEqual([{ ok: true }]);
+    expect(calls.source).toEqual([{ ok: true, note: null }]);
+  });
+
+  it("carries the note of records fetched from a fallback copy into the run and the source status", async () => {
+    // GIVEN an adapter that answers from a fallback copy with a note
+    const adapter: SourceAdapter<number> = {
+      meta,
+      fetch: async () => ({ records: [1], note: "OSM (Geofabrik, ekstrakt z 2026-10-02)" }),
+      map: (n) => ({ place: place(n), skipped: [] }),
+    };
+    const { store, calls } = memoryStore();
+    // WHEN running it
+    const summary = await run(adapter as SourceAdapter<never>, store);
+    // THEN the records are stored and the run and the source say where they came from
+    expect(calls.applied).toEqual(["artificial:1"]);
+    expect(summary).toMatchObject({ status: "ok", note: "OSM (Geofabrik, ekstrakt z 2026-10-02)" });
+    expect(calls.runs[0].note).toBe("OSM (Geofabrik, ekstrakt z 2026-10-02)");
+    expect(calls.source).toEqual([{ ok: true, note: "OSM (Geofabrik, ekstrakt z 2026-10-02)" }]);
   });
 
   it("writes nothing and marks the source when the fetch fails", async () => {
@@ -175,7 +192,7 @@ describe("runIngest", () => {
     // THEN it succeeds after waiting 100 ms and 200 ms
     expect(summary.status).toBe("ok");
     expect(waits).toEqual([100, 200]);
-    expect(calls.source).toEqual([{ ok: true }]);
+    expect(calls.source).toEqual([{ ok: true, note: null }]);
   });
 
   it("does not retry a permanent HTTP error and writes only the run row", async () => {

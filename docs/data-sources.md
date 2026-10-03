@@ -29,16 +29,16 @@ see the status column.
 | | |
 |---|---|
 | Origin | OpenStreetMap community, read through the Overpass API |
-| Endpoint | Overpass API instance configured in the city config (not hard-coded) |
+| Endpoint | Overpass API instance configured in the city config (not hard-coded). Fallback when Overpass fails: the Geofabrik regional extract (`sourceConfig.osm.extractUrl`, e.g. `europe/poland/malopolskie-latest.osm.pbf`), cut to the city box and the same category tags |
 | What we read | `tourism` (museum, hotel, hostel, guest_house, gallery, attraction), `amenity` (restaurant, cafe, toilets, pharmacy, theatre, cinema, library); tags `wheelchair`, `toilets:wheelchair`, `wheelchair:description`, `changing_table`, `elevator`, `level` / `building:levels` (→ `levels`; `building:levels` only for venues that fill their building), `check_date`, ... |
 | Licence | Open Database Licence (ODbL) 1.0 |
 | Attribution | "© OpenStreetMap contributors" (shown wherever OSM-derived facts or the map are shown) |
 | Freshness | Per object. `check_date` is stored as `observedAt` when present, otherwise the fact has no observation date and is shown as such |
 | Update frequency | Ingest re-reads on the GitHub Actions cron (configured in the workflow) |
-| Verification | Provenance `osm:<type>/<id>@v<version>`. Reliability is a community claim, lower than a declared or surveyed fact; a recent `check_date` raises it, a missing one lowers it. Conflicts with other sources are shown side by side, never merged |
+| Verification | Provenance `osm:<type>/<id>@v<version>`; read from the extract: `osm:<type>/<id>@v<version>;geofabrik-<extract date>`, and the source status says „OSM (Geofabrik, ekstrakt z <date>)” (date from the PBF header's replication timestamp, else the download's `Last-Modified`). Reliability is a community claim, lower than a declared or surveyed fact; a recent `check_date` raises it, a missing one lowers it. Conflicts with other sources are shown side by side, never merged |
 | When unavailable | The run is logged as `failed` in `ingestion_run`, previous facts are kept and marked stale ("Źródło niedostępne, dane z <date>"). Nothing is deleted |
 | Coverage caveat | In the demo bbox only 99 of 649 objects (15%) have `wheelchair=*`; steps, door width and ramp tags are almost absent. Details: `docs/demo-data.md` |
-| Usage rules | Respect Overpass rate limits, send a descriptive `User-Agent`, cache downloads in development |
+| Usage rules | Respect Overpass rate limits, send a descriptive `User-Agent`, cache downloads in development. The Geofabrik extract is cached in `INGEST_CACHE_DIR` and revalidated at most daily (`If-Modified-Since`) |
 
 Share-alike: our derived database of OSM facts is a derivative database under ODbL — see
 `docs/deployment.md` (Licences).

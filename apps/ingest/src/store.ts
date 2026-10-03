@@ -231,7 +231,7 @@ export function drizzleStore(db: Db): IngestStore {
       if (outcome.ok) {
         await db
           .update(sources)
-          .set({ refreshStatus: "ok", lastSuccessAt: at, lastAttemptAt: at, statusNote: null })
+          .set({ refreshStatus: "ok", lastSuccessAt: at, lastAttemptAt: at, statusNote: outcome.note ?? null })
           .where(eq(sources.id, sourceId));
         return;
       }
