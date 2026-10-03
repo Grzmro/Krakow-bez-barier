@@ -79,7 +79,7 @@ Don't create a new app or package without a Linear task for it.
 
 ## Commands
 
-> **Planned** — wired up by the monorepo skeleton task. Until it's merged only `packages/ui` has
+> **Planned** — wired up by KBB-7 (monorepo skeleton). Until it's merged only `packages/ui` has
 > scripts (`build`, `dev`, `typecheck`). Update this list when a script actually exists.
 
 From the repo root. Target a single workspace with `-w <path>` (e.g. `npm run test -w apps/web`).
