@@ -2,7 +2,7 @@ const FOLD_FROM = "ąćęłńóśźż";
 const FOLD_TO = "acelnoszz";
 
 /** Lower-case, Polish letters folded, edge punctuation and repeated spaces gone. */
-function fold(text: string): string {
+export function fold(text: string): string {
   return [...text.trim().toLowerCase()]
     .map((c) => FOLD_TO[FOLD_FROM.indexOf(c)] ?? c)
     .join("")

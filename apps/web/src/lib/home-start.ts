@@ -64,6 +64,17 @@ export function runAsk(selection: HomeSelection, ask: Partial<HomeChoices> & { q
   return { committed: { q, ...draft }, draft };
 }
 
+/**
+ * "Szukaj w całym Krakowie" after an empty result: a typed name stays and searches the whole city, without the
+ * category, filters or "W mojej okolicy" that narrowed it. `null` when the name alone was already searched city-wide
+ * (nothing wider to offer). Without a name it returns to the start, as before.
+ */
+export function widenSearch({ committed }: HomeSelection): HomeSelection | null {
+  if (!committed.q) return START_SELECTION;
+  if (!isSearching({ ...committed, q: "" })) return null;
+  return { committed: { q: committed.q, ...NO_CHOICES }, draft: NO_CHOICES };
+}
+
 /** A change that belongs to a command already asked (the position that arrives for it, "show places without data") applies to the query at once. */
 export function commitChange(selection: HomeSelection, change: Partial<HomeChoices>): HomeSelection {
   return { committed: { ...selection.committed, ...change }, draft: { ...selection.draft, ...change } };

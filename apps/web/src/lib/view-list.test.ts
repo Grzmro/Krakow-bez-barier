@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { followedView, isPartial, listArea, nextTaggedView, pointsCut, roundView } from "./view-list";
+import { FIT_TOP, fitTargets, followedView, isPartial, listArea, nextTaggedView, pointsCut, roundView } from "./view-list";
 
 describe("listArea", () => {
   it("follows the map view when there is no fixed search area", () => {
@@ -20,11 +20,66 @@ describe("listArea", () => {
     expect(listArea(area, [20, 50, 20.1, 50.1])).toEqual(area);
   });
 
+  it("searches the whole city for a typed name, not the view", () => {
+    // GIVEN the map on the Rynek and "Qubus" typed, "W mojej okolicy" off
+    const view: [number, number, number, number] = [19.93, 50.057, 19.944, 50.066];
+
+    // WHEN choosing the list's box
+    // THEN there is none: the place may be anywhere in Kraków
+    expect(listArea(undefined, view, "Qubus")).toBeUndefined();
+    expect(listArea(undefined, view, "   ")).toEqual(view);
+  });
+
+  it("keeps the 'W mojej okolicy' area for a typed name", () => {
+    // GIVEN the user turned on "W mojej okolicy" and typed a name
+    const area: [number, number, number, number] = [19.93, 50.05, 19.96, 50.08];
+
+    // WHEN choosing the list's box
+    // THEN the area they asked for stays
+    expect(listArea(area, [20, 50, 20.1, 50.1], "Qubus")).toEqual(area);
+  });
+
   it("covers the whole city until the map reports a view", () => {
     // GIVEN no area and no view yet (map unavailable or still loading)
     // WHEN choosing the list's box
     // THEN there is none, so the list is not empty
     expect(listArea(undefined, null)).toBeUndefined();
+  });
+});
+
+describe("fitTargets", () => {
+  const places = ["Muzeum Narodowe", "Muzeum Inżynierii i Techniki", "Muzeum Krakowa", "Muzeum Sztuki", "Muzeum Lotnictwa", "Muzeum Fotografii"].map(
+    (name) => ({ name }),
+  );
+
+  it("fits every listed place while browsing", () => {
+    // GIVEN a category browsed, no name typed
+    // WHEN choosing what the map fits
+    // THEN all of them
+    expect(fitTargets("", places)).toBe(places);
+  });
+
+  it("flies to the one place whose name the text starts", () => {
+    // GIVEN "muzeum inzynierii" typed without Polish letters
+    // WHEN choosing what the map fits
+    // THEN only that museum
+    expect(fitTargets("muzeum inzynierii", places)).toEqual([{ name: "Muzeum Inżynierii i Techniki" }]);
+  });
+
+  it("prefers the one exact name over several that start with the text", () => {
+    // GIVEN "Qubus" and "Qubus Hotel Kraków" both found
+    const hits = [{ name: "Qubus Hotel Kraków" }, { name: "Qubus" }];
+
+    // WHEN choosing what the map fits
+    // THEN the exact one
+    expect(fitTargets("qubus", hits)).toEqual([{ name: "Qubus" }]);
+  });
+
+  it("fits the first few results when no place stands out", () => {
+    // GIVEN "muzeum" matching six museums
+    // WHEN choosing what the map fits
+    // THEN the first five in list order
+    expect(fitTargets("muzeum", places)).toEqual(places.slice(0, FIT_TOP));
   });
 });
 

@@ -1,4 +1,5 @@
 import type { Bbox } from "@/lib/map-points";
+import { fold } from "@/lib/route-intent";
 
 const round = (value: number) => Number(value.toFixed(4));
 
@@ -8,11 +9,30 @@ export function roundView([west, south, east, north]: Bbox): Bbox {
 }
 
 /**
- * The box the list (and the map's points) cover: a fixed search area ("W mojej okolicy") when there is one, otherwise
- * the map's current view. `undefined` while the map has not reported a view (or has none): the whole city, nearest first.
+ * The box the list covers: a fixed search area ("W mojej okolicy") when there is one; for a typed name the whole city
+ * (the place is usually outside the view, and the map then flies to it); otherwise, while browsing a category or a
+ * filter, the map's current view. `undefined` = the whole city, nearest first (also while the map has no view yet).
  */
-export function listArea(area: Bbox | undefined, view: Bbox | null): Bbox | undefined {
-  return area ?? view ?? undefined;
+export function listArea(area: Bbox | undefined, view: Bbox | null, q = ""): Bbox | undefined {
+  if (area) return area;
+  return q.trim() ? undefined : (view ?? undefined);
+}
+
+/** How many of the first results a name search fits the map to when no single place stands out. */
+export const FIT_TOP = 5;
+
+/**
+ * The places the map fits after a search: for a typed name the one place it clearly names (the only hit, or the only
+ * name equal to or starting with the text), else the first few results; while browsing, every place listed.
+ */
+export function fitTargets<T extends { name: string }>(q: string, places: readonly T[]): readonly T[] {
+  const wanted = fold(q);
+  if (!wanted || places.length <= 1) return places;
+  const exact = places.filter((place) => fold(place.name) === wanted);
+  if (exact.length === 1) return exact;
+  const prefix = places.filter((place) => fold(place.name).startsWith(wanted));
+  if (prefix.length === 1) return prefix;
+  return places.slice(0, FIT_TOP);
 }
 
 /** A map view, tagged with the search whose results were on screen when the camera last moved. */
