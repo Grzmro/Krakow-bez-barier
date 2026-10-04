@@ -99,10 +99,12 @@ test("with a profile on, clusters tell their verdicts in words", async ({ page, 
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN the visitor turns on the wheelchair profile
-  await page.getByRole("radio", { name: "Wózek", exact: true }).check();
-  // The rows grow with their verdicts and slide under the resting mouse; a hovered row is selected and the map eases
-  // to it, away from the clusters. A phone has no hover: park the pointer on the header.
-  await page.mouse.move(1, 1);
+  // (by keyboard: after a click the rows grow with their verdicts under the resting pointer, the hovered row gets
+  // selected and the map eases to it, away from the clusters; a phone has no hover)
+  const wheelchair = page.getByRole("radio", { name: "Wózek", exact: true });
+  await wheelchair.focus();
+  await page.keyboard.press("Space");
+  await expect(wheelchair).toBeChecked();
 
   // THEN each cluster's name breaks its places down by verdict, so the donut never relies on colour
   const cluster = page.getByRole("img", { name: /^Grupa: \d+ miejsc/ }).first();
