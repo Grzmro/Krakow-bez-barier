@@ -99,6 +99,7 @@ export const moderator: Messages["moderator"] = {
     stopped: (source: string) => `Simulation off: ${source} shows its real status again.`,
     gone: "This simulation has already ended. I refreshed the list.",
     stopFailed: "Couldn't switch off the simulation. Try again.",
+    tooMany: (minutes: number) => `Too many switches at once. Try again in ${minutes} min.`,
     loading: "Loading sources…",
     loadFailed: "Couldn't load the sources or simulations.",
     noSources: "No sources that can be simulated.",

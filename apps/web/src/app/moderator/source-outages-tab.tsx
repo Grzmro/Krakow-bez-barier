@@ -10,7 +10,7 @@ import { DemoOutageTag } from "@/components/kbb";
 import { bearer, StatusError } from "@/components/moderator/moderator-session";
 import { useLocale, useMessages } from "@/i18n/client";
 import { api } from "@/lib/api";
-import { formatDateTime } from "@/lib/moderation";
+import { formatDateTime, retryMinutes } from "@/lib/moderation";
 import { routes } from "@/lib/routes";
 
 const QUERY_KEY = ["moderation", "source-outages"];
@@ -62,9 +62,15 @@ export function SourceOutagesTab({ token, onSignOut }: { token: string; onSignOu
     heading.current?.focus();
   };
 
-  const failed = (error: Error, fallback: string) => {
-    if (error instanceof StatusError && error.status === 401) return onSignOut(m.moderator.sessionExpired);
-    const message = error instanceof StatusError && error.status === 404 ? t.gone : fallback;
+  const failed = (error: Error, fallback: string, notFound = fallback) => {
+    const status = error instanceof StatusError ? error.status : null;
+    if (status === 401) return onSignOut(m.moderator.sessionExpired);
+    const message =
+      status === 429
+        ? t.tooMany(retryMinutes((error as StatusError).retryAfter))
+        : status === 404
+          ? notFound
+          : fallback;
     toast.error(message);
     announce(message);
   };
@@ -75,7 +81,7 @@ export function SourceOutagesTab({ token, onSignOut }: { token: string; onSignOu
         params: { path: { sourceId: id } },
         headers: bearer(token),
       });
-      if (!data) throw new StatusError(response.status);
+      if (!data) throw new StatusError(response.status, response.headers.get("retry-after"));
       return data;
     },
     onSuccess: (simulation) => {
@@ -93,7 +99,7 @@ export function SourceOutagesTab({ token, onSignOut }: { token: string; onSignOu
         params: { path: { sourceId: simulation.sourceId } },
         headers: bearer(token),
       });
-      if (!data) throw new StatusError(response.status);
+      if (!data) throw new StatusError(response.status, response.headers.get("retry-after"));
       return data;
     },
     onSuccess: (simulation) => {
@@ -101,7 +107,7 @@ export function SourceOutagesTab({ token, onSignOut }: { token: string; onSignOu
       toast(message);
       announce(message);
     },
-    onError: (error) => failed(error, t.stopFailed),
+    onError: (error) => failed(error, t.stopFailed, t.gone),
     onSettled: refresh,
   });
 

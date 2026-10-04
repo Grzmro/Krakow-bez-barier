@@ -108,6 +108,7 @@ export const moderator = {
     stopped: (source: string) => `Symulacja wyłączona: ${source} pokazuje znowu prawdziwy stan.`,
     gone: "Ta symulacja już się skończyła. Odświeżyłem listę.",
     stopFailed: "Nie udało się wyłączyć symulacji. Spróbuj ponownie.",
+    tooMany: (minutes: number) => `Za dużo przełączeń naraz. Spróbuj ponownie za ${minutes} min.`,
     loading: "Wczytuję źródła…",
     loadFailed: "Nie udało się wczytać źródeł ani symulacji.",
     noSources: "Brak źródeł, które da się zasymulować.",
