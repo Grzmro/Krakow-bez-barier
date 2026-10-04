@@ -48,6 +48,7 @@ import { countByStatus, filterByVerdict, filterPointsByVerdict, missingNeeds, ST
 import { scrollIntoViewWithin, scrollParent } from "@/lib/scroll-within";
 import { useDebounced, useDebouncedValue } from "@/lib/use-debounced";
 import { isPartial, listArea, pointsCut, roundView } from "@/lib/view-list";
+import { NEAR_SCOPE, POOR_RESULTS, type SearchScope, scopeArea, viewLeavesArea, viewScope, widerScope } from "@/lib/search-scope";
 import { useGrantedPosition } from "@/lib/use-granted-position";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useSessionFlag } from "@/lib/use-session-flag";
@@ -191,7 +192,10 @@ export function HomeScreen() {
   );
   const searchFrom = useMemo(() => searchOrigin(nearby, config.cityCenter), [nearby]);
   const draftFrom = useMemo(() => searchOrigin(draft.nearby, config.cityCenter), [draft.nearby]);
-  const area = searchFrom.area;
+  // How far "W mojej okolicy" looks: 2 km at first, then what the user widened or searched; a new position starts over.
+  const [scopeState, setScopeState] = useState<{ nearby: NearbyOrigin | null; scope: SearchScope }>({ nearby: null, scope: NEAR_SCOPE });
+  const scope = scopeState.nearby === nearby ? scopeState.scope : NEAR_SCOPE;
+  const area = nearby ? scopeArea(nearby, scope) : undefined;
   const query = { q: committed.q, category, features, includeUnknown: showUnknown, area };
   const filters = {
     q: query.q || undefined,
@@ -364,7 +368,12 @@ export function HomeScreen() {
           : t.list.announce(listedCount(places.data!, shown.length));
   const announcement =
     listAnnouncement &&
-    [quickAnnouncement, origin ? (chosenPlace ? tn.announceChosen(chosenPlace) : tn.announce) : null, listAnnouncement, pinsCut ? t.map.pinsCut(pinsCut.shown, pinsCut.total) : null]
+    [
+      quickAnnouncement,
+      origin ? (chosenPlace ? tn.announceChosen(chosenPlace) : tn.announce) : null,
+      origin && scope.kind !== "near" ? tn.announceScope[scope.kind] : null,
+      listAnnouncement, pinsCut ? t.map.pinsCut(pinsCut.shown, pinsCut.total) : null,
+    ]
       .filter(Boolean)
       .join(". ");
   useEffect(() => {
@@ -491,6 +500,14 @@ export function HomeScreen() {
     locateForCategory(id, true);
   }
 
+  function changeScope(next: SearchScope) {
+    setScopeState({ nearby, scope: next });
+    setSelectedId(null);
+  }
+  const wider = nearby ? widerScope(scope) : null;
+  // The map was moved or zoomed out past the searched area: offer to search where it is now.
+  const searchHere = Boolean(searching && nearby && !pending && !places.isError && viewLeavesArea(area, mapView));
+
   function searchWider() {
     setQuickId(null);
     setUnknownCommand(false);
@@ -606,7 +623,12 @@ export function HomeScreen() {
   const controls = (
     <div key="controls" className="space-y-2 px-4 pb-2">
       <ProfileSwitch value={profile} onChange={changeProfile} />
-      <NearbyToggle ref={nearbyRef} origin={draft.nearby} onChange={changeNearby} />
+      <NearbyToggle
+        ref={nearbyRef}
+        origin={draft.nearby}
+        onChange={changeNearby}
+        privacy={scope.kind !== "near" && draft.nearby === nearby ? tn.privacyScope[scope.kind] : undefined}
+      />
       {unknownCommand ? (
         <div role="note" className="space-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-body-sm">
           <p className="font-semibold">{t.command.unknownTitle}</p>
@@ -671,6 +693,14 @@ export function HomeScreen() {
         {resultsLabel}
       </h2>
       {pinsCut ? <p className="mb-2 text-body-sm text-muted-foreground">{t.map.pinsCut(pinsCut.shown, pinsCut.total)}</p> : null}
+      {searching && wider && !pending && !places.isError && shown.length > 0 && shown.length < POOR_RESULTS ? (
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <p className="text-body-sm text-muted-foreground">{tn.poorHint}</p>
+          <Button variant="outline" onClick={() => changeScope(wider)}>
+            {tn.widen[wider.kind as "wide" | "city"]}
+          </Button>
+        </div>
+      ) : null}
       {routeTo ? (
         <div role="group" aria-label={t.search.route.button} className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl bg-primary-container px-4 py-3">
           <p className="min-w-0 flex-1 text-body-sm font-semibold">{t.search.route.prompt(routeTo.name)}</p>
@@ -746,7 +776,7 @@ export function HomeScreen() {
               <p className="text-title font-semibold">{t.list.empty}</p>
               {origin ? (
                 <p className="text-body-sm text-muted-foreground">
-                  {chosenPlace ? tn.emptyHintChosen(chosenPlace) : tn.emptyHint}
+                  {scope.kind !== "near" ? tn.scopeHint[scope.kind] : chosenPlace ? tn.emptyHintChosen(chosenPlace) : tn.emptyHint}
                 </p>
               ) : null}
               {features.length && !showUnknown ? (
@@ -764,6 +794,9 @@ export function HomeScreen() {
               ) : null}
               <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>
               <div className="flex flex-wrap justify-center gap-2">
+                {wider ? (
+                  <Button onClick={() => changeScope(wider)}>{tn.widen[wider.kind as "wide" | "city"]}</Button>
+                ) : null}
                 <Button variant="outline" onClick={searchWider}>
                   {t.list.searchWider}
                 </Button>
@@ -935,6 +968,17 @@ export function HomeScreen() {
           you={searching ? origin : peekFrom.from}
           youLabel={chosenPlace}
         />
+        {searchHere ? (
+          <div className="pointer-events-none absolute inset-x-0 top-[9.5rem] z-10 flex justify-center lg:top-4">
+            <Button
+              variant="outline"
+              className="pointer-events-auto shadow-float"
+              onClick={() => mapView && changeScope(viewScope(mapView))}
+            >
+              {tn.searchHere}
+            </Button>
+          </div>
+        ) : null}
       </div>
       <ThresholdsDrawer open={thresholdsOpen} onOpenChange={setThresholdsOpen} />
     </main>

@@ -20,10 +20,13 @@ export type NearbyToggleHandle = { locate: () => void };
 export function NearbyToggle({
   origin,
   onChange,
+  privacy,
   ref,
 }: {
   origin: NearbyOrigin | null;
   onChange: (origin: NearbyOrigin | null) => void;
+  /** What is sent to the search, when the area is no longer the default ~2 km. */
+  privacy?: string;
   /** Lets another control (a quick action) ask for the position the same way, with the same failure help. */
   ref?: Ref<NearbyToggleHandle>;
 }) {
@@ -150,7 +153,7 @@ export function NearbyToggle({
         </div>
       </form>
       <p id={privacyId} className={origin ? "pt-1 text-caption text-muted-foreground" : "sr-only"}>
-        {t.home.privacy}
+        {privacy ?? t.home.privacy}
       </p>
     </div>
   );

@@ -56,6 +56,25 @@ export const nearby = {
     you: "Ty",
     emptyHint: "Szukasz tylko w Twojej okolicy (w promieniu ok. 2 km).",
     emptyHintChosen: (place: string) => `Szukasz tylko w okolicy: ${place} (w promieniu ok. 2 km).`,
+    searchHere: "Szukaj w tym obszarze",
+    widen: { wide: "Poszerz do 5 km", city: "Poszerz do całego miasta" },
+    poorHint: "Mało miejsc w tej okolicy.",
+    // What the search area is now, for the empty state and the privacy note under "W mojej okolicy".
+    scopeHint: {
+      wide: "Szukasz w promieniu ok. 5 km.",
+      city: "Szukasz w całym Krakowie.",
+      view: "Szukasz w obszarze widocznym na mapie.",
+    },
+    privacyScope: {
+      wide: "Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 5 km, nie Twoją pozycję.",
+      city: "Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy obszar całego miasta, nie Twoją pozycję.",
+      view: "Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy obszar widoczny na mapie, nie Twoją pozycję.",
+    },
+    announceScope: {
+      wide: "Szukasz w promieniu ok. 5 km",
+      city: "Szukasz w całym Krakowie",
+      view: "Szukasz w obszarze widocznym na mapie",
+    },
   },
   devPage: {
     title: "Funkcje natywne",
