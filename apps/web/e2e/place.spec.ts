@@ -122,7 +122,7 @@ test("Udostępnij copies the permanent link to the card", async ({ page, context
   expect(new URL(copied).pathname).toBe("/miejsca/palac-krzysztofory");
 });
 
-test("an unknown place answers 404 with its own title and a way back", async ({ page, expectAccessible }) => {
+test("an unknown place answers 404 with its own title and a way back", async ({ page, expectAccessible, evidence }) => {
   // GIVEN a link to a place that doesn't exist
   const response = await page.goto("/miejsca/nie-ma-takiego");
 
@@ -132,6 +132,7 @@ test("an unknown place answers 404 with its own title and a way back", async ({ 
   await expect(page.getByRole("heading", { level: 1, name: "Nie znaleźliśmy tego miejsca" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Wróć do wyszukiwania" })).toBeVisible();
   await expectAccessible();
+  await evidence("place-not-found");
 });
 
 test("a place card's title names the place", async ({ page }) => {
