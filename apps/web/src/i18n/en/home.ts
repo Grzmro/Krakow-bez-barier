@@ -13,6 +13,7 @@ export const home: Messages["home"] = {
     label: "Search for a place",
     placeholder: "Where to?",
     suggestions: "Suggestions",
+    categorySuggestion: (label: string) => `Category: ${label}`,
     clear: "Clear search",
     route: {
       prompt: (name: string) => `Do you want to go to: ${name}?`,

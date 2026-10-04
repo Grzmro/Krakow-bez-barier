@@ -175,6 +175,8 @@ test("the whole flow works with the keyboard alone", async ({ page }) => {
 
   // THEN a suggestion appears and can be picked with the arrow keys
   await expect(page.getByRole("option", { name: "Hotel Przykład" })).toBeVisible();
+  // (the category "Hotele" is suggested first, the place after it)
+  await page.keyboard.press("ArrowDown");
   await page.keyboard.press("ArrowDown");
   await page.keyboard.press("Enter");
   await expect(search).toHaveValue("Hotel Przykład");

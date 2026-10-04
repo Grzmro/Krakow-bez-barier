@@ -5,18 +5,18 @@ import type { GetPlaceQuery, ListPlacePointsQuery, ListPlacesQuery } from "@krak
 import { useLocale } from "@/i18n/client";
 import { api } from "./api";
 
-async function listPlaces(query: ListPlacesQuery) {
-  const { data, error } = await api.GET("/places", { params: { query } });
+async function listPlaces(query: ListPlacesQuery, signal?: AbortSignal) {
+  const { data, error } = await api.GET("/places", { params: { query }, signal });
   if (error) throw error;
   return data;
 }
 
-/** `GET /places`. Keeps the previous list while a new profile or query loads, so nothing flickers. `enabled: false` skips the request. */
+/** `GET /places`. Keeps the previous list while a new profile or query loads, so nothing flickers; a superseded request is aborted. `enabled: false` skips the request. */
 export function usePlaces(query: ListPlacesQuery, { enabled = true }: { enabled?: boolean } = {}) {
   const locale = useLocale();
   return useQuery({
     queryKey: ["places", locale, query],
-    queryFn: () => listPlaces(query),
+    queryFn: ({ signal }) => listPlaces(query, signal),
     placeholderData: keepPreviousData,
     enabled,
   });

@@ -1,20 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { MagnifyingGlass, MapPin, X } from "@phosphor-icons/react";
 import { Autocomplete } from "@base-ui/react/autocomplete";
 import { cn } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
+import { categoryIcon } from "@/lib/categories";
 import { useSpeechInput } from "@/lib/use-speech-input";
 import { VoiceButton } from "./voice-button";
 
 export const SEARCH_INPUT_ID = "place-search";
 
+/** A category the typed text names, or a place name matching it. */
+export type SearchSuggestion =
+  | { kind: "category"; id: string; label: string; icon?: string }
+  | { kind: "place"; name: string };
+
+const suggestionKey = (item: SearchSuggestion) => (item.kind === "category" ? `category:${item.id}` : `place:${item.name}`);
+// Choosing a category must not leave its name in the field: the chip shows it.
+const suggestionText = (item: SearchSuggestion) => (item.kind === "category" ? "" : item.name);
+
 export interface SearchBoxProps {
   value: string;
   onValueChange: (value: string) => void;
-  /** Place names matching the current query, shown as suggestions. */
-  suggestions: string[];
+  /** Categories the text names first, then place names matching it. */
+  suggestions: SearchSuggestion[];
+  /** A category suggestion was chosen (click, or Enter on the highlighted one). */
+  onPickCategory: (id: string) => void;
+  /** Enter was pressed and was not a command: run the search now instead of waiting for the debounce. */
+  onSubmit?: () => void;
   /**
    * Offered the dictated text and the text typed when Enter is pressed; returns true when it was a command
    * ("najbliższa toaleta") and handled it, so the field is not filled with the command.
@@ -23,12 +37,13 @@ export interface SearchBoxProps {
 }
 
 /** Search field (combobox) with place-name suggestions; the list below updates as you type. */
-export function SearchBox({ value, onValueChange, suggestions, onCommand }: SearchBoxProps) {
+export function SearchBox({ value, onValueChange, suggestions, onPickCategory, onSubmit, onCommand }: SearchBoxProps) {
   const t = useMessages().home.search;
   const [open, setOpen] = useState(false);
   // An open popup hides the rest of the page from assistive tech, so keep it closed when it
   // has nothing to add (no matches, or the field already holds the only match).
-  const useful = suggestions.some((name) => name !== value);
+  const useful = suggestions.some((item) => item.kind === "category" || item.name !== value);
+  const highlighted = useRef(false);
   const speech = useSpeechInput((text, final) => {
     if (final && onCommand?.(text)) onValueChange("");
     else onValueChange(text);
@@ -36,6 +51,10 @@ export function SearchBox({ value, onValueChange, suggestions, onCommand }: Sear
   return (
     <Autocomplete.Root
       items={suggestions}
+      itemToStringValue={suggestionText}
+      onItemHighlighted={(item) => {
+        highlighted.current = Boolean(item);
+      }}
       value={value}
       onValueChange={(next) => onValueChange(next)}
       open={open && useful}
@@ -50,10 +69,11 @@ export function SearchBox({ value, onValueChange, suggestions, onCommand }: Sear
         <Autocomplete.Input
           id={SEARCH_INPUT_ID}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && onCommand?.(value)) {
+            if (event.key !== "Enter" || highlighted.current) return;
+            if (onCommand?.(value)) {
               event.preventDefault();
               onValueChange("");
-            }
+            } else onSubmit?.();
           }}
           placeholder={speech.active ? t.voice[speech.state === "processing" ? "processing" : "listening"] : t.placeholder}
           className={cn(
@@ -82,16 +102,20 @@ export function SearchBox({ value, onValueChange, suggestions, onCommand }: Sear
             className="w-(--anchor-width) max-w-(--available-width) overflow-hidden rounded-3xl bg-card py-2 text-card-foreground shadow-float ring-1 ring-border data-empty:hidden"
           >
             <Autocomplete.List className="max-h-[min(20rem,var(--available-height))] overflow-y-auto">
-              {(name: string) => (
-                <Autocomplete.Item
-                  key={name}
-                  value={name}
-                  className="flex min-h-12 cursor-default items-center gap-3 px-4 text-body outline-none select-none data-highlighted:bg-primary-container"
-                >
-                  <MapPin weight="duotone" className="size-5 shrink-0 text-primary" aria-hidden />
-                  {name}
-                </Autocomplete.Item>
-              )}
+              {(item: SearchSuggestion) => {
+                const Icon = item.kind === "category" ? categoryIcon(item.icon) : MapPin;
+                return (
+                  <Autocomplete.Item
+                    key={suggestionKey(item)}
+                    value={item}
+                    onClick={item.kind === "category" ? () => onPickCategory(item.id) : undefined}
+                    className="flex min-h-12 cursor-default items-center gap-3 px-4 text-body outline-none select-none data-highlighted:bg-primary-container"
+                  >
+                    <Icon weight="duotone" className="size-5 shrink-0 text-primary" aria-hidden />
+                    {item.kind === "category" ? <span className="font-semibold">{t.categorySuggestion(item.label)}</span> : item.name}
+                  </Autocomplete.Item>
+                );
+              }}
             </Autocomplete.List>
           </Autocomplete.Popup>
         </Autocomplete.Positioner>

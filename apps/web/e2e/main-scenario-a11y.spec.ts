@@ -25,6 +25,7 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
   await page.keyboard.type("Hotel");
   await expect(page.getByRole("option", { name: "Hotel Przykład" })).toBeVisible();
   await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
   await page.keyboard.press("Enter");
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
 

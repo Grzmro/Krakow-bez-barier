@@ -15,6 +15,7 @@ export const home = {
     label: "Wyszukaj miejsce",
     placeholder: "Dokąd?",
     suggestions: "Podpowiedzi",
+    categorySuggestion: (label: string) => `Kategoria: ${label}`,
     clear: "Wyczyść wyszukiwanie",
     route: {
       prompt: (name: string) => `Chcesz dojść do: ${name}?`,

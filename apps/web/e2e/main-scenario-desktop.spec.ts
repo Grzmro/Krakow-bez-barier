@@ -42,6 +42,7 @@ test("on a laptop the scenario works from the keyboard alone and focus returns f
   await page.keyboard.type("Hotel");
   await expect(page.getByRole("option", { name: "Hotel Przykład" })).toBeVisible();
   await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
   await page.keyboard.press("Enter");
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
   await tabTo(page, page.getByRole("radio", { name: "Profil wyłączony, widok dla każdego" }));

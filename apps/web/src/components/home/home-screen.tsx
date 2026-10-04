@@ -16,9 +16,9 @@ import { config } from "@/lib/config";
 import { routes } from "@/lib/routes";
 import { routeTarget } from "@/lib/route-intent";
 import { byDistance, type NearbyOrigin } from "@/lib/nearby";
-import { homeView, PEEK_LIMIT, searchOrigin } from "@/lib/home-start";
+import { escapeStep, homeView, panelAfterAsk, PEEK_LIMIT, searchOrigin } from "@/lib/home-start";
 import { listedCount } from "@/lib/list-count";
-import { parseNearestCommand } from "@/lib/nearest-command";
+import { matchCategories, parseNearestCommand } from "@/lib/nearest-command";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
 import { LIST_PAGE, nextWindow, windowFor } from "@/lib/list-window";
 import { nextPointsArea, type Bbox } from "@/lib/map-points";
@@ -28,7 +28,7 @@ import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { countByStatus, filterByVerdict, filterPointsByVerdict, missingNeeds, STATUS_ORDER } from "@/lib/profile/verdict-list";
 import { scrollIntoViewWithin, scrollParent } from "@/lib/scroll-within";
-import { useDebounced } from "@/lib/use-debounced";
+import { useDebounced, useDebouncedValue } from "@/lib/use-debounced";
 import { useGrantedPosition } from "@/lib/use-granted-position";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useSessionFlag } from "@/lib/use-session-flag";
@@ -36,7 +36,7 @@ import { PlaceMap } from "./place-map";
 import { NearbyToggle, type NearbyToggleHandle } from "./nearby-toggle";
 import { PlaceRow } from "./place-list";
 import { QuickActionRow, QuickResult, type QuickResultState } from "./quick-actions";
-import { SEARCH_INPUT_ID, SearchBox } from "./search-box";
+import { SEARCH_INPUT_ID, SearchBox, type SearchSuggestion } from "./search-box";
 
 const ALL = "all";
 const FEATURES: FeatureFilter[] = ["step_free", "lift", "toilet_accessible", "bench", "disabled_parking", "changing_table"];
@@ -113,9 +113,20 @@ export function HomeScreen() {
   // A user's own "hide" is kept only within one state: the peek and the results each come back slid out.
   const wasSearching = useRef(searching);
   useEffect(() => {
-    if (wasSearching.current !== searching) setStowed(false);
+    if (wasSearching.current !== searching) {
+      // Clearing the search (or the last filter) is a full return to the start; asking starts the results fresh.
+      const next = panelAfterAsk(wasSearching.current, searching, { expanded, stowed: stowedFlag, selectedId });
+      setExpanded(next.expanded);
+      setStowed(next.stowed);
+      setSelectedId(next.selectedId);
+      if (!searching) {
+        setStatusFilter(null);
+        setHideFailing(false);
+        setUnknownCommand(false);
+      }
+    }
     wasSearching.current = searching;
-  }, [searching, setStowed]);
+  }, [searching, expanded, stowedFlag, selectedId, setStowed]);
   const peekQuery = usePlaces(
     {
       bbox: peekFrom.area,
@@ -131,7 +142,8 @@ export function HomeScreen() {
   );
   const searchFrom = useMemo(() => searchOrigin(nearby, config.cityCenter), [nearby]);
   const area = searchFrom.area;
-  const query = { q: useDebounced(q.trim()), category, features, includeUnknown: showUnknown, area };
+  const { value: debouncedQ, flush: searchNow } = useDebouncedValue(q.trim());
+  const query = { q: debouncedQ, category, features, includeUnknown: showUnknown, area };
   const filters = {
     q: query.q || undefined,
     category: category === ALL ? undefined : [category],
@@ -187,10 +199,18 @@ export function HomeScreen() {
       settled && !places.isError ? routeTarget(q, shown.map(({ place }) => place)) : null,
     [settled, places.isError, q, shown],
   );
-  const suggestions = useMemo(
+  const placeNames = useMemo(
     () => (settled && query.q ? [...new Set(items.map(({ place }) => place.name))] : []),
     [items, settled, query.q],
   );
+  // Categories the typed text names come first (instantly, no request), then the matching place names.
+  const suggestions = useMemo((): SearchSuggestion[] => {
+    const named = matchCategories(q, categories.data ?? []).suggestions.map((c): SearchSuggestion => {
+      const full = categories.data?.find((entry) => entry.id === c.id);
+      return { kind: "category", id: c.id, label: c.label, icon: full?.icon };
+    });
+    return [...named, ...placeNames.map((name): SearchSuggestion => ({ kind: "place", name }))];
+  }, [q, categories.data, placeNames]);
 
   const resultsLabel = !searching ? t.list.start[view.heading] : total === undefined ? t.list.loading : t.list.results(listedCount(places.data!, shown.length));
   const queryKey = JSON.stringify(query);
@@ -279,7 +299,13 @@ export function HomeScreen() {
   function runCommand(text: string) {
     const parsed = parseNearestCommand(text, categories.data ?? []);
     setUnknownCommand(parsed?.kind === "unknown");
-    if (!parsed) return false;
+    if (!parsed) {
+      // A word that names a category ("restauracje") works like picking its chip.
+      const exact = matchCategories(text, categories.data ?? []).exact;
+      if (!exact) return false;
+      pickCategory(exact.id);
+      return true;
+    }
     if (parsed.kind === "unknown") {
       announce(`${t.command.unknownTitle} ${t.command.unknownHint}`);
       return true;
@@ -291,16 +317,30 @@ export function HomeScreen() {
       } else startQuick(quickAction);
       return true;
     }
+    pickCategory(id ?? ALL);
+    return true;
+  }
+
+  // The nearest places of a category: around the device when the position is known (or already allowed), else
+  // the user is asked, since picking a category is an explicit action. Declined: the list says it is from Rynek.
+  function locateForCategory(id: string) {
+    if (id === ALL || nearby) return;
+    if (peekNearby) setNearby(peekNearby);
+    else nearbyRef.current?.locate();
+  }
+
+  // A category chosen by name (suggestion, Enter on an exact word, spoken command): the chip, nothing else narrowing.
+  function pickCategory(id: string) {
     setQuickId(null);
+    setUnknownCommand(false);
     setQ("");
-    setCategory(id ?? ALL);
+    setCategory(id);
     setFeatures([]);
     setShowUnknown(false);
     setStatusFilter(null);
     setHideFailing(false);
     announce(t.command.applied(categories.data?.find((c) => c.id === id)?.label ?? ""));
-    if (!nearby) nearbyRef.current?.locate();
-    return true;
+    locateForCategory(id);
   }
 
   function searchWider() {
@@ -600,6 +640,13 @@ export function HomeScreen() {
       id="main"
       tabIndex={-1}
       data-fill-viewport
+      onKeyDown={(event) => {
+        // A popup or dialog that took Escape has already cancelled it.
+        if (event.key !== "Escape" || event.defaultPrevented) return;
+        const step = escapeStep({ expanded, selectedId });
+        if (step === "deselect") setSelectedId(null);
+        else if (step === "collapse") setExpanded(false);
+      }}
       className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[22rem] [--list-collapsed:min(50%,max(40%,100%_-_20rem))] flex-1 overflow-hidden outline-none lg:mb-0 lg:grid lg:min-h-0 lg:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)]"
     >
       <h1 className="sr-only">{t.title}</h1>
@@ -633,12 +680,16 @@ export function HomeScreen() {
               <CaretLeft weight="bold" aria-hidden />
             </Button>
           ) : null}
-          <SearchBox value={q} onValueChange={setQ} suggestions={suggestions} onCommand={runCommand} />
+          <SearchBox value={q} onValueChange={setQ} suggestions={suggestions} onPickCategory={pickCategory} onSubmit={searchNow} onCommand={runCommand} />
         </div>
         <ToggleGroup
           aria-label={t.categoriesLabel}
           value={[category]}
-          onValueChange={(value) => value[0] && setCategory(value[0])}
+          onValueChange={(value) => {
+            if (!value[0]) return;
+            setCategory(value[0]);
+            locateForCategory(value[0]);
+          }}
           // iOS WebKit won't pan a scroller with pointer-events: none, even under chips that have auto.
           className={cn(CHIP_ROW, "pointer-events-auto mx-auto mt-1.5 max-w-xl pl-4")}
         >

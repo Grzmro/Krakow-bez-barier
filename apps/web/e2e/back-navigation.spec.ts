@@ -12,7 +12,12 @@ test("a narrowed map has a back button and the logo, both returning to the whole
   const back = page.getByRole("button", { name: "Wróć do całej mapy" });
   await expect(back).toHaveCount(0);
 
-  // WHEN the visitor narrows the map to museums
+  // WHEN the visitor narrows the map to museums (a category asks for the position; this browser refuses it)
+  await page.evaluate(() => {
+    navigator.geolocation.getCurrentPosition = (_ok, fail) => {
+      fail?.({ code: 1, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 } as GeolocationPositionError);
+    };
+  });
   await page.getByRole("button", { name: "Muzea" }).click();
 
   // THEN a back button appears next to the search field
