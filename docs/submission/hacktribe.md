@@ -105,7 +105,7 @@ Kierunki rozwoju: panel właściciela obiektu, kolejne profile (osoba z bagażem
 - **Obsługa zgłoszeń:** moderator operatora (0,25–0,5 etatu w 1. roku, szacunek) w panelu `/moderator` (kolejka, decyzje, historia); docelowo także właściciele obiektów.
 - **Koszty:** abonamenty B2B (karta, API), umowy B2G (white-label) i granty (PFRON, UE) na pierwsze 12 miesięcy.
 - **Rola miasta:** publikuje otwarte dane (najbardziej pomoże otwarta licencja dla warstw ZTP, ZDMK i MSIP) i promuje usługę; 0 zł za utrzymanie bazy.
-- **Prawa autorskie:** kod na licencji MIT (plik `LICENSE`, © 2026 Zespół Kraków bez barier), tak by po przeniesieniu praw majątkowych na sponsora nagrody operator i kolejne miasta mogli dalej legalnie hostować i rozwijać usługę (warunki przeniesienia i moment publikacji kodu na tej licencji do potwierdzenia z Miastem; repozytorium jest dziś prywatne). Dane mają własne licencje (ODbL, zasady BIP, krakow.pl tylko niekomercyjnie) i nie są objęte MIT.
+- **Prawa autorskie:** kod na licencji MIT (plik `LICENSE`, © 2026 Zespół Bez Progów), tak by po przeniesieniu praw majątkowych na sponsora nagrody operator i kolejne miasta mogli dalej legalnie hostować i rozwijać usługę (warunki przeniesienia i moment publikacji kodu na tej licencji do potwierdzenia z Miastem; repozytorium jest dziś prywatne). Dane mają własne licencje (ODbL, zasady BIP, krakow.pl tylko niekomercyjnie) i nie są objęte MIT.
 - **Roadmapa:** 0 mies. prototyp → 3 mies. MVP, widżet v1, audyt WCAG, pilotaż z 30 obiektami na Starym Mieście → 12 mies. API v1, 300+ zweryfikowanych obiektów, pierwsze miasto white-label → 24 mies. 3–5 miast, integracje z systemami rezerwacji.
 - **Kolejne miasto:** plik konfiguracyjny (obszar OSM, lokalne źródła z potwierdzoną licencją, kategorie) — działa już w kodzie, przykład Wrocław; partner lokalny (NGO albo uczelnia), finansowanie audytów pierwszych ~100 obiektów; cel 2–4 tygodnie wdrożenia (szacunek).
 
@@ -132,17 +132,13 @@ nie wpisujemy do repozytorium — serwer wydaje sesję demo po kliknięciu. Tras
 
 - Demo: **[DO UZUPEŁNIENIA: link do wdrożenia]**
 - Publiczne API i dokumentacja: **[DO UZUPEŁNIENIA: link do wdrożenia]/api/docs**
-- Film (MP4, do 3 min, w otwartym, dostępnym miejscu — regulamin): **[DO UZUPEŁNIENIA: publiczny link do filmu MP4]** — `kbb-demo.mp4` (2:51, desktop, napisy PL); dodatkowo `kbb-demo-phone.mp4` (1:28, telefon) jako materiał opcjonalny
+- Film (MP4, do 3 min): https://www.youtube.com/watch?v=QQmgFGiuGv4 (2:15, część na komputerze, druga połowa na telefonie, lektor PL, napisy)
 - Prezentacja (PDF, do 10 slajdów): **[DO UZUPEŁNIENIA: link do PDF]**
-- Repozytorium kodu: prywatne (decyzja zespołu), kod na licencji MIT. **[DO UZUPEŁNIENIA: czy i jak udostępniamy repozytorium jury]**
 - Zespół „Bez Progów”: Mateusz Oracz (lider zespołu), Marcin Oracz, Bartłomiej Leśniewski, Grzegorz Mróz, Jerzy Boksa
 
 ## Do uzupełnienia przed wysłaniem
 
 - `[DO UZUPEŁNIENIA: ID zespołu z HackTribe]`
 - `[DO UZUPEŁNIENIA: link do wdrożenia]` (4 miejsca; po wpisaniu sprawdzić `/api/v1/health`, `/o-danych`, `/moderator`)
-- `[DO UZUPEŁNIENIA: publiczny link do filmu MP4]` — regulamin wymaga filmu w otwartym, dostępnym repozytorium, a nasze repozytorium kodu jest prywatne
 - `[DO UZUPEŁNIENIA: link do PDF]`
-- `[DO UZUPEŁNIENIA: czy i jak udostępniamy repozytorium jury]`
-- Decyzja zespołu: czy w `LICENSE` zostaje „Zespół Kraków bez barier”, czy wpisujemy imiona i nazwiska autorów (nazwa zespołu nie jest osobą prawną)
 - Na Vercelu: `MODERATOR_DEMO_TOKEN` i `ORS_API_KEY` ustawione (bez nich przycisk konta demo i trasy nie działają)

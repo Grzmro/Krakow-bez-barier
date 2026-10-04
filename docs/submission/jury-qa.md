@@ -56,7 +56,7 @@ Dowody: `docs/data-sources.md` (rejestr, licencje sprawdzone 3–4.10.2026); bra
 
 ## 3. „Na jakiej licencji jest kod i co z prawami, które przechodzą na sponsora nagrody?”
 
-**Odpowiedź:** „Kod jest na licencji MIT (plik `LICENSE`, »© 2026 Zespół Kraków bez barier«).
+**Odpowiedź:** „Kod jest na licencji MIT (plik `LICENSE`, »© 2026 Zespół Bez Progów«).
 Wybraliśmy ją po to, żeby po przeniesieniu praw majątkowych na sponsora nagrody operator i kolejne
 miasta mogli dalej legalnie hostować i rozwijać usługę. Repozytorium jest dziś prywatne, więc kiedy
 i jak kod zostanie opublikowany na tej licencji, chcemy ustalić z Miastem. MIT obejmuje tylko kod. Dane mają własne licencje:
