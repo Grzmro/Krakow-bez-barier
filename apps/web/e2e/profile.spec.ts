@@ -7,13 +7,21 @@ const list = (page: Page) => page.getByRole("region", { name: "Lista miejsc" });
 const row = (page: Page, name: string) =>
   list(page).getByRole("listitem").filter({ has: page.getByRole("link", { name: new RegExp(name) }) });
 
-/** Types a query and closes the suggestions, which hide the rest of the page from assistive tech while open. */
-async function searchFor(page: Page, text: string) {
+/**
+ * Types a query, closes the suggestions (an open popup hides the rest of the page from assistive tech) and searches.
+ * `suggests`: a place name other than the text itself will be suggested; wait for it so the popup is settled, since
+ * Escape on a popup that already closed clears the field. A whole place name is never suggested, so its popup stays
+ * shut. (A text that only names a category, like "Hotel", picks the category on Enter, by design.)
+ */
+async function searchFor(page: Page, text: string, suggests?: string) {
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
   await search.fill(text);
-  await expect(page.getByRole("listbox")).toBeVisible();
+  if (suggests) {
+    await expect(page.getByRole("option", { name: suggests })).toBeVisible();
+    await search.press("Escape");
+  }
+  await expect(search).toHaveAttribute("aria-expanded", "false");
   await search.press("Enter");
-  await search.press("Escape");
   await expect(search).toHaveValue(text);
 }
 
@@ -26,7 +34,7 @@ test("wheelchair profile on the home screen shows verdicts on the list and map, 
   await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
-  await searchFor(page, "przyk");
+  await searchFor(page, "przyk", "Hotel Przykład");
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("5 miejsc");
   await page.getByRole("button", { name: "Toaleta dostosowana", exact: true }).click();
   await page.getByRole("switch", { name: "Pokaż też miejsca bez danych" }).click();
@@ -58,7 +66,8 @@ test("wheelchair profile on the home screen shows verdicts on the list and map, 
   await why.click();
 
   // AND the button shows its open state and the row link was not followed
-  await expect(page).toHaveURL(/\/$/);
+  // (the home URL carries the search since KBB-161, so check it is still the home screen, not the card)
+  await expect(page).toHaveURL(/\/(\?.*)?$/);
   await expect(row(page, "Hotel Przykład").getByRole("button", { name: "Ukryj uzasadnienie: Hotel Przykład" })).toHaveAttribute("aria-expanded", "true");
   await expect(row(page, "Hotel Przykład").getByRole("heading", { name: "Pasuje (4)" })).toBeVisible();
 
@@ -73,7 +82,7 @@ test("wheelchair profile on the home screen shows verdicts on the list and map, 
 async function wheelchairOverSamples(page: Page) {
   await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
-  await searchFor(page, "przyk");
+  await searchFor(page, "przyk", "Hotel Przykład");
   await page.getByRole("radio", { name: "Wózek", exact: true }).check();
   const counters = page.getByRole("group", { name: "Pokaż tylko miejsca z wynikiem" });
   await expect(counters.getByRole("button", { name: "1 spełnia" })).toBeVisible();
@@ -125,7 +134,7 @@ test("an empty verdict counter blames the verdict filter, not the search", async
 test("a profile no listed place meets says which data is missing, without passing the unknown", async ({ page, expectAccessible, evidence }) => {
   // GIVEN the home screen narrowed to a place that has no entrance or door data
   await page.goto("/");
-  await searchFor(page, "Kawiarnia");
+  await searchFor(page, "Kawiarnia Przykład");
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
 
   // WHEN the wheelchair profile is turned on
@@ -143,7 +152,7 @@ test("a profile no listed place meets says which data is missing, without passin
   await evidence("home-profile-none-met");
 
   // AND the note goes away once a listed place meets the profile
-  await searchFor(page, "przyk");
+  await searchFor(page, "przyk", "Hotel Przykład");
   await expect(counters.getByRole("button", { name: "1 spełnia" })).toBeVisible();
   await expect(list(page).getByRole("note")).toHaveCount(0);
 });
@@ -163,8 +172,8 @@ test("switching the profile releases a pressed counter", async ({ page }) => {
 });
 
 test("thresholds change verdicts, persist in the browser and reset to defaults", async ({ page, expectAccessible, evidence }) => {
-  // GIVEN the wheelchair profile is on
-  await page.goto("/");
+  // GIVEN the wheelchair profile is on, over search results (the thresholds button comes with them)
+  await gotoAllPlaces(page);
   await page.getByRole("radio", { name: "Wózek", exact: true }).check();
   await expect(row(page, "Hotel Przykład")).toContainText("Spełnia");
 
@@ -182,8 +191,8 @@ test("thresholds change verdicts, persist in the browser and reset to defaults",
   // THEN the hotel no longer meets the profile
   await expect(row(page, "Hotel Przykład")).toContainText("Nie spełnia · drzwi 90 cm");
 
-  // AND the profile and thresholds survive a reload (stored only in this browser)
-  await page.reload();
+  // AND the profile and thresholds survive a reload (stored only in this browser), which starts clean, so search again
+  await gotoAllPlaces(page);
   await expect(page.getByRole("radio", { name: "Wózek", exact: true })).toBeChecked();
   await expect(row(page, "Hotel Przykład")).toContainText("Nie spełnia");
 
@@ -197,7 +206,7 @@ test("thresholds change verdicts, persist in the browser and reset to defaults",
 test("a facility need switched on in the thresholds drawer joins the verdict", async ({ page, expectAccessible, evidence }) => {
   // GIVEN the wheelchair profile on a small 360 px phone, under which the hotel meets every need
   await page.setViewportSize({ width: 360, height: 640 });
-  await page.goto("/");
+  await gotoAllPlaces(page);
   await page.getByRole("radio", { name: "Wózek", exact: true }).check();
   await expect(row(page, "Hotel Przykład")).toContainText("Spełnia · niepotwierdzone");
 
@@ -288,8 +297,8 @@ test("the profile switch is one row on a 360 px phone and in the desktop sidebar
 });
 
 test("no-data and conflicting places never meet a profile; turning it off returns the neutral view", async ({ page }) => {
-  // GIVEN the stroller profile
-  await page.goto("/");
+  // GIVEN the stroller profile, over search results listing all places
+  await gotoAllPlaces(page);
   await page.getByRole("radio", { name: "Wózek dziecięcy" }).check();
 
   // THEN the incomplete and conflicting demo places are not "Spełnia"
@@ -309,7 +318,7 @@ test("profile, counters and details work from the keyboard", async ({ page }) =>
   // GIVEN the home screen with the sample places
   await gotoAllPlaces(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
-  await searchFor(page, "Hotel");
+  await searchFor(page, "Hotel Przykład");
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
 
   // WHEN a keyboard user reaches the profile group and presses the arrow key
@@ -345,7 +354,7 @@ test("profile, counters and details work from the keyboard", async ({ page }) =>
   // AND Space closes it again, staying on the home screen
   await page.keyboard.press("Space");
   await expect(row(page, "Hotel Przykład").getByRole("heading", { name: "Pasuje (4)" })).toBeHidden();
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/(\?.*)?$/);
 });
 
 test("the old /profil page is gone", async ({ page }) => {

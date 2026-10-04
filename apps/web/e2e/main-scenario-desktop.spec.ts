@@ -33,9 +33,9 @@ test("on a laptop the scenario works from the keyboard alone and focus returns f
   evidence,
 }) => {
   test.setTimeout(30_000);
-  // GIVEN the home screen on a laptop
-  await gotoAllPlaces(page);
-  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
+  // GIVEN the home screen on a laptop, at its start
+  await page.goto("/");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("Najbliżej Rynku (bez lokalizacji)");
 
   // WHEN a keyboard user searches for the hotel, picks the suggestion and turns on the wheelchair profile
   await tabTo(page, page.getByRole("combobox", { name: "Wyszukaj miejsce" }));

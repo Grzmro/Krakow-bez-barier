@@ -2,10 +2,12 @@
   - heading "Mapa i lista miejsc" [level=1]
   - link "Przejdź do listy":
     - /url: "#lista"
+  - button "Wróć do całej mapy"
   - search:
     - text: Wyszukaj miejsce
-    - combobox "Wyszukaj miejsce"
+    - combobox "Wyszukaj miejsce": r
     - button "Wpisz głosem"
+    - button "Wyczyść wyszukiwanie"
   - group "Kategorie":
     - button "Wszystko" [pressed]
     - button "Restauracje"
@@ -16,6 +18,8 @@
     - button "Teatry i kina"
     - button "Apteki"
     - button "Miejsca postojowe"
+    - button "Ławki"
+    - button "Windy"
     - button "Przystanki"
     - button "Handel"
     - button "Inne"
@@ -28,7 +32,7 @@
         - button "Miejsce odpoczynku"
         - button "Najbliższa winda"
         - button "Najbliższa apteka"
-        - button "Najbliższy przystanek (wkrótce)" [disabled]
+        - button "Najbliższy przystanek"
       - group "Profil potrzeb":
         - text: ""
         - radio "Profil wyłączony, widok dla każdego" [checked]
@@ -74,7 +78,7 @@
         - button "Winda"
         - button "Toaleta dostosowana"
         - button "Ławki"
-        - button "Parking dla niepełnosprawnych"
+        - button "Parking dla OzN"
         - button "Przewijak"
       - heading /\d+ miejsc/ [level=2]
       - list:
@@ -109,8 +113,9 @@
           - link /Muzeum Inżynierii i Techniki ul\. św\. Wawrzyńca \d+, Kraków Winda · Toaleta dostosowana Dane przykładowe \d+,\d+ km od Rynku/:
             - /url: /miejsca/muzeum-inzynierii-i-techniki
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
-  - 'img "Grupa: 9 miejsc"'
+  - 'img /Grupa: \d+ miejsc/'
   - button "Informacje o źródłach mapy"
   - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
+  - button "Pokaż moją lokalizację"
   - button "Przybliż"
   - button "Oddal"

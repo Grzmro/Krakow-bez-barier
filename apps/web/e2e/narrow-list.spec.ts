@@ -12,9 +12,11 @@ for (const width of [360, 390]) {
     await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
     const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
     await search.fill("przyk");
-    await expect(page.getByRole("listbox")).toBeVisible();
-    await search.press("Enter");
+    // Wait for the debounced place names, so Escape closes a settled popup (on a closed one it clears the field).
+    await expect(page.getByRole("option", { name: "Hotel Przykład" })).toBeVisible();
     await search.press("Escape");
+    await expect(search).toHaveAttribute("aria-expanded", "false");
+    await search.press("Enter");
     await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("5 miejsc");
     await page.getByRole("button", { name: "Toaleta dostosowana", exact: true }).click();
     await page.getByRole("switch", { name: "Pokaż też miejsca bez danych" }).click();

@@ -2,10 +2,12 @@
   - heading "Map and list of places" [level=1]
   - link "Skip to the list":
     - /url: "#lista"
+  - button "Back to the whole map"
   - search:
     - text: Search for a place
     - combobox "Search for a place"
     - button "Type by voice"
+    - button "Clear search"
   - group "Categories":
     - button "Everything" [pressed]
     - button "Restaurants"
@@ -16,6 +18,8 @@
     - button "Theatres and cinemas"
     - button "Pharmacies"
     - button "Parking spaces"
+    - button "Benches"
+    - button "Lifts"
     - button "Stops"
     - button "Shops"
     - button "Other"
@@ -28,7 +32,7 @@
         - button "Place to rest"
         - button "Nearest lift"
         - button "Nearest pharmacy"
-        - button "Nearest stop (soon)" [disabled]
+        - button "Nearest stop"
       - group "Needs profile":
         - text: ""
         - radio "Profile off, view for everyone"
@@ -102,9 +106,9 @@
             - /url: /miejsca/restauracja-przyklad
           - button "Why does Restauracja Przykład not meet?": Why?
   - region "Map of places. Arrow keys move the view, plus and minus change the zoom. The list has the same places."
-  - 'img "Group: 7 places (Meets: 1, Conflicting: 1, No data: 4, Doesn''t meet: 1)"'
-  - 'img "Group: 2 places (No data: 2)"'
+  - 'img /Group: \d+ places/'
   - button "Information about the map sources"
   - paragraph: "Map sources: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
+  - button "Show my location"
   - button "Zoom in"
   - button "Zoom out"

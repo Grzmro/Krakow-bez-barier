@@ -25,12 +25,15 @@ export async function gotoAllPlaces(page: Page) {
   await page.goto("/");
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
   await search.fill("r");
-  await expect(search).toHaveAttribute("aria-expanded", "true");
-  await search.press("Enter");
+  // The place names come after the debounced name search: wait for them, so the popup is settled when Escape closes
+  // it (Escape on a closed popup clears the field), then Enter runs the search.
+  await expect(page.getByRole("option", { name: "Podziemia Rynku" })).toBeVisible();
   await search.press("Escape");
   await expect(search).toHaveAttribute("aria-expanded", "false");
+  await search.press("Enter");
   await expect(search).toHaveValue("r");
-  // Like a fresh page, so keyboard specs tab from the top.
+  await expect(page.getByRole("region", { name: "Lista miejsc" }).getByRole("heading", { level: 2 })).toHaveText(/\d+ miejsc/);
+  // Focus leaves the search, but Tab still continues from it, not from the top of the page.
   await search.blur();
 }
 

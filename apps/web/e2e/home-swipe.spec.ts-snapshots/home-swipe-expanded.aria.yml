@@ -16,6 +16,8 @@
     - button "Teatry i kina"
     - button "Apteki"
     - button "Miejsca postojowe"
+    - button "Ławki"
+    - button "Windy"
     - button "Przystanki"
     - button "Handel"
     - button "Inne"
@@ -28,7 +30,25 @@
         - button "Miejsce odpoczynku"
         - button "Najbliższa winda"
         - button "Najbliższa apteka"
-        - button "Najbliższy przystanek (wkrótce)" [disabled]
+        - button "Najbliższy przystanek"
+      - heading "Najbliżej Rynku (bez lokalizacji)" [level=2]
+      - list:
+        - listitem:
+          - link /Podziemia Rynku Rynek Główny 1, Kraków Toaleta dostosowana Dane przykładowe \d+ m od Rynku/:
+            - /url: /miejsca/podziemia-rynku
+        - listitem:
+          - 'link /Sukiennice Rynek Główny 1-3, Kraków Wejście bez stopni · Winda · Toaleta: brak danych Dane przykładowe \d+ m od Rynku/':
+            - /url: /miejsca/sukiennice
+        - listitem:
+          - 'link /Pałac Krzysztofory Rynek Główny \d+, Kraków Wejście bez stopni · Toaleta: sprzeczne dane · Winda: brak danych Dane przykładowe \d+ m od Rynku/':
+            - /url: /miejsca/palac-krzysztofory
+        - listitem:
+          - link /Restauracja Przykład ul\. Szewska 8, Kraków Wejście — stopnie · Podjazd · Szerokość drzwi Dane przykładowe \d+ m od Rynku/:
+            - /url: /miejsca/restauracja-przyklad
+        - listitem:
+          - 'link /Hotel Przykład ul\. Sienna 5, Kraków Wejście — stopnie · Próg · Szerokość drzwi · Winda · Toaleta dostosowana · Przewijak: brak danych Dane przykładowe \d+ m od Rynku/':
+            - /url: /miejsca/hotel-przyklad
+      - paragraph: Mapa jest czysta. Wpisz nazwę i naciśnij Enter, wybierz szybką akcję albo zaznacz kategorię i cechy, a potem „Pokaż wyniki”. Wtedy pojawią się lista i pinezki.
       - group "Profil potrzeb":
         - text: ""
         - radio "Profil wyłączony, widok dla każdego" [checked]
@@ -48,43 +68,11 @@
         - button "Winda"
         - button "Toaleta dostosowana"
         - button "Ławki"
-        - button "Parking dla niepełnosprawnych"
+        - button "Parking dla OzN"
         - button "Przewijak"
-      - heading /\d+ miejsc/ [level=2]
-      - list:
-        - listitem:
-          - link /Podziemia Rynku Rynek Główny 1, Kraków Toaleta dostosowana Dane przykładowe \d+ m od Rynku/:
-            - /url: /miejsca/podziemia-rynku
-        - listitem:
-          - 'link /Sukiennice Rynek Główny 1-3, Kraków Wejście bez stopni · Winda · Toaleta: brak danych Dane przykładowe \d+ m od Rynku/':
-            - /url: /miejsca/sukiennice
-        - listitem:
-          - 'link /Pałac Krzysztofory Rynek Główny \d+, Kraków Wejście bez stopni · Toaleta: sprzeczne dane · Winda: brak danych Dane przykładowe \d+ m od Rynku/':
-            - /url: /miejsca/palac-krzysztofory
-        - listitem:
-          - link /Restauracja Przykład ul\. Szewska 8, Kraków Wejście — stopnie · Podjazd · Szerokość drzwi Dane przykładowe \d+ m od Rynku/:
-            - /url: /miejsca/restauracja-przyklad
-        - listitem:
-          - 'link /Hotel Przykład ul\. Sienna 5, Kraków Wejście — stopnie · Próg · Szerokość drzwi · Winda · Toaleta dostosowana · Przewijak: brak danych Dane przykładowe \d+ m od Rynku/':
-            - /url: /miejsca/hotel-przyklad
-        - listitem:
-          - 'link /Bistro Przykład ul\. Grodzka \d+, Kraków Wejście bez stopni · Toaleta: brak danych Dane przykładowe \d+ m od Rynku/':
-            - /url: /miejsca/bistro-przyklad
-        - listitem:
-          - link /Teatr im\. Juliusza Słowackiego pl\. Świętego Ducha 1, Kraków Podjazd Dane przykładowe \d+ m od Rynku/:
-            - /url: /miejsca/teatr-slowackiego
-        - listitem:
-          - 'link /Kawiarnia Przykład ul\. Floriańska \d+, Kraków Wejście: brak danych · Toaleta: brak danych Dane przykładowe \d+ m od Rynku/':
-            - /url: /miejsca/kawiarnia-przyklad
-        - listitem:
-          - link /Toaleta publiczna Planty \(przykład\) ul\. Basztowa 1, Kraków Toaleta dostosowana · Przewijak · Ławki obok Dane przykładowe \d+ m od Rynku/:
-            - /url: /miejsca/toaleta-planty-przyklad
-        - listitem:
-          - link /Muzeum Inżynierii i Techniki ul\. św\. Wawrzyńca \d+, Kraków Winda · Toaleta dostosowana Dane przykładowe \d+,\d+ km od Rynku/:
-            - /url: /miejsca/muzeum-inzynierii-i-techniki
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
-  - 'img "Grupa: 9 miejsc"'
   - button "Informacje o źródłach mapy"
   - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
+  - button "Pokaż moją lokalizację"
   - button "Przybliż"
   - button "Oddal"

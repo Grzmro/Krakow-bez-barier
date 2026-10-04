@@ -50,7 +50,7 @@ export const home = {
     lift: "Winda",
     toilet_accessible: "Toaleta dostosowana",
     bench: "Ławki",
-    disabled_parking: "Parking dla niepełnosprawnych",
+    disabled_parking: "Parking dla OzN",
     changing_table: "Przewijak",
   } satisfies Record<FeatureFilter, string>,
   showUnknown: "Pokaż też miejsca bez danych",
