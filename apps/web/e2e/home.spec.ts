@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { placesOnMap, gotoAllPlaces, searchFor, showResults } from "./map";
+import { markersSettled, placesOnMap, gotoAllPlaces, searchFor, showResults } from "./map";
 
 test("the start is a clean map with a peek of the nearest places that a search replaces with results and pins", async ({
   page,
@@ -118,21 +118,65 @@ test("feature filter hides places without data until the switch shows them as Br
   await evidence("home-filter-show-unknown");
 });
 
-test("no results offers a wider search", async ({ page, evidence }) => {
+test("no results explains it and offers no wider search than the whole city", async ({ page, evidence }) => {
   // GIVEN the home screen
   await page.goto("/");
 
-  // WHEN the search matches nothing
+  // WHEN the search matches nothing anywhere in the city
   await searchFor(page, "Zzzz");
 
-  // THEN the empty state explains it and the wider search clears the search
+  // THEN the empty state explains it, with nothing wider to search
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByText("Brak miejsc dla tego wyszukiwania.")).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Nie znaleziono miejsc" })).toBeAttached();
+  await expect(list.getByRole("button", { name: "Szukaj w całym Krakowie" })).toHaveCount(0);
   await evidence("home-empty");
+});
+
+test("the wider search keeps the typed name and drops the category", async ({ page }) => {
+  // GIVEN "Sukiennice" searched among hotels: nothing found
+  await page.goto("/");
+  await page.getByRole("button", { name: "Hotele", exact: true }).click();
+  // (a suggestion equal to the typed name is not offered, so no popup covers the list)
+  await searchFor(page, "Sukiennice");
+  const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
+  const list = page.getByRole("region", { name: "Lista miejsc" });
+  await expect(list.getByText("Brak miejsc dla tego wyszukiwania.")).toBeVisible();
+  await expect(list.getByText("Spróbuj szerzej: ta sama nazwa, bez kategorii, filtrów i okolicy.")).toBeVisible();
+
+  // WHEN the visitor searches the whole city
   await list.getByRole("button", { name: "Szukaj w całym Krakowie" }).click();
-  await expect(list.getByText("Brak miejsc dla tego wyszukiwania.")).toBeHidden();
-  await expect(page.getByRole("combobox", { name: "Wyszukaj miejsce" })).toHaveValue("");
+
+  // THEN the name stays and finds Sukiennice
+  await expect(search).toHaveValue("Sukiennice");
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
+  await expect(page.getByRole("button", { name: "Hotele", exact: true })).toHaveAttribute("aria-pressed", "false");
+});
+
+test("a name searched from the Rynek view finds a place outside the view and moves the map to it", async ({ page, evidence }) => {
+  // GIVEN the start map zoomed in on the Rynek, the Muzeum Inżynierii (1.3 km south) out of view
+  await page.goto("/");
+  const map = page.locator(".maplibregl-map");
+  await expect(map).toHaveAttribute("data-moving", "false");
+  await page.getByRole("button", { name: "Przybliż" }).click();
+  await expect(map).toHaveAttribute("data-moving", "false");
+  await page.getByRole("button", { name: "Przybliż" }).click();
+  await expect(map).toHaveAttribute("data-moving", "false");
+
+  // WHEN the visitor types its name and picks the suggestion
+  const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
+  await search.fill("Muzeum Inżynierii");
+  await page.getByRole("option", { name: "Muzeum Inżynierii i Techniki" }).click();
+  await expect(search).toHaveAttribute("aria-expanded", "false");
+
+  // THEN it is listed and the map flies to it, its pin in view
+  const list = page.getByRole("region", { name: "Lista miejsc" });
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
+  await expect(list.getByRole("link", { name: /Muzeum Inżynierii i Techniki/ })).toBeVisible();
+  await markersSettled(page);
+  await expect(page.locator("[data-place-id]")).toHaveCount(1);
+  await expect(page.locator("[data-place-id]")).toBeInViewport();
+  await evidence("home-search-outside-view");
 });
 
 test("on a 390x844 phone the skip link jumps past the map to the list, below the sticky header", async ({

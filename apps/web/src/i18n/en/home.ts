@@ -109,12 +109,15 @@ export const home: Messages["home"] = {
     firstOf: (shown: number, total: number) => `List: first ${shown} of ${total} ${placesWord(total)}`,
     announcePartial: (shown: number, total: number) =>
       `${total} ${placesWord(total)} in view, the list has the first ${shown}. “Show more” loads the rest`,
+    announcePartialFound: (shown: number, total: number) =>
+      `Found ${total} ${placesWord(total)}, the list has the first ${shown}. “Show more” loads the rest`,
     announce: (n: number) => (n === 0 ? "No places found" : `Found ${n} ${placesWord(n)}`),
     loading: "Searching for places…",
     error: "Couldn't load places.",
     retry: "Try again",
     empty: "No places for this search.",
     emptyHint: "Try a wider search: no name, category or filters.",
+    emptyHintKeepName: "Try a wider search: the same name, without the category, filters or area.",
     searchWider: "Search all of Kraków",
     licenceHold: {
       parking: "Parking space data is waiting for the ZDMK licence to be confirmed.",

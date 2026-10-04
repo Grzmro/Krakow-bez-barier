@@ -1,9 +1,41 @@
 import { describe, expect, it } from "vitest";
-import { choose, clearQuery, commitChange, confirmAction, draftAsk, escapeStep, homeView, isSearching, panelAfterAsk, runAsk, searchOrigin, showResults, START_SELECTION } from "./home-start";
+import { choose, clearQuery, commitChange, confirmAction, draftAsk, escapeStep, homeView, isSearching, NO_CHOICES, panelAfterAsk, runAsk, searchOrigin, showResults, START_SELECTION, widenSearch } from "./home-start";
 
 const start = { q: "", category: null, features: [], nearby: null };
 const rynek: [number, number] = [19.9372, 50.0617];
 const here = { latitude: 50.0647, longitude: 19.945 };
+
+describe("widenSearch", () => {
+  it("keeps the typed name and drops what narrowed it", () => {
+    // GIVEN "Qubus" searched among museums around the user
+    const draft = { ...NO_CHOICES, category: "museum", features: ["lift" as const], nearby: { position: here } };
+    const selection = { committed: { q: "Qubus", ...draft }, draft };
+
+    // WHEN "Szukaj w całym Krakowie" widens it
+    const widened = widenSearch(selection);
+
+    // THEN the name alone is searched across the city
+    expect(widened).toEqual({ committed: { q: "Qubus", ...NO_CHOICES }, draft: NO_CHOICES });
+  });
+
+  it("has nothing to offer when the name alone was already searched city-wide", () => {
+    // GIVEN only a name, no category, filter or area
+    const selection = { committed: { q: "Zzzz", ...NO_CHOICES }, draft: NO_CHOICES };
+
+    // WHEN asking for the wider search
+    // THEN there is none
+    expect(widenSearch(selection)).toBeNull();
+  });
+
+  it("returns to the start when no name was typed", () => {
+    // GIVEN a category browsed around the user
+    const draft = { ...NO_CHOICES, category: "toilet", nearby: { position: here } };
+
+    // WHEN widening
+    // THEN the start comes back
+    expect(widenSearch({ committed: { q: "", ...draft }, draft })).toBe(START_SELECTION);
+  });
+});
 
 describe("isSearching", () => {
   it("is false at the start: no query, category, feature or location", () => {

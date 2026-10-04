@@ -26,6 +26,7 @@ import {
   FEATURE_FILTERS,
   type HomeChoices,
   type HomeCommitted,
+  type HomeSelection,
   homeView,
   isSearching,
   panelAfterAsk,
@@ -34,6 +35,7 @@ import {
   searchOrigin,
   showResults,
   START_SELECTION,
+  widenSearch,
 } from "@/lib/home-start";
 import { committedToSearch, searchToCommitted, searchWantsNear } from "@/lib/home-url";
 import { listedCount } from "@/lib/list-count";
@@ -48,7 +50,7 @@ import { useProfile } from "@/lib/profile/use-profile";
 import { countByStatus, filterByVerdict, filterPointsByVerdict, missingNeeds, STATUS_ORDER } from "@/lib/profile/verdict-list";
 import { scrollIntoViewWithin, scrollParent } from "@/lib/scroll-within";
 import { useDebounced, useDebouncedValue } from "@/lib/use-debounced";
-import { followedView, isPartial, listArea, nextTaggedView, pointsCut, roundView, type TaggedView } from "@/lib/view-list";
+import { fitTargets, followedView, isPartial, listArea, nextTaggedView, pointsCut, roundView, type TaggedView } from "@/lib/view-list";
 import { NEAR_SCOPE, POOR_RESULTS, type SearchScope, scopeArea, viewLeavesArea, viewScope, widerScope } from "@/lib/search-scope";
 import { useGrantedPosition } from "@/lib/use-granted-position";
 import { useMediaQuery } from "@/lib/use-media-query";
@@ -225,15 +227,17 @@ export function HomeScreen() {
     ...profileQuery(settings),
   };
   const queryKey = JSON.stringify(query);
-  // The list holds the places of the map's view (the "W mojej okolicy" area when set), nearest first, a page at a
-  // time; the map's pins come from the same filters, so everything on the map is also in the list (R6). A new search
-  // first lists its own area (the map fits those results); the view counts once the camera moved after they arrived.
+  // The list holds the places of the map's view (the "W mojej okolicy" area when set; the whole city for a typed name),
+  // nearest first, a page at a time; the map's pins come from the same filters, so everything on the map is also in the
+  // list (R6). A new search first lists its own area (the map fits those results); the view counts once the camera
+  // moved after they arrived.
   const settledSearch = useRef<string | null>(null);
   const [listedSearch, setListedSearch] = useState<string | null>(null);
   const [mapView, setMapView] = useState<TaggedView | null>(null);
   const listView = followedView(useDebounced(mapView, POINTS_DEBOUNCE_MS), queryKey);
+  const listBox = listArea(area, listView, committed.q);
   const placesQuery = useInfinitePlaces(
-    { ...filters, bbox: listArea(area, listView), near: searchFrom.centre, limit: 100 },
+    { ...filters, bbox: listBox, near: searchFrom.centre, limit: 100 },
     { enabled: searching },
   );
   const pages = placesQuery.data?.pages;
@@ -265,6 +269,7 @@ export function HomeScreen() {
   const counts = useMemo(() => countByStatus(items), [items]);
   const shown = useMemo(() => filterByVerdict(items, { status: statusFilter, hideFailing }), [items, statusFilter, hideFailing]);
   const mapPlaces = useMemo(() => shown.map(({ place }) => place), [shown]);
+  const mapFit = useMemo(() => fitTargets(committed.q, mapPlaces), [committed.q, mapPlaces]);
   const mapPoints = useMemo(
     () =>
       searching && points.data && !points.isError
@@ -288,7 +293,7 @@ export function HomeScreen() {
     listError: places.isError,
     items,
     from: chosenPlace ? "chosen" : "user",
-    listQuery: { ...filters, bbox: listArea(area, listView), near: searchFrom.centre },
+    listQuery: { ...filters, bbox: listBox, near: searchFrom.centre },
   });
   const quickSays = quickAnnouncement(m, locale, quick, quickState);
   const partial = isPartial(places.data?.items.length ?? 0, total);
@@ -328,7 +333,8 @@ export function HomeScreen() {
   // The count on "Pokaż wyniki (N)": a one-row request of the draft, debounced, keeping the last number meanwhile.
   const confirm = confirmAction(selection, q);
   const asked = draftAsk(selection, q);
-  const countKey = JSON.stringify([asked, listArea(draftFrom.area, listView), settings.profile]);
+  const countBox = listArea(draftFrom.area, listView, asked?.q);
+  const countKey = JSON.stringify([asked, countBox, settings.profile]);
   const countFilters = useMemo(
     () =>
       asked && {
@@ -337,7 +343,7 @@ export function HomeScreen() {
         feature: asked.features.length ? [...asked.features] : undefined,
         includeUnknown: asked.features.length ? asked.showUnknown : undefined,
         ...profileQuery(settings),
-        bbox: listArea(draftFrom.area, listView),
+        bbox: countBox,
         near: draftFrom.centre,
         limit: 1,
       },
@@ -390,7 +396,7 @@ export function HomeScreen() {
       : verdicts && profile
         ? tp.announce(profile, shown.length, items.length, counts)
         : partial
-          ? t.list.announcePartial(items.length, total!)
+          ? (listBox ? t.list.announcePartial : t.list.announcePartialFound)(items.length, total!)
           : t.list.announce(listedCount(places.data!, shown.length));
   const announcement =
     listAnnouncement &&
@@ -535,28 +541,32 @@ export function HomeScreen() {
   const searchHere = Boolean(searching && nearby && !pending && !places.isError && viewLeavesArea(area, mapView?.view ?? null));
 
   // With "W mojej okolicy" on, the area is what narrowed the search: drop only it, so the same search runs over the
-  // whole city. Otherwise drop everything (the empty state's hint), which is the start state.
+  // whole city. Otherwise keep only the typed name, or go back to the start without one.
   function searchWider() {
-    if (!nearby) return clearAll();
-    setUnknownCommand(false);
-    setSelection((current) => commitChange(current, { nearby: null }));
+    if (nearby) {
+      setUnknownCommand(false);
+      setSelection((current) => commitChange(current, { nearby: null }));
+    } else if (widened) {
+      startOver(widened);
+    }
   }
 
-  function clearAll() {
+  function startOver(next: HomeSelection = START_SELECTION) {
     setQuickId(null);
     setUnknownCommand(false);
     nearbyForCommand.current = false;
-    setQ("");
-    setSelection(START_SELECTION);
+    setQ(next.committed.q);
+    setSelection(next);
     setStatusFilter(null);
     setHideFailing(false);
   }
+  const widened = widenSearch(selection);
 
   // Anything that hides part of the city from the map and list, picked or already shown; "back" undoes all of it at once.
   const narrowed = Boolean(q || isSearching(committed) || isSearching({ q: "", ...draft }) || statusFilter || hideFailing);
 
   function resetView() {
-    clearAll();
+    startOver();
     setSelectedId(null);
     setExpanded(false);
   }
@@ -600,7 +610,7 @@ export function HomeScreen() {
   const { hasNextPage, isFetchingNextPage, fetchNextPage } = placesQuery;
   const moreOnServer = searching && Boolean(hasNextPage);
   const pendingMore = useRef<{ key: string; pages: number; from: number; focus: boolean } | null>(null);
-  const listKey = JSON.stringify([queryKey, listArea(area, listView)]);
+  const listKey = JSON.stringify([queryKey, listBox]);
   function loadMore(focus: boolean) {
     if (rendered < shown.length) {
       if (focus) focusRowRef.current = shown[rendered]?.place.id ?? null;
@@ -839,14 +849,18 @@ export function HomeScreen() {
                   </Link>
                 </p>
               ) : null}
-              {origin ? null : <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>}
+              {origin ? null : (
+                <p className="text-body-sm text-muted-foreground">{widened?.committed.q ? t.list.emptyHintKeepName : t.list.emptyHint}</p>
+              )}
               <div className="flex flex-wrap justify-center gap-2">
                 {wider ? (
                   <Button onClick={() => changeScope(wider)}>{tn.widen[wider.kind as "wide" | "city"]}</Button>
                 ) : null}
-                <Button variant="outline" onClick={searchWider}>
-                  {t.list.searchWider}
-                </Button>
+                {nearby || widened ? (
+                  <Button variant="outline" onClick={searchWider}>
+                    {t.list.searchWider}
+                  </Button>
+                ) : null}
                 {features.length && !showUnknown ? (
                   <Button variant="ghost" onClick={() => setSelection((current) => commitChange(current, { showUnknown: true }))}>
                     {t.showUnknown}
@@ -1004,6 +1018,7 @@ export function HomeScreen() {
         <PlaceMap
           places={mapPlaces}
           fitKey={searching && !pending ? queryKey : null}
+          fitTo={mapFit}
           points={mapPoints ?? (places.isPlaceholderData ? [] : undefined)}
           onViewChange={followView}
           selectedId={selectedId}
