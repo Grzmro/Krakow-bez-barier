@@ -99,7 +99,20 @@ describe("currentOf", () => {
     expect(current).toEqual({
       currentValue: { kind: "boolean", boolean: true },
       currentSource: { name: "osm", asOf: "2026-05-14T00:00:00Z" },
+      currentConfirmations: { count: 0, lastAt: null },
     });
+  });
+
+  it("reports the confirmations of the fact behind the value, with the last date", () => {
+    // GIVEN an OSM fact confirmed twice by visitors
+    const osm = fact("lift", bool(true), {
+      sourceId: "osm",
+      evidence: { confirmations: 2, confirmationDates: ["2026-10-02T08:00:00Z", "2026-09-20T08:00:00Z"] },
+    });
+
+    // WHEN the moderation queue shows the current value
+    // THEN the moderator sees how many users back it and when the last one did
+    expect(currentOf("lift", [osm], NOW).currentConfirmations).toEqual({ count: 2, lastAt: "2026-10-02T08:00:00Z" });
   });
 
   it("has no source when the card has no value", () => {
@@ -107,7 +120,8 @@ describe("currentOf", () => {
     const facts = [fact("lift", bool(true), { sourceId: "osm" }), fact("lift", bool(false), { sourceId: "city" })];
 
     // WHEN / THEN a conflict has neither a value nor a source
-    expect(currentOf("lift", facts, NOW)).toEqual({ currentValue: null, currentSource: null });
-    expect(currentOf("lift", [], NOW)).toEqual({ currentValue: null, currentSource: null });
+    const none = { currentValue: null, currentSource: null, currentConfirmations: null };
+    expect(currentOf("lift", facts, NOW)).toEqual(none);
+    expect(currentOf("lift", [], NOW)).toEqual(none);
   });
 });

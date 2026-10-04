@@ -4,6 +4,9 @@ export const STALE_AFTER_MONTHS = 12;
 
 export const COMMUNITY_CONFIRMATIONS_REQUIRED = 2;
 
+/** Only confirmations this recent count: a value nobody has vouched for lately is not "confirmed". */
+export const CONFIRMATION_WINDOW_DAYS = 90;
+
 export const RELIABILITY_RANK: Record<Reliability, number> = {
   confirmed: 5,
   community: 4,

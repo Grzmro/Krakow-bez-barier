@@ -89,6 +89,7 @@ export function factRecord(
     supersededAt: null,
     createdAt: AT,
     confirmations: 0,
+    confirmationDates: [],
     source,
     ...overrides,
   };

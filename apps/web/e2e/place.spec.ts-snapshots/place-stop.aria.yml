@@ -7,7 +7,7 @@
       - button "To się nie zgadza":
         - img
         - text: ""
-      - button "Potwierdzam, byłem tu":
+      - button "Nadal aktualne":
         - img
         - text: ""
     - listitem:
@@ -15,7 +15,7 @@
       - button "To się nie zgadza":
         - img
         - text: ""
-      - button "Potwierdzam, byłem tu":
+      - button "Nadal aktualne":
         - img
         - text: ""
     - listitem:
@@ -33,7 +33,7 @@
       - button "To się nie zgadza":
         - img
         - text: ""
-      - button "Potwierdzam, byłem tu":
+      - button "Nadal aktualne":
         - img
         - text: ""
     - listitem:
@@ -41,6 +41,6 @@
       - button "To się nie zgadza":
         - img
         - text: ""
-      - button "Potwierdzam, byłem tu":
+      - button "Nadal aktualne":
         - img
         - text: ""

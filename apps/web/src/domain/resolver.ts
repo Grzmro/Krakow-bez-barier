@@ -1,4 +1,9 @@
-import { COMMUNITY_CONFIRMATIONS_REQUIRED, RELIABILITY_RANK, STALE_AFTER_MONTHS } from "./config";
+import {
+  COMMUNITY_CONFIRMATIONS_REQUIRED,
+  CONFIRMATION_WINDOW_DAYS,
+  RELIABILITY_RANK,
+  STALE_AFTER_MONTHS,
+} from "./config";
 import type {
   AccessibilityAttribute,
   AccessibilityFact,
@@ -56,11 +61,24 @@ function compareFacts(now: Date) {
 // Sample and inferred facts can never be promoted by confirmations.
 const CONFIRMABLE: Reliability[] = ["community", "extracted", "user_report"];
 
-function statusOf(agreeing: AccessibilityFact[]): ReliabilityStatus {
+/** Confirmations of a fact given within the window before `now`; future dates (clock skew) do not count. */
+export function recentConfirmations(fact: AccessibilityFact, now: Date): number {
+  const from = now.getTime() - CONFIRMATION_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  return (fact.evidence?.confirmationDates ?? []).filter((d) => {
+    const time = new Date(d).getTime();
+    return time >= from && time <= now.getTime();
+  }).length;
+}
+
+/**
+ * Community confirmation rule: a fact of a confirmable reliability is confirmed once it has
+ * COMMUNITY_CONFIRMATIONS_REQUIRED independent confirmations within CONFIRMATION_WINDOW_DAYS; fewer change nothing.
+ */
+function statusOf(agreeing: AccessibilityFact[], now: Date): ReliabilityStatus {
   if (agreeing.some((f) => f.reliability === "confirmed")) return "confirmed";
   const confirmations = Math.max(
     0,
-    ...agreeing.filter((f) => CONFIRMABLE.includes(f.reliability)).map((f) => f.evidence?.confirmations ?? 0),
+    ...agreeing.filter((f) => CONFIRMABLE.includes(f.reliability)).map((f) => recentConfirmations(f, now)),
   );
   return confirmations >= COMMUNITY_CONFIRMATIONS_REQUIRED ? "confirmed" : "unverified";
 }
@@ -92,7 +110,7 @@ export function resolveAttribute(
   }
 
   const state: ResolvedState = fresh.length > 0 ? "known" : "stale";
-  const status: ReliabilityStatus = state === "stale" ? "outdated" : statusOf(deciding);
+  const status: ReliabilityStatus = state === "stale" ? "outdated" : statusOf(deciding, now);
   return { attribute, state, status, value: best.value, facts: sorted };
 }
 

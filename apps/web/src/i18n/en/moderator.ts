@@ -45,6 +45,8 @@ export const moderator: Messages["moderator"] = {
   afterSourceDemo: "Source: Konto demonstracyjne moderatora (zmiana tymczasowa) — demo moderator account, temporary change",
   noData: "No data",
   sourceLine: (source: string, date: string) => `${source} · ${date}`,
+  confirmationsLine: (count: number, last: string | null) =>
+    count === 0 ? "No user confirmations" : `Confirmed by users: ${count}${last ? `, last ${last}` : ""}`,
   reportedOn: (date: string) => `Reported ${date}`,
   comment: "Reporter's comment",
   note: "Decision note (optional)",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createApiClient, createMockFetch, type Place } from "@krakow-bez-barier/contracts";
-import { bool, fact, num, text } from "@/domain/fixtures";
+import { bool, fact, NOW, num, text } from "@/domain/fixtures";
 import { matchProfile } from "@/domain/matcher";
 import { PROFILE_PRESETS } from "@/domain/profiles";
 import { resolveAttributes } from "@/domain/resolver";
@@ -144,6 +144,55 @@ describe("factViews", () => {
     // THEN the comment is not shown as the source's words
     expect(source?.note).toBeUndefined();
     expect(source?.link).toBeUndefined();
+  });
+
+  describe("user confirmations", () => {
+    const daysAgo = (days: number) => new Date(NOW.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+    const rowOf = (dates: string[], overrides = {}) => {
+      const f = fact("ramp", bool(true), {
+        evidence: { confirmations: dates.length, confirmationDates: dates },
+        confirmedAt: dates[0] ?? null,
+        ...overrides,
+      });
+      const place = { attributes: resolveAttributes([f], NOW) } as unknown as Place;
+      return factViews(place, "pl", NOW).find((r) => r.attribute === "ramp")!;
+    };
+
+    it("lists the confirmations on their own line, apart from the original source", () => {
+      // GIVEN an OSM fact confirmed by two visitors in the last weeks
+      // WHEN it is turned into a card row
+      const row = rowOf([daysAgo(2), daysAgo(20)]);
+
+      // THEN the source line stays the original source and the confirmations are a separate, confirmed line
+      expect(row.reliability).toBe("confirmed");
+      expect(row.sources[0].name).toBe("osm");
+      expect(row.sources[0].detail).not.toContain("potwierdzone");
+      expect(row.sources[0].confirmation).toMatch(/^Potwierdzone przez użytkowników: 2\/2 w ciągu 90 dni, ostatnio .* · potwierdzone przez społeczność$/);
+    });
+
+    it("marks a single confirmation as unverified and leaves the status alone", () => {
+      // GIVEN one confirmation
+      const row = rowOf([daysAgo(2)]);
+
+      // WHEN / THEN the fact is not raised and the line says so
+      expect(row.reliability).not.toBe("confirmed");
+      expect(row.sources[0].confirmation).toMatch(/1\/2 w ciągu 90 dni.* · niezweryfikowane$/);
+    });
+
+    it("says old confirmations no longer count", () => {
+      // GIVEN two confirmations older than 90 days
+      const row = rowOf([daysAgo(100), daysAgo(120)]);
+
+      // WHEN / THEN they are mentioned but do not raise the status
+      expect(row.reliability).not.toBe("confirmed");
+      expect(row.sources[0].confirmation).toMatch(/^Potwierdzenia użytkowników \(2\) są starsze niż 90 dni/);
+    });
+
+    it("has no confirmation line without confirmations", () => {
+      // GIVEN a fact nobody confirmed
+      // WHEN / THEN there is no such line
+      expect(rowOf([]).sources[0].confirmation).toBeUndefined();
+    });
   });
 
   it("names the entrance a fact describes before its reliability, and the matcher reads its door width", () => {

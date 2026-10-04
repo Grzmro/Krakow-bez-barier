@@ -8,7 +8,22 @@ import { createDrizzleOutagesStore } from "../outages/drizzle-store";
 
 export type PlaceRecord = typeof places.$inferSelect;
 export type SourceRecord = typeof sources.$inferSelect;
-export type FactRecord = typeof facts.$inferSelect & { source: SourceRecord; confirmations: number };
+/** `confirmationDates`: when the fact was confirmed (ISO, newest first, at most `MAX_CONFIRMATION_DATES`). */
+export type FactRecord = typeof facts.$inferSelect & {
+  source: SourceRecord;
+  confirmations: number;
+  confirmationDates: string[];
+};
+
+export const MAX_CONFIRMATION_DATES = 50;
+
+/** The dates of a fact's confirmations as a JSON array of ISO strings — dates only, nothing identifies the device. */
+export const confirmationDatesSql = sql<string[]>`coalesce((select jsonb_agg(c.created_at order by c.created_at desc)
+  from (select created_at from ${confirmations} where ${confirmations.factId} = ${facts.id}
+    order by created_at desc limit ${MAX_CONFIRMATION_DATES}) c), '[]'::jsonb)`;
+
+export const toConfirmationDates = (raw: unknown): string[] =>
+  (Array.isArray(raw) ? raw : []).map((d) => new Date(String(d)).toISOString());
 
 export type PlaceSearch = {
   /** Already normalized with `normalizeText`; every space-separated word must occur in the name or address. */
@@ -84,6 +99,7 @@ export function createDbPlaceRepository(db: Db = getDb()): PlaceRepository {
           fact: facts,
           source: sources,
           confirmations: sql<number>`(select count(*)::int from ${confirmations} where ${confirmations.factId} = ${facts.id})`,
+          confirmationDates: confirmationDatesSql,
         })
         .from(facts)
         .innerJoin(sources, eq(facts.sourceId, sources.id))
@@ -91,7 +107,12 @@ export function createDbPlaceRepository(db: Db = getDb()): PlaceRepository {
       const withheld = withheldSourceIds();
       return rows
         .filter(({ source }) => !isWithheld(source, withheld))
-        .map(({ fact, source, confirmations: count }) => ({ ...fact, source, confirmations: Number(count) }));
+        .map(({ fact, source, confirmations: count, confirmationDates }) => ({
+          ...fact,
+          source,
+          confirmations: Number(count),
+          confirmationDates: toConfirmationDates(confirmationDates),
+        }));
     },
 
     recentOutages: (placeIds, since) => createDrizzleOutagesStore(db).listRecent(placeIds, since),
