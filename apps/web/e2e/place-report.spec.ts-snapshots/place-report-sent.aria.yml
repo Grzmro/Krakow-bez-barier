@@ -70,7 +70,11 @@
           - list:
             - listitem: "/Twoje zgłoszenie: Jest Niezweryfikowane \\d+\\.\\d+\\.\\d+/"
           - paragraph: Czeka na weryfikację — nie zmienia danych powyżej.
-          - button "To się nie zgadza":
+          - text: Wysłano zgłoszenie
+          - button "Zmień":
+            - img
+            - text: ""
+          - button "Wycofaj":
             - img
             - text: ""
           - list:

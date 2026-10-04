@@ -631,9 +631,17 @@ paths:
         Abuse protection without puzzles (WCAG 3.3.8): a per-client limit (`429`) and the `website` honeypot.
         Photo upload is not available yet, so a non-null `photoUrl` is answered with `422`.
 
+
+        With `X-Contributor-Token`, a device has at most one pending contribution per place and attribute: a report
+        replaces the device''s earlier pending report of that attribute (`200`, same `id`, new value and comment;
+        `createdAt` becomes the time of the change and the status stays `new` or `needs_info`) and withdraws its
+        confirmation of that attribute, so the latest one wins.
+
         '
       tags:
       - reports
+      parameters:
+      - $ref: '#/components/parameters/ContributorToken'
       requestBody:
         required: true
         content:
@@ -660,6 +668,12 @@ paths:
                     number: 90
                     unit: cm
       responses:
+        '200':
+          description: The device's pending report of this attribute was replaced with this one.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
         '201':
           description: Report accepted for moderation.
           content:
@@ -698,11 +712,17 @@ paths:
         and counts it in `evidence.confirmations`; with 2 confirmations a community or user-report fact is shown as
         "Potwierdzone przez społeczność" (`status: confirmed`). One confirmation per fact per client (`429` on repeat).
 
+
+        With `X-Contributor-Token`, a device has at most one pending contribution per place and attribute: confirming
+        a fact the device already confirmed returns that confirmation (`200`); otherwise the device''s pending report and
+        earlier confirmation of the attribute are withdrawn, so the latest one wins.
+
         '
       tags:
       - reports
       parameters:
       - $ref: '#/components/parameters/PlaceId'
+      - $ref: '#/components/parameters/ContributorToken'
       requestBody:
         required: true
         content:
@@ -715,6 +735,12 @@ paths:
                   factId: fact_osm_podziemia_lift
                   comment: Sprawdzone dziś, winda działa.
       responses:
+        '200':
+          description: This device already confirmed the fact; its confirmation is returned unchanged.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Confirmation'
         '201':
           description: Confirmation recorded.
           content:
@@ -729,6 +755,69 @@ paths:
                     factId: fact_osm_podziemia_lift
                     comment: Sprawdzone dziś, winda działa.
                     createdAt: '2026-10-03T09:30:00Z'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /places/{id}/contributions:
+    get:
+      operationId: listMyContributions
+      summary: This device's pending report or confirmation per attribute
+      description: 'What the device identified by `X-Contributor-Token` has sent for the place and is still pending: at
+        most one item per attribute, a report awaiting moderation or a confirmation of a current fact. The card shows it
+        as "Twoje zgłoszenie" with "Zmień" and "Wycofaj" instead of sending again. Nothing is returned for other devices.
+
+        '
+      tags:
+      - reports
+      parameters:
+      - $ref: '#/components/parameters/PlaceId'
+      - $ref: '#/components/parameters/ContributorTokenRequired'
+      responses:
+        '200':
+          description: The device's pending contributions for the place.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContributionList'
+              examples:
+                none:
+                  value:
+                    items: []
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /places/{id}/contributions/{attribute}:
+    delete:
+      operationId: withdrawContribution
+      summary: Withdraw this device's pending report or confirmation of one attribute
+      description: 'Withdraws the pending report (it leaves the moderation queue and the card) and the confirmation the
+        device identified by `X-Contributor-Token` sent for this place and attribute. Idempotent: `204` also when
+        nothing was pending. A report a moderator already decided stays as decided.
+
+        '
+      tags:
+      - reports
+      parameters:
+      - $ref: '#/components/parameters/PlaceId'
+      - name: attribute
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/AccessibilityAttribute'
+      - $ref: '#/components/parameters/ContributorTokenRequired'
+      responses:
+        '204':
+          description: Nothing of this device is pending for the attribute any more.
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -1756,6 +1845,25 @@ components:
       scheme: bearer
       description: Moderator token.
   parameters:
+    ContributorToken:
+      name: X-Contributor-Token
+      in: header
+      description: 'Random identifier the browser generates once and keeps locally, so one device has at most one
+        pending contribution per place and attribute. Not tied to a person, account, IP or device fingerprint; the API
+        stores only its SHA-256 hash with the contribution (R4, R7). Without it every request counts as a new contribution.
+
+        '
+      schema:
+        type: string
+        pattern: ^[A-Za-z0-9_-]{16,128}$
+    ContributorTokenRequired:
+      name: X-Contributor-Token
+      in: header
+      required: true
+      description: The device's contributor token (see `ContributorToken`).
+      schema:
+        type: string
+        pattern: ^[A-Za-z0-9_-]{16,128}$
     PlaceId:
       name: id
       in: path
@@ -3183,6 +3291,49 @@ components:
           - string
           - 'null'
           maxLength: 500
+    Contribution:
+      type: object
+      description: 'One pending contribution of the requesting device: a report awaiting moderation, or a confirmation
+        of a current fact (`factId`). `value` is the reported value, or the value of the confirmed fact.
+
+        '
+      required:
+      - kind
+      - id
+      - attribute
+      - value
+      - factId
+      - createdAt
+      properties:
+        kind:
+          type: string
+          enum:
+          - report
+          - confirmation
+        id:
+          type: string
+          description: The report's or the confirmation's id.
+        attribute:
+          $ref: '#/components/schemas/AccessibilityAttribute'
+        value:
+          $ref: '#/components/schemas/FactValue'
+        factId:
+          type:
+          - string
+          - 'null'
+          description: The confirmed fact; null for a report.
+        createdAt:
+          type: string
+          format: date-time
+    ContributionList:
+      type: object
+      required:
+      - items
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contribution'
     Confirmation:
       type: object
       required:

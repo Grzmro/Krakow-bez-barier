@@ -1,12 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import type { AccessibilityAttribute, ReportCreate } from "@krakow-bez-barier/contracts";
-import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { AccessibilityAttribute, Contribution, ReportCreate } from "@krakow-bez-barier/contracts";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast, useAnnounce } from "@krakow-bez-barier/ui";
-import { useMessages } from "@/i18n/client";
+import { useLocale, useMessages } from "@/i18n/client";
 import { api } from "./api";
-import type { PendingEntry } from "./reports";
+import { contributorToken, storedContributorToken } from "./contributor-token";
+import { ownEntries, type PendingEntry } from "./reports";
 
 /** How long "Cofnij" is offered before the report is actually sent. */
 export const UNDO_MS = 5000;
@@ -14,96 +15,130 @@ export const UNDO_MS = 5000;
 let seq = 0;
 const nextKey = () => `mine-${++seq}`;
 
+const contributionsKey = (placeId: string) => ["contributions", placeId] as const;
+
 /**
- * The visitor's own reports and confirmations for one place; `servedIds` are the report ids the place card lists. A report is held back for UNDO_MS so "Cofnij" really
- * withdraws it (there is no delete endpoint); it is sent at once if the card unmounts first. Once sent, the card is
- * refetched so the report comes back from the API (`pendingReports`) — and stays after a reload, for every visitor.
+ * This device's report or confirmation per attribute of one place — at most one each, the latest wins, as the API keeps
+ * it (`X-Contributor-Token`). The API's list (`GET /places/{id}/contributions`) survives a reload; a report still in its
+ * UNDO_MS "Cofnij" window, or being sent, is held locally and shown instead. It is sent at once if the card unmounts.
  */
-export function usePlaceReports(placeId: string, servedIds: string[]) {
-  const [entries, setEntries] = useState<PendingEntry[]>([]);
-  const queued = useRef(new Map<string, { timer: ReturnType<typeof setTimeout>; send: () => void }>());
-  const confirming = useRef(new Set<string>());
+export function usePlaceReports(placeId: string) {
+  const [local, setLocal] = useState<PendingEntry[]>([]);
+  const queued = useRef(new Map<AccessibilityAttribute, { key: string; timer: ReturnType<typeof setTimeout>; send: () => void }>());
+  const busy = useRef(new Set<AccessibilityAttribute>());
   const announce = useAnnounce();
   const t = useMessages().place;
+  const locale = useLocale();
   const queryClient = useQueryClient();
 
-  const servedKey = servedIds.join(",");
-  const [seenKey, setSeenKey] = useState(servedKey);
-  if (seenKey !== servedKey) {
-    setSeenKey(servedKey);
-    const listed = new Set(servedIds);
-    setEntries((all) => all.map((e) => (e.reportId && listed.has(e.reportId) ? { ...e, served: true } : e)));
-  }
+  const contributions = useQuery({
+    queryKey: contributionsKey(placeId),
+    queryFn: async (): Promise<Contribution[]> => {
+      // A browser that never sent anything has no token and nothing pending: no request, no identifier created.
+      const token = storedContributorToken();
+      if (!token) return [];
+      const { data } = await api.GET("/places/{id}/contributions", {
+        params: { path: { id: placeId }, header: { "X-Contributor-Token": token } },
+      });
+      if (!data) throw new Error("listMyContributions failed");
+      return data.items;
+    },
+  });
 
-  const remove = useCallback((key: string) => setEntries((all) => all.filter((e) => e.key !== key)), []);
+  const refresh = useCallback(
+    () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: contributionsKey(placeId) }),
+        queryClient.invalidateQueries({ queryKey: ["place"], predicate: (q) => q.queryKey.includes(placeId) }),
+      ]),
+    [placeId, queryClient],
+  );
+
+  const dropLocal = useCallback((key: string) => setLocal((all) => all.filter((e) => e.key !== key)), []);
 
   const send = useCallback(
     async (key: string, body: ReportCreate) => {
-      queued.current.delete(key);
+      queued.current.delete(body.attribute);
       try {
-        const { data } = await api.POST("/reports", { body });
+        const { data, response } = await api.POST("/reports", {
+          params: { header: { "X-Contributor-Token": contributorToken() } },
+          body,
+        });
         if (!data) throw new Error("createReport failed");
-        setEntries((all) =>
-          all.map((e) => (e.key === key ? { ...e, sending: false, reportId: data.id, createdAt: data.createdAt } : e)),
-        );
-        announce(t.report.sent);
-        void queryClient.invalidateQueries({ queryKey: ["place"], predicate: (q) => q.queryKey.includes(placeId) });
+        announce(response.status === 200 ? t.report.replaced : t.report.sent);
+        await refresh();
       } catch {
-        remove(key);
         toast.error(t.report.failed);
         announce(t.report.failed);
+      } finally {
+        dropLocal(key);
       }
     },
-    [announce, placeId, queryClient, remove, t],
+    [announce, dropLocal, refresh, t],
+  );
+
+  const cancelQueued = useCallback(
+    (attribute: AccessibilityAttribute) => {
+      const item = queued.current.get(attribute);
+      if (!item) return false;
+      clearTimeout(item.timer);
+      queued.current.delete(attribute);
+      dropLocal(item.key);
+      return true;
+    },
+    [dropLocal],
   );
 
   const submitReport = useCallback(
     (body: Omit<ReportCreate, "placeId">, valueText: string) => {
+      // A second report of the same feature inside the undo window replaces the first one before it is sent.
+      cancelQueued(body.attribute);
       const key = nextKey();
       const full: ReportCreate = { ...body, placeId };
-      setEntries((all) => [
-        ...all,
+      setLocal((all) => [
+        ...all.filter((e) => e.attribute !== body.attribute),
         { key, kind: "report", mine: true, attribute: body.attribute, valueText, createdAt: new Date().toISOString(), sending: true },
       ]);
       const timer = setTimeout(() => void send(key, full), UNDO_MS);
-      queued.current.set(key, { timer, send: () => void send(key, full) });
+      queued.current.set(body.attribute, { key, timer, send: () => void send(key, full) });
       toast(t.report.thanks, {
         duration: UNDO_MS,
         action: {
           label: t.report.undo,
           onClick: () => {
-            const item = queued.current.get(key);
-            if (!item) {
+            if (queued.current.get(body.attribute)?.key !== key) {
               toast(t.report.alreadySent);
               announce(t.report.alreadySent);
               return;
             }
-            clearTimeout(item.timer);
-            queued.current.delete(key);
-            remove(key);
+            cancelQueued(body.attribute);
             announce(t.report.undone);
           },
         },
       });
       announce(t.report.thanks);
     },
-    [announce, placeId, remove, send, t],
+    [announce, cancelQueued, placeId, send, t],
   );
 
   const confirm = useCallback(
-    async (attribute: AccessibilityAttribute, factId: string, valueText?: string) => {
-      if (confirming.current.has(factId)) return false;
-      confirming.current.add(factId);
+    async (attribute: AccessibilityAttribute, factId: string) => {
+      if (busy.current.has(attribute)) return false;
+      busy.current.add(attribute);
       try {
-        const { data } = await api.POST("/places/{id}/confirmations", {
-          params: { path: { id: placeId } },
+        cancelQueued(attribute);
+        const { data, response } = await api.POST("/places/{id}/confirmations", {
+          params: { path: { id: placeId }, header: { "X-Contributor-Token": contributorToken() } },
           body: { factId },
         });
+        // One confirmation per fact and address a day, also after withdrawing one: say so instead of "failed".
+        if (response.status === 429) {
+          toast(t.confirmLimited);
+          announce(t.confirmLimited);
+          return false;
+        }
         if (!data) throw new Error("createConfirmation failed");
-        setEntries((all) => [
-          ...all,
-          { key: nextKey(), kind: "confirmation", mine: true, attribute, valueText, createdAt: data.createdAt, sending: false },
-        ]);
+        await refresh();
         toast(t.confirmed);
         announce(t.confirmed);
         return true;
@@ -112,10 +147,39 @@ export function usePlaceReports(placeId: string, servedIds: string[]) {
         announce(t.confirmFailed);
         return false;
       } finally {
-        confirming.current.delete(factId);
+        busy.current.delete(attribute);
       }
     },
-    [announce, placeId, t],
+    [announce, cancelQueued, placeId, refresh, t],
+  );
+
+  const withdraw = useCallback(
+    async (attribute: AccessibilityAttribute) => {
+      if (busy.current.has(attribute)) return false;
+      busy.current.add(attribute);
+      try {
+        cancelQueued(attribute);
+        // A change still in its undo window replaces a report the server already has; that one is withdrawn too.
+        const token = storedContributorToken();
+        if (token && contributions.data?.some((c) => c.attribute === attribute)) {
+          const { response } = await api.DELETE("/places/{id}/contributions/{attribute}", {
+            params: { path: { id: placeId, attribute }, header: { "X-Contributor-Token": token } },
+          });
+          if (!response.ok) throw new Error("withdrawContribution failed");
+          await refresh();
+        }
+        toast(t.mine.withdrawn);
+        announce(t.mine.withdrawn);
+        return true;
+      } catch {
+        toast.error(t.mine.withdrawFailed);
+        announce(t.mine.withdrawFailed);
+        return false;
+      } finally {
+        busy.current.delete(attribute);
+      }
+    },
+    [announce, cancelQueued, contributions.data, placeId, refresh, t],
   );
 
   useEffect(() => {
@@ -129,5 +193,7 @@ export function usePlaceReports(placeId: string, servedIds: string[]) {
     };
   }, []);
 
-  return { entries, submitReport, confirm };
+  const entries = useMemo(() => ownEntries(contributions.data ?? [], local, locale), [contributions.data, local, locale]);
+
+  return { entries, submitReport, confirm, withdraw };
 }

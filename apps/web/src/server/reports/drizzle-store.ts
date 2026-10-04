@@ -1,10 +1,17 @@
-import type { AccessibilityFact } from "@krakow-bez-barier/contracts";
+import type { AccessibilityAttribute, AccessibilityFact, ReportStatus } from "@krakow-bez-barier/contracts";
 import { confirmations, facts, moderationLog, places, reports, sources, type Db } from "@krakow-bez-barier/db";
-import { and, asc, desc, eq, gt, inArray, lt, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, isNull, lt, ne, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/server/db";
 import { isWithheld, withheldSourceIds } from "@/server/sources";
 import { DEMO_MODERATED_SOURCE } from "./demo";
-import type { ModerationEventRecord, QueueItem, ReportRecord, ReportsStore } from "./store";
+import type {
+  ConfirmationRecord,
+  ContributionRecord,
+  ModerationEventRecord,
+  QueueItem,
+  ReportRecord,
+  ReportsStore,
+} from "./store";
 
 /** The source every accepted report is attributed to (US-4.4). */
 export const COMMUNITY_MODERATED_SOURCE = {
@@ -76,10 +83,36 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
       return toRecord(row);
     },
 
+    async saveContributorReport({ contributor, at, ...report }) {
+      return db.transaction(async (tx) => {
+        await lockContribution(tx, contributor, report.placeId, report.attribute);
+        await withdrawConfirmations(tx, { contributor, placeId: report.placeId, attribute: report.attribute });
+        const [pending] = await tx
+          .select({ id: reports.id })
+          .from(reports)
+          .where(pendingOf(contributor, report.placeId, report.attribute))
+          .limit(1)
+          .for("update");
+        if (pending) {
+          const [row] = await tx
+            .update(reports)
+            .set({ value: report.value, comment: report.comment, createdAt: at })
+            .where(eq(reports.id, pending.id))
+            .returning();
+          return { report: toRecord(row), replaced: true };
+        }
+        const [row] = await tx
+          .insert(reports)
+          .values({ ...report, contributorHash: contributor, createdAt: at })
+          .returning();
+        return { report: toRecord(row), replaced: false };
+      });
+    },
+
     async findActiveFact(placeId, factId) {
       if (!isUuid(factId)) return null;
       const [fact] = await db
-        .select({ id: facts.id })
+        .select({ id: facts.id, attribute: facts.attribute })
         .from(facts)
         .where(and(eq(facts.id, factId), eq(facts.placeId, placeId), eq(facts.status, "active")))
         .limit(1);
@@ -87,22 +120,72 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
     },
 
     async confirmFact({ placeId, factId, comment, at }) {
+      return db.transaction((tx) => insertConfirmation(tx, { placeId, factId, comment, at, contributor: null }));
+    },
+
+    async confirmFactAsContributor({ placeId, factId, attribute, comment, at, contributor, admit }) {
       return db.transaction(async (tx) => {
-        const [row] = await tx.insert(confirmations).values({ placeId, factId, comment, createdAt: at }).returning();
-        await tx
-          .update(facts)
-          .set({
-            confirmedAt: at,
-            evidence: sql`coalesce(${facts.evidence}, '{}'::jsonb) || jsonb_build_object('confirmations',
-              (select count(*)::int from ${confirmations} where ${confirmations.factId} = ${factId}))`,
-          })
-          .where(eq(facts.id, factId));
-        return row;
+        await lockContribution(tx, contributor, placeId, attribute);
+        const [existing] = await tx
+          .select()
+          .from(confirmations)
+          .where(and(eq(confirmations.contributorHash, contributor), eq(confirmations.factId, factId)))
+          .limit(1);
+        if (existing) return { confirmation: toConfirmation(existing), created: false };
+        admit();
+        await tx.update(reports).set({ withdrawnAt: at }).where(pendingOf(contributor, placeId, attribute));
+        await withdrawConfirmations(tx, { contributor, placeId, attribute });
+        const confirmation = await insertConfirmation(tx, { placeId, factId, comment, at, contributor });
+        return { confirmation, created: true };
+      });
+    },
+
+    async listContributions(placeId, contributor) {
+      const [pending, confirmed] = await Promise.all([
+        db
+          .select()
+          .from(reports)
+          .where(and(eq(reports.contributorHash, contributor), eq(reports.placeId, placeId), isNull(reports.withdrawnAt), inArray(reports.status, PENDING)))
+          .orderBy(asc(reports.createdAt)),
+        db
+          .select({ confirmation: confirmations, fact: facts })
+          .from(confirmations)
+          .innerJoin(facts, eq(facts.id, confirmations.factId))
+          .where(
+            and(eq(confirmations.contributorHash, contributor), eq(confirmations.placeId, placeId), eq(facts.status, "active")),
+          )
+          .orderBy(asc(confirmations.createdAt)),
+      ]);
+      return [
+        ...pending.map((r): ContributionRecord => ({
+          kind: "report",
+          id: r.id,
+          attribute: r.attribute,
+          value: r.value,
+          factId: null,
+          createdAt: r.createdAt,
+        })),
+        ...confirmed.map(({ confirmation, fact }): ContributionRecord => ({
+          kind: "confirmation",
+          id: confirmation.id,
+          attribute: fact.attribute,
+          value: fact.value,
+          factId: fact.id,
+          createdAt: confirmation.createdAt,
+        })),
+      ];
+    },
+
+    async withdrawContributions({ placeId, attribute, contributor, at }) {
+      await db.transaction(async (tx) => {
+        await lockContribution(tx, contributor, placeId, attribute);
+        await tx.update(reports).set({ withdrawnAt: at }).where(pendingOf(contributor, placeId, attribute));
+        await withdrawConfirmations(tx, { contributor, placeId, attribute });
       });
     },
 
     async listQueue({ status, limit, after }) {
-      const conditions: (SQL | undefined)[] = [status && eq(reports.status, status)];
+      const conditions: (SQL | undefined)[] = [status && eq(reports.status, status), isNull(reports.withdrawnAt)];
       if (after) {
         conditions.push(
           or(
@@ -159,7 +242,7 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
       if (!isUuid(reportId)) return { kind: "not_found" };
       return db.transaction(async (tx) => {
         const [current] = await tx.select().from(reports).where(eq(reports.id, reportId)).for("update");
-        if (!current) return { kind: "not_found" } as const;
+        if (!current || current.withdrawnAt) return { kind: "not_found" } as const;
         if (current.status === "accepted" || current.status === "rejected") {
           return { kind: "final", status: current.status } as const;
         }
@@ -219,7 +302,7 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
       const rows = await db
         .select()
         .from(reports)
-        .where(and(eq(reports.placeId, placeId), inArray(reports.status, ["new", "needs_info"])))
+        .where(and(eq(reports.placeId, placeId), inArray(reports.status, PENDING), isNull(reports.withdrawnAt)))
         .orderBy(asc(reports.createdAt), asc(reports.id));
       return rows.map(toRecord);
     },
@@ -231,16 +314,31 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
           .where(and(eq(moderationLog.moderator, moderator), lt(moderationLog.createdAt, before)))
           .returning({ reportId: moderationLog.reportId });
         for (const reportId of new Set(undone.map((u) => u.reportId))) {
-          await tx.select({ id: reports.id }).from(reports).where(eq(reports.id, reportId)).for("update");
+          const [report] = await tx.select().from(reports).where(eq(reports.id, reportId)).for("update");
           const [latest] = await tx
             .select()
             .from(moderationLog)
             .where(eq(moderationLog.reportId, reportId))
             .orderBy(desc(moderationLog.createdAt), desc(moderationLog.id))
             .limit(1);
+          const status = latest?.decision ?? "new";
+          // Back to pending while the same device has sent a newer report of the attribute: the newer one stays the
+          // device's one pending contribution and this one counts as withdrawn (the unique index allows only one).
+          const superseded =
+            report?.contributorHash && !report.withdrawnAt && PENDING.includes(status)
+              ? await tx
+                  .select({ id: reports.id })
+                  .from(reports)
+                  .where(and(pendingOf(report.contributorHash, report.placeId, report.attribute), ne(reports.id, reportId)))
+                  .limit(1)
+              : [];
           await tx
             .update(reports)
-            .set({ status: latest?.decision ?? "new", decidedAt: latest?.createdAt ?? null })
+            .set({
+              status,
+              decidedAt: latest?.createdAt ?? null,
+              ...(superseded.length > 0 && { withdrawnAt: before }),
+            })
             .where(eq(reports.id, reportId));
         }
 
@@ -267,6 +365,89 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
 }
 
 const DEMO_SOURCE_LOCK = `sources|${DEMO_MODERATED_SOURCE.id}`;
+
+type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
+
+const PENDING: ReportStatus[] = ["new", "needs_info"];
+
+/** The device's report of the place's attribute still awaiting moderation. */
+const pendingOf = (contributor: string, placeId: string, attribute: AccessibilityAttribute) =>
+  and(
+    eq(reports.contributorHash, contributor),
+    eq(reports.placeId, placeId),
+    eq(reports.attribute, attribute),
+    isNull(reports.withdrawnAt),
+    inArray(reports.status, PENDING),
+  );
+
+// Two sends from one device at once would both find nothing pending and insert twice; this serialises them.
+async function lockContribution(tx: Tx, contributor: string, placeId: string, attribute: AccessibilityAttribute) {
+  await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`contribution|${contributor}|${placeId}|${attribute}`}))`);
+}
+
+const toConfirmation = (row: typeof confirmations.$inferSelect): ConfirmationRecord => ({
+  id: row.id,
+  placeId: row.placeId,
+  factId: row.factId,
+  comment: row.comment,
+  createdAt: row.createdAt,
+});
+
+/** Sets the facts' `evidence.confirmations` to the number of confirmations they have now. */
+async function recount(tx: Tx, factIds: string[], confirmedAt?: Date) {
+  if (factIds.length === 0) return;
+  await tx
+    .update(facts)
+    .set({
+      ...(confirmedAt && { confirmedAt }),
+      evidence: sql`coalesce(${facts.evidence}, '{}'::jsonb) || jsonb_build_object('confirmations',
+        (select count(*)::int from ${confirmations} where ${confirmations.factId} = ${facts.id}))`,
+    })
+    .where(inArray(facts.id, factIds));
+}
+
+async function insertConfirmation(
+  tx: Tx,
+  input: { placeId: string; factId: string; comment: string | null; at: Date; contributor: string | null },
+): Promise<ConfirmationRecord> {
+  const [row] = await tx
+    .insert(confirmations)
+    .values({
+      placeId: input.placeId,
+      factId: input.factId,
+      comment: input.comment,
+      createdAt: input.at,
+      contributorHash: input.contributor,
+    })
+    .returning();
+  await recount(tx, [input.factId], input.at);
+  return toConfirmation(row);
+}
+
+/**
+ * Removes the device's confirmations of the place's attribute and recounts the facts. A withdrawn confirmation is
+ * not kept: it is an anonymous "still true" vote that no longer holds, and every count reads the rows directly.
+ */
+async function withdrawConfirmations(
+  tx: Tx,
+  { contributor, placeId, attribute }: { contributor: string; placeId: string; attribute: AccessibilityAttribute },
+) {
+  const ofAttribute = tx
+    .select({ id: facts.id })
+    .from(facts)
+    .where(and(eq(facts.placeId, placeId), eq(facts.attribute, attribute)));
+  const removed = await tx
+    .delete(confirmations)
+    .where(
+      and(
+        eq(confirmations.contributorHash, contributor),
+        eq(confirmations.placeId, placeId),
+        inArray(confirmations.factId, ofAttribute),
+      ),
+    )
+    .returning({ factId: confirmations.factId });
+  await recount(tx, [...new Set(removed.map((r) => r.factId))]);
+}
 
 /** The store the route handlers use, over the shared database client. */
 export function reportsStore(): ReportsStore {

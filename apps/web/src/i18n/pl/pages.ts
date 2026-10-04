@@ -98,6 +98,10 @@ export const pages = {
         "Profil i progi zapisujemy tylko w Twojej przeglądarce. Język zapisujemy w ciasteczku kbb-lang (tylko „pl” albo „en”); przeglądarka wysyła je do serwera, żeby pokazać stronę w tym języku. Wszystko usuniesz, czyszcząc dane strony.",
       ],
       [
+        "Identyfikator zgłoszeń",
+        "Gdy wyślesz pierwsze zgłoszenie lub potwierdzenie, przeglądarka losuje identyfikator (kbb-contributor) i trzyma go tylko u Ciebie. Wysyła go ze zgłoszeniami i potwierdzeniami, żeby z jednego urządzenia było najwyżej jedno oczekujące zgłoszenie na cechę miejsca, które możesz zmienić albo wycofać. To losowy ciąg znaków: nie wiąże się z Tobą, kontem, adresem IP ani odciskiem urządzenia, a serwer zapisuje tylko jego skrót (SHA-256). Usuniesz go, czyszcząc dane strony.",
+      ],
+      [
         "Wyszukiwanie głosem",
         "Mowę zamienia na tekst Twoja przeglądarka (Web Speech API), nie nasz serwer. Przeglądarka może wysłać nagranie do usługi rozpoznawania mowy swojego dostawcy (np. Google w Chrome, Apple w Safari) na jego zasadach. My nie dostajemy ani nie zapisujemy nagrania — tylko tekst, który trafia do pola wyszukiwania. W przeglądarce zapisujemy jedynie, że informację o tym już widziałeś.",
       ],

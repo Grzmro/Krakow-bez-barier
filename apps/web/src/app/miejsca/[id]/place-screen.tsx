@@ -3,12 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
+  ArrowCounterClockwise,
   ArrowSquareOut,
   ArrowsHorizontal,
   Armchair,
   Baby,
   Building,
   Car,
+  CheckCircle,
   CloudSlash,
   Database,
   Elevator,
@@ -44,7 +46,7 @@ import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { useCategoryLookup } from "@/lib/categories";
 import { CARD_ATTRIBUTES, factViews, failedSources, formatDate, latestSourceDate, osmEditUrl } from "@/lib/place-facts";
-import { pendingEntries, servedReportIds, withPending, type PendingEntry } from "@/lib/reports";
+import { pendingEntries, withPending, type PendingEntry } from "@/lib/reports";
 import { usePlaceOutages } from "@/lib/use-place-outages";
 import { usePlaceReports } from "@/lib/use-place-reports";
 import { routes } from "@/lib/routes";
@@ -119,8 +121,10 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
   const focusContact = useRef(false);
   const contactRef = useRef<HTMLDivElement>(null);
   const announce = useAnnounce();
-  const reports = usePlaceReports(place.id, servedReportIds(place));
-  const notRightButtons = useRef(new Map<AccessibilityAttribute, HTMLButtonElement>());
+  const reports = usePlaceReports(place.id);
+  // The row's first action button: "To się nie zgadza" / "Uzupełnij", or "Zmień" once this device sent something.
+  const firstActions = useRef(new Map<AccessibilityAttribute, HTMLButtonElement>());
+  const focusFirstAction = useRef<AccessibilityAttribute | null>(null);
   const outageApi = usePlaceOutages(place.id);
   const outages = useMemo(() => place.outages ?? [], [place.outages]);
   const outagesRef = useRef<HTMLElement>(null);
@@ -192,12 +196,30 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
     setDrawer((d) => ({ ...d, open: false }));
     setOpenFacts((o) => ({ ...o, [attribute]: true }));
     reports.submitReport({ attribute, value, comment }, valueText);
+    focusFirstAction.current = attribute;
   };
 
-  // "Potwierdzam" disappears once the confirmation is listed, so focus moves to the row's other action first.
-  const confirmFact = async (attribute: AccessibilityAttribute, factId: string, valueText?: string) => {
-    const ok = await reports.confirm(attribute, factId, valueText);
-    if (ok) notRightButtons.current.get(attribute)?.focus();
+  // The pressed button disappears when the row switches between "send" and "sent" actions; focus follows to the row's
+  // first action once it has rendered.
+  useEffect(() => {
+    const attribute = focusFirstAction.current;
+    const button = attribute ? firstActions.current.get(attribute) : undefined;
+    if (!button) return;
+    focusFirstAction.current = null;
+    button.focus();
+  });
+
+  const confirmFact = async (attribute: AccessibilityAttribute, factId: string) => {
+    if (await reports.confirm(attribute, factId)) focusFirstAction.current = attribute;
+  };
+
+  const withdraw = async (attribute: AccessibilityAttribute) => {
+    if (await reports.withdraw(attribute)) focusFirstAction.current = attribute;
+  };
+
+  const firstActionRef = (attribute: AccessibilityAttribute) => (el: HTMLButtonElement | null) => {
+    if (el) firstActions.current.set(attribute, el);
+    else firstActions.current.delete(attribute);
   };
 
   const askOutage = (attribute: AccessibilityAttribute, unknown: boolean) => {
@@ -409,7 +431,8 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
           <ul className="divide-y divide-border overflow-hidden rounded-[20px] bg-surface-raised shadow-soft ring-1 ring-border">
             {facts.map((fact) => {
               const I = FACT_ICON[fact.attribute];
-              const confirmId = fact.pending.some((p) => p.kind === "confirmation") ? undefined : fact.confirmFactId;
+              const mine = fact.pending.find((p) => p.mine);
+              const confirmId = fact.confirmFactId;
               const outageButton =
                 canReportOutage(place, fact.attribute) && !outages.some((o) => o.equipment === fact.attribute) ? (
                   <Button
@@ -435,9 +458,43 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
                   reliability={fact.reliability}
                   sources={fact.sources}
                   actions={
-                    fact.unknown ? (
+                    mine ? (
                       <>
-                        <Button variant="outline" size="sm" onClick={() => openReport("fill", fact.attribute)}>
+                        <span className="flex min-h-10 items-center gap-1.5 text-body-sm font-semibold">
+                          <CheckCircle weight="fill" className="size-4 shrink-0 text-primary" aria-hidden />
+                          {mine.kind === "confirmation"
+                            ? t.mine.sentConfirmation
+                            : mine.sending
+                              ? t.mine.sendingReport
+                              : t.mine.sentReport}
+                        </span>
+                        <Button
+                          ref={firstActionRef(fact.attribute)}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openReport(fact.unknown ? "fill" : "correct", fact.attribute)}
+                        >
+                          <PencilSimple weight="bold" />
+                          {t.mine.change}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => withdraw(fact.attribute)}
+                        >
+                          <ArrowCounterClockwise weight="bold" />
+                          {t.mine.withdraw}
+                        </Button>
+                        {outageButton}
+                      </>
+                    ) : fact.unknown ? (
+                      <>
+                        <Button
+                          ref={firstActionRef(fact.attribute)}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openReport("fill", fact.attribute)}
+                        >
                           <Plus weight="bold" />
                           {t.fill}
                         </Button>
@@ -446,10 +503,7 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
                     ) : (
                       <>
                         <Button
-                          ref={(el) => {
-                            if (el) notRightButtons.current.set(fact.attribute, el);
-                            else notRightButtons.current.delete(fact.attribute);
-                          }}
+                          ref={firstActionRef(fact.attribute)}
                           variant="outline"
                           size="sm"
                           onClick={() => openReport("correct", fact.attribute)}
@@ -461,7 +515,7 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => confirmFact(fact.attribute, confirmId, fact.unit ? `${fact.value} ${fact.unit}` : fact.value)}
+                            onClick={() => confirmFact(fact.attribute, confirmId)}
                           >
                             <HandPalm weight="bold" />
                             {t.confirm}

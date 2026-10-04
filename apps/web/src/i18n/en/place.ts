@@ -27,6 +27,7 @@ export const place: Messages["place"] = {
   confirm: "I confirm, I've been here",
   confirmed: "Confirmation saved.",
   confirmFailed: "Couldn't save the confirmation. Try again.",
+  confirmLimited: "This value was already confirmed from this network today. Try again tomorrow.",
   editOsm: "Edit in OpenStreetMap",
   editOsmHint: "Fix the data at the source — it reaches us with the next fetch.",
   mine: {
@@ -35,6 +36,13 @@ export const place: Messages["place"] = {
     confirmation: "Your confirmation",
     sending: "sending…",
     pendingNote: "Awaiting verification — doesn't change the data above.",
+    sentReport: "Report sent",
+    sendingReport: "Sending your report…",
+    sentConfirmation: "Confirmed",
+    change: "Change",
+    withdraw: "Withdraw",
+    withdrawn: "Withdrawn. You can send a new one.",
+    withdrawFailed: "Couldn't withdraw. Please try again.",
   },
   report: {
     titleCorrect: "This isn't right",
@@ -58,8 +66,9 @@ export const place: Messages["place"] = {
     thanks: "Awaiting verification.",
     undo: "Undo",
     undone: "Report withdrawn.",
-    alreadySent: "The report has already been sent — it can't be undone.",
+    alreadySent: "The report has already been sent — withdraw it with “Withdraw” next to the feature.",
     sent: "Report sent. Awaiting verification.",
+    replaced: "Report changed. Awaiting verification.",
     failed: "Couldn't send the report. Try again.",
     option: {
       yes: "Yes",

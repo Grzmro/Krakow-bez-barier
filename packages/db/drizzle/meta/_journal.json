@@ -43,6 +43,13 @@
       "when": 1791063419377,
       "tag": "0005_outage_removal",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791071615674,
+      "tag": "0006_contributor_token",
+      "breakpoints": true
     }
   ]
 }

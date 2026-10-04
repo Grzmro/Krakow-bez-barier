@@ -5,7 +5,17 @@ import { randomUUID } from "node:crypto";
 import { afterAll, describe, expect, it } from "vitest";
 import { DEMO_MODERATED_SOURCE, DEMO_MODERATOR_NAME, DEMO_REVERT_MINUTES, revertExpiredDemoDecisions } from "./demo";
 import { COMMUNITY_MODERATED_SOURCE, createDrizzleReportsStore } from "./drizzle-store";
-import { createConfirmation, createReport, decideReport, listModerationQueue, pendingReportsByAttribute } from "./service";
+import {
+  createConfirmation,
+  createReport,
+  decideReport,
+  listContributions,
+  listModerationQueue,
+  pendingReportsByAttribute,
+  submitConfirmation,
+  submitReport,
+  withdrawContribution,
+} from "./service";
 
 const url = process.env.TEST_DATABASE_URL;
 
@@ -122,5 +132,87 @@ describe.skipIf(!url)("Drizzle reports store (database)", () => {
     expect(item?.decidedAt).toBe(asked.toISOString());
     expect(await db.select().from(facts).where(eq(facts.placeId, place.id))).toEqual([]);
     expect((await pendingReportsByAttribute(store, place.id)).get("lift")).toHaveLength(1);
+  });
+
+  it("keeps one pending contribution per device, place and attribute, even when sent at once", async () => {
+    // GIVEN a place with an OpenStreetMap lift fact
+    const { db } = handle!;
+    const store = createDrizzleReportsStore(db);
+    await db
+      .insert(sources)
+      .values({ id: "osm", name: "OpenStreetMap", kind: "community", license: "ODbL 1.0", baseReliability: "community" })
+      .onConflictDoNothing();
+    const ref = `test:${randomUUID()}`;
+    const [place] = await db
+      .insert(places)
+      .values({ externalRef: ref, name: "Device place", category: "museum", location: { x: 19.94, y: 50.06 } })
+      .returning();
+    const [lift] = await db
+      .insert(facts)
+      .values({
+        placeId: place.id,
+        attribute: "lift",
+        value: { kind: "boolean", boolean: true },
+        sourceId: "osm",
+        sourceRecordRef: ref,
+        fetchedAt: new Date(),
+        reliability: "community",
+      })
+      .returning();
+    const token = `device-${randomUUID()}`;
+    const broken = { placeId: ref, attribute: "lift" as const, value: { kind: "boolean" as const, boolean: false } };
+
+    // WHEN one device sends four lift reports at once
+    const sent = await Promise.all(Array.from({ length: 4 }, () => submitReport(store, broken, token)));
+
+    // THEN they are one report, updated in place
+    expect(new Set(sent.map((s) => s.report.id)).size).toBe(1);
+    expect((await pendingReportsByAttribute(store, place.id)).get("lift")).toHaveLength(1);
+
+    // WHEN the device confirms the lift instead
+    const confirmed = await submitConfirmation(store, place.id, { factId: lift.id }, { contributorToken: token });
+    const again = await submitConfirmation(store, place.id, { factId: lift.id }, { contributorToken: token });
+
+    // THEN the report is withdrawn (out of the queue), the confirmation counted once
+    expect([confirmed.created, again.created]).toEqual([true, false]);
+    expect((await pendingReportsByAttribute(store, place.id)).get("lift")).toBeUndefined();
+    const queue = await listModerationQueue(store, { limit: 1000 });
+    expect(queue.items.some((i) => i.id === sent[0].report.id)).toBe(false);
+    expect(await listContributions(store, place.id, token)).toEqual([
+      expect.objectContaining({ kind: "confirmation", factId: lift.id }),
+    ]);
+
+    // WHEN the device withdraws its lift contribution
+    await withdrawContribution(store, place.id, "lift", token);
+
+    // THEN nothing is pending for it and the fact counts no confirmations
+    expect(await listContributions(store, place.id, token)).toEqual([]);
+    const [after] = await db.select().from(facts).where(eq(facts.id, lift.id));
+    expect(after.evidence?.confirmations).toBe(0);
+  });
+
+  it("reverts a demo acceptance even when the device has reported the attribute again since", async () => {
+    // GIVEN a device's lift report the demo account accepted, and a newer lift report from the same device
+    const { db } = handle!;
+    const store = createDrizzleReportsStore(db);
+    const ref = `test:${randomUUID()}`;
+    const [place] = await db
+      .insert(places)
+      .values({ externalRef: ref, name: "Revert place", category: "museum", location: { x: 19.94, y: 50.06 } })
+      .returning();
+    const token = `device-${randomUUID()}`;
+    const lift = (works: boolean) => ({ placeId: ref, attribute: "lift" as const, value: { kind: "boolean" as const, boolean: works } });
+    const { report: accepted } = await submitReport(store, lift(false), token);
+    await decideReport(store, { reportId: accepted.id, decision: "accepted" }, { name: DEMO_MODERATOR_NAME, demo: true });
+    const { report: newer, replaced } = await submitReport(store, lift(true), token);
+    expect(replaced).toBe(false);
+
+    // WHEN the demo decision is reverted
+    const undone = await revertExpiredDemoDecisions(store, new Date(Date.now() + (DEMO_REVERT_MINUTES + 1) * 60_000));
+
+    // THEN the revert succeeds and the device still has exactly one pending lift report, the newer one
+    expect(undone).toBeGreaterThanOrEqual(1);
+    expect((await pendingReportsByAttribute(store, place.id)).get("lift")).toEqual([expect.objectContaining({ id: newer.id })]);
+    expect(await listContributions(store, place.id, token)).toEqual([expect.objectContaining({ id: newer.id })]);
   });
 });

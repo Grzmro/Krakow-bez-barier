@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createApiClient, createMockFetch, type Place } from "@krakow-bez-barier/contracts";
 import { factViews, osmEditUrl } from "./place-facts";
-import { pendingEntries, reportInput, withPending, type PendingEntry } from "./reports";
+import { ownEntries, pendingEntries, reportInput, withPending, type PendingEntry } from "./reports";
 
 const api = createApiClient({ baseUrl: "http://localhost/api/v1", fetch: createMockFetch() });
 
@@ -55,16 +55,19 @@ describe("pendingEntries", () => {
     ),
   });
 
-  it("lists every report the API serves, and this visitor's own ones once, as theirs", async () => {
-    // GIVEN the API lists two lift reports, one of them sent from this session, and a report still in the undo window
+  it("lists other devices' reports, then this device's own entries, each report once", async () => {
+    // GIVEN the API lists two lift reports, one of them this device's, and a bench report still in the undo window
     const place = served(await demoPlace("palac-krzysztofory"));
-    const sent = { ...report("lift", "Nie ma"), key: "k-sent", reportId: "r-mine" };
-    const queued = { ...report("bench", "Jest"), key: "k-queued", sending: true };
+    const own = ownEntries(
+      [{ kind: "report", id: "r-mine", attribute: "lift", value: { kind: "boolean", boolean: false }, factId: null, createdAt: "2026-10-03T09:12:00Z" }],
+      [{ ...report("bench", "Jest"), key: "k-queued", sending: true }],
+      "pl",
+    );
 
     // WHEN the card's pending entries are built
-    const entries = pendingEntries(place, [sent, queued], "pl");
+    const entries = pendingEntries(place, own, "pl");
 
-    // THEN the served reports come first with their value as text, the own one marked as such and not repeated
+    // THEN the other device's report comes first with its value as text, and the own ones are marked and not repeated
     expect(entries.map((e) => [e.key, e.attribute, e.mine, e.valueText])).toEqual([
       ["r-other", "lift", false, "Nie ma"],
       ["r-mine", "lift", true, "Nie ma"],
@@ -75,24 +78,39 @@ describe("pendingEntries", () => {
     expect(entries[0]).not.toHaveProperty("comment");
   });
 
-  it("keeps a sent report the API doesn't list yet", async () => {
-    // GIVEN a report the server accepted but the card's data predates (or the mock API never lists)
-    const place = await demoPlace("palac-krzysztofory");
-    const sent = { ...report("lift", "Nie ma"), reportId: "r-new" };
+  it("hides this device's served report while a change of it is being sent", async () => {
+    // GIVEN the device's lift report is listed, and a new lift report from the device is in the undo window
+    const place = served(await demoPlace("palac-krzysztofory"));
+    const listed = { kind: "report" as const, id: "r-mine", attribute: "lift" as const, value: { kind: "boolean" as const, boolean: false }, factId: null, createdAt: "2026-10-03T09:12:00Z" };
+    const changing = { ...report("lift", "Jest"), key: "k-change", sending: true };
 
     // WHEN the card's pending entries are built
-    // THEN the visitor still sees their report
-    expect(pendingEntries(place, [sent], "pl")).toEqual([sent]);
+    const entries = pendingEntries(place, ownEntries([listed], [changing], "pl"), "pl");
+
+    // THEN the lift shows the other device's report and only the change as this device's
+    expect(entries.map((e) => [e.key, e.mine, e.valueText])).toEqual([
+      ["r-other", false, "Nie ma"],
+      ["k-change", true, "Jest"],
+    ]);
   });
+});
 
-  it("drops a sent report once the API stops listing it, because a moderator has decided", async () => {
-    // GIVEN a report the API listed before and no longer lists (rejected, or accepted and now a fact)
-    const place = await demoPlace("palac-krzysztofory");
-    const decided = { ...report("lift", "Nie ma"), reportId: "r-decided", served: true };
+describe("ownEntries", () => {
+  it("keeps one entry per attribute, a confirmation with the value it confirmed", () => {
+    // GIVEN the API lists this device's confirmation of the steps and its report of the lift
+    const contributions = [
+      { kind: "confirmation" as const, id: "c1", attribute: "step_count" as const, value: { kind: "number" as const, number: 0, unit: "count" as const }, factId: "f1", createdAt: "2026-10-03T09:00:00Z" },
+      { kind: "report" as const, id: "r1", attribute: "lift" as const, value: { kind: "boolean" as const, boolean: false }, factId: null, createdAt: "2026-10-03T09:05:00Z" },
+    ];
 
-    // WHEN the card's pending entries are built
-    // THEN it is no longer shown as pending
-    expect(pendingEntries(place, [decided], "pl")).toEqual([]);
+    // WHEN building the device's entries
+    const entries = ownEntries(contributions, [], "pl");
+
+    // THEN each attribute has one entry of its kind, the report carrying its id
+    expect(entries.map((e) => [e.attribute, e.kind, e.mine, e.reportId])).toEqual([
+      ["step_count", "confirmation", true, undefined],
+      ["lift", "report", true, "r1"],
+    ]);
   });
 });
 

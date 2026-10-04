@@ -117,9 +117,12 @@ export function FactRow({
             </span>
             {limit ? <span className="text-caption text-muted-foreground">({limit})</span> : null}
           </span>
-          {status ? <StatusBadge status={status.value} label={status.label} size="sm" className="mt-1" /> : null}
+          {/* Under the value, not beside it: a long reliability label would squeeze the value into a narrow column. */}
+          <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+            {status ? <StatusBadge status={status.value} label={status.label} size="sm" /> : null}
+            <ReliabilityBadge value={reliability.value} label={reliability.label} />
+          </span>
         </span>
-        <ReliabilityBadge value={reliability.value} label={reliability.label} className="shrink-0 self-start pt-0.5" />
         <CaretDown
           aria-hidden
           className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}

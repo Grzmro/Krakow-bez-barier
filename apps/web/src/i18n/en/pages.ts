@@ -91,6 +91,10 @@ export const pages: Messages["pages"] = {
         "Your profile and thresholds are saved only in your browser. The language is saved in the kbb-lang cookie (only “pl” or “en”); your browser sends it to the server so the page comes in that language. Clearing the site data removes all of them.",
       ],
       [
+        "Report identifier",
+        "When you send your first report or confirmation, your browser generates a random identifier (kbb-contributor) and keeps it only on your device. It is sent with your reports and confirmations so that one device has at most one pending report per feature of a place, which you can change or withdraw. It is a random string: it isn't linked to you, an account, your IP address or a device fingerprint, and the server stores only its hash (SHA-256). Clearing the site data removes it.",
+      ],
+      [
         "Voice search",
         "Your browser turns speech into text (Web Speech API), not our server. The browser may send the recording to its provider's speech recognition service (e.g. Google in Chrome, Apple in Safari) under the provider's terms. We neither receive nor store the recording — only the text that lands in the search field. In your browser we only remember that you've seen this notice.",
       ],
