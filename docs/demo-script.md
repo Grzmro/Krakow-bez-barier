@@ -9,6 +9,9 @@ Dwa scenariusze z tymi samymi scenami:
 2. **[Wideo do zgłoszenia](#wideo-do-zgłoszenia)** (KBB-31, KBB-181): MP4 2:51 z polskimi napisami,
    nagrywane automatycznie przez Playwright (`npm run demo:record`); lektora można dograć.
 
+3. **[Wideo z lektorem](#wideo-z-lektorem)** (KBB-195): MP4 2:45, telefon + komputer, polski głos AI (Piper),
+   napisy, jedna komenda `npm run demo:video`.
+
 ## Pokaz na żywo dla jury
 
 Grupa docelowa: **osoba na wózku** (profil „Wózek”). Stan danych i sprawdzenia: 4.10.2026, ok. 03:20,
@@ -69,6 +72,54 @@ każdą scenę jeszcze raz, bo identyfikatory miejsc są tam inne.
 | Dane przykładowe oznaczone | 3 (zmiana konta demo ma oznaczenie „PRZYKŁAD”) |
 | Dostępność cyfrowa głównego scenariusza | 6 („Krok po kroku”), 8 |
 | Prototyp → usługa | 7, 8, pytania w [jury-qa.md](submission/jury-qa.md) |
+
+## Wideo z lektorem
+
+Finalne wideo (KBB-195): `apps/web/demo-output/kbb-demo-final.mp4` (H.264 + AAC, 1920×1080, 2:45, limit 3:00
+sprawdzany w skrypcie), `kbb-demo-final.srt` i ścieżka napisów `pol` w MP4. Tylko prawdziwe dane, bez „PRZYKŁAD”.
+Plik i dźwięk nie trafiają do gita (`apps/web/demo-output/` jest w `.gitignore`).
+
+```bash
+# baza jednorazowa z danymi (nigdy wspólna): npm run db:setup && npm run ingest -- --city krakow
+DATABASE_URL=<jednorazowa baza> npm run demo:video      # build + next start, nagranie, głos, montaż
+E2E_BASE_URL=http://localhost:3187 npm run demo:video   # na działającej aplikacji (build z NEXT_PUBLIC_API_MOCK puste)
+npm run demo:video -- --skip-record                     # tylko montaż, z już nagranych segmentów
+```
+
+- **Narracja:** `apps/web/e2e/demo/narration.json` (id sceny, segment `phone`/`desktop`, tytuł, tekst; opcjonalne
+  `speak` = zapis fonetyczny dla syntezatora, np. „a pe i”). Ten sam tekst jest napisem na ekranie i w pliku `.srt`.
+- **Głos:** Piper (`piper-tts`, offline, neuronowy) z modelem `pl_PL-gosia-medium` (rhasspy/piper-voices; dane
+  głosowe na licencji CC0, silnik Piper na GPL-3.0). `scripts/demo-video/synthesize.py` robi jeden WAV na scenę.
+  Narzędzia (venv, ffmpeg z `imageio-ffmpeg`, model) instalują się przy pierwszym uruchomieniu w
+  `~/.cache/kbb-demo-video` (`DEMO_TOOLS_DIR`), poza repozytorium; systemowy `ffmpeg` nie jest potrzebny.
+- **Synchronizacja z konstrukcji:** `apps/web/e2e/demo/record-final.ts` trzyma każdą scenę na ekranie przez
+  max(czas akcji, długość głosu + 0,5 s) i zapisuje początki scen w `timeline.json`. Segment telefonu (aplikacja w
+  ramce 412×915, napis obok) i segment komputera (szeroki układ z panelem bocznym, pasek napisów pod spodem) to dwa
+  nagrania Playwright (`playwright.video.config.ts`, poza `test:e2e`).
+- **Montaż:** `scripts/demo-video/assemble.mjs`: segmenty → H.264, sklejenie, WAV-y przesunięte do początków scen
+  (`adelay` + `amix`), napisy `.srt`, MP4 `+faststart`. Kończy się błędem powyżej 3:00.
+- **Trasa bez klucza:** bez `ORS_API_KEY` serwer odpowiada nagranymi odpowiedziami openrouteservice, tylko dla
+  Dworzec Główny → Rynek Główny (`src/server/routing/fixtures`). Wideo pokazuje tę trasę z profilem Wózek. Z kluczem w
+  środowisku (nie w pliku w repozytorium) działa dowolna trasa.
+- **Poza wideo:** plan dnia (`/plan`: odcinki między dowolnymi miejscami wymagają klucza openrouteservice) oraz
+  zapis/zatwierdzanie zgłoszeń i symulowana awaria (konto demo; pokazuje je nagranie z KBB-181 na danych przykładowych).
+  Jedyny zapis w nagraniu to „Nadal aktualne” (potwierdzenie) — dlatego baza ma być jednorazowa.
+
+| Czas | Scena | Co widać |
+|---|---|---|
+| 0:00 | 1 · Dla kogo (telefon) | Czysty ekran startowy z mapą i najbliższymi miejscami, profil „Wózek”, „Pokaż moją lokalizację”, przybliżenie |
+| 0:14 | 2 · Szukanie | „restauracja” → podpowiedź kategorii → „Pokaż wyniki (N)” → lista z werdyktami słowami |
+| 0:26 | 3 · Najbliższa toaleta | Szybka akcja: toaleta ze 100 m od lokalizacji, „Może być nieaktualne” (krakow.pl z 15.09.2025) |
+| 0:39 | 4 · Skąd wiemy | Karta: fakty, „Ogólna dostępność” rozwinięta, „Skąd wiemy?” (OpenStreetMap i krakow.pl) |
+| 0:52 | 5 · Poprawianie danych | „To się nie zgadza” (okno), „Nadal aktualne” przy windzie |
+| 1:05 | 6 · Deklaracja w BIP | Hangar Czyżyny: winda z cytatem i datą z BIP, „Brak danych · drzwi” |
+| 1:19 | 7 · Udostępnianie | „Udostępnij”: link i kod QR |
+| 1:27 | 8 · Trasa dla wózka (komputer) | Dworzec Główny → Rynek, „Wózek”, odcinki bez danych, „Najkrótsza: Nie spełnia · schody”, „Ruszamy” |
+| 1:52 | 9 · Skąd dane | „O danych”: źródła, licencje, atrybucja |
+| 2:04 | 10 · Jakość danych | Raport jakości (`/o-danych/jakosc`) |
+| 2:15 | 11 · Dla firm | Widżet, strona wydarzenia, kod i API, model biznesowy |
+| 2:30 | 12 · Dostępność | Tab: „Przejdź do treści”, deklaracja dostępności |
+| 2:39 | Zakończenie | Ekran główny na komputerze |
 
 ## Wideo do zgłoszenia
 

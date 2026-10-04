@@ -18,6 +18,7 @@
     "contracts:generate": "npm run contracts:generate -w packages/contracts",
     "test:e2e": "npm run test:e2e -w apps/web",
     "demo:record": "npm run demo:record -w apps/web",
+    "demo:video": "node scripts/demo-video/run.mjs",
     "db:generate": "npm run db:generate -w packages/db",
     "db:migrate": "npm run db:migrate -w packages/db",
     "db:seed": "npm run db:seed -w packages/db",
