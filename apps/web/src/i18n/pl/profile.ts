@@ -93,7 +93,7 @@ export const profile = {
       title: "Żadne miejsce na liście nie ma jeszcze kompletu danych dla tego profilu",
       missing: (missing: { need: Need; count: number }[], total: number) =>
         `Najczęściej brakuje danych o: ${missing.map(({ need, count }) => `${needName[need].toLowerCase()} (${count} z ${total})`).join(", ")}.`,
-      hint: "Otwarte dane rzadko opisują stopnie, progi i szerokość drzwi. „Brak danych” nie znaczy „niedostępne” — szczegóły pod „Dlaczego?” przy miejscu.",
+      hint: "„Brak danych” nie znaczy „niedostępne”. Szczegóły pod „Dlaczego?” przy miejscu.",
     },
   },
 } as const;

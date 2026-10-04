@@ -38,7 +38,7 @@ const reason: Record<PriorityFactor, (count: number, needs: string) => string> =
 // City panel (/miasto): aggregated statistics and repair priorities for the city's staff.
 export const city = {
   title: "Panel dla miasta",
-  signInLead: "Panel dla miasta używa tego samego logowania co panel moderatora.",
+  signInLead: "Zaloguj się jak do panelu moderatora.",
   signedIn: "Zalogowano. Statystyki miasta są poniżej.",
   loading: "Liczę statystyki…",
   loaded: (total: number) => `Statystyki gotowe: ${places(total)} w bazie.`,
@@ -46,8 +46,9 @@ export const city = {
   loadLockedOut: (minutes: number) => `Za dużo nieudanych prób. Statystyki będą dostępne za ${minutes} min.`,
   intro: "Liczby z bazy Kraków bez barier: dane z OpenStreetMap i otwartych danych miasta oraz zgłoszenia mieszkańców.",
   introRules: "Tylko dane zbiorcze, bez danych osobowych. Brak danych nigdy nie liczy się jako „dostępne”.",
+  scopeToggle: "Które miejsca liczymy?",
   scope: (excluded: string) =>
-    `Liczymy wszystkie miejsca oprócz kategorii ukrytych domyślnie na mapie (${excluded}) — potrzeby z profilu „Wózek” ich nie dotyczą.`,
+    `Wszystkie oprócz kategorii ukrytych domyślnie na mapie (${excluded}) — potrzeby z profilu „Wózek” ich nie dotyczą.`,
   introSample: "Tryb przykładowy: statystyki policzone z przykładowych miejsc, nie z danych Krakowa.",
   realOnly: "Miejsca i fakty oznaczone PRZYKŁAD są pominięte.",
   generatedAt: (date: string) => `Stan na ${date}`,
@@ -102,7 +103,9 @@ export const city = {
   },
   priorities: {
     heading: "Priorytety napraw i uzupełnień",
-    lead: "Ranking miejsc, którymi warto zająć się najpierw. Wynik to suma punktów za każdy powód:",
+    lead: "Miejsca, którymi warto zająć się najpierw.",
+    criteriaToggle: "Jak liczymy punkty?",
+    criteriaLead: "Wynik to suma punktów za każdy powód:",
     criterion,
     noVisits:
       "Nie mamy danych o liczbie odwiedzin, dlatego ruch przybliża kategoria miejsca. Wagi są jawne i łatwe do zmiany.",

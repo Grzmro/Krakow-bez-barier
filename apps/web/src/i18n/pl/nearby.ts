@@ -8,7 +8,7 @@ export const nearby = {
   locating: "Ustalam pozycję…",
   found: (latitude: string, longitude: string, accuracy: number) =>
     `Jesteś tutaj: ${latitude}° N, ${longitude}° E (dokładność ±${accuracy} m)`,
-  privacy: "Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km.",
+  privacy: "Dokładna pozycja zostaje w telefonie. Wysyłamy tylko obszar ok. 2 km.",
   errors: {
     denied: "Brak zgody na lokalizację.",
     off: "Usługi lokalizacji są wyłączone.",
@@ -49,8 +49,7 @@ export const nearby = {
     sortOff: "Pokaż miejsca od najbliższych",
     sortOn: "Od najbliższych, odległość od Ciebie",
     sortOnChosen: (place: string) => `Od najbliższych, odległość od: ${place}`,
-    privacy:
-      "Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.",
+    privacy: "Dokładna pozycja zostaje w telefonie. Wysyłamy tylko obszar ok. 2 km.",
     announce: "W Twojej okolicy, od najbliższych",
     announceChosen: (place: string) => `W okolicy: ${place}, od najbliższych`,
     you: "Ty",
@@ -66,9 +65,9 @@ export const nearby = {
       view: "Szukasz w obszarze widocznym na mapie.",
     },
     privacyScope: {
-      wide: "Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 5 km, nie Twoją pozycję.",
-      city: "Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy obszar całego miasta, nie Twoją pozycję.",
-      view: "Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy obszar widoczny na mapie, nie Twoją pozycję.",
+      wide: "Dokładna pozycja zostaje w telefonie. Wysyłamy tylko obszar ok. 5 km.",
+      city: "Dokładna pozycja zostaje w telefonie. Wysyłamy tylko obszar całego miasta.",
+      view: "Dokładna pozycja zostaje w telefonie. Wysyłamy tylko obszar widoczny na mapie.",
     },
     announceScope: {
       wide: "Szukasz w promieniu ok. 5 km",

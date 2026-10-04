@@ -14,7 +14,7 @@ export const business = {
     sourceLine: (source: string, date?: string) => (date ? `${source} · ${date}` : source),
     fullCard: "Pełna karta",
     newTab: "(otwiera się w nowej karcie)",
-    noRating: "Bez zbiorczej oceny — sprawdź cechy ważne dla Ciebie.",
+    noRating: "Sprawdź cechy ważne dla Ciebie.",
   },
   page: {
     title: "Dla firm",

@@ -51,7 +51,7 @@ test("an incomplete place names missing data and offers contact and Uzupełnij",
   await expect(main).toContainText("Nie mamy jeszcze żadnego źródła dla tego miejsca.");
   await expect(main).toMatchAriaSnapshot({ name: "place-incomplete.aria.yml" });
 
-  // WHEN a keyboard user asks the venue from the "Czegoś nie wiadomo?" box
+  // WHEN a keyboard user asks the venue from the "Brakuje danych?" box
   await page.getByRole("button", { name: "Zapytaj obiekt" }).last().focus();
   await page.keyboard.press("Enter");
 

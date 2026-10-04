@@ -23,7 +23,7 @@
             - text: Zgłoszona awaria windy · 0 potwierdzeń ·
             - time: teraz
           - paragraph: Niezweryfikowane
-          - paragraph: Zgłoszenie odwiedzających, bez moderacji. Werdykt profilu liczy awarię jako barierę.
+          - paragraph: Od odwiedzających, bez moderacji. Liczymy ją jako barierę.
           - paragraph: /Zniknie za \d+ godz\., jeśli nikt jej nie potwierdzi\./
           - button "Działa":
             - img
@@ -65,12 +65,12 @@
             - img
             - text: ""
         - listitem:
-          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych Brak danych
+          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
+          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
@@ -83,27 +83,26 @@
             - img
             - text: ""
         - listitem:
-          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych Brak danych
+          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych Brak danych
+          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych Brak danych
+          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
-    - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
+    - paragraph: Brakuje danych?
     - button "Uzupełnij":
       - img
       - text: ""
     - region "Skąd wiemy?":
       - heading "Skąd wiemy?" [level=2]
-      - paragraph: Źródła danych o tym miejscu, ich licencje i stan odświeżenia.
       - list:
         - listitem:
           - paragraph: Dane obiektu Dane przykładowe
@@ -123,4 +122,4 @@
         - text: ""
       - link "Edytuj w OpenStreetMap":
         - /url: https://www.openstreetmap.org/edit?node=987654
-      - paragraph: Popraw dane u źródła — trafią do nas przy następnym pobraniu.
+      - paragraph: Poprawka trafi do nas przy następnym pobraniu.

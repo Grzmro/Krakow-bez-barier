@@ -49,7 +49,7 @@ test("a keyboard-only visitor reports a wrong value in three steps; the card kee
 });
 
 test("a number out of the contract's range is explained in text and not sent", async ({ page, expectAccessible, evidence }) => {
-  // GIVEN the incomplete demo place, filling in the door width from the "Czegoś nie wiadomo?" box
+  // GIVEN the incomplete demo place, filling in the door width from the "Brakuje danych?" box
   await page.goto("/miejsca/kawiarnia-przyklad");
   await page.getByRole("button", { name: "Uzupełnij" }).last().click();
   const drawer = page.getByRole("dialog", { name: "Uzupełnij dane" });

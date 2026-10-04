@@ -58,7 +58,7 @@ test("with the wheelchair profile the route keeps its limits and Floriańska sho
   await page.getByRole("radio", { name: "Wózek", exact: true }).check();
 
   // THEN the route is judged against the profile, incline included, and the unsurveyed street is not a pass
-  await expect(main).toContainText("Ocena według progów profilu: wózek");
+  await expect(main).toContainText("Ocena według profilu: wózek");
   await expect(page.getByRole("button", { name: /Floriańska.*346 metrów\. Częściowo nie wiemy: brak danych o nawierzchni/ })).toBeVisible();
   // AND an unknown kerb never passes: no segment meets the profile without kerb data, so nothing reads as green
   await expect(main).toContainText("Brak znanych barier, ale 1,6 km bez danych");

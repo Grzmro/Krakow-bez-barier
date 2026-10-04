@@ -35,7 +35,7 @@ test("a reported lift outage shows on the card and blocks the profile verdict un
   await expect(outages).toBeFocused();
   await expect(outages).toContainText("Zgłoszona awaria windy · 0 potwierdzeń · teraz");
   await expect(outages).toContainText("Niezweryfikowane");
-  await expect(outages).toContainText("Zgłoszenie odwiedzających, bez moderacji.");
+  await expect(outages).toContainText("Od odwiedzających, bez moderacji.");
   await expect(outages).toContainText("Zniknie za 48 godz., jeśli nikt jej nie potwierdzi.");
   await expect(report).toHaveCount(0);
   await expect(page.locator("[data-sonner-toast]").getByText("Awaria jest widoczna dla innych.")).toBeVisible();

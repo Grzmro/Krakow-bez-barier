@@ -25,7 +25,7 @@ test.describe("with location access granted", () => {
     await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
     const nearby = list.getByRole("button", { name: "W mojej okolicy" });
     await expect(nearby).toHaveAttribute("aria-pressed", "false");
-    await expect(nearby).toHaveAccessibleDescription(/Dokładna pozycja zostaje na urządzeniu/);
+    await expect(nearby).toHaveAccessibleDescription(/Dokładna pozycja zostaje w telefonie/);
 
     // WHEN a keyboard user turns on "W mojej okolicy"
     await nearby.focus();

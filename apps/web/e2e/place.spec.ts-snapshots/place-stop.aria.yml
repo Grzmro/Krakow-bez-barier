@@ -19,12 +19,12 @@
         - img
         - text: ""
     - listitem:
-      - 'button "Wysokość krawężnika: Brak danych. Wiarygodność: Brak danych."': Wysokość krawężnika Brak danych Brak danych
+      - 'button "Wysokość krawężnika: Brak danych. Wiarygodność: Brak danych."': Wysokość krawężnika Brak danych
       - button "Uzupełnij":
         - img
         - text: ""
     - listitem:
-      - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
+      - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych
       - button "Uzupełnij":
         - img
         - text: ""

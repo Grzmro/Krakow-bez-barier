@@ -6,7 +6,7 @@ export const nearby: Messages["nearby"] = {
   locating: "Finding your position…",
   found: (latitude: string, longitude: string, accuracy: number) =>
     `You are here: ${latitude}° N, ${longitude}° E (accuracy ±${accuracy} m)`,
-  privacy: "Your exact position stays on the device. For the search we send only an approximate area within about 2 km.",
+  privacy: "Your exact position stays on your phone. We send only an area of about 2 km.",
   errors: {
     denied: "No permission to use location.",
     off: "Location services are off.",
@@ -46,8 +46,7 @@ export const nearby: Messages["nearby"] = {
     sortOff: "Show nearest places first",
     sortOn: "Nearest first, distance from you",
     sortOnChosen: (place: string) => `Nearest first, distance from: ${place}`,
-    privacy:
-      "Your exact position stays on the device. For the search we send only an approximate area within about 2 km, not your position.",
+    privacy: "Your exact position stays on your phone. We send only an area of about 2 km.",
     announce: "Near you, nearest first",
     announceChosen: (place: string) => `Near ${place}, nearest first`,
     you: "You",
@@ -62,9 +61,9 @@ export const nearby: Messages["nearby"] = {
       view: "You're searching the area shown on the map.",
     },
     privacyScope: {
-      wide: "Your exact position stays on the device. For the search we send only an approximate area within about 5 km, not your position.",
-      city: "Your exact position stays on the device. For the search we send the area of the whole city, not your position.",
-      view: "Your exact position stays on the device. For the search we send the area shown on the map, not your position.",
+      wide: "Your exact position stays on your phone. We send only an area of about 5 km.",
+      city: "Your exact position stays on your phone. We send only the area of the whole city.",
+      view: "Your exact position stays on your phone. We send only the area shown on the map.",
     },
     announceScope: {
       wide: "Searching within about 5 km",

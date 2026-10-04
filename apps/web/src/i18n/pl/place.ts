@@ -27,7 +27,7 @@ export const place = {
   shared: "Link do karty skopiowany",
   shareFailed: "Nie udało się skopiować linku",
   contact: "Zapytaj obiekt",
-  contactHint: "Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.",
+  contactHint: "Brakuje danych?",
   phone: "Telefon",
   www: "Strona",
   email: "E-mail",
@@ -38,7 +38,7 @@ export const place = {
   confirmFailed: "Nie udało się zapisać potwierdzenia. Spróbuj ponownie.",
   confirmLimited: "Ta wartość była już dziś potwierdzona z tej sieci. Spróbuj jutro.",
   editOsm: "Edytuj w OpenStreetMap",
-  editOsmHint: "Popraw dane u źródła — trafią do nas przy następnym pobraniu.",
+  editOsmHint: "Poprawka trafi do nas przy następnym pobraniu.",
   mine: {
     report: "Twoje zgłoszenie",
     otherReport: "Zgłoszenie użytkownika",
@@ -95,7 +95,7 @@ export const place = {
   profileVerdict: {
     title: (profile: string) => `Twój profil: ${profile}`,
     needsMet: (met: number, total: number) => `Pasuje ${met} z ${total} ${plural(total, "potrzeby", "potrzeb", "potrzeb")} profilu`,
-    hint: "Według progów Twojego profilu. Źródła i daty w faktach poniżej.",
+    hint: "Źródła i daty są w faktach poniżej.",
   },
   facts: "Fakty",
   factsHint: "Rozwiń cechę, by zobaczyć źródło i datę.",
@@ -114,7 +114,7 @@ export const place = {
     title: (equipment: OutageEquipment): string =>
       equipment === "lift" ? "Zgłoszona awaria windy" : "Zgłoszona awaria podjazdu",
     confirmations: (n: number) => `${n} ${plural(n, "potwierdzenie", "potwierdzenia", "potwierdzeń")}`,
-    source: "Zgłoszenie odwiedzających, bez moderacji. Werdykt profilu liczy awarię jako barierę.",
+    source: "Od odwiedzających, bez moderacji. Liczymy ją jako barierę.",
     expires: (time: string) => `Zniknie ${time}, jeśli nikt jej nie potwierdzi.`,
     communityConfirmed: "Potwierdzona przez społeczność",
     confirm: "Potwierdzam awarię",
@@ -142,12 +142,11 @@ export const place = {
   mapLabel: "Mapa z położeniem miejsca. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Adres jest podany w tekście powyżej.",
   conflict: {
     title: "Źródła podają sprzeczne dane",
-    body: (attributes: string) => `Dotyczy: ${attributes}. Pokazujemy obie wartości ze źródłami — sprawdź na miejscu albo zapytaj obiekt.`,
+    body: (attributes: string) => `Dotyczy: ${attributes}. Obie wersje są w faktach poniżej.`,
     table: { caption: "Porównanie źródeł", attribute: "Cecha", source: "Źródło", value: "Wartość", date: "Pozyskano" },
   },
   why: {
     title: "Skąd wiemy?",
-    lead: "Źródła danych o tym miejscu, ich licencje i stan odświeżenia.",
     none: "Nie mamy jeszcze żadnego źródła dla tego miejsca.",
     license: "Licencja",
     lastSuccess: "Ostatnie udane pobranie",

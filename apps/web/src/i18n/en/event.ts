@@ -3,7 +3,7 @@ import type { Messages } from "../messages";
 export const event: Messages["event"] = {
   pageTitle: "Step-free access and entry",
   kicker: "Step-free access and entry",
-  organizerProvided: "Name and date provided by the event organiser.",
+  organizerProvided: "Name and date from the organiser.",
   venue: "Venue",
   date: "Date",
   loading: "Loading the venue's accessibility data…",
@@ -12,8 +12,8 @@ export const event: Messages["event"] = {
   notFound: "We couldn't find this place",
   notFoundHint: "The link may be incomplete. Ask the organiser for a new one or search for the place in the app.",
   goHome: "Search for a place",
-  lead: "Accessibility facts about the event venue — each with its source and date. No overall rating: check the features that matter to you.",
-  sampleNote: "Data marked SAMPLE is sample data — don't plan your visit based on it.",
+  lead: "Check the features that matter to you. Each value shows its source and date.",
+  sampleNote: "SAMPLE data is illustrative only — don't plan your visit on it.",
   entranceHint: "How to get in",
   sections: {
     general: "Overall",
@@ -24,7 +24,7 @@ export const event: Messages["event"] = {
   transit: {
     title: "Stops nearby",
     hint: (limit: number, radius: number) =>
-      `Up to ${limit} nearest stops within ${radius} m, with facts about their platforms. Each fact names its source and date.`,
+      `Up to ${limit} stops within ${radius} m.`,
     gone: "This stop is no longer in the data.",
     noData: (radius: number) => `No stop data within ${radius} m of the venue. That doesn't mean there is no stop nearby.`,
     loading: "Looking for stops…",
@@ -35,7 +35,7 @@ export const event: Messages["event"] = {
   noSource: "Nobody has checked yet.",
   sourcesTitle: "Data sources",
   sourcesNone: "No source has data about this place yet.",
-  sourceOutage: "The source is unavailable right now — data may be outdated.",
+  sourceOutage: "source unavailable, data may be outdated",
   lastSuccess: (date?: string) => (date ? `last fetched ${date}` : "not fetched yet"),
   updated: (date: string) => `As of ${date}.`,
   fullCard: "Full place card",

@@ -4,7 +4,7 @@
   - heading "O danych" [level=1]
   - paragraph: Każda cecha ma źródło, datę i status wiarygodności. Nie liczymy jednej oceny miejsca.
   - heading "Źródła" [level=2]
-  - paragraph: Dane przykładowe Status źródeł pochodzi z danych przykładowych, dopóki nie działa serwer danych.
+  - paragraph: Dane przykładowe Statusy źródeł są przykładowe, bo serwer danych nie działa.
   - list:
     - listitem:
       - heading "OpenStreetMap" [level=3]

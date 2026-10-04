@@ -23,10 +23,10 @@
         - text: Dziecięcy
         - radio "Senior"
         - text: Senior
-      - paragraph: Bez profilu sprawdzamy schody i nawierzchnię. Włącz profil, by ocenić krawężniki i nachylenie.
+      - paragraph: Wybierz profil, by sprawdzić też krawężniki i nachylenie.
       - paragraph: /Brak znanych barier, ale \d+ m bez danych/
       - paragraph: /brak danych na 5 odcinkach \(\d+ m\)/
-      - paragraph: Odcinki w skali długości. Szczegóły w „Krok po kroku”.
+      - paragraph: Szczegóły w „Krok po kroku”.
       - button /Najkrótsza · \d+ min Nie spełnia · schody/
       - button "Zapisz na telefonie"
       - heading "Krok po kroku" [level=2]

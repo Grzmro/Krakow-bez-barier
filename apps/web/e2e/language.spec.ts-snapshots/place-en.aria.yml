@@ -48,7 +48,7 @@
             - img
             - text: ""
         - listitem:
-          - 'button "Path surface: No data. Reliability: No data."': Path surface No data No data
+          - 'button "Path surface: No data. Reliability: No data."': Path surface No data
           - button "Fill in":
             - img
             - text: ""
@@ -61,27 +61,26 @@
             - img
             - text: ""
         - listitem:
-          - 'button "Places to rest: No data. Reliability: No data."': Places to rest No data No data
+          - 'button "Places to rest: No data. Reliability: No data."': Places to rest No data
           - button "Fill in":
             - img
             - text: ""
         - listitem:
-          - 'button "Disabled parking: No data. Reliability: No data."': Disabled parking No data No data
+          - 'button "Disabled parking: No data. Reliability: No data."': Disabled parking No data
           - button "Fill in":
             - img
             - text: ""
         - listitem:
-          - 'button "Baby changing table: No data. Reliability: No data."': Baby changing table No data No data
+          - 'button "Baby changing table: No data. Reliability: No data."': Baby changing table No data
           - button "Fill in":
             - img
             - text: ""
-    - paragraph: Something unknown? Ask the venue or fill it in.
+    - paragraph: Missing data?
     - button "Fill in":
       - img
       - text: ""
     - region "How do we know?":
       - heading "How do we know?" [level=2]
-      - paragraph: Data sources for this place, their licences and refresh status.
       - list:
         - listitem:
           - paragraph: Dane obiektu Sample data
@@ -101,4 +100,4 @@
         - text: ""
       - link "Edit in OpenStreetMap":
         - /url: https://www.openstreetmap.org/edit?node=987654
-      - paragraph: Fix the data at the source — it reaches us with the next fetch.
+      - paragraph: Your fix reaches us with the next fetch.

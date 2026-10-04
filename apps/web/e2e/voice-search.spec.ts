@@ -145,8 +145,11 @@ test("the privacy page explains that the browser processes speech", async ({ pag
   // WHEN the privacy page is opened
   await page.goto("/prywatnosc");
 
-  // THEN it has a section about voice search and the browser's speech service
+  // THEN it has a section about voice search, with the browser's speech service one tap away under "Szczegóły"
   await expect(page.getByRole("heading", { level: 2, name: "Wyszukiwanie głosem" })).toBeVisible();
+  await expect(page.getByText("Mowę rozpoznaje Twoja przeglądarka, nie nasz serwer.")).toBeVisible();
+  const voice = page.locator("section").filter({ has: page.getByRole("heading", { name: "Wyszukiwanie głosem" }) });
+  await voice.getByText("Szczegóły").click();
   await expect(page.getByText(/może wysłać nagranie do usługi rozpoznawania mowy/)).toBeVisible();
 });
 

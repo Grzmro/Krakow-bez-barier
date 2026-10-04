@@ -114,6 +114,17 @@ describe("FactRow", () => {
     expect(html).toContain('aria-expanded="true"');
   });
 
+  it("says 'no data' once, in the dashed badge, not again as the value", () => {
+    // GIVEN a fact nobody has checked
+    // WHEN rendered closed
+    const html = renderToStaticMarkup(
+      <FactRow label="Próg" reliability={{ value: "unknown", label: "Brak danych" }} sources={[]} labels={LABELS} />,
+    );
+
+    // THEN "Brak danych" appears exactly once
+    expect(html.match(/Brak danych/g)).toHaveLength(1);
+  });
+
   it("uses the composed accessible name when one is given", () => {
     // GIVEN a fact with a composed aria label
     // WHEN rendered

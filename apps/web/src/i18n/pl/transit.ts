@@ -8,7 +8,7 @@ function plural(n: number, one: string, few: string, many: string) {
 export const transit = {
   title: "Najbliższe odjazdy",
   lead: (radius: number) =>
-    `Przystanki do ${radius} m od miejsca i odjazdy w ciągu godziny. Czy pojazd przyjmie wózek, mówi przewoźnik w danych na żywo.`,
+    `Przystanki do ${radius} m, odjazdy w ciągu godziny.`,
   loading: "Wczytujemy odjazdy…",
   loadError: "Nie udało się wczytać odjazdów. Reszta karty działa normalnie.",
   retry: "Spróbuj ponownie",
@@ -52,14 +52,18 @@ export const transit = {
   evidenceLine: (kind: string, value: string, reliability: string, detail: string | null) =>
     `${kind}: ${value}${detail ? ` (${detail})` : ""} · wiarygodność: ${reliability}`,
   vehicleNumber: (label: string) => `pojazd nr ${label}`,
-  unverifiedHint:
-    "„Niezweryfikowane”: przewoźnik oznacza każdy tramwaj jako dostępny dla wózka, także wysokopodłogowe, więc nie traktujemy tego jako potwierdzenia. „Brak danych”: dane na żywo nic nie mówią o pojeździe — to nie znaczy, że jest dostępny.",
+  legendToggle: "Co znaczą oznaczenia pojazdów?",
+  legend: [
+    "Dane o pojazdach podaje przewoźnik na żywo.",
+    "„Niezweryfikowane”: przewoźnik oznacza każdy tramwaj jako dostępny dla wózka, także wysokopodłogowe — to nie jest potwierdzenie.",
+    "„Brak danych”: nie wiemy, jaki to pojazd. To nie znaczy, że jest dostępny.",
+  ],
   sourceLabel: "Źródło:",
   fetchedAt: (time: string) => `dane z ${time}`,
   licenseLabel: "licencja:",
   recorded: (time: string) => `Nagranie danych przewoźnika z ${time} — to nie są odjazdy na żywo.`,
   outage: (time: string) => `Dane przewoźnika są teraz niedostępne. Pokazujemy ostatnie pobrane, z ${time}.`,
-  stale: (time: string) => `Dane przewoźnika nie odświeżają się od ${time} — odjazdy mogą być nieaktualne.`,
+  stale: (time: string) => `Dane przewoźnika z ${time} — odjazdy mogą być nieaktualne.`,
   outageNoData: "Dane przewoźnika są teraz niedostępne i nie mamy wcześniejszych. Sprawdź odjazdy na tablicy przystanku.",
   disabled: "Odjazdy z dostępnością pojazdów pokażemy po potwierdzeniu licencji danych ZTP.",
   statusNote: {

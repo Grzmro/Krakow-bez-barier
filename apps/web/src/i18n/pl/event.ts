@@ -2,7 +2,7 @@
 export const event = {
   pageTitle: "Dojazd i wejście bez barier",
   kicker: "Dojazd i wejście bez barier",
-  organizerProvided: "Nazwa i termin podane przez organizatora wydarzenia.",
+  organizerProvided: "Nazwę i termin podał organizator.",
   venue: "Miejsce",
   date: "Termin",
   loading: "Wczytujemy dane o dostępności miejsca…",
@@ -11,8 +11,8 @@ export const event = {
   notFound: "Nie znaleźliśmy tego miejsca",
   notFoundHint: "Link może być niepełny. Poproś organizatora o nowy albo wyszukaj miejsce w aplikacji.",
   goHome: "Wyszukaj miejsce",
-  lead: "Fakty o dostępności miejsca wydarzenia — każdy ze źródłem i datą. Bez zbiorczej oceny: sprawdź cechy ważne dla Ciebie.",
-  sampleNote: "Dane oznaczone PRZYKŁAD są przykładowe — nie planuj na ich podstawie wizyty.",
+  lead: "Sprawdź cechy ważne dla Ciebie. Przy każdej wartości jest źródło i data.",
+  sampleNote: "Dane PRZYKŁAD są tylko poglądowe — nie planuj według nich wizyty.",
   entranceHint: "Jak wejść",
   sections: {
     general: "Ogólnie",
@@ -23,7 +23,7 @@ export const event = {
   transit: {
     title: "Przystanki w pobliżu",
     hint: (limit: number, radius: number) =>
-      `Do ${limit} najbliższych przystanków w promieniu ${radius} m, z faktami o ich peronach. Źródło i data są przy każdym fakcie.`,
+      `Do ${limit} przystanków w promieniu ${radius} m.`,
     gone: "Tego przystanku nie ma już w danych.",
     noData: (radius: number) =>
       `Brak danych o przystankach w promieniu ${radius} m od miejsca. To nie znaczy, że w pobliżu nie ma przystanku.`,
@@ -35,7 +35,7 @@ export const event = {
   noSource: "Nikt jeszcze nie sprawdził.",
   sourcesTitle: "Źródła danych",
   sourcesNone: "Żadne źródło nie ma jeszcze danych o tym miejscu.",
-  sourceOutage: "Źródło jest teraz niedostępne — dane mogą być nieaktualne.",
+  sourceOutage: "źródło niedostępne, dane mogą być nieaktualne",
   lastSuccess: (date?: string) => (date ? `ostatnie pobranie ${date}` : "jeszcze nie pobrano"),
   updated: (date: string) => `Stan na ${date}.`,
   fullCard: "Pełna karta miejsca",

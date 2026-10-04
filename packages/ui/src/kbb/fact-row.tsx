@@ -92,6 +92,8 @@ export function FactRow({
     onOpenChange?.(!open);
   };
   const known = value !== undefined && value !== "";
+  // The dashed "Brak danych" badge already says it; a second plain "Brak danych" above it is noise.
+  const badgeSaysNoValue = !known && (reliability.value === "unknown" || status?.value === "unknown");
 
   return (
     <li className={cn("list-none", className)}>
@@ -101,7 +103,7 @@ export function FactRow({
         aria-controls={panelId}
         aria-label={ariaLabel}
         onClick={toggle}
-        className="flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted active:bg-muted focus-visible:-outline-offset-3"
+        className="flex min-h-[60px] w-full scroll-mt-32 items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted active:bg-muted focus-visible:-outline-offset-3"
       >
         {icon ? (
           <span aria-hidden className="shrink-0 text-muted-foreground [&_svg]:size-[22px]">
@@ -110,17 +112,21 @@ export function FactRow({
         ) : null}
         <span className="min-w-0 flex-1">
           <span className="block text-body-sm font-medium text-muted-foreground">{label}</span>
-          <span className="flex flex-wrap items-baseline gap-x-1.5">
-            <span
-              className={cn(
-                "font-display text-[17px] font-extrabold tabular-nums",
-                !known && "font-sans text-body-sm font-semibold text-muted-foreground",
+          {badgeSaysNoValue && !limit ? null : (
+            <span className="flex flex-wrap items-baseline gap-x-1.5">
+              {badgeSaysNoValue ? null : (
+                <span
+                  className={cn(
+                    "font-display text-[17px] font-extrabold tabular-nums",
+                    !known && "font-sans text-body-sm font-semibold text-muted-foreground",
+                  )}
+                >
+                  {known ? (unit ? `${value} ${unit}` : value) : labels.noValue}
+                </span>
               )}
-            >
-              {known ? (unit ? `${value} ${unit}` : value) : labels.noValue}
+              {limit ? <span className="text-caption text-muted-foreground">({limit})</span> : null}
             </span>
-            {limit ? <span className="text-caption text-muted-foreground">({limit})</span> : null}
-          </span>
+          )}
           {/* Under the value, not beside it: a long reliability label would squeeze the value into a narrow column. */}
           <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
             {status ? <StatusBadge status={status.value} label={status.label} size="sm" /> : null}
