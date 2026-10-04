@@ -129,6 +129,42 @@ describe("factViews", () => {
     });
   });
 
+  it("lists the level entrance that meets the profile's entrance need, with its quote and page (Hangar Czyżyny)", () => {
+    // GIVEN Hangar's BIP fact "Wejście/wyjście jest na poziomie gruntu." and no step count
+    const level = fact("entrance_level", bool(true), {
+      source: { id: "bip-mk", name: "BIP Miasta Krakowa: dostępność architektoniczna", kind: "official_open_data", recordRef: "bip-mk:page/19180/hangar-czyzyny@2026-03-19" },
+      reliability: "extracted",
+      fetchedAt: "2026-10-03T22:42:08Z",
+      observedAt: "2026-03-19T00:00:00Z",
+      evidence: { comment: "„Wejście/wyjście jest na poziomie gruntu.”", url: "https://www.bip.krakow.pl/?mmi=19180" },
+    });
+    const place = { category: "museum", attributes: resolveAttributes([level], new Date("2026-10-04T12:00:00Z")) } as unknown as Place;
+
+    // WHEN it is turned into card rows and matched against the wheelchair profile
+    const rows = factViews(place, "pl", new Date("2026-10-04T12:00:00Z"));
+    const entrance = matchProfile(place, PROFILE_PRESETS.wheelchair, "pl").needs?.find((n) => n.need === "entrance");
+
+    // THEN the need's fact has its own row right after the unknown step count, in words, with the quote and page
+    expect(entrance).toMatchObject({ attribute: "entrance_level", state: "met" });
+    const attributes = rows.map((r) => r.attribute);
+    expect(attributes.indexOf("entrance_level")).toBe(attributes.indexOf("step_count") + 1);
+    const row = rows.find((r) => r.attribute === entrance?.attribute);
+    expect(row).toMatchObject({ label: "Poziom wejścia", value: "Na poziomie gruntu", unknown: false });
+    expect(row?.sources[0]).toMatchObject({ note: "„Wejście/wyjście jest na poziomie gruntu.”", link: { href: "https://www.bip.krakow.pl/?mmi=19180" } });
+    // AND the step count stays an honest "no data", while the moot step height and ramp rows are dropped
+    expect(rows.find((r) => r.attribute === "step_count")).toMatchObject({ unknown: true });
+    expect(attributes).not.toContain("step_height_cm");
+    expect(attributes).not.toContain("ramp");
+  });
+
+  it("shows no level entrance row without a source saying so", async () => {
+    // GIVEN the incomplete demo place (no facts)
+    const place = await demoPlace("kawiarnia-przyklad");
+    // WHEN it is turned into card rows
+    // THEN there is no "Poziom wejścia" row to read as a claim
+    expect(factViews(place, "pl").map((r) => r.attribute)).not.toContain("entrance_level");
+  });
+
   it("keeps a visitor's report comment off the card", () => {
     // GIVEN an accepted report whose fact carries the visitor's comment
     const report = fact("ramp", bool(true), {

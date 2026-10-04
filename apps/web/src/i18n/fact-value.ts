@@ -27,6 +27,7 @@ export function factValueText(
 ): { value: string; unit?: string } {
   switch (value.kind) {
     case "boolean":
+      if (attribute === "entrance_level") return { value: value.boolean ? t.value.levelEntrance : t.value.notLevelEntrance };
       return { value: value.boolean ? t.value.yes : t.value.no };
     case "number":
       if (attribute === "step_count") {

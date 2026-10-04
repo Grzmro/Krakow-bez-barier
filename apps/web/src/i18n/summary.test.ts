@@ -18,6 +18,14 @@ describe("summary.chip", () => {
     expect(pl("surface", "known", { kind: "text", text: "cobblestone" })).toBe("Nawierzchnia dojścia: kostka brukowa");
   });
 
+  it("says where a level entrance is, not a bare 'jest'", () => {
+    // GIVEN a known level entrance (BIP: "Wejście/wyjście jest na poziomie gruntu.")
+    // WHEN it is turned into a list chip
+    // THEN the value names the ground level
+    expect(pl("entrance_level", "known", { kind: "boolean", boolean: true })).toBe("Poziom wejścia: na poziomie gruntu");
+    expect(en("entrance_level", "known", { kind: "boolean", boolean: false })).toBe("Entrance level: not at ground level");
+  });
+
   it("says outdated, conflicting and missing data in words, never by colour alone", () => {
     // GIVEN a stale, a conflicting and an unknown attribute
     // WHEN they are turned into list chips

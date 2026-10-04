@@ -178,6 +178,28 @@ describe("GET /api/v1/places", () => {
     }
   });
 
+  it("drops the forced 'Wejście: brak danych' chip when a sourced level entrance answers the entrance", async () => {
+    // GIVEN a museum like Hangar Czyżyny: BIP says the entrance is at ground level, nobody counted steps
+    const bip = sourceRecord({ id: "bip-mk", name: "BIP MK", kind: "official_open_data", baseReliability: "extracted" });
+    const hangar = placeRecord({ name: "Hangar", location: { x: 20.0, y: 50.07 } });
+    const previous = repository.current;
+    repository.current = createFakePlaceRepository([hangar], [factRecord(hangar, "entrance_level", bool(true), { source: bip, reliability: "extracted" })]);
+
+    try {
+      // WHEN listing with the wheelchair profile
+      const { body } = await list("?profile=wheelchair");
+
+      // THEN the chip names the level entrance in words, no contradicting "Wejście: brak danych" chip sits next to it,
+      // and the entrance need is met by the level entrance fact
+      const [place] = body.items;
+      expect(place.summary).toContainEqual({ attribute: "entrance_level", state: "known", status: "unverified", label: "Poziom wejścia: na poziomie gruntu" });
+      expect(place.summary.map((c: { attribute: string }) => c.attribute)).not.toContain("step_count");
+      expect(place.verdict.needs).toContainEqual(expect.objectContaining({ need: "entrance", attribute: "entrance_level", state: "met", unconfirmed: true }));
+    } finally {
+      repository.current = previous;
+    }
+  });
+
   it("adds a verdict with per-need groups for a profile and honours the user's thresholds", async () => {
     // GIVEN the hotel meets every wheelchair need on confirmed data, with a 95 cm door
     // WHEN listing with the wheelchair profile, then with a stricter door width

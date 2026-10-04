@@ -149,6 +149,21 @@ describe("matchProfile with resolved attributes", () => {
     expect(matchProfile(noRamp, entranceOnly, "pl")).toMatchObject({ state: "unknown", unknowns: ["step_count"] });
   });
 
+  it("meets the entrance only on a sourced level entrance, never on missing step data (Hangar Czyżyny)", () => {
+    // GIVEN Hangar's real data: BIP's unverified "Wejście/wyjście jest na poziomie gruntu.", no step count, no door width
+    const unknown = (attribute: AccessibilityAttribute): ResolvedAttribute => ({ attribute, state: "unknown", status: "no_data", value: null, facts: [] });
+    const hangar = { attributes: [unknown("step_count"), unknown("ramp"), unknown("door_width_cm"), known("entrance_level", bool(true), "unverified")] };
+    const notLevel = { attributes: [unknown("step_count"), unknown("ramp"), known("entrance_level", bool(false), "unverified")] };
+    const nothing = { attributes: [unknown("step_count"), unknown("ramp"), unknown("entrance_level")] };
+    // WHEN checked against the wheelchair preset
+    const entranceOf = (place: Pick<Place, "attributes">) => matchProfile(place, wheelchair, "pl").needs?.find((n) => n.need === "entrance");
+    // THEN the level entrance meets it, marked unconfirmed and pointing at that fact; without it the entrance stays unknown
+    expect(entranceOf(hangar)).toEqual({ need: "entrance", attribute: "entrance_level", state: "met", reason: null, unconfirmed: true });
+    expect(matchProfile(hangar, wheelchair, "pl").state).toBe("unknown");
+    expect(entranceOf(notLevel)).toMatchObject({ attribute: "step_count", state: "unknown" });
+    expect(entranceOf(nothing)).toMatchObject({ attribute: "step_count", state: "unknown" });
+  });
+
   describe("lift and storeys", () => {
     const withoutLift = (...extra: ResolvedAttribute[]) => ({
       attributes: [...fullyAccessible.attributes.map((a) => (a.attribute === "lift" ? known("lift", bool(false)) : a)), ...extra],

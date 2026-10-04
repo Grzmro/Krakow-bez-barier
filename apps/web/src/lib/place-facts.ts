@@ -24,6 +24,7 @@ type FactValue = components["schemas"]["FactValue"];
 export const CARD_ATTRIBUTES = [
   "wheelchair_overall",
   "step_count",
+  "entrance_level",
   "step_height_cm",
   "threshold_cm",
   "door_width_cm",
@@ -142,19 +143,27 @@ function factSource(fact: AccessibilityFact, withValue: boolean, locale: Locale,
 }
 
 /** Rows the card lists only when a source says something: few sources know them, so "Brak danych" there is noise. */
-const ONLY_WITH_FACTS: readonly AccessibilityAttribute[] = ["automatic_door"];
+// `entrance_level` only ever proves a step-free entrance (the Matcher's alternative to a step count), so its row
+// appears when a source states it — then the profile verdict's "Wejście: Spełnia" has a row to point to.
+const ONLY_WITH_FACTS: readonly AccessibilityAttribute[] = ["automatic_door", "entrance_level"];
+
+const MOOT_WHEN_STEP_FREE: readonly AccessibilityAttribute[] = ["ramp", "step_height_cm"];
 
 /** The attributes the place card lists for this place, in order — shared by the card and the widget API. */
 export function cardRows(place: Pick<Place, "category" | "attributes">): AccessibilityAttribute[] {
   const byAttribute = new Map(place.attributes.map((a) => [a.attribute, a]));
+  const hasFacts = (attribute: AccessibilityAttribute) => (byAttribute.get(attribute)?.facts.length ?? 0) > 0;
   const steps = byAttribute.get("step_count");
   const stepsKnownZero = steps?.state === "known" && steps.value?.kind === "number" && steps.value.number === 0;
+  const level = byAttribute.get("entrance_level");
+  const levelEntrance = level?.state === "known" && level.value?.kind === "boolean" && level.value.boolean;
   return cardAttributes(place.category).filter((attribute) => {
-    if (ONLY_WITH_FACTS.includes(attribute)) return (byAttribute.get(attribute)?.facts.length ?? 0) > 0;
+    // A known zero step count already says it; a level entrance on top is a repeat.
+    if (attribute === "entrance_level" && stepsKnownZero) return false;
+    if (ONLY_WITH_FACTS.includes(attribute)) return hasFacts(attribute);
     // With a known step-free entrance, step height and ramp are moot unless a source says something.
-    if (!stepsKnownZero) return true;
-    if (attribute !== "ramp" && attribute !== "step_height_cm") return true;
-    return (byAttribute.get(attribute)?.facts.length ?? 0) > 0;
+    if (MOOT_WHEN_STEP_FREE.includes(attribute) && (stepsKnownZero || levelEntrance)) return hasFacts(attribute);
+    return true;
   });
 }
 

@@ -25,12 +25,24 @@
       - paragraph: Pasuje 0 z 4 potrzeb profilu
       - heading "Blokuje (2)" [level=3]
       - list:
-        - listitem: Wejście Nie spełnia · 2 stopnie
-        - listitem: /Drzwi Nie spełnia · drzwi \d+ cm/
+        - listitem:
+          - text: Wejście Nie spełnia · 2 stopnie
+          - 'link "na podstawie: Wejście — stopnie (2 stopnie)"':
+            - /url: "#fakt-step_count"
+        - listitem:
+          - text: /Drzwi Nie spełnia · drzwi \d+ cm/
+          - 'link /na podstawie: Szerokość drzwi \(\d+ cm\)/':
+            - /url: "#fakt-door_width_cm"
       - heading "Nie wiadomo (2)" [level=3]
       - list:
-        - listitem: Winda Brak danych
-        - listitem: Toaleta dostosowana Brak danych
+        - listitem:
+          - text: Winda Brak danych
+          - 'link "zobacz fakt: Winda"':
+            - /url: "#fakt-lift"
+        - listitem:
+          - text: Toaleta dostosowana Brak danych
+          - 'link "zobacz fakt: Toaleta dostosowana"':
+            - /url: "#fakt-toilet_accessible"
     - region "Fakty":
       - heading "Fakty" [level=2]
       - paragraph: Rozwiń cechę, by zobaczyć źródło i datę.

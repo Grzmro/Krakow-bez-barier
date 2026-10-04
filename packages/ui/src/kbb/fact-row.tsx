@@ -64,6 +64,8 @@ export interface FactRowProps {
   open?: boolean;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** `id` of the row, so a verdict can link to the fact it rests on. */
+  id?: string;
   className?: string;
 }
 
@@ -84,6 +86,7 @@ export function FactRow({
   open: openProp,
   defaultOpen = false,
   onOpenChange,
+  id,
   className,
 }: FactRowProps) {
   const [openState, setOpenState] = useState(defaultOpen);
@@ -98,7 +101,7 @@ export function FactRow({
   const badgeSaysNoValue = !known && (reliability.value === "unknown" || status?.value === "unknown");
 
   return (
-    <li className={cn("list-none", className)}>
+    <li id={id} className={cn("list-none scroll-mt-32", className)}>
       <button
         type="button"
         aria-expanded={open}
