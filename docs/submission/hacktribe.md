@@ -117,8 +117,8 @@ Tekst do pola „Instructions on how to open project”. Przycisk konta demo pok
 ustawione `MODERATOR_DEMO_TOKEN` (16+ znaków, np. `openssl rand -hex 12`); samego tokenu nie podajemy jury ani
 nie wpisujemy do repozytorium — serwer wydaje sesję demo po kliknięciu. Trasy wymagają `ORS_API_KEY`.
 
-> Aplikacja działa w przeglądarce bez logowania: **[DO UZUPEŁNIENIA: link do wdrożenia]**.
-> Panel moderatora dla jury: **[DO UZUPEŁNIENIA: link do wdrożenia]/moderator** → przycisk „Wejdź na konto
+> Aplikacja działa w przeglądarce bez logowania: https://krakow-bez-barier.vercel.app.
+> Panel moderatora dla jury: **https://krakow-bez-barier.vercel.app/moderator** → przycisk „Wejdź na konto
 > demonstracyjne (dla jury)” — bez tokenu i hasła (to samo konto otwiera panel miasta `/miasto`).
 > Decyzje konta demonstracyjnego działają naprawdę: zatwierdzone zgłoszenie od razu zmienia kartę miejsca (link
 > „Zobacz na karcie” w historii), ze źródłem „Konto demonstracyjne moderatora (zmiana tymczasowa)”. Po 30 minutach
@@ -130,8 +130,8 @@ nie wpisujemy do repozytorium — serwer wydaje sesję demo po kliknięciu. Tras
 
 ## Linki
 
-- Demo: **[DO UZUPEŁNIENIA: link do wdrożenia]**
-- Publiczne API i dokumentacja: **[DO UZUPEŁNIENIA: link do wdrożenia]/api/docs**
+- Demo: https://krakow-bez-barier.vercel.app
+- Publiczne API i dokumentacja: **https://krakow-bez-barier.vercel.app/api/docs**
 - Film (MP4, do 3 min): https://www.youtube.com/watch?v=QQmgFGiuGv4 (2:15, część na komputerze, druga połowa na telefonie, lektor PL, napisy)
 - Prezentacja (PDF, do 10 slajdów): **[DO UZUPEŁNIENIA: link do PDF]**
 - Zespół „Bez Progów”: Mateusz Oracz (lider zespołu), Marcin Oracz, Bartłomiej Leśniewski, Grzegorz Mróz, Jerzy Boksa
@@ -139,6 +139,5 @@ nie wpisujemy do repozytorium — serwer wydaje sesję demo po kliknięciu. Tras
 ## Do uzupełnienia przed wysłaniem
 
 - `[DO UZUPEŁNIENIA: ID zespołu z HackTribe]`
-- `[DO UZUPEŁNIENIA: link do wdrożenia]` (4 miejsca; po wpisaniu sprawdzić `/api/v1/health`, `/o-danych`, `/moderator`)
 - `[DO UZUPEŁNIENIA: link do PDF]`
 - Na Vercelu: `MODERATOR_DEMO_TOKEN` i `ORS_API_KEY` ustawione (bez nich przycisk konta demo i trasy nie działają)
