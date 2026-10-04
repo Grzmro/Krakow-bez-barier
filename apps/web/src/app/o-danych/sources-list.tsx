@@ -107,11 +107,15 @@ export function SourcesList() {
             {source.statusNote ? <p className="mt-2 text-caption text-foreground/85">{source.statusNote}</p> : null}
             <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-caption">
               <dt className="text-muted-foreground">{t.license}</dt>
-              <dd><SourceText license>{source.license}</SourceText></dd>
+              <dd>
+                <SourceText license>{source.license}</SourceText>
+              </dd>
               {source.attribution ? (
                 <>
                   <dt className="text-muted-foreground">{t.attribution}</dt>
-                  <dd><SourceText>{source.attribution}</SourceText></dd>
+                  <dd>
+                    <SourceText>{source.attribution}</SourceText>
+                  </dd>
                 </>
               ) : null}
               <dt className="text-muted-foreground">{t.refresh}</dt>

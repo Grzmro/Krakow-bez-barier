@@ -102,7 +102,9 @@ function FactItem({ fact }: { fact: FactView }) {
         <ul className="mt-0.5 space-y-0.5">
           {fact.sources.map((source, i) => (
             <li key={`${source.name}-${i}`} className="text-caption text-muted-foreground">
-              {t.sourceLine(source.name, source.date, source.value)}
+              {source.value ? `${source.value} — ` : null}
+              <span lang={source.nameLang}>{source.name}</span>
+              {` · ${source.date}`}
               {source.staleNote ? <span className="font-semibold text-foreground"> · {source.staleNote}</span> : null}
             </li>
           ))}

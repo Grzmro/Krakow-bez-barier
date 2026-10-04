@@ -372,7 +372,9 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
               <p className="text-body-sm font-semibold text-status-conflict">
                 {source.lastSuccessAt ? t.outage.title(formatDate(source.lastSuccessAt, locale)) : t.outage.titleNoDate}
               </p>
-              <p className="mt-0.5 text-caption text-foreground">{t.outage.source(source.name)}</p>
+              <p className="mt-0.5 text-caption text-foreground">
+                {t.outage.sourceLabel} <SourceText>{source.name}</SourceText>
+              </p>
               {source.statusNote ? <p className="mt-0.5 text-caption text-foreground">{source.statusNote}</p> : null}
             </div>
           </div>
@@ -407,7 +409,7 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
                         ) : null}
                         <td className="py-1.5 pr-4 break-words">
                           <span className="flex flex-wrap items-center gap-x-2">
-                            {source.name}
+                            <span lang={source.nameLang}>{source.name}</span>
                             {sampleSources.has(source.name) ? <SampleTag /> : null}
                           </span>
                           {source.detail ? <span className="block text-muted-foreground">{source.detail}</span> : null}

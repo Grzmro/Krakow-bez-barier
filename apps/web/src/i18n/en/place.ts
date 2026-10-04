@@ -96,6 +96,7 @@ export const place: Messages["place"] = {
     title: (date: string) => `Refresh failed — data from ${date}`,
     titleNoDate: "Refresh failed — no earlier data",
     source: (name: string) => `Source: ${name}`,
+    sourceLabel: "Source:",
   },
   breakdown: {
     heading: "Reported outages",

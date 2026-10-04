@@ -62,7 +62,16 @@ export function WidgetCard({ placeId }: { placeId: string }) {
               </p>
               <ReliabilityBadge value={fact.reliability} />
             </div>
-            <p className="mt-0.5 text-caption text-muted-foreground">{fact.source ?? t.noSource}</p>
+            <p className="mt-0.5 text-caption text-muted-foreground">
+              {fact.sourceName ? (
+                <>
+                  <SourceText>{fact.sourceName}</SourceText>
+                  {fact.sourceDate ? ` · ${fact.sourceDate}` : null}
+                </>
+              ) : (
+                (fact.source ?? t.noSource)
+              )}
+            </p>
           </li>
         ))}
         <UnknownFactsItem labels={unknown.map((fact) => fact.label)} className="py-2.5" />

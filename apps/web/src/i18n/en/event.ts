@@ -33,7 +33,6 @@ export const event: Messages["event"] = {
     facts: (name: string) => `Accessibility of the stop ${name}`,
   },
   noSource: "Nobody has checked yet.",
-  sourceLine: (source: string, date: string, value?: string) => (value ? `${value} — ${source} · ${date}` : `${source} · ${date}`),
   sourcesTitle: "Data sources",
   sourcesNone: "No source has data about this place yet.",
   sourceOutage: "The source is unavailable right now — data may be outdated.",

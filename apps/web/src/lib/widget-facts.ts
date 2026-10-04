@@ -14,6 +14,9 @@ export interface WidgetFactView {
   reliability: Reliability;
   /** "Dane obiektu · 12.09.2026"; undefined when no source has checked it. */
   source?: string;
+  /** The source's own name and the formatted date, apart, so the name can carry its language. */
+  sourceName?: string;
+  sourceDate?: string;
   unknown: boolean;
 }
 
@@ -29,14 +32,14 @@ export function widgetFactView(fact: WidgetFact, locale: Locale): WidgetFactView
   if (fact.state === "unknown" || !fact.value) {
     return { attribute: fact.attribute, label, value: m.common.fact.noValue, reliability: "unknown", unknown: true };
   }
+  const date = fact.fetchedAt ? formatDate(fact.fetchedAt, locale) : undefined;
   return {
     attribute: fact.attribute,
     label,
     value: joinValue(formatValue(fact.attribute, fact.value, locale)),
     reliability: RELIABILITY[fact.status],
-    source: fact.sourceName
-      ? t.sourceLine(fact.sourceName, fact.fetchedAt ? formatDate(fact.fetchedAt, locale) : undefined)
-      : undefined,
+    source: fact.sourceName ? t.sourceLine(fact.sourceName, date) : undefined,
+    ...(fact.sourceName ? { sourceName: fact.sourceName, sourceDate: date } : {}),
     unknown: false,
   };
 }

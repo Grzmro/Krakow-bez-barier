@@ -22,6 +22,18 @@ describe("sourceTextLang", () => {
   });
 });
 
+describe("neutral names", () => {
+  it.each([["OpenStreetMap"], ["ODbL 1.0"], ["CC BY 4.0"], ["Kraków bez barier"]])(
+    "leaves %j unmarked on both pages",
+    (text) => {
+      // GIVEN a name or licence id that reads the same in both languages
+      // WHEN / THEN no page switches the voice for it
+      expect(sourceTextLang(text, "en")).toBeUndefined();
+      expect(sourceTextLang(text, "pl")).toBeUndefined();
+    },
+  );
+});
+
 describe("licenseLang", () => {
   it("leaves our own translated licence wording unmarked", () => {
     // GIVEN the pending-licence note the API sends in English
