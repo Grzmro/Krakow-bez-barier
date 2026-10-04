@@ -68,6 +68,16 @@ describe("sheetStyle", () => {
     expect(style).toEqual({ maxHeight: "min(92dvh, calc(844px - env(safe-area-inset-top, 0px) - 0.5rem))" });
   });
 
+  it("doesn't take a fractional viewport height for a keyboard", () => {
+    // GIVEN a visual viewport a fraction of a pixel shorter than innerHeight, rounding to 1 px
+    const fit = sheetFit({ innerHeight: 845, height: 844.4, offsetTop: 0, scale: 1 })!;
+    // WHEN the style is built
+    const style = sheetStyle(fit);
+    // THEN the sheet keeps its place and its home-indicator padding
+    expect(style).not.toHaveProperty("bottom");
+    expect(style).not.toHaveProperty("paddingBottom");
+  });
+
   it("leaves the sheet to its classes before the viewport is measured", () => {
     // GIVEN / WHEN / THEN no fit yet means no inline style
     expect(sheetStyle(null)).toBeUndefined();

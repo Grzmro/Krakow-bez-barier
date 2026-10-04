@@ -38,7 +38,32 @@ export function sheetFit({ innerHeight, height, offsetTop, scale }: ViewportSize
 export function sheetStyle(fit: SheetFit | null): CSSProperties | undefined {
   if (!fit) return undefined;
   const maxHeight = `min(92dvh, calc(${fit.visibleHeight}px - env(safe-area-inset-top, 0px) - 0.5rem))`;
-  return fit.bottom ? { maxHeight, bottom: fit.bottom, paddingBottom: 0 } : { maxHeight };
+  return keyboardOpen(fit) ? { maxHeight, bottom: fit.bottom, paddingBottom: 0 } : { maxHeight };
+}
+
+// A keyboard is well over this; a fractional visualViewport height (Android, iOS toolbars) is not.
+const MIN_KEYBOARD_PX = 40;
+
+export function keyboardOpen(fit: SheetFit | null): boolean {
+  return !!fit && fit.bottom >= MIN_KEYBOARD_PX;
+}
+
+/**
+ * Scrolls the focused text field back into its sheet's scroll area: iOS reveals the field when the
+ * keyboard opens, before the sheet shrinks to fit above it.
+ */
+export function revealFocusedField(): void {
+  const field = document.activeElement;
+  if (!(field instanceof HTMLElement) || !field.matches("textarea, select, input:not([type=radio]):not([type=checkbox])")) return;
+  for (let el = field.parentElement; el && !el.hasAttribute("data-vaul-drawer"); el = el.parentElement) {
+    if (el.scrollHeight <= el.clientHeight || !/(auto|scroll)/.test(getComputedStyle(el).overflowY)) continue;
+    const f = field.getBoundingClientRect();
+    const s = el.getBoundingClientRect();
+    const margin = 12;
+    if (f.bottom > s.bottom) el.scrollTop += f.bottom - s.bottom + margin;
+    else if (f.top < s.top) el.scrollTop -= s.top - f.top + margin;
+    return;
+  }
 }
 
 /** The current `sheetFit`, kept unchanged while the page is pinch-zoomed; `null` before mount. */

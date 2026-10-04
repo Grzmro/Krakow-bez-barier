@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, type ComponentProps } from "react";
+import { useEffect, useRef, type ComponentProps } from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 import { cn } from "../cn";
-import { sheetStyle, useSheetFit } from "./keyboard-inset";
+import { keyboardOpen, revealFocusedField, sheetStyle, useSheetFit } from "./keyboard-inset";
 
 // For modal sheets (menu, report form, threshold editor). The base-nova `drawer.tsx` is Base UI's
 // Drawer, not Vaul. Never use snap points here — the map/list sheet is the non-modal BottomPanel.
@@ -32,6 +32,11 @@ function VaulDrawerContent({
 }: ComponentProps<typeof DrawerPrimitive.Content>) {
   const opener = useRef<HTMLElement | null>(null);
   const fit = useSheetFit();
+  const keyboardBottom = keyboardOpen(fit) ? fit!.bottom : 0;
+  const keyboardHeight = keyboardBottom ? fit!.visibleHeight : 0;
+  useEffect(() => {
+    if (keyboardBottom) revealFocusedField();
+  }, [keyboardBottom, keyboardHeight]);
   return (
     <DrawerPrimitive.Portal>
       {/* Black, not the ink token: ink is near-white in dark mode. */}
