@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { gotoAllPlaces } from "./map";
+import { gotoAllPlaces, showResults } from "./map";
 
 const list = (page: Page) => page.getByRole("region", { name: "Lista miejsc" });
 
@@ -13,10 +13,12 @@ for (const width of [360, 390]) {
     const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
     await search.fill("przyk");
     await expect(page.getByRole("listbox")).toBeVisible();
+    await search.press("Enter");
     await search.press("Escape");
     await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("5 miejsc");
     await page.getByRole("button", { name: "Toaleta dostosowana", exact: true }).click();
     await page.getByRole("switch", { name: "Pokaż też miejsca bez danych" }).click();
+    await showResults(page);
 
     // WHEN the wheelchair profile gives every place a verdict
     await page.getByRole("radio", { name: "Wózek", exact: true }).check();

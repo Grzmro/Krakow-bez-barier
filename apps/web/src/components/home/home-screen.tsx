@@ -16,7 +16,25 @@ import { config } from "@/lib/config";
 import { routes } from "@/lib/routes";
 import { routeTarget } from "@/lib/route-intent";
 import { byDistance, type NearbyOrigin } from "@/lib/nearby";
-import { escapeStep, homeView, panelAfterAsk, PEEK_LIMIT, searchOrigin } from "@/lib/home-start";
+import {
+  choose,
+  clearQuery,
+  commitChange,
+  confirmAction,
+  draftAsk,
+  escapeStep,
+  FEATURE_FILTERS,
+  type HomeChoices,
+  homeView,
+  isSearching,
+  panelAfterAsk,
+  PEEK_LIMIT,
+  runAsk,
+  searchOrigin,
+  showResults,
+  START_SELECTION,
+} from "@/lib/home-start";
+import { committedToSearch, searchToCommitted } from "@/lib/home-url";
 import { listedCount } from "@/lib/list-count";
 import { matchCategories, parseNearestCommand } from "@/lib/nearest-command";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
@@ -40,7 +58,7 @@ import { QuickActionRow, QuickResult, type QuickResultState } from "./quick-acti
 import { SEARCH_INPUT_ID, SearchBox, type SearchSuggestion } from "./search-box";
 
 const ALL = "all";
-const FEATURES: FeatureFilter[] = ["step_free", "lift", "toilet_accessible", "bench", "disabled_parking", "changing_table"];
+const FEATURES = FEATURE_FILTERS;
 const LIST_ID = "lista";
 // One chip look for categories and feature filters; the scroll rows fade out at the right edge on a phone.
 const CHIP = "lg:h-8 lg:px-3 lg:text-[13px]";
@@ -62,6 +80,7 @@ const DESKTOP = "(min-width: 64rem)";
 const POINTS_DEBOUNCE_MS = 300;
 // Waits out the debounce and the response of a pan before the list's new count is read out.
 const ANNOUNCE_DELAY_MS = 600;
+const SUGGESTION_LIMIT = 6;
 
 const COUNTER_PRESSED: Record<Status, string> = {
   met: "aria-pressed:bg-status-met-bg aria-pressed:ring-status-met",
@@ -82,19 +101,26 @@ export function HomeScreen() {
   const [statusFilter, setStatusFilter] = useState<Status | null>(null);
   const [hideFailing, setHideFailing] = useState(false);
   const [thresholdsOpen, setThresholdsOpen] = useState(false);
+  // The text in the search field; it becomes part of the query only on Enter or "Pokaż wyniki".
   const [q, setQ] = useState("");
-  const [category, setCategory] = useState<string>(ALL);
+  // Picked options (draft) vs the query the list and pins show (committed). Everything below that reads
+  // `category`, `features`, `showUnknown` or `nearby` is the committed query; the controls show the draft.
+  const [selection, setSelection] = useState(START_SELECTION);
+  const { committed, draft } = selection;
+  const category = committed.category ?? ALL;
+  const features = committed.features;
+  const showUnknown = committed.showUnknown;
   const categories = useCategories();
-  const [features, setFeatures] = useState<FeatureFilter[]>([]);
-  const [showUnknown, setShowUnknown] = useState(false);
   const [expanded, setExpanded] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [stowedFlag, setStowed] = useSessionFlag(STOWED_KEY);
   const revealRef = useRef<string | null>(null);
   // Stays in this component: only the coarse `searchArea` goes to the API (see docs/architecture.md).
-  const [nearby, setNearby] = useState<NearbyOrigin | null>(null);
+  const nearby = committed.nearby;
   const chosenPlace = nearby?.place;
   const nearbyRef = useRef<NearbyToggleHandle>(null);
+  // Set by a command that asks at once (quick action, category by name): the position it waits for joins the query.
+  const nearbyForCommand = useRef(false);
   const [quickId, setQuickId] = useState<QuickActionId | null>(null);
   const [unknownCommand, setUnknownCommand] = useState(false);
   const rowRefs = useRef(new Map<string, HTMLAnchorElement>());
@@ -111,7 +137,7 @@ export function HomeScreen() {
   // load only once something was asked; clearing the search returns to the start.
   const peekNearby = useGrantedPosition();
   const peekFrom = useMemo(() => searchOrigin(peekNearby, config.cityCenter), [peekNearby]);
-  const view = homeView({ q, category: category === ALL ? null : category, features, nearby }, peekFrom);
+  const view = homeView(committed, peekFrom);
   const searching = view.searching;
   // A user's own "hide" is kept only within one state: the peek and the results each come back slid out.
   const wasSearching = useRef(searching);
@@ -130,6 +156,26 @@ export function HomeScreen() {
     }
     wasSearching.current = searching;
   }, [searching, expanded, stowedFlag, selectedId, setStowed]);
+  // The query lives in the URL (`?q=…&category=…`), so Back from a place card shows the same results. A position
+  // never goes there. Declared before the restore below: its first run (nothing restored yet) must not write.
+  const committedSearch = committedToSearch(committed);
+  const urlReady = useRef(false);
+  useEffect(() => {
+    if (urlReady.current && window.location.search !== committedSearch) {
+      window.history.replaceState(null, "", `${window.location.pathname}${committedSearch}${window.location.hash}`);
+    }
+  }, [committedSearch]);
+  useEffect(() => {
+    const restored = searchToCommitted(window.location.search);
+    if (isSearching(restored)) {
+      // The URL is only readable after hydration (reading it in the initial state would mismatch the server HTML).
+      /* eslint-disable react-hooks/set-state-in-effect */
+      setSelection({ committed: restored, draft: restored });
+      setQ(restored.q);
+      /* eslint-enable react-hooks/set-state-in-effect */
+    }
+    urlReady.current = true;
+  }, []);
   const peekQuery = usePlaces(
     {
       bbox: peekFrom.area,
@@ -144,13 +190,13 @@ export function HomeScreen() {
     [peekQuery.data, peekFrom],
   );
   const searchFrom = useMemo(() => searchOrigin(nearby, config.cityCenter), [nearby]);
+  const draftFrom = useMemo(() => searchOrigin(draft.nearby, config.cityCenter), [draft.nearby]);
   const area = searchFrom.area;
-  const { value: debouncedQ, flush: searchNow } = useDebouncedValue(q.trim());
-  const query = { q: debouncedQ, category, features, includeUnknown: showUnknown, area };
+  const query = { q: committed.q, category, features, includeUnknown: showUnknown, area };
   const filters = {
     q: query.q || undefined,
     category: category === ALL ? undefined : [category],
-    feature: features.length ? features : undefined,
+    feature: features.length ? [...features] : undefined,
     includeUnknown: features.length ? showUnknown : undefined,
     ...profileQuery(settings),
   };
@@ -212,16 +258,63 @@ export function HomeScreen() {
   const verdicts = Boolean(profile && items.some(({ place }) => place.verdict));
   const verdictCount = items.filter(({ place }) => place.verdict).length;
   const missing = useMemo(() => (verdicts && counts.met === 0 ? missingNeeds(items).slice(0, 3) : []), [verdicts, counts.met, items]);
-  const settled = query.q === q.trim() && !places.isPlaceholderData;
+  const settled = !places.isPlaceholderData;
   const routeTo = useMemo(
     () =>
-      settled && !places.isError ? routeTarget(q, shown.map(({ place }) => place)) : null,
-    [settled, places.isError, q, shown],
+      settled && !places.isError ? routeTarget(committed.q, shown.map(({ place }) => place)) : null,
+    [settled, places.isError, committed.q, shown],
+  );
+  // Place names matching the typed text: a small request of their own, since typing no longer loads results.
+  const { value: typed } = useDebouncedValue(q.trim());
+  const nameQuery = usePlaces(
+    { q: typed, near: draftFrom.centre, limit: SUGGESTION_LIMIT, ...profileQuery(settings) },
+    { enabled: typed.length > 0 },
   );
   const placeNames = useMemo(
-    () => (settled && query.q ? [...new Set(items.map(({ place }) => place.name))] : []),
-    [items, settled, query.q],
+    () =>
+      typed && typed === q.trim() && !nameQuery.isPlaceholderData
+        ? [...new Set((nameQuery.data?.items ?? []).map((place) => place.name))]
+        : [],
+    [typed, q, nameQuery.data, nameQuery.isPlaceholderData],
   );
+
+  const chosenSummary = [
+    q.trim() ? `„${q.trim()}”` : null,
+    draft.category ? categories.data?.find((c) => c.id === draft.category)?.label : null,
+    ...draft.features.map((feature) => t.filters[feature]),
+    draft.nearby ? (draft.nearby.place ?? t.confirm.nearby) : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+  // The count on "Pokaż wyniki (N)": a one-row request of the draft, debounced, keeping the last number meanwhile.
+  const confirm = confirmAction(selection, q);
+  const asked = draftAsk(selection, q);
+  const countKey = JSON.stringify([asked, listArea(draftFrom.area, listView), settings.profile]);
+  const countFilters = useMemo(
+    () =>
+      asked && {
+        q: asked.q || undefined,
+        category: asked.category ? [asked.category] : undefined,
+        feature: asked.features.length ? [...asked.features] : undefined,
+        includeUnknown: asked.features.length ? asked.showUnknown : undefined,
+        ...profileQuery(settings),
+        bbox: listArea(draftFrom.area, listView),
+        near: draftFrom.centre,
+        limit: 1,
+      },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `countKey` is the value of everything read here
+    [countKey],
+  );
+  const debouncedCountFilters = useDebounced(countFilters, POINTS_DEBOUNCE_MS);
+  const countQuery = usePlaces(debouncedCountFilters ?? { limit: 1 }, { enabled: confirm === "show" && Boolean(debouncedCountFilters) });
+  const countNow = confirm === "show" && !countQuery.isPlaceholderData ? countQuery.data?.total : undefined;
+  const [shownCount, setShownCount] = useState<number | null>(null);
+  const nextCount = confirm !== "show" ? null : (countNow ?? shownCount);
+  if (nextCount !== shownCount) setShownCount(nextCount);
+  // The button's number is read out when it settles (the layout's one live region).
+  useEffect(() => {
+    if (shownCount !== null) announce(t.confirm.countAnnounce(shownCount));
+  }, [announce, shownCount, t]);
   // Categories the typed text names come first (instantly, no request), then the matching place names.
   const suggestions = useMemo((): SearchSuggestion[] => {
     const named = matchCategories(q, categories.data ?? []).suggestions.map((c): SearchSuggestion => {
@@ -297,31 +390,59 @@ export function HomeScreen() {
     if (hide && statusFilter === "barrier") setStatusFilter(null);
   }
 
+  // Picking an option only changes the draft (and shows the confirm button); results stay as they were.
+  function pick(change: Partial<HomeChoices>) {
+    nearbyForCommand.current = false;
+    setSelection((current) => choose(current, change));
+    if (stowedFlag) setStowed(false);
+  }
+
+  // A command asks at once: the draft becomes the query without the confirm button.
+  function ask(next: Partial<HomeChoices> & { q?: string }) {
+    setQ(next.q ?? "");
+    setSelection((current) => runAsk(current, next));
+    setStatusFilter(null);
+    setHideFailing(false);
+  }
+
+  function locateForCommand() {
+    nearbyForCommand.current = true;
+    nearbyRef.current?.locate();
+  }
+
+  function changeNearby(next: NearbyOrigin | null) {
+    if (nearbyForCommand.current) {
+      nearbyForCommand.current = false;
+      setSelection((current) => commitChange(current, { nearby: next }));
+    } else pick({ nearby: next });
+  }
+
   function toggleFeature(feature: FeatureFilter) {
-    setFeatures((current) =>
-      current.includes(feature) ? current.filter((f) => f !== feature) : FEATURES.filter((f) => f === feature || current.includes(f)),
-    );
-    if (features.length === 1 && features[0] === feature) setShowUnknown(false);
+    const current = draft.features;
+    pick({ features: current.includes(feature) ? current.filter((f) => f !== feature) : FEATURES.filter((f) => f === feature || current.includes(f)) });
+  }
+
+  // "Pokaż wyniki" (or Enter): the picked options and the typed text become the query; with nothing picked it clears.
+  function showSelection(text = q) {
+    nearbyForCommand.current = false;
+    setUnknownCommand(false);
+    if (confirmAction(selection, text) === "clear") return resetView();
+    setSelection((current) => showResults(current, text));
+    setStatusFilter(null);
+    setHideFailing(false);
   }
 
   function startQuick(action: QuickAction) {
     setQuickId(action.id);
     const filters = quickFilters(action);
-    setQ("");
-    setCategory(filters.category ?? ALL);
-    setFeatures(filters.features);
-    setShowUnknown(false);
-    setStatusFilter(null);
-    setHideFailing(false);
-    if (!nearby) nearbyRef.current?.locate();
+    ask({ category: filters.category, features: filters.features });
+    if (!draft.nearby) locateForCommand();
   }
 
   function runQuick(action: QuickAction) {
     if (quick?.id !== action.id) return startQuick(action);
     setQuickId(null);
-    setCategory(ALL);
-    setFeatures([]);
-    setShowUnknown(false);
+    ask({});
   }
 
   // "najbliższa toaleta" (said or typed): the matching quick action, or just the category with "W mojej
@@ -343,7 +464,7 @@ export function HomeScreen() {
     const { quick: quickAction, category: id } = parsed.command;
     if (quickAction) {
       if (quick?.id === quickAction.id) {
-        if (!nearby) nearbyRef.current?.locate();
+        if (!draft.nearby) locateForCommand();
       } else startQuick(quickAction);
       return true;
     }
@@ -353,9 +474,11 @@ export function HomeScreen() {
 
   // The nearest places of a category: around the device when the position is known (or already allowed), else
   // the user is asked, since picking a category is an explicit action. Declined: the list says it is from Rynek.
-  function locateForCategory(id: string) {
-    if (id === ALL || nearby) return;
-    if (peekNearby) setNearby(peekNearby);
+  // `forCommand`: the position joins the query at once (a command), not only the draft (a chip).
+  function locateForCategory(id: string, forCommand: boolean) {
+    if (id === ALL || draft.nearby) return;
+    if (peekNearby) setSelection((current) => (forCommand ? commitChange(current, { nearby: peekNearby }) : choose(current, { nearby: peekNearby })));
+    else if (forCommand) locateForCommand();
     else nearbyRef.current?.locate();
   }
 
@@ -363,30 +486,23 @@ export function HomeScreen() {
   function pickCategory(id: string) {
     setQuickId(null);
     setUnknownCommand(false);
-    setQ("");
-    setCategory(id);
-    setFeatures([]);
-    setShowUnknown(false);
-    setStatusFilter(null);
-    setHideFailing(false);
+    ask({ category: id === ALL ? null : id });
     announce(t.command.applied(categories.data?.find((c) => c.id === id)?.label ?? ""));
-    locateForCategory(id);
+    locateForCategory(id, true);
   }
 
   function searchWider() {
     setQuickId(null);
     setUnknownCommand(false);
-    setNearby(null);
+    nearbyForCommand.current = false;
     setQ("");
-    setCategory(ALL);
-    setFeatures([]);
-    setShowUnknown(false);
+    setSelection(START_SELECTION);
     setStatusFilter(null);
     setHideFailing(false);
   }
 
-  // Anything that hides part of the city from the map and list; "back" undoes all of it at once.
-  const narrowed = Boolean(q || category !== ALL || features.length || nearby || statusFilter || hideFailing);
+  // Anything that hides part of the city from the map and list, picked or already shown; "back" undoes all of it at once.
+  const narrowed = Boolean(q || isSearching(committed) || isSearching({ q: "", ...draft }) || statusFilter || hideFailing);
 
   function resetView() {
     searchWider();
@@ -490,7 +606,7 @@ export function HomeScreen() {
   const controls = (
     <div key="controls" className="space-y-2 px-4 pb-2">
       <ProfileSwitch value={profile} onChange={changeProfile} />
-      <NearbyToggle ref={nearbyRef} origin={nearby} onChange={setNearby} />
+      <NearbyToggle ref={nearbyRef} origin={draft.nearby} onChange={changeNearby} />
       {unknownCommand ? (
         <div role="note" className="space-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-body-sm">
           <p className="font-semibold">{t.command.unknownTitle}</p>
@@ -536,15 +652,15 @@ export function HomeScreen() {
       ) : null}
       <div role="group" aria-label={t.filtersLabel} className={cn(CHIP_ROW, "-mx-4 flex gap-2 pl-4")}>
         {FEATURES.map((feature) => (
-          <Toggle key={feature} pressed={features.includes(feature)} onPressedChange={() => toggleFeature(feature)} className={CHIP}>
+          <Toggle key={feature} pressed={draft.features.includes(feature)} onPressedChange={() => toggleFeature(feature)} className={CHIP}>
             {t.filters[feature]}
           </Toggle>
         ))}
       </div>
-      {features.length ? (
+      {draft.features.length ? (
         <label className="flex min-h-12 cursor-pointer items-center justify-between gap-3 text-body-sm font-semibold">
           <span>{t.showUnknown}</span>
-          <Switch checked={showUnknown} onCheckedChange={setShowUnknown} />
+          <Switch checked={draft.showUnknown} onCheckedChange={(on) => pick({ showUnknown: on })} />
         </label>
       ) : null}
     </div>
@@ -652,7 +768,7 @@ export function HomeScreen() {
                   {t.list.searchWider}
                 </Button>
                 {features.length && !showUnknown ? (
-                  <Button variant="ghost" onClick={() => setShowUnknown(true)}>
+                  <Button variant="ghost" onClick={() => setSelection((current) => commitChange(current, { showUnknown: true }))}>
                     {t.showUnknown}
                   </Button>
                 ) : null}
@@ -740,15 +856,24 @@ export function HomeScreen() {
               <CaretLeft weight="bold" aria-hidden />
             </Button>
           ) : null}
-          <SearchBox value={q} onValueChange={setQ} suggestions={suggestions} onPickCategory={pickCategory} onSubmit={searchNow} onCommand={runCommand} />
+          <SearchBox
+            value={q}
+            onValueChange={setQ}
+            suggestions={suggestions}
+            onPickCategory={pickCategory}
+            onPickPlace={showSelection}
+            onSubmit={showSelection}
+            onClear={() => setSelection(clearQuery)}
+            onCommand={runCommand}
+          />
         </div>
         <ToggleGroup
           aria-label={t.categoriesLabel}
-          value={[category]}
+          value={[draft.category ?? ALL]}
           onValueChange={(value) => {
             if (!value[0]) return;
-            setCategory(value[0]);
-            locateForCategory(value[0]);
+            pick({ category: value[0] === ALL ? null : value[0] });
+            locateForCategory(value[0], false);
           }}
           // iOS WebKit won't pan a scroller with pointer-events: none, even under chips that have auto.
           className={cn(CHIP_ROW, "pointer-events-auto mx-auto mt-1.5 max-w-xl pl-4")}
@@ -781,6 +906,14 @@ export function HomeScreen() {
         <div className="space-y-2 px-4 pt-1 pb-2">
           <QuickActionRow active={quick?.id ?? null} onRun={runQuick} className={cn(CHIP_ROW, "-mx-4 pl-4")} />
           {quick && quickState ? <QuickResult action={quick} state={quickState} /> : null}
+          {confirm !== "hidden" ? (
+            <div role="group" aria-label={t.confirm.label} className="space-y-2 rounded-2xl bg-primary-container px-4 py-3">
+              {chosenSummary ? <p className="text-body-sm font-semibold">{t.confirm.summary(chosenSummary)}</p> : null}
+              <Button className="min-h-11 w-full" aria-busy={confirm === "show" && countQuery.isFetching} onClick={() => showSelection()}>
+                {confirm === "clear" ? t.confirm.clear : shownCount === null ? t.confirm.show : t.confirm.showCount(shownCount)}
+              </Button>
+            </div>
+          ) : null}
         </div>
         {searching ? [controls, listBlock] : [listBlock, controls]}
       </BottomPanel>

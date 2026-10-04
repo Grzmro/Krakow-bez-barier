@@ -32,7 +32,7 @@ export function distanceMeters([lon1, lat1]: number[], [lon2, lat2]: number[]): 
  */
 export function filterGapStatus(
   place: Pick<PlaceSummary, "features">,
-  features: FeatureFilter[],
+  features: readonly FeatureFilter[],
 ): Extract<Status, "unknown" | "conflict"> | null {
   const states = features.map((feature) => matchFeature(place, feature));
   if (states.includes("conflict")) return "conflict";

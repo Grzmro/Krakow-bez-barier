@@ -27,8 +27,12 @@ export interface SearchBoxProps {
   suggestions: SearchSuggestion[];
   /** A category suggestion was chosen (click, or Enter on the highlighted one). */
   onPickCategory: (id: string) => void;
-  /** Enter was pressed and was not a command: run the search now instead of waiting for the debounce. */
-  onSubmit?: () => void;
+  /** A place name suggestion was chosen (click, or Enter on the highlighted one): search for it now. */
+  onPickPlace?: (name: string) => void;
+  /** Enter was pressed (or dictation ended) and it was not a command: run the search for that text. */
+  onSubmit?: (text: string) => void;
+  /** The clear button was pressed: the text is gone, and so is the search for it. */
+  onClear?: () => void;
   /**
    * Offered the dictated text and the text typed when Enter is pressed; returns true when it was a command
    * ("najbliższa toaleta") and handled it, so the field is not filled with the command.
@@ -36,8 +40,8 @@ export interface SearchBoxProps {
   onCommand?: (text: string) => boolean;
 }
 
-/** Search field (combobox) with place-name suggestions; the list below updates as you type. */
-export function SearchBox({ value, onValueChange, suggestions, onPickCategory, onSubmit, onCommand }: SearchBoxProps) {
+/** Search field (combobox) with place-name suggestions; typing only suggests, Enter or a suggestion searches. */
+export function SearchBox({ value, onValueChange, suggestions, onPickCategory, onPickPlace, onSubmit, onClear, onCommand }: SearchBoxProps) {
   const t = useMessages().home.search;
   const [open, setOpen] = useState(false);
   // An open popup hides the rest of the page from assistive tech, so keep it closed when it
@@ -46,7 +50,10 @@ export function SearchBox({ value, onValueChange, suggestions, onPickCategory, o
   const highlighted = useRef(false);
   const speech = useSpeechInput((text, final) => {
     if (final && onCommand?.(text)) onValueChange("");
-    else onValueChange(text);
+    else {
+      onValueChange(text);
+      if (final) onSubmit?.(text);
+    }
   });
   return (
     <Autocomplete.Root
@@ -56,7 +63,10 @@ export function SearchBox({ value, onValueChange, suggestions, onPickCategory, o
         highlighted.current = Boolean(item);
       }}
       value={value}
-      onValueChange={(next) => onValueChange(next)}
+      onValueChange={(next, details) => {
+        onValueChange(next);
+        if (details.reason === "item-press" && next) onPickPlace?.(next);
+      }}
       open={open && useful}
       onOpenChange={setOpen}
       filter={null}
@@ -73,7 +83,7 @@ export function SearchBox({ value, onValueChange, suggestions, onPickCategory, o
             if (onCommand?.(value)) {
               event.preventDefault();
               onValueChange("");
-            } else onSubmit?.();
+            } else onSubmit?.(value);
           }}
           placeholder={speech.active ? t.voice[speech.state === "processing" ? "processing" : "listening"] : t.placeholder}
           className={cn(
@@ -87,7 +97,10 @@ export function SearchBox({ value, onValueChange, suggestions, onPickCategory, o
             <button
               type="button"
               aria-label={t.clear}
-              onClick={() => onValueChange("")}
+              onClick={() => {
+                onValueChange("");
+                onClear?.();
+              }}
               className="grid size-10 place-items-center rounded-full hover:bg-muted"
             >
               <X weight="bold" className="size-5" aria-hidden />

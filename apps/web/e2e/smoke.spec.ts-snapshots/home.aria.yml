@@ -46,7 +46,7 @@
         - listitem:
           - 'link /Hotel Przykład ul\. Sienna 5, Kraków Wejście — stopnie · Próg · Szerokość drzwi · Winda · Toaleta dostosowana · Przewijak: brak danych Dane przykładowe \d+ m od Rynku/':
             - /url: /miejsca/hotel-przyklad
-      - paragraph: Mapa jest czysta. Wpisz nazwę, wybierz kategorię albo szybką akcję, a pokażemy wyniki na liście i na mapie.
+      - paragraph: Mapa jest czysta. Wpisz nazwę i naciśnij Enter, wybierz szybką akcję albo zaznacz kategorię i cechy, a potem „Pokaż wyniki”. Wtedy pojawią się lista i pinezki.
       - group "Profil potrzeb":
         - text: ""
         - radio "Profil wyłączony, widok dla każdego" [checked]

@@ -4,6 +4,18 @@ import { expect } from "./fixtures";
 export const pins = (page: Page) => page.locator("[data-place-id]");
 export const clusters = (page: Page) => page.locator("[data-cluster-count]");
 
+/** Types `text` in the search field and presses Enter, which is what loads results (typing alone only suggests). */
+export async function searchFor(page: Page, text: string) {
+  const search = page.getByRole("combobox", { name: /Wyszukaj miejsce|Search for a place/ });
+  await search.fill(text);
+  await search.press("Enter");
+}
+
+/** Confirms the picked chips and filters with "Pokaż wyniki (N)": until then the list and pins stay as they were. */
+export async function showResults(page: Page) {
+  await page.getByRole("button", { name: /^Pokaż wyniki/ }).click();
+}
+
 /**
  * Opens the home screen with all ten sample places listed and pinned. The start state shows none, so this
  * searches for "r", which every sample place's name or street contains, and closes the suggestions (an open
@@ -14,6 +26,7 @@ export async function gotoAllPlaces(page: Page) {
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
   await search.fill("r");
   await expect(search).toHaveAttribute("aria-expanded", "true");
+  await search.press("Enter");
   await search.press("Escape");
   await expect(search).toHaveAttribute("aria-expanded", "false");
   await expect(search).toHaveValue("r");
