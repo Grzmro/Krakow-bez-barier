@@ -8,6 +8,9 @@
   - paragraph: Tylko dane zbiorcze, bez danych osobowych. Brak danych nigdy nie liczy się jako „dostępne”.
   - group: Które miejsca liczymy?
   - paragraph: "Tryb przykładowy: statystyki policzone z przykładowych miejsc, nie z danych Krakowa."
+  - paragraph:
+    - link "Raport jakości danych (publiczny)":
+      - /url: /o-danych/jakosc
   - heading "W skrócie" [level=2]
   - term: Miejsca w bazie
   - definition: "8"

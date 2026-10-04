@@ -13,8 +13,9 @@ import { pages } from "./en/pages";
 import { place } from "./en/place";
 import { profile } from "./en/profile";
 import { pwa } from "./en/pwa";
+import { quality } from "./en/quality";
 import { route } from "./en/route";
 import { summary } from "./en/summary";
 import { transit } from "./en/transit";
 
-export const en: Messages = { common, home, place, profile, pages, moderator, nearby, business, event, dev, pwa, summary, route, city, transit };
+export const en: Messages = { common, home, place, profile, pages, moderator, nearby, business, event, dev, pwa, summary, route, city, transit, quality };

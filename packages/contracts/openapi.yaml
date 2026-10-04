@@ -1610,6 +1610,95 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /data-quality:
+    get:
+      operationId: getDataQuality
+      summary: Data quality report
+      description: 'How good our data is, measured on the database (page `/o-danych/jakosc`, public): places per category with
+        and without an accessibility fact, the age of the facts (median and distribution), the reliability of the facts,
+        attributes on which sources disagree (conflicts), the share of places that have each attribute, and the sources
+        the facts come from. `categories` is ordered by the largest gap first (most places with no data). Facts are
+        resolved like on the place card, so a conflict or an outdated attribute means the same as there. Counts only, no
+        personal data. Places of the categories hidden on the map by default (parking bays, transit stops, …) are left
+        out, as in `GET /city/stats`. Sample (PRZYKŁAD) places and facts are left out; `isSample` is true only when the
+        whole answer is built from sample data (the example-data mode). `generatedAt` is when the numbers were computed.
+
+        '
+      tags:
+      - city
+      responses:
+        '200':
+          description: The data quality report.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DataQualityReport'
+              examples:
+                default:
+                  value:
+                    generatedAt: '2026-10-03T12:00:00Z'
+                    isSample: true
+                    places:
+                      total: 3
+                      withData: 2
+                      withoutData: 1
+                    categories:
+                    - category: hotel
+                      places: 1
+                      withData: 0
+                      withoutData: 1
+                      conflictAttributes: 0
+                      staleAttributes: 0
+                      medianAgeDays: null
+                    - category: museum
+                      places: 2
+                      withData: 2
+                      withoutData: 0
+                      conflictAttributes: 1
+                      staleAttributes: 0
+                      medianAgeDays: 32
+                    facts:
+                      total: 5
+                      medianAgeDays: 32
+                      age:
+                      - bucket: within_90_days
+                        facts: 4
+                      - bucket: within_365_days
+                        facts: 1
+                      - bucket: older
+                        facts: 0
+                    reliability:
+                    - reliability: confirmed
+                      facts: 1
+                    - reliability: community
+                      facts: 4
+                    - reliability: extracted
+                      facts: 0
+                    - reliability: user_report
+                      facts: 0
+                    - reliability: inferred
+                      facts: 0
+                    conflicts:
+                      places: 1
+                      attributes: 1
+                    staleData:
+                      places: 0
+                      facts: 0
+                    attributes:
+                    - attribute: step_count
+                      places: 2
+                    - attribute: door_width_cm
+                      places: 1
+                    sources:
+                    - sourceId: osm
+                      name: OpenStreetMap
+                      kind: community
+                      facts: 4
+                      newestFetchedAt: '2026-10-01T00:00:00Z'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /routes:
     post:
       operationId: createRoute
@@ -3425,6 +3514,207 @@ components:
         conflict:
           type: integer
           minimum: 0
+    DataQualityReport:
+      type: object
+      description: How good the accessibility data is (`GET /data-quality`). Counts only, no personal data.
+      required:
+      - generatedAt
+      - isSample
+      - places
+      - categories
+      - facts
+      - reliability
+      - conflicts
+      - staleData
+      - attributes
+      - sources
+      properties:
+        generatedAt:
+          type: string
+          format: date-time
+          description: When the numbers were computed.
+        isSample:
+          type: boolean
+          description: Built from sample (PRZYKŁAD) data only — the example-data mode. Label it "PRZYKŁAD".
+        places:
+          type: object
+          required:
+          - total
+          - withData
+          - withoutData
+          properties:
+            total:
+              type: integer
+              minimum: 0
+            withData:
+              type: integer
+              minimum: 0
+              description: Places with at least one active accessibility fact.
+            withoutData:
+              type: integer
+              minimum: 0
+              description: Places with no accessibility fact — "Brak danych", never counted as accessible.
+        categories:
+          type: array
+          description: Coverage per category, the largest gap (most places without data) first, then by category id.
+          items:
+            $ref: '#/components/schemas/DataQualityCategory'
+        facts:
+          type: object
+          description: The active facts behind the places. Age is counted from the date the fact was last true (confirmation
+            or observation), else from when it was fetched.
+          required:
+          - total
+          - medianAgeDays
+          - age
+          properties:
+            total:
+              type: integer
+              minimum: 0
+            medianAgeDays:
+              type:
+              - integer
+              - 'null'
+              minimum: 0
+              description: Median age of the facts in days; null without facts.
+            age:
+              type: array
+              description: Every age bucket listed, youngest first.
+              items:
+                type: object
+                required:
+                - bucket
+                - facts
+                properties:
+                  bucket:
+                    $ref: '#/components/schemas/DataAgeBucket'
+                  facts:
+                    type: integer
+                    minimum: 0
+        reliability:
+          type: array
+          description: Facts per reliability level, every level except `sample` listed, strongest first.
+          items:
+            type: object
+            required:
+            - reliability
+            - facts
+            properties:
+              reliability:
+                $ref: '#/components/schemas/Reliability'
+              facts:
+                type: integer
+                minimum: 0
+        conflicts:
+          type: object
+          description: Attributes on which fresh sources disagree, and the places they belong to.
+          required:
+          - places
+          - attributes
+          properties:
+            places:
+              type: integer
+              minimum: 0
+            attributes:
+              type: integer
+              minimum: 0
+        staleData:
+          type: object
+          description: Places with an attribute whose facts are all outdated (older than 12 months or from a source that
+            failed to refresh), and those facts — the same rule as `GET /city/stats`.
+          required:
+          - places
+          - facts
+          properties:
+            places:
+              type: integer
+              minimum: 0
+            facts:
+              type: integer
+              minimum: 0
+        attributes:
+          type: array
+          description: For each attribute of a place, how many places have at least one active fact about it — the gaps
+            are the places that lack it. Attributes of route segments are not listed. Ordered by the fewest places first.
+          items:
+            type: object
+            required:
+            - attribute
+            - places
+            properties:
+              attribute:
+                $ref: '#/components/schemas/AccessibilityAttribute'
+              places:
+                type: integer
+                minimum: 0
+        sources:
+          type: array
+          description: The sources the facts come from, with how many facts each gave, most first.
+          items:
+            type: object
+            required:
+            - sourceId
+            - name
+            - kind
+            - facts
+            - newestFetchedAt
+            properties:
+              sourceId:
+                type: string
+              name:
+                type: string
+              kind:
+                $ref: '#/components/schemas/SourceKind'
+              facts:
+                type: integer
+                minimum: 1
+              newestFetchedAt:
+                type: string
+                format: date-time
+                description: When the newest of its facts was fetched.
+    DataQualityCategory:
+      type: object
+      required:
+      - category
+      - places
+      - withData
+      - withoutData
+      - conflictAttributes
+      - staleAttributes
+      - medianAgeDays
+      properties:
+        category:
+          $ref: '#/components/schemas/Category'
+        places:
+          type: integer
+          minimum: 1
+        withData:
+          type: integer
+          minimum: 0
+        withoutData:
+          type: integer
+          minimum: 0
+        conflictAttributes:
+          type: integer
+          minimum: 0
+          description: Attributes of places in this category on which fresh sources disagree.
+        staleAttributes:
+          type: integer
+          minimum: 0
+          description: Attributes of places in this category with only outdated facts.
+        medianAgeDays:
+          type:
+          - integer
+          - 'null'
+          minimum: 0
+          description: Median age of the category's facts in days; null without facts.
+    DataAgeBucket:
+      type: string
+      description: How old a fact is — `within_90_days`, `within_365_days` (91 to 365 days) or `older`.
+      enum:
+      - within_90_days
+      - within_365_days
+      - older
     PriorityFactor:
       type: string
       description: 'A reason a place is ranked: `barrier` — a need with a known barrier (per need); `open_report` — a report
