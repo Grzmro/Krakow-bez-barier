@@ -40,10 +40,11 @@ describe("POST /api/v1/reports", () => {
     expect(report).toMatchObject({ placeId: PLACE_ID, status: "new", decidedAt: null, photoUrl: null });
     expect(report.comment).toBe("Winda nie działa. Kontakt: [usunięto], [usunięto]");
 
-    // AND the stored record has no personal data fields at all
+    // AND the stored record has no personal data fields at all — sent without a token, it has no contributor either
     expect(Object.keys(memory.reports[0]).sort()).toEqual(
-      ["attribute", "comment", "createdAt", "decidedAt", "id", "photoUrl", "placeId", "status", "value"].sort(),
+      ["attribute", "comment", "contributor", "createdAt", "decidedAt", "id", "photoUrl", "placeId", "status", "value", "withdrawnAt"].sort(),
     );
+    expect(memory.reports[0]).toMatchObject({ contributor: null, withdrawnAt: null });
 
     // AND it is listed beside the value as unverified, while the resolved value stays OpenStreetMap's
     const pending = await pendingReportsByAttribute(memory.store, PLACE_ID);
@@ -105,5 +106,53 @@ describe("POST /api/v1/reports", () => {
     // THEN the 11th is refused with 429
     expect(statuses.slice(0, 10).every((s) => s === 201)).toBe(true);
     expect(statuses[10]).toBe(429);
+  });
+});
+
+describe("POST /api/v1/reports with a contributor token", () => {
+  const TOKEN = "device-a-0123456789abcdef";
+  const lift = (broken: boolean) => ({ placeId: PLACE_ID, attribute: "lift", value: { kind: "boolean", boolean: !broken } });
+  const postAs = (body: unknown, token: string) =>
+    POST(jsonRequest(url, body, { "x-forwarded-for": `198.51.100.${++client}`, "x-contributor-token": token }));
+
+  it("updates the device's pending report of the same attribute instead of adding another", async () => {
+    // GIVEN a lift report from one device
+    const first = await postAs(lift(true), TOKEN);
+    const created: Report = await first.json();
+
+    // WHEN the same device reports the lift again with another value
+    const second = await postAs({ ...lift(false), comment: "Jednak działa." }, TOKEN);
+
+    // THEN the answer is a spec-valid 200 with the same report, now holding the new value
+    expect([first.status, second.status]).toEqual([201, 200]);
+    const replaced: Report = await second.json();
+    expect(validateResponse("createReport", 200, replaced)).toEqual([]);
+    expect(replaced).toMatchObject({ id: created.id, value: { kind: "boolean", boolean: true }, comment: "Jednak działa.", status: "new" });
+    // AND the place lists one pending lift report, and the store holds the token's hash, not the token
+    expect((await pendingReportsByAttribute(memory.store, PLACE_ID)).get("lift")).toHaveLength(1);
+    expect(memory.reports).toHaveLength(1);
+    expect(memory.reports[0].contributor).toMatch(/^[0-9a-f]{64}$/);
+    expect(JSON.stringify(memory.reports)).not.toContain(TOKEN);
+  });
+
+  it("keeps reports from different devices apart", async () => {
+    // WHEN two devices report the lift
+    const a = await postAs(lift(true), TOKEN);
+    const b = await postAs(lift(true), "device-b-0123456789abcdef");
+
+    // THEN both are new entries
+    expect([a.status, b.status]).toEqual([201, 201]);
+    expect((await pendingReportsByAttribute(memory.store, PLACE_ID)).get("lift")).toHaveLength(2);
+  });
+
+  it("refuses a malformed token with 400", async () => {
+    // WHEN the token is too short
+    const res = await postAs(lift(true), "short");
+
+    // THEN it is a 400 naming the header, and nothing is stored
+    expect(res.status).toBe(400);
+    const problem: Problem = await res.json();
+    expect(problem.errors).toEqual([expect.objectContaining({ field: "header.X-Contributor-Token" })]);
+    expect(memory.reports).toHaveLength(0);
   });
 });

@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
 
-// Reports and confirmations go to the mock API (spec examples) until KBB-19 serves them.
+// Reports and confirmations go to the in-browser mock API (`lib/mocks/mock-contributions.ts`), which keeps one
+// pending contribution per device and feature like the real one.
 
 test("a keyboard-only visitor reports a wrong value in three steps; the card keeps its data", async ({
   page,
@@ -164,6 +165,46 @@ test("the sheet keeps its size when a text field is focused and the page is pinc
   await evidence("place-report-focused-comment");
 });
 
+test("a second report of the same feature replaces the first; Wycofaj withdraws it", async ({ page, expectAccessible, evidence }) => {
+  // GIVEN a sent report that the ramp of the outdated demo place is missing
+  await page.goto("/miejsca/teatr-slowackiego");
+  const ramp = page.locator("li").filter({ has: page.getByRole("button", { name: /Podjazd/ }) });
+  await ramp.getByRole("button", { name: "To się nie zgadza" }).click();
+  await page.getByText("Nie ma podjazdu").click();
+  await page.getByRole("button", { name: "Wyślij" }).click();
+  await expect(ramp).not.toContainText("wysyłanie", { timeout: 8_000 });
+
+  // THEN the row says the report was sent and offers to change or withdraw it instead of sending another
+  await expect(ramp).toContainText("Wysłano zgłoszenie");
+  await expect(ramp.getByRole("button", { name: "To się nie zgadza" })).toHaveCount(0);
+
+  // WHEN the visitor changes it to the other value
+  await ramp.getByRole("button", { name: "Zmień", exact: true }).click();
+  await page.getByRole("dialog").getByText("Jest podjazd", { exact: true }).click();
+  await page.getByRole("button", { name: "Wyślij" }).click();
+  await expect(ramp).not.toContainText("wysyłanie", { timeout: 8_000 });
+
+  // THEN there is still one own tile, with the new value
+  await expect(ramp.getByText("Twoje zgłoszenie:")).toHaveCount(1);
+  await expect(ramp).toContainText("Twoje zgłoszenie:Jest");
+  await expect(page.getByRole("status").filter({ hasText: "Zgłoszenie zmienione." })).toBeAttached();
+  await expect(page.locator("[data-sonner-toast]")).toHaveCount(0, { timeout: 8_000 });
+  // axe counts a button half under the sticky header as too small a target; check the card from its top.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await expectAccessible();
+  await ramp.scrollIntoViewIfNeeded();
+  await evidence("place-report-changed");
+
+  // WHEN the visitor withdraws it from the keyboard
+  await ramp.getByRole("button", { name: "Wycofaj", exact: true }).focus();
+  await page.keyboard.press("Enter");
+
+  // THEN the tile is gone, the row offers "To się nie zgadza" again with focus on it
+  await expect(ramp).not.toContainText("Twoje zgłoszenie");
+  await expect(page.getByRole("status").filter({ hasText: "Wycofano." })).toBeAttached();
+  await expect(ramp.getByRole("button", { name: "To się nie zgadza" })).toBeFocused();
+});
+
 test("Cofnij withdraws the report before it is sent", async ({ page }) => {
   // GIVEN a report just submitted for the ramp of the outdated demo place
   await page.goto("/miejsca/teatr-slowackiego");
@@ -212,9 +253,11 @@ test("Potwierdzam, byłem tu records a confirmation beside the fact", async ({ p
   await expect(page.locator("[data-sonner-toast]").getByText("Potwierdzenie zapisane.")).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Potwierdzenie zapisane." })).toBeAttached();
   await expect(row).toContainText("Twoje potwierdzenie:Bez stopni");
+  await expect(row).toContainText("Potwierdzono");
   await expect(row.getByRole("button", { name: "Potwierdzam, byłem tu" })).toHaveCount(0);
-  // AND focus stays in the row instead of falling back to the page
-  await expect(row.getByRole("button", { name: "To się nie zgadza" })).toBeFocused();
+  await expect(row.getByRole("button", { name: "To się nie zgadza" })).toHaveCount(0);
+  // AND focus stays in the row, on "Zmień", instead of falling back to the page
+  await expect(row.getByRole("button", { name: "Zmień", exact: true })).toBeFocused();
   // AND the OSM object can be edited at the source
   await expect(page.getByRole("link", { name: /Edytuj w OpenStreetMap/ })).toHaveAttribute(
     "href",

@@ -17,9 +17,13 @@ export {
   createConfirmation,
   createReport,
   decideReport,
+  listContributions,
   listModerationQueue,
   moderatorSession,
   pendingReportsByAttribute,
   redactContactData,
+  submitConfirmation,
+  submitReport,
+  withdrawContribution,
 } from "./service";
 export type { ReportsStore } from "./store";

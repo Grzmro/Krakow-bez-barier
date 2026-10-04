@@ -2,6 +2,7 @@ import type { Confirmation } from "@krakow-bez-barier/contracts";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { resolveAttribute } from "@/domain";
 import { validateResponse } from "@/server/http";
+import { listContributions, listModerationQueue, pendingReportsByAttribute, submitReport } from "@/server/reports";
 import { jsonRequest, LIFT_FACT_ID, OTHER_PLACE_ID, PLACE_ID, seededReportsStore } from "@/server/reports/testing";
 
 let memory = seededReportsStore();
@@ -67,5 +68,66 @@ describe("POST /api/v1/places/{id}/confirmations", () => {
     // THEN both are 404 and nothing is recorded
     expect([unknownPlace.status, wrongPlace.status]).toEqual([404, 404]);
     expect(memory.confirmations).toHaveLength(0);
+  });
+});
+
+describe("POST /api/v1/places/{id}/confirmations with a contributor token", () => {
+  const TOKEN = "device-a-0123456789abcdef";
+  const confirmAs = (token: string, ip = `198.51.100.${++client}`) =>
+    POST(
+      jsonRequest(`http://localhost/api/v1/places/${PLACE_ID}/confirmations`, { factId: LIFT_FACT_ID }, {
+        "x-forwarded-for": ip,
+        "x-contributor-token": token,
+      }),
+      { params: Promise.resolve({ id: PLACE_ID }) },
+    );
+
+  it("replaces the device's pending report of the attribute: the latest one wins", async () => {
+    // GIVEN the device reported the lift broken
+    await submitReport(memory.store, { placeId: PLACE_ID, attribute: "lift", value: { kind: "boolean", boolean: false } }, TOKEN);
+
+    // WHEN the same device confirms the lift works
+    const res = await confirmAs(TOKEN);
+
+    // THEN the confirmation is recorded and the report leaves the card and the moderation queue
+    expect(res.status).toBe(201);
+    expect((await pendingReportsByAttribute(memory.store, PLACE_ID)).get("lift")).toBeUndefined();
+    expect((await listModerationQueue(memory.store, { limit: 10 })).items).toEqual([]);
+    expect(await listContributions(memory.store, PLACE_ID, TOKEN)).toEqual([
+      expect.objectContaining({ kind: "confirmation", attribute: "lift", factId: LIFT_FACT_ID }),
+    ]);
+  });
+
+  it("returns the device's confirmation again instead of a second one or a 429", async () => {
+    // GIVEN the device confirmed the lift
+    const first = await confirmAs(TOKEN, "203.0.113.77");
+    const confirmation: Confirmation = await first.json();
+
+    // WHEN it confirms again from the same address
+    const again = await confirmAs(TOKEN, "203.0.113.77");
+
+    // THEN it is a spec-valid 200 with the same confirmation, counted once
+    expect([first.status, again.status]).toEqual([201, 200]);
+    const body: Confirmation = await again.json();
+    expect(validateResponse("createConfirmation", 200, body)).toEqual([]);
+    expect(body.id).toBe(confirmation.id);
+    expect(memory.facts[0].evidence?.confirmations).toBe(1);
+  });
+
+  it("is withdrawn when the device then reports the attribute", async () => {
+    // GIVEN the device confirmed the lift
+    await confirmAs(TOKEN);
+
+    // WHEN the same device reports the lift broken
+    const { replaced } = await submitReport(
+      memory.store,
+      { placeId: PLACE_ID, attribute: "lift", value: { kind: "boolean", boolean: false } },
+      TOKEN,
+    );
+
+    // THEN the report is new, the confirmation no longer counts and the device has only the report
+    expect(replaced).toBe(false);
+    expect(memory.facts[0].evidence?.confirmations).toBe(0);
+    expect(await listContributions(memory.store, PLACE_ID, TOKEN)).toEqual([expect.objectContaining({ kind: "report" })]);
   });
 });

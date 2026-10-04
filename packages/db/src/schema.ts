@@ -157,8 +157,18 @@ export const reports = pgTable(
     status: text("status").$type<ReportStatus>().notNull().default("new"),
     createdAt: timestamptz("created_at").notNull().defaultNow(),
     decidedAt: timestamptz("decided_at"),
+    // SHA-256 of the browser's random contributor token: one pending report per device, place and attribute.
+    // Not personal data — no account, IP or fingerprint behind it (R7). Null for reports sent without a token.
+    contributorHash: text("contributor_hash"),
+    // Withdrawn by the device that sent it (or replaced by its confirmation): out of the queue and off the card.
+    withdrawnAt: timestamptz("withdrawn_at"),
   },
-  (t) => [index("reports_status_idx").on(t.status, t.createdAt)],
+  (t) => [
+    index("reports_status_idx").on(t.status, t.createdAt),
+    uniqueIndex("reports_pending_contributor_unique")
+      .on(t.contributorHash, t.placeId, t.attribute)
+      .where(sql`${t.contributorHash} is not null and ${t.withdrawnAt} is null and ${t.status} in ('new', 'needs_info')`),
+  ],
 );
 
 export const confirmations = pgTable(
@@ -173,8 +183,13 @@ export const confirmations = pgTable(
       .references(() => facts.id),
     comment: text("comment"),
     createdAt: timestamptz("created_at").notNull().defaultNow(),
+    // SHA-256 of the browser's random contributor token (see `reports.contributorHash`).
+    contributorHash: text("contributor_hash"),
   },
-  (t) => [index("confirmations_fact_idx").on(t.factId)],
+  (t) => [
+    index("confirmations_fact_idx").on(t.factId),
+    index("confirmations_contributor_idx").on(t.contributorHash, t.placeId),
+  ],
 );
 
 export const moderationLog = pgTable("moderation_log", {

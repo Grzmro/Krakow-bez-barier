@@ -3,6 +3,7 @@ import {
   type AccessibilityAttribute,
   type Confirmation,
   type ConfirmationCreate,
+  type Contribution,
   type FactValue,
   type ModerationDecision,
   type ModerationReport,
@@ -12,11 +13,12 @@ import {
   type ReportCreate,
   type ReportStatus,
 } from "@krakow-bez-barier/contracts";
+import { createHash } from "node:crypto";
 import { isStale, resolveAttribute, type AccessibilityFact } from "@/domain";
 import { HttpError, type FieldError } from "@/server/http";
 import { DEMO_REVERT_MINUTES } from "./demo";
 import type { ModeratorPrincipal } from "./moderator-auth";
-import type { NewFact, QueueCursor, ReportRecord, ReportsStore } from "./store";
+import type { ConfirmationRecord, ContributionRecord, NewFact, QueueCursor, ReportRecord, ReportsStore } from "./store";
 
 export const REDACTED = "[usunięto]";
 const MAX_TEXT_VALUE = 100;
@@ -97,7 +99,24 @@ async function requirePlace(store: ReportsStore, ref: string) {
   return place;
 }
 
-export async function createReport(store: ReportsStore, body: ReportCreate): Promise<Report> {
+/**
+ * The stored form of a browser's contributor token: its SHA-256, so the database never holds a token that could be
+ * replayed. The token itself is random (no account, IP or fingerprint behind it, R7).
+ */
+export function contributorHash(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+/**
+ * Stores a report. With a contributor token the device keeps one pending contribution per place and attribute:
+ * its pending report of the attribute is replaced (`replaced: true`, same id) and its confirmation withdrawn.
+ */
+export async function submitReport(
+  store: ReportsStore,
+  body: ReportCreate,
+  contributorToken?: string,
+  now: Date = new Date(),
+): Promise<{ report: Report; replaced: boolean }> {
   if (body.website) {
     throw unprocessable("The report could not be accepted.", [{ field: "website", message: "must be empty" }]);
   }
@@ -106,13 +125,55 @@ export async function createReport(store: ReportsStore, body: ReportCreate): Pro
   }
   const value = checkReportValue(body.attribute, body.value);
   const place = await requirePlace(store, body.placeId);
-  const record = await store.insertReport({
+  const report = { placeId: place.id, attribute: body.attribute, value, comment: cleanComment(body.comment) };
+  if (!contributorToken) return { report: toReport(await store.insertReport(report)), replaced: false };
+  const saved = await store.saveContributorReport({ ...report, contributor: contributorHash(contributorToken), at: now });
+  return { report: toReport(saved.report), replaced: saved.replaced };
+}
+
+export async function createReport(store: ReportsStore, body: ReportCreate): Promise<Report> {
+  return (await submitReport(store, body)).report;
+}
+
+const toConfirmation = (record: ConfirmationRecord): Confirmation => ({
+  id: record.id,
+  placeId: record.placeId,
+  factId: record.factId,
+  comment: record.comment,
+  createdAt: record.createdAt.toISOString(),
+});
+
+/**
+ * Records a confirmation. `admit` runs only when a new confirmation would be stored (throw to refuse, e.g. a rate
+ * limit). With a contributor token, a fact the device already confirmed returns that confirmation (`created: false`);
+ * otherwise the device's pending report and other confirmations of the attribute are withdrawn — the latest wins.
+ */
+export async function submitConfirmation(
+  store: ReportsStore,
+  placeRef: string,
+  body: ConfirmationCreate,
+  options: { contributorToken?: string; admit?: () => void; now?: Date } = {},
+): Promise<{ confirmation: Confirmation; created: boolean }> {
+  const { contributorToken, admit = () => {}, now = new Date() } = options;
+  const place = await requirePlace(store, placeRef);
+  const fact = await store.findActiveFact(place.id, body.factId);
+  if (!fact) throw new HttpError(404, { detail: `Place "${placeRef}" has no current fact "${body.factId}".` });
+  const comment = cleanComment(body.comment);
+  if (!contributorToken) {
+    admit();
+    const record = await store.confirmFact({ placeId: place.id, factId: fact.id, comment, at: now });
+    return { confirmation: toConfirmation(record), created: true };
+  }
+  const result = await store.confirmFactAsContributor({
     placeId: place.id,
-    attribute: body.attribute,
-    value,
-    comment: cleanComment(body.comment),
+    factId: fact.id,
+    attribute: fact.attribute,
+    comment,
+    at: now,
+    contributor: contributorHash(contributorToken),
+    admit,
   });
-  return toReport(record);
+  return { confirmation: toConfirmation(result.confirmation), created: result.created };
 }
 
 export async function createConfirmation(
@@ -121,17 +182,30 @@ export async function createConfirmation(
   body: ConfirmationCreate,
   now: Date = new Date(),
 ): Promise<Confirmation> {
+  return (await submitConfirmation(store, placeRef, body, { now })).confirmation;
+}
+
+/** What the device has sent for the place and is still pending: at most one item per attribute, the latest. */
+export async function listContributions(store: ReportsStore, placeRef: string, contributorToken: string): Promise<Contribution[]> {
   const place = await requirePlace(store, placeRef);
-  const fact = await store.findActiveFact(place.id, body.factId);
-  if (!fact) throw new HttpError(404, { detail: `Place "${placeRef}" has no current fact "${body.factId}".` });
-  const record = await store.confirmFact({ placeId: place.id, factId: fact.id, comment: cleanComment(body.comment), at: now });
-  return {
-    id: record.id,
-    placeId: record.placeId,
-    factId: record.factId,
-    comment: record.comment,
-    createdAt: record.createdAt.toISOString(),
-  };
+  const records = await store.listContributions(place.id, contributorHash(contributorToken));
+  const latest = new Map<AccessibilityAttribute, ContributionRecord>();
+  for (const record of records) {
+    const seen = latest.get(record.attribute);
+    if (!seen || record.createdAt > seen.createdAt) latest.set(record.attribute, record);
+  }
+  return [...latest.values()].map((record) => ({ ...record, createdAt: record.createdAt.toISOString() }));
+}
+
+export async function withdrawContribution(
+  store: ReportsStore,
+  placeRef: string,
+  attribute: AccessibilityAttribute,
+  contributorToken: string,
+  now: Date = new Date(),
+): Promise<void> {
+  const place = await requirePlace(store, placeRef);
+  await store.withdrawContributions({ placeId: place.id, attribute, contributor: contributorHash(contributorToken), at: now });
 }
 
 export function encodeCursor(cursor: QueueCursor): string {

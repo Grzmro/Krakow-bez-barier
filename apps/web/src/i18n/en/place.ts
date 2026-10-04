@@ -35,6 +35,12 @@ export const place: Messages["place"] = {
     confirmation: "Your confirmation",
     sending: "sending…",
     pendingNote: "Awaiting verification — doesn't change the data above.",
+    sentReport: "Report sent",
+    sentConfirmation: "Confirmed",
+    change: "Change",
+    withdraw: "Withdraw",
+    withdrawn: "Withdrawn. You can send a new one.",
+    withdrawFailed: "Couldn't withdraw. Please try again.",
   },
   report: {
     titleCorrect: "This isn't right",
@@ -58,8 +64,9 @@ export const place: Messages["place"] = {
     thanks: "Awaiting verification.",
     undo: "Undo",
     undone: "Report withdrawn.",
-    alreadySent: "The report has already been sent — it can't be undone.",
+    alreadySent: "The report has already been sent — withdraw it with “Withdraw” next to the feature.",
     sent: "Report sent. Awaiting verification.",
+    replaced: "Report changed. Awaiting verification.",
     failed: "Couldn't send the report. Try again.",
     option: {
       yes: "Yes",

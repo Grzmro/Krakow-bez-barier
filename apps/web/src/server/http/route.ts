@@ -1,6 +1,7 @@
 import type { operations } from "@krakow-bez-barier/contracts";
 import {
   getOperation,
+  readHeaders,
   readQuery,
   validateRequest,
   validateResponse,
@@ -15,6 +16,7 @@ type OrEmpty<T> = [NonNullable<T>] extends [never] ? Record<string, never> : Non
 
 export type PathParams<K extends OperationId> = OrEmpty<Op<K>["parameters"]["path"]>;
 export type QueryParams<K extends OperationId> = OrEmpty<Op<K>["parameters"]["query"]>;
+export type HeaderParams<K extends OperationId> = OrEmpty<Op<K>["parameters"]["header"]>;
 export type RequestBody<K extends OperationId> =
   NonNullable<Op<K>["requestBody"]> extends { content: { "application/json": infer B } } ? B : undefined;
 
@@ -37,6 +39,7 @@ export type ApiRequest<K extends OperationId> = {
   request: Request;
   path: PathParams<K>;
   query: QueryParams<K>;
+  header: HeaderParams<K>;
   body: RequestBody<K>;
 };
 
@@ -63,7 +66,7 @@ function driftResponse(operationId: OperationId, status: number, errors: FieldEr
 }
 
 /**
- * Wraps a Next route handler for one spec operation: rate limit → auth → parse and validate path/query/body
+ * Wraps a Next route handler for one spec operation: rate limit → auth → parse and validate path/query/header/body
  * (400 `Problem` with `errors[]`) → handler → response validation (non-production) → JSON response.
  * Throw `HttpError` for documented problems; anything else becomes a 500 `Problem`.
  */
@@ -98,6 +101,7 @@ export function defineRoute<K extends OperationId, P = undefined>(
       const input = {
         path: { ...((await context.params) ?? {}) },
         query: readQuery(op, new URL(request.url).searchParams),
+        header: readHeaders(op, request.headers),
         ...(op.hasBody && { body: await readJsonBody(request) }),
       };
       const invalid = validateRequest(op, input);

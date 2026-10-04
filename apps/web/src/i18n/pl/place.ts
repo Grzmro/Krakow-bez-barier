@@ -44,6 +44,12 @@ export const place = {
     confirmation: "Twoje potwierdzenie",
     sending: "wysyłanie…",
     pendingNote: "Czeka na weryfikację — nie zmienia danych powyżej.",
+    sentReport: "Wysłano zgłoszenie",
+    sentConfirmation: "Potwierdzono",
+    change: "Zmień",
+    withdraw: "Wycofaj",
+    withdrawn: "Wycofano. Możesz wysłać nowe.",
+    withdrawFailed: "Nie udało się wycofać. Spróbuj ponownie.",
   },
   report: {
     titleCorrect: "To się nie zgadza",
@@ -67,8 +73,9 @@ export const place = {
     thanks: "Czeka na weryfikację.",
     undo: "Cofnij",
     undone: "Zgłoszenie cofnięte.",
-    alreadySent: "Zgłoszenie zostało już wysłane — nie da się go cofnąć.",
+    alreadySent: "Zgłoszenie zostało już wysłane — wycofasz je przyciskiem „Wycofaj” przy cesze.",
     sent: "Zgłoszenie wysłane. Czeka na weryfikację.",
+    replaced: "Zgłoszenie zmienione. Czeka na weryfikację.",
     failed: "Nie udało się wysłać zgłoszenia. Spróbuj ponownie.",
     option: {
       yes: "Jest",

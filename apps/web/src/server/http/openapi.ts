@@ -18,6 +18,7 @@ export type CompiledOperation = {
   method: string;
   path: string;
   queryParams: { name: string; isArray: boolean }[];
+  headerParams: string[];
   hasBody: boolean;
   bodyRequired: boolean;
   statuses: string[];
@@ -101,7 +102,7 @@ function compileOperation(operationId: OperationId): CompiledOperation {
     ),
   ];
 
-  const group = (location: "path" | "query") => {
+  const group = (location: "path" | "query" | "header") => {
     const own = params.filter((p) => p.node.in === location);
     return {
       type: "object",
@@ -126,8 +127,8 @@ function compileOperation(operationId: OperationId): CompiledOperation {
 
   const paramsSchema = {
     type: "object",
-    properties: { path: group("path"), query: group("query") },
-    required: ["path", "query"],
+    properties: { path: group("path"), query: group("query"), header: group("header") },
+    required: ["path", "query", "header"],
   };
 
   const responseValidators = new Map<string, ValidateFunction>();
@@ -153,6 +154,7 @@ function compileOperation(operationId: OperationId): CompiledOperation {
         name: node.name,
         isArray: isArraySchema(node.schema),
       })),
+    headerParams: params.filter((p) => p.node.in === "header").map(({ node }) => node.name),
     hasBody: Boolean(body),
     bodyRequired,
     statuses: Object.keys(responses),
@@ -190,7 +192,12 @@ export function toFieldErrors(errors: ErrorObject[] | null | undefined, prefix?:
   });
 }
 
-export type RequestInput = { path: Record<string, unknown>; query: Record<string, unknown>; body?: unknown };
+export type RequestInput = {
+  path: Record<string, unknown>;
+  query: Record<string, unknown>;
+  header: Record<string, unknown>;
+  body?: unknown;
+};
 
 /** Validates (and coerces/defaults in place) a request's parameters and body; `[]` means valid. */
 export function validateRequest(op: CompiledOperation, input: RequestInput): FieldError[] {
@@ -217,6 +224,16 @@ export function readQuery(op: CompiledOperation, searchParams: URLSearchParams):
     else query[name] = values.length === 1 ? values[0] : values;
   }
   return query;
+}
+
+/** Reads the header parameters the spec declares, keyed by their name in the spec (headers are case-insensitive). */
+export function readHeaders(op: CompiledOperation, headers: Headers): Record<string, string> {
+  const read: Record<string, string> = {};
+  for (const name of op.headerParams) {
+    const value = headers.get(name);
+    if (value !== null) read[name] = value;
+  }
+  return read;
 }
 
 /** Validates a handler's result against the documented response for that status. */
