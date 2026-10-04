@@ -72,6 +72,9 @@ export function BottomPanel({
   useEffect(() => {
     if (wasStowed.current === isStowed) return;
     wasStowed.current = isStowed;
+    // Follow the panel's own toggle only: a stow the screen does by itself (e.g. on typing a search) keeps focus where it is.
+    const active = document.activeElement;
+    if (active && active !== document.body && !panelRef.current?.contains(active)) return;
     (isStowed ? showRef : hideRef).current?.focus({ preventScroll: true });
   }, [isStowed]);
   const heights: Record<PanelState, string> = { stowed: stowedHeight, collapsed: collapsedHeight, expanded: expandedHeight };

@@ -113,9 +113,11 @@ first page near the Rynek 0.19 s, with a profile 0.13 s, with a feature filter 0
 category (restaurants) 0.06 s, "W mojej okolicy" in Nowa Huta 0.014 s, text search 0.018 s. The
 list API resolves every candidate's facts before paging (`docs/architecture.md`); at this size it
 stays far under the 1 s budget, and Vercel and Neon in the same region add little to it. A page of
-100 places is about 54 KB of JSON. Without a position the home list and map hold the 100 places
-nearest the Rynek and say so; the rest of the city shows through search, a category, a filter or
-"W mojej okolicy" until the map loads places for its viewport (KBB-88).
+100 places is about 54 KB of JSON. Without a position the home list holds the 100 places nearest
+the Rynek and says so; the map loads every place in its view from `GET /places/points` (KBB-144):
+the whole city's 4,307 points are 740 KB of JSON (185 KB gzip, 151 KB brotli) in 0.055 s, 0.07 s
+with a profile (`next start`, local Postgres, warm). `next start` sends route handlers
+uncompressed; Vercel compresses them.
 
 **`GET /city/stats`** (the `/miasto` panel) loads every place outside the bulk categories with its
 active facts and aggregates them in JS. On these 4,305 places, calling `getCityStats` directly

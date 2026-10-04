@@ -6,11 +6,19 @@ export const clusters = (page: Page) => page.locator("[data-cluster-count]");
 
 /**
  * Opens the home screen with all ten sample places listed and pinned. The start state shows none, so this
- * searches for "r", which every sample place's name or street contains.
+ * searches for "r", which every sample place's name or street contains, and closes the suggestions (an open
+ * popup makes the rest of the page inert).
  */
 export async function gotoAllPlaces(page: Page) {
   await page.goto("/");
-  await page.getByRole("combobox", { name: "Wyszukaj miejsce" }).fill("r");
+  const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
+  await search.fill("r");
+  await expect(search).toHaveAttribute("aria-expanded", "true");
+  await search.press("Escape");
+  await expect(search).toHaveAttribute("aria-expanded", "false");
+  await expect(search).toHaveValue("r");
+  // Like a fresh page, so keyboard specs tab from the top.
+  await search.blur();
 }
 
 /** Places the map shows: single pins plus the places counted inside clusters. */

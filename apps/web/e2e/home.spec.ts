@@ -119,13 +119,14 @@ test("no results offers a wider search", async ({ page, evidence }) => {
   // WHEN the search matches nothing
   await page.getByRole("combobox", { name: "Wyszukaj miejsce" }).fill("Zzzz");
 
-  // THEN the empty state explains it and the wider search restores all places
+  // THEN the empty state explains it and the wider search clears the search
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByText("Brak miejsc dla tego wyszukiwania.")).toBeVisible();
   await expect(page.getByRole("status").filter({ hasText: "Nie znaleziono miejsc" })).toBeAttached();
   await evidence("home-empty");
   await list.getByRole("button", { name: "Szukaj w całym Krakowie" }).click();
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
+  await expect(list.getByText("Brak miejsc dla tego wyszukiwania.")).toBeHidden();
+  await expect(page.getByRole("combobox", { name: "Wyszukaj miejsce" })).toHaveValue("");
 });
 
 test("on a 390x844 phone the skip link jumps past the map to the list, below the sticky header", async ({
@@ -144,6 +145,8 @@ test("on a 390x844 phone the skip link jumps past the map to the list, below the
 
   // WHEN a keyboard user tabs to "Przejdź do listy" and follows it
   const skip = page.getByRole("link", { name: "Przejdź do listy" });
+  // The search above left Tab's starting point in the field; start from the top of <main>, as on arrival.
+  await page.locator("main").focus();
   for (let i = 0; i < 10 && !(await skip.evaluate((el) => el === document.activeElement)); i++) {
     await page.keyboard.press("Tab");
   }
@@ -161,10 +164,9 @@ test("on a 390x844 phone the skip link jumps past the map to the list, below the
 });
 
 test("the whole flow works with the keyboard alone", async ({ page }) => {
-  // GIVEN the home screen
-  await gotoAllPlaces(page);
+  // GIVEN the home screen at its start
+  await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
 
   // WHEN a keyboard user tabs to the search field and types
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });

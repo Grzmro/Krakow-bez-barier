@@ -35,10 +35,17 @@ export function filterByVerdict<T extends { place: PlaceSummary }>(items: T[], f
   if (!items.some(({ place }) => place.verdict)) return items;
   const stateOf = (item: T) => item.place.verdict?.state ?? "unknown";
   return items
-    .filter((item) => {
-      const state = stateOf(item);
-      if (filter.status && state !== filter.status) return false;
-      return !(filter.hideFailing && state === "barrier");
-    })
+    .filter((item) => passesVerdict(stateOf(item), filter))
     .toSorted((a, b) => STATUS_ORDER.indexOf(stateOf(a)) - STATUS_ORDER.indexOf(stateOf(b)));
+}
+
+function passesVerdict(state: Status, filter: VerdictFilter): boolean {
+  if (filter.status && state !== filter.status) return false;
+  return !(filter.hideFailing && state === "barrier");
+}
+
+/** Map points through the same status filters as the list; points without verdicts (no profile) pass untouched. */
+export function filterPointsByVerdict<T extends { verdict: Status | null }>(points: T[], filter: VerdictFilter): T[] {
+  if (!points.some((point) => point.verdict)) return points;
+  return points.filter((point) => passesVerdict(point.verdict ?? "unknown", filter));
 }

@@ -2,10 +2,12 @@ import type {
   AccessibilityAttribute,
   AccessibilityFact,
   GetPlaceQuery,
+  ListPlacePointsQuery,
   ListPlacesQuery,
   Outage,
   Place,
   PlaceList,
+  PlacePointList,
   PlaceSummary,
   ResolvedAttribute,
   Source,
@@ -220,14 +222,15 @@ function readBbox(bbox: number[] | undefined): [number, number, number, number] 
   return [minLon, minLat, maxLon, maxLat];
 }
 
+type SearchQuery = Pick<ListPlacesQuery, "q" | "category" | "feature" | "bbox" | "near" | "includeUnknown">;
+
 /**
- * Searches places (text on name and address, category, bbox in PostGIS; with `near`, nearest first from that point), resolves their facts and applies
- * feature filters: a place passes a filter only when the feature is known to be there; with
- * `includeUnknown`, places we can't say about pass too (`features[].state` says which, and every
- * attribute behind the feature gets a chip, "brak danych" included), but a feature known to be missing
- * never does. Adds a profile verdict when `profile` is set.
+ * Searches places (text on name and address, category, bbox in PostGIS; with `near`, each hit carries its distance),
+ * resolves their facts and applies feature filters: a place passes a filter only when the feature is known to be
+ * there; with `includeUnknown`, places we can't say about pass too, but a feature known to be missing never does.
+ * Shared by the list and the map points, so both always hold the same places.
  */
-export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}): Promise<PlaceList> {
+async function matchingPlaces(query: SearchQuery, deps: PlacesDeps) {
   const { repository = createDbPlaceRepository(), now = new Date(), locale = defaultLocale, simulated = simulatedOutageIds() } = deps;
   const bbox = readBbox(query.bbox);
   const unknownCategory = query.category?.find((id) => !categories.some((c) => c.id === id));
@@ -237,8 +240,6 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
   const near = readNear(query.near);
   const attempts = query.q ? searchTextAttempts(query.q) : [];
   const features = [...new Set(query.feature ?? [])];
-  const thresholds = thresholdsFor(query);
-  const limit = query.limit ?? 25;
 
   // Feature filters need resolved facts, so every candidate is resolved before paging (see docs/architecture.md).
   const hiddenByDefault = hiddenCategoryIds(features);
@@ -262,8 +263,52 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
     })
     .filter(({ matches }) =>
       query.includeUnknown ? matches.every((m) => m.state !== "absent") : matches.every((m) => m.state === "met"),
-    )
-    .sort((a, b) => (near ? byDistanceThenId(distanceOf(a.place), distanceOf(b.place)) : byNameThenId(a.place, b.place)));
+    );
+  return { matching, near, features, repository, now, locale };
+}
+
+/** Most points `GET /places/points` returns; `truncated` says when more matched. Mirrors the spec's `maxItems`. */
+export const MAX_MAP_POINTS = 20_000;
+
+// ~10 cm: plenty for a pin, and a third fewer bytes than a double's 15 digits.
+const roundCoordinate = (value: number) => Math.round(value * 1e6) / 1e6;
+
+/**
+ * The places `listPlaces` would return for the same filters inside `bbox`, as light map points: id, name, category,
+ * location and the profile verdict's state (with the same outages counted). No paging; at most `MAX_MAP_POINTS`, in id
+ * order so a cut is stable.
+ */
+export async function listPlacePoints(query: ListPlacePointsQuery, deps: PlacesDeps = {}): Promise<PlacePointList> {
+  const { matching, repository, now, locale } = await matchingPlaces(query, deps);
+  const thresholds = thresholdsFor(query);
+  const kept = matching.toSorted((a, b) => byId(a.place, b.place)).slice(0, MAX_MAP_POINTS);
+  const outages = thresholds ? await outagesOf(repository, kept.map(({ place }) => place.id), now) : new Map<string, Outage[]>();
+  return {
+    items: kept.map(({ place, attributes }) => ({
+      id: place.id,
+      name: place.name,
+      category: place.category,
+      location: { type: "Point" as const, coordinates: [roundCoordinate(place.location.x), roundCoordinate(place.location.y)] },
+      verdict: thresholds ? matchProfile({ attributes, outages: outages.get(place.id) }, thresholds, locale).state : null,
+    })),
+    total: matching.length,
+    truncated: matching.length > kept.length,
+  };
+}
+
+/**
+ * Searches places (see `matchingPlaces`); with `near`, nearest first from that point, otherwise by name. With
+ * `includeUnknown`, `features[].state` says which filters a place passed for lack of data, and every attribute behind
+ * the feature gets a chip, "brak danych" included. Adds a profile verdict when `profile` is set.
+ */
+export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}): Promise<PlaceList> {
+  const found = await matchingPlaces(query, deps);
+  const { near, features, repository, now, locale } = found;
+  const thresholds = thresholdsFor(query);
+  const limit = query.limit ?? 25;
+  const matching = found.matching.sort((a, b) =>
+    near ? byDistanceThenId(distanceOf(a.place), distanceOf(b.place)) : byNameThenId(a.place, b.place),
+  );
 
   let remaining = matching;
   if (query.cursor && near) {

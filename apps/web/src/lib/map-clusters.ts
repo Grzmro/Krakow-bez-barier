@@ -1,5 +1,5 @@
 import Supercluster from "supercluster";
-import type { PlaceSummary } from "@krakow-bez-barier/contracts";
+import type { PlacePoint } from "@krakow-bez-barier/contracts";
 import type { Status } from "@krakow-bez-barier/ui";
 import { STATUS_ORDER } from "./profile/verdict-list";
 
@@ -11,14 +11,14 @@ const SPREAD_RADIUS = 26;
 
 export type VerdictCounts = Record<Status | "none", number>;
 
-type PointProps = { id: string; category: PlaceSummary["category"]; status: Status | null };
+type PointProps = { id: string; category: PlacePoint["category"]; status: Status | null };
 
 /** Places as GeoJSON points (`[lon, lat]`, altitude dropped) carrying what a pin needs: id, category, verdict. */
-export function placeFeatures(places: PlaceSummary[]) {
+export function placeFeatures(places: PlacePoint[]) {
   return places.map((place) => ({
     type: "Feature" as const,
     geometry: { type: "Point" as const, coordinates: place.location.coordinates.slice(0, 2) },
-    properties: { id: place.id, category: place.category, status: place.verdict?.state ?? null } satisfies PointProps,
+    properties: { id: place.id, category: place.category, status: place.verdict } satisfies PointProps,
   }));
 }
 type ClusterProps = VerdictCounts;
@@ -32,13 +32,13 @@ export type MapItem =
       counts: VerdictCounts;
       coordinates: [number, number];
     }
-  | { kind: "place"; key: string; place: PlaceSummary; coordinates: [number, number]; offset: [number, number] };
+  | { kind: "place"; key: string; place: PlacePoint; coordinates: [number, number]; offset: [number, number] };
 
-export type ClusterIndex = { index: Supercluster<PointProps, ClusterProps>; byId: Map<string, PlaceSummary> };
+export type ClusterIndex = { index: Supercluster<PointProps, ClusterProps>; byId: Map<string, PlacePoint> };
 
 const emptyCounts = (): VerdictCounts => ({ met: 0, barrier: 0, conflict: 0, unknown: 0, none: 0 });
 
-export function buildClusterIndex(places: PlaceSummary[]): ClusterIndex {
+export function buildClusterIndex(places: PlacePoint[]): ClusterIndex {
   const index = new Supercluster<PointProps, ClusterProps>({
     radius: CLUSTER_RADIUS,
     maxZoom: CLUSTER_MAX_ZOOM,

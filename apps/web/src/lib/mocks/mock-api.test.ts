@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { createApiClient, createMockFetch } from "@krakow-bez-barier/contracts";
+import { createApiClient, createMockFetch, hiddenCategoryIds } from "@krakow-bez-barier/contracts";
 import { matchFeature } from "@/lib/place-features";
-import { mockGetPlace, mockListPlaces } from "./mock-api";
+import { mockGetPlace, mockListPlacePoints, mockListPlaces } from "./mock-api";
 import { withPlacesMocks } from "./mock-fetch";
 
 const ids = (list: { items: { id: string }[] }) => list.items.map((item) => item.id);
@@ -95,6 +95,37 @@ describe("withPlacesMocks", () => {
     expect(data?.items.length).toBeGreaterThan(0);
     expect(data?.items.every((item) => item.category === "museum" || item.category === "hotel")).toBe(true);
     expect(data?.items.every((item) => matchFeature(item, "step_free") === "met")).toBe(true);
+  });
+
+  it("answers the map points with the same places as the list, and requires a bbox", async () => {
+    // GIVEN the typed client backed by the mocks and the whole city as the bbox
+    const query = { bbox: [19.79, 49.97, 20.22, 50.13], profile: "wheelchair" as const };
+
+    // WHEN the list and the map points are asked for with the same filters
+    const listed = await api.GET("/places", { params: { query } });
+    const points = await api.GET("/places/points", { params: { query } });
+    const missing = await fetchWithoutBbox();
+
+    // THEN both hold the same places, each point with the list's verdict state, and no bbox is a 400
+    expect(points.data?.items.map((p) => p.id).toSorted()).toEqual(listed.data?.items.map((p) => p.id).toSorted());
+    expect(points.data?.items.every((p) => p.verdict === listed.data?.items.find((l) => l.id === p.id)?.verdict?.state)).toBe(true);
+    expect(points.data).toMatchObject({ total: listed.data?.total, truncated: false });
+    expect(missing.status).toBe(400);
+  });
+});
+
+const fetchWithoutBbox = () =>
+  withPlacesMocks(createMockFetch())(new Request("http://localhost/api/v1/places/points"));
+
+describe("mockListPlacePoints", () => {
+  it("lists the example places as points without hidden categories or verdicts by default", () => {
+    // GIVEN / WHEN the whole city's points without filters or a profile
+    const plain = mockListPlacePoints({ bbox: [19.79, 49.97, 20.22, 50.13] });
+
+    // THEN every example place the list shows is a point, none of a hidden category, none with a verdict
+    expect(plain.total).toBe(mockListPlaces().total);
+    expect(plain.items.some((p) => hiddenCategoryIds().includes(p.category))).toBe(false);
+    expect(plain.items.every((p) => p.verdict === null)).toBe(true);
   });
 });
 
