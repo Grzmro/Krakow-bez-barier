@@ -74,6 +74,7 @@ const FACT_ICON: Partial<Record<AccessibilityAttribute, Icon>> = {
   step_count: Stairs,
   step_height_cm: Stairs,
   threshold_cm: Stairs,
+  entrance_level: Door,
   door_width_cm: ArrowsHorizontal,
   automatic_door: Door,
   ramp: TrendUp,

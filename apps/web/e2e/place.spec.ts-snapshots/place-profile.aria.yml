@@ -37,11 +37,11 @@
       - list:
         - listitem:
           - text: Winda Brak danych
-          - 'link "brak danych: Winda"':
+          - 'link "zobacz fakt: Winda"':
             - /url: "#fakt-lift"
         - listitem:
           - text: Toaleta dostosowana Brak danych
-          - 'link "brak danych: Toaleta dostosowana"':
+          - 'link "zobacz fakt: Toaleta dostosowana"':
             - /url: "#fakt-toilet_accessible"
     - region "Fakty":
       - heading "Fakty" [level=2]

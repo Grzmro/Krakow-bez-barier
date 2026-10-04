@@ -97,9 +97,10 @@ export const place = {
     basis: {
       met: (fact: string) => `na podstawie: ${fact}`,
       barrier: (fact: string) => `na podstawie: ${fact}`,
-      unknown: (fact: string) => `brak danych: ${fact}`,
+      unknown: (fact: string) => `zobacz fakt: ${fact}`,
       conflict: (fact: string) => `sprzeczne dane: ${fact}`,
-    },  },
+    },
+  },
   facts: "Fakty",
   factsHint: "Rozwiń cechę, by zobaczyć źródło i datę.",
   sourcesCount: (n: number, latest?: string) =>

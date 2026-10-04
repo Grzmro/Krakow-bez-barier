@@ -67,12 +67,12 @@ describe("GET /api/v1/widget/{placeId}", () => {
   });
 
   it("lists exactly the place card's rows, in the card's order", async () => {
-    // GIVEN a step-free hotel with a known entrance level (not a card row) and nothing about inclines or kerbs
+    // GIVEN a hotel with zero steps known, a level entrance on top (a repeat there) and nothing about inclines or kerbs
     // WHEN the widget card is read
     const { body } = await get(hotel.id);
     const attributes = body.facts.map((f: { attribute: string }) => f.attribute);
 
-    // THEN the rows are the card's: in its order, without the moot step height and ramp, street attributes or extras
+    // THEN the rows are the card's: in its order, without the moot step height, ramp and level entrance, street attributes or extras
     expect(attributes.slice(0, 3)).toEqual(["wheelchair_overall", "step_count", "threshold_cm"]);
     for (const absent of ["step_height_cm", "ramp", "entrance_level", "incline_pct", "kerb_height_cm"]) {
       expect(attributes).not.toContain(absent);

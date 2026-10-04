@@ -87,9 +87,10 @@ export const place: Messages["place"] = {
     basis: {
       met: (fact: string) => `based on: ${fact}`,
       barrier: (fact: string) => `based on: ${fact}`,
-      unknown: (fact: string) => `no data: ${fact}`,
+      unknown: (fact: string) => `see the fact: ${fact}`,
       conflict: (fact: string) => `conflicting data: ${fact}`,
-    },  },
+    },
+  },
   facts: "Facts",
   factsHint: "Expand a feature to see its source and date.",
   sourcesCount: (n: number, latest?: string) =>
