@@ -85,6 +85,7 @@ describe("OSM public transport stops", () => {
       "Grota-Roweckiego 02",
       "Grota-Roweckiego 05",
       "Podgórze SKA 06",
+      "Podgórze SKA 06",
       "Rondo Grzegórzeckie 06",
       "Rondo Mogilskie 01",
       "Rondo Mogilskie 02",
@@ -97,14 +98,33 @@ describe("OSM public transport stops", () => {
       "Rondo Mogilskie 09",
       "Rondo Mogilskie Opera 02",
     ]);
-    // AND the richer record of a stop mapped twice is kept: the bus_stop node over the outline, the busier bay
+    // AND the richer record of a stop mapped twice is kept (the bus_stop node over the outline), while two bays of
+    // one stop with their own refs (Podgórze SKA 06, bays 6 and 7, 29 m apart) stay two
     const refs = places.map((p) => p?.externalRef);
     expect(refs).toContain("osm:node/5013333771");
     expect(refs).not.toContain("osm:way/299484708");
     expect(refs).toContain("osm:way/142847129");
-    expect(refs).not.toContain("osm:way/142847135");
+    expect(refs).toContain("osm:way/142847135");
     // AND the unnamed shelter on the Grota-Roweckiego platform is not a stop of its own
     expect(refs).not.toContain("osm:node/5013333774");
+  });
+
+  it("names an unnamed platform from its own stop area, not the whole interchange", () => {
+    // GIVEN an unnamed platform in the interchange "Rondo" (3 members) and in its own stop "Rondo 04" (2 members)
+    const elements: OsmElement[] = [
+      { type: "node", id: 1, lat: 50.05, lon: 19.94, tags: { public_transport: "platform" } },
+      {
+        type: "relation",
+        id: 10,
+        tags: { public_transport: "stop_area", name: "Rondo" },
+        members: [{ type: "node", ref: 1 }, { type: "node", ref: 2 }, { type: "node", ref: 3 }],
+      },
+      { type: "relation", id: 11, tags: { public_transport: "stop_area", name: "Rondo 04" }, members: [{ type: "node", ref: 1 }, { type: "node", ref: 4 }] },
+    ];
+
+    // WHEN they are prepared
+    // THEN the platform takes the smaller area's name
+    expect(prepareOsmElements(elements)).toEqual([{ ...elements[0], relationName: "Rondo 04" }]);
   });
 
   it("keeps two stops of the same name that are far apart, and two close ones with different names", () => {

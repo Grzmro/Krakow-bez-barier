@@ -1,9 +1,6 @@
 import type { Category, FeatureFilter, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { filterGapStatus } from "@/lib/place-features";
 
-/** Why a quick action can't run yet; its copy lives in `home.quick.unavailable`. */
-export type QuickActionUnavailable = never;
-
 export interface QuickActionConfig {
   id: string;
   /** Category to list; omitted = every category. */
@@ -15,8 +12,6 @@ export interface QuickActionConfig {
   features: FeatureFilter[];
   /** Icon key from the category icon registry (`lib/categories.tsx`). */
   icon: string;
-  /** Set while the data behind the action isn't loaded: the action is shown as unavailable, never as "nothing nearby". */
-  unavailable?: QuickActionUnavailable;
 }
 
 /**

@@ -77,8 +77,6 @@ export const home: Messages["home"] = {
       pharmacy: { label: "Nearest pharmacy", result: "Nearest step-free pharmacy" },
       transit_stop: { label: "Nearest stop", result: "Nearest stop" },
     },
-    soon: "soon",
-    unavailable: {},
     needLocation: "To find the nearest one, turn on “Near me” or choose a district.",
     searching: "Looking for the nearest one…",
     none: (result) => `${result}: none nearby (about 2 km) in the data.`,

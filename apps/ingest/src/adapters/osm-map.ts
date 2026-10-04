@@ -252,6 +252,8 @@ function distanceM(a: OsmElement, b: OsmElement): number {
 const TYPE_ORDER = { node: 0, way: 1, relation: 2 } as const;
 const nameOf = (el: OsmElement) => el.tags?.name ?? el.relationName;
 const tagCount = (el: OsmElement) => Object.keys(el.tags ?? {}).length;
+/** Two bays of one stop share a name but not their `ref` / `local_ref`; those are two places. */
+const bayOf = (el: OsmElement) => el.tags?.ref ?? el.tags?.local_ref;
 
 /** Named first, then the one with most tags; node before way, then the lower id, so a rerun keeps the same one. */
 const keepFirst = (a: OsmElement, b: OsmElement) =>
@@ -263,24 +265,32 @@ const keepFirst = (a: OsmElement, b: OsmElement) =>
 /**
  * Turns fetched elements into the records to map. Unnamed members of a naming relation (`stop_area`) take its name and
  * the naming relations, which are not places, are dropped. Elements of a category with `mergeWithinM` that stand for
- * one place (closer than that, same name or one unnamed) become one: the named one with the most tags.
+ * one place (closer than that, same name or one unnamed, no different `ref`) become one: the named one with the most
+ * tags. Facts only the dropped twin carries are not carried over.
  */
 export function prepareOsmElements(
   elements: readonly OsmElement[],
   categories: readonly CategoryConfig[] = configuredCategories,
 ): OsmElement[] {
   const naming = namingRelations(categories);
-  const names = new Map<string, string>();
+  // A platform is often in a stop area for the whole interchange ("Rondo Mogilskie") and in one for its own stop
+  // ("Rondo Mogilskie 04"): the smallest area names it.
+  const names = new Map<string, { name: string; size: number }>();
   for (const el of elements) {
     if (el.type !== "relation" || !isNamingRelation(el.tags, naming) || !el.tags?.name) continue;
-    for (const m of el.members ?? []) if (!names.has(`${m.type}/${m.ref}`)) names.set(`${m.type}/${m.ref}`, el.tags.name);
+    const size = el.members?.length ?? 0;
+    for (const m of el.members ?? []) {
+      const key = `${m.type}/${m.ref}`;
+      const known = names.get(key);
+      if (!known || size < known.size) names.set(key, { name: el.tags.name, size });
+    }
   }
   const places = elements
     .filter((el) => !(el.type === "relation" && isNamingRelation(el.tags, naming) && !categoryOf(el.tags ?? {}, categories)))
     .map((el) => {
       const place: OsmElement = { ...el };
       delete place.members;
-      const relationName = el.tags?.name ? undefined : names.get(`${el.type}/${el.id}`);
+      const relationName = el.tags?.name ? undefined : names.get(`${el.type}/${el.id}`)?.name;
       if (relationName) place.relationName = relationName;
       return place;
     });
@@ -294,7 +304,8 @@ export function prepareOsmElements(
     for (const el of candidates) {
       const same = kept.find((k) => {
         const [a, b] = [nameOf(el), nameOf(k)];
-        return (!a || !b || a === b) && distanceM(el, k) <= within;
+        const [refA, refB] = [bayOf(el), bayOf(k)];
+        return (!a || !b || a === b) && !(refA && refB && refA !== refB) && distanceM(el, k) <= within;
       });
       if (same) dropped.add(el);
       else kept.push(el);

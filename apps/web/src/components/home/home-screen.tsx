@@ -183,7 +183,7 @@ export function HomeScreen() {
     (QUICK_ACTIONS as readonly QuickAction[]).find(
       (action) =>
         action.id === quickId &&
-        (action.unavailable || quickStillApplies(action, { category: category === ALL ? null : category, features })),
+        quickStillApplies(action, { category: category === ALL ? null : category, features }),
     ) ?? null;
   // The API returns only the nearest page: near me of the area, otherwise of the whole city around the Rynek.
   const cutNote =
@@ -224,7 +224,6 @@ export function HomeScreen() {
   const pending = places.isPlaceholderData || total === undefined;
   const quickState = useMemo((): QuickResultState | null => {
     if (!quick) return null;
-    if (quick.unavailable) return { kind: "unavailable" };
     if (!origin) return { kind: "needLocation" };
     if (pending || places.isError) return { kind: "searching" };
     const nearest = nearestMatch(items, quick.features);
@@ -273,7 +272,6 @@ export function HomeScreen() {
 
   function startQuick(action: QuickAction) {
     setQuickId(action.id);
-    if (action.unavailable) return;
     const filters = quickFilters(action);
     setQ("");
     setCategory(filters.category ?? ALL);
@@ -287,11 +285,9 @@ export function HomeScreen() {
   function runQuick(action: QuickAction) {
     if (quick?.id !== action.id) return startQuick(action);
     setQuickId(null);
-    if (!action.unavailable) {
-      setCategory(ALL);
-      setFeatures([]);
-      setShowUnknown(false);
-    }
+    setCategory(ALL);
+    setFeatures([]);
+    setShowUnknown(false);
   }
 
   // "najbliższa toaleta" (said or typed): the matching quick action, or just the category with "W mojej

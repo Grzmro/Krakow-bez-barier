@@ -1,6 +1,6 @@
 import type { FeatureFilter } from "@krakow-bez-barier/contracts";
 import type { DistanceFrom } from "@/lib/nearby";
-import type { QuickActionId, QuickActionUnavailable } from "@/lib/quick-actions";
+import type { QuickActionId } from "@/lib/quick-actions";
 
 const placesWord = (n: number) =>
   n === 1 ? "miejsce" : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? "miejsca" : "miejsc";
@@ -79,8 +79,6 @@ export const home = {
       pharmacy: { label: "Najbliższa apteka", result: "Najbliższa apteka bez schodów" },
       transit_stop: { label: "Najbliższy przystanek", result: "Najbliższy przystanek" },
     } satisfies Record<QuickActionId, { label: string; result: string }>,
-    soon: "wkrótce",
-    unavailable: {} satisfies Record<QuickActionUnavailable, string>,
     needLocation: "Żeby znaleźć najbliższe, włącz „W mojej okolicy” albo wybierz dzielnicę.",
     searching: "Szukam najbliższego…",
     none: (result: string) => `${result}: brak w okolicy (ok. 2 km) według danych.`,

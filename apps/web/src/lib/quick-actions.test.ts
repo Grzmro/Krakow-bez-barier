@@ -25,7 +25,6 @@ describe("QUICK_ACTIONS", () => {
     const stop = QUICK_ACTIONS.find((a) => a.id === "transit_stop") as QuickAction;
     // WHEN it is read
     // THEN it is available and lists stops nearest first, not only those known to be step-free
-    expect(stop.unavailable).toBeUndefined();
     expect(quickFilters(stop)).toEqual({ category: "transit_stop", features: [] });
     expect(nearestMatch([row("a"), row("b")], stop.features)?.id).toBe("a");
   });
