@@ -1,6 +1,6 @@
 import type { components } from "@krakow-bez-barier/contracts";
 import { isStale } from "@/domain/resolver";
-import { cardAttributes } from "@/lib/place-facts";
+import { cardRows } from "@/lib/place-facts";
 import { getPlace, type PlacesDeps } from "./places/service";
 
 type WidgetCard = components["schemas"]["WidgetCard"];
@@ -19,13 +19,9 @@ export async function getWidgetCard(
   if (!place) return null;
   const now = deps.now ?? new Date();
 
-  // The place card's attributes for the category, in its order, plus anything else a source knows — the same set
-  // the card shows, so a venue's guests don't read "no data" on a kerb height or incline that belongs to a street.
-  const shown = cardAttributes(place.category);
-  const attributes = [
-    ...shown.flatMap((name) => place.attributes.filter((a) => a.attribute === name)),
-    ...place.attributes.filter((a) => !shown.includes(a.attribute) && a.facts.length > 0),
-  ];
+  // The place card's rows, in its order, so the widget never contradicts the card a guest opens from it (and a hotel
+  // doesn't read "no data" on a kerb height or incline, which belong to a street).
+  const attributes = cardRows(place).flatMap((name) => place.attributes.filter((a) => a.attribute === name));
 
   const facts: WidgetFact[] = attributes.map((attribute) => {
     // The fact the value comes from: the first fresh one (facts are sorted best first and may include

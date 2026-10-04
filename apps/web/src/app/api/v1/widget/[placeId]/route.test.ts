@@ -23,6 +23,7 @@ const repository = createFakePlaceRepository(
     factRecord(hotel, "toilet_accessible", bool(true)),
     factRecord(hotel, "toilet_accessible", bool(false), { source: city, reliability: "confirmed" }),
     factRecord(hotel, "entrance_level", bool(true)),
+    factRecord(hotel, "step_count", { kind: "number" as const, number: 0 }, { source: city, reliability: "confirmed" }),
   ],
 );
 
@@ -65,17 +66,17 @@ describe("GET /api/v1/widget/{placeId}", () => {
     expect(body.attribution).toContain("OpenStreetMap");
   });
 
-  it("lists the place card's attributes in its order, plus known facts outside it, without street attributes", async () => {
-    // GIVEN a hotel with a known entrance level (not on the card) and nothing about inclines or kerbs
+  it("lists exactly the place card's rows, in the card's order", async () => {
+    // GIVEN a step-free hotel with a known entrance level (not a card row) and nothing about inclines or kerbs
     // WHEN the widget card is read
     const { body } = await get(hotel.id);
     const attributes = body.facts.map((f: { attribute: string }) => f.attribute);
 
-    // THEN the card's set comes first in the card's order, the known extra follows, the street attributes are absent
-    expect(attributes.slice(0, 3)).toEqual(["wheelchair_overall", "step_count", "step_height_cm"]);
-    expect(attributes.at(-1)).toBe("entrance_level");
-    expect(attributes).not.toContain("incline_pct");
-    expect(attributes).not.toContain("kerb_height_cm");
+    // THEN the rows are the card's: in its order, without the moot step height and ramp, street attributes or extras
+    expect(attributes.slice(0, 3)).toEqual(["wheelchair_overall", "step_count", "threshold_cm"]);
+    for (const absent of ["step_height_cm", "ramp", "entrance_level", "incline_pct", "kerb_height_cm"]) {
+      expect(attributes).not.toContain(absent);
+    }
   });
 
   it("credits the source and date of the fresh fact that gave the value, not a stale one", async () => {

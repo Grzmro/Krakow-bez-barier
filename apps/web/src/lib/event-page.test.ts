@@ -43,7 +43,6 @@ describe("eventSections", () => {
   it("shows every known fact of the place card, the ones outside the three sections first", async () => {
     // GIVEN a place whose only known facts are the overall wheelchair tag and its storeys (like a hotel from OSM)
     const base = await examplePlace("hotel-przyklad");
-    const keep = new Set(["wheelchair_overall", "levels"]);
     const known = base.attributes.filter((a) => a.state !== "unknown" && a.facts.length);
     const template = known[0];
     const place = {
@@ -63,7 +62,6 @@ describe("eventSections", () => {
       ["wheelchair_overall", false],
       ["levels", false],
     ]);
-    expect(sections[0].facts.every((f) => keep.has(f.attribute))).toBe(true);
     // AND the other sections hold only missing data, named as missing
     expect(sections.slice(1).flatMap((s) => s.facts).every((f) => f.unknown && f.reliability === "unknown")).toBe(true);
   });

@@ -69,15 +69,39 @@ test.describe("install banner on an iPhone", () => {
     await evidence("install-banner-native");
   });
 
-  test("the embeddable widget and the event page offer no install", async ({ page }) => {
-    // GIVEN Safari on an iPhone, which shows the hint on the app's own pages
-    for (const path of ["/widget/hotel-przyklad", "/wydarzenie/hotel-przyklad"]) {
-      // WHEN the widget (framed by a venue's site) or the organizer's event page has loaded its place
+  for (const [name, path] of [
+    ["the embeddable widget", "/widget/hotel-przyklad"],
+    ["an organizer's event page", "/wydarzenie/hotel-przyklad"],
+  ]) {
+    test(`${name} offers no install`, async ({ page }) => {
+      // GIVEN Safari on an iPhone, which shows the hint on the app's own pages
+      // WHEN the page has loaded its place
       await page.goto(path);
       await expect(page.getByRole("heading", { level: 1 })).toContainText("Hotel Przykład");
 
       // THEN there is no install banner
       await expect(page.getByRole("complementary", { name: "Instalacja aplikacji" })).toHaveCount(0);
-    }
+    });
+  }
+
+  test("an app page framed by another site offers no install", async ({ page, context, baseURL }) => {
+    // GIVEN another site that frames the app's home page (Chromium needs the permission for public → localhost frames)
+    const site = "https://strona.przyklad.test/";
+    await context.grantPermissions(["local-network-access"]);
+    await page.route(site, (route) =>
+      route.fulfill({
+        contentType: "text/html; charset=utf-8",
+        body: `<!doctype html><html lang="pl"><title>Strona</title><iframe src="${baseURL}/" title="Aplikacja" width="100%" height="700"></iframe></html>`,
+      }),
+    );
+
+    // WHEN the framed app has hydrated (its menu opens)
+    await page.goto(site);
+    const app = page.frameLocator("iframe");
+    await app.getByRole("button", { name: "Menu" }).click();
+    await expect(app.getByRole("dialog")).toBeVisible();
+
+    // THEN it shows no install banner
+    await expect(app.getByRole("complementary", { name: "Instalacja aplikacji" })).toHaveCount(0);
   });
 });

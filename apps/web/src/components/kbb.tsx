@@ -73,7 +73,7 @@ export function UnknownFactsItem({ labels, className }: { labels: readonly strin
   return (
     <li className={className}>
       <p className="text-body-sm">
-        <span className="font-semibold text-muted-foreground">{t.noValue}:</span> {labels.join(", ")}
+        <span className="font-semibold text-muted-foreground">{t.unknownGroup}</span> {labels.join(", ")}
       </p>
       <p className="mt-0.5 text-caption text-muted-foreground">{t.unknownGroupHint}</p>
     </li>
