@@ -1,4 +1,8 @@
 import type { Category, FeatureFilter, PlaceSummary } from "@krakow-bez-barier/contracts";
+import type { Locale } from "@/i18n/locale";
+import type { Messages } from "@/i18n/messages";
+import type { DistanceFrom } from "@/lib/nearby";
+import { formatDate } from "@/lib/place-facts";
 import { filterGapStatus } from "@/lib/place-features";
 
 export interface QuickActionConfig {
@@ -54,4 +58,86 @@ export function nearestMatch<T extends { place: Pick<PlaceSummary, "features"> }
   features: readonly FeatureFilter[],
 ): T | null {
   return items.find(({ place }) => filterGapStatus(place, [...features]) === null) ?? null;
+}
+
+/**
+ * The nearest place that has every feature by known data, where at least one is known only from outdated data
+ * (`stale`), with the oldest such date. It is never a pass: the UI shows it as "may be outdated" with that date,
+ * so outdated data isn't hidden as if nothing were there. `items` are nearest first.
+ */
+export function nearestStaleMatch<T extends { place: Pick<PlaceSummary, "features"> }>(
+  items: readonly T[],
+  features: readonly FeatureFilter[],
+): { item: T; asOf: string | null } | null {
+  if (!features.length) return null;
+  for (const item of items) {
+    const matches = features.map((feature) => item.place.features?.find((match) => match.feature === feature));
+    if (!matches.every((match) => match?.state === "met" || match?.state === "stale")) continue;
+    const stale = matches.filter((match) => match?.state === "stale");
+    if (!stale.length) continue;
+    const dates = stale.map((match) => match?.asOf).filter((date): date is string => Boolean(date));
+    return { item, asOf: dates.toSorted()[0] ?? null };
+  }
+  return null;
+}
+
+export type QuickResultState =
+  | { kind: "needLocation" }
+  | { kind: "searching" }
+  | { kind: "none" }
+  | {
+      kind: "found";
+      place: PlaceSummary;
+      distance: number;
+      from: DistanceFrom;
+      /** Found only by outdated data: shown as "may be outdated" with the date it was last true, never as a pass. */
+      stale?: { asOf: string | null };
+    };
+
+type Located = { place: PlaceSummary; distance: number };
+
+/**
+ * A quick action's result from the strict list and, when that has no match, the `includeUnknown` lookup for an
+ * outdated match. "None" is said only once the lookup has answered: a lookup still loading or failed is not "none".
+ */
+export function quickOutcome({
+  hasLocation,
+  listReady,
+  strict,
+  needsLookup,
+  lookup,
+  features,
+  from,
+}: {
+  hasLocation: boolean;
+  listReady: boolean;
+  strict: Located | null;
+  needsLookup: boolean;
+  lookup: { status: "loading" | "error" } | { status: "done"; items: readonly Located[] };
+  features: readonly FeatureFilter[];
+  from: DistanceFrom;
+}): QuickResultState {
+  if (!hasLocation) return { kind: "needLocation" };
+  if (!listReady) return { kind: "searching" };
+  if (strict) return { kind: "found", ...strict, from };
+  if (!needsLookup) return { kind: "none" };
+  if (lookup.status !== "done") return { kind: "searching" };
+  const found = nearestStaleMatch(lookup.items, features);
+  return found ? { kind: "found", ...found.item, from, stale: { asOf: found.asOf } } : { kind: "none" };
+}
+
+/** "Może być nieaktualne · 15.09.2025", or without a date when none is known. */
+export const staleLabel = (m: Messages, locale: Locale, asOf: string | null) =>
+  asOf ? m.common.fact.maybeOutdated(formatDate(asOf, locale)) : m.home.quick.maybeOutdated;
+
+/** The live-region sentence for a quick action's result; `null` while it has nothing to say. */
+export function quickAnnouncement(m: Messages, locale: Locale, quick: QuickAction | null, state: QuickResultState | null): string | null {
+  if (!quick || !state) return null;
+  const t = m.home.quick;
+  const result = t.actions[quick.id].result;
+  if (state.kind === "none") return t.none(result);
+  if (state.kind !== "found") return null;
+  const distance = m.home.list.distance(state.distance, state.from);
+  if (!state.stale) return t.found(result, state.place.name, distance);
+  return t.foundStale(result, state.place.name, distance, staleLabel(m, locale, state.stale.asOf));
 }

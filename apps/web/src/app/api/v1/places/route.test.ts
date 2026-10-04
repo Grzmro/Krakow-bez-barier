@@ -124,6 +124,30 @@ describe("GET /api/v1/places", () => {
     expect(withUnknown.body.items[0].features).toEqual([{ feature: "lift", state: "met" }]);
   });
 
+  it("returns an accessible toilet known only from outdated data as stale and dated, only with includeUnknown", async () => {
+    // GIVEN a public toilet whose accessible toilet comes from a page dated 15.09.2025 (over 12 months ago)
+    const sukiennice = placeRecord({ name: "Toaleta publiczna Sukiennice", category: "toilet", location: { x: 19.9373, y: 50.0617 } });
+    const previous = repository.current;
+    repository.current = createFakePlaceRepository(
+      [sukiennice],
+      [factRecord(sukiennice, "toilet_accessible", bool(true), { source: city, observedAt: new Date("2025-09-15T00:00:00Z") })],
+    );
+
+    try {
+      // WHEN filtering by toilet_accessible, without and with includeUnknown
+      const strict = await list("?feature=toilet_accessible");
+      const withUnknown = await list("?feature=toilet_accessible&includeUnknown=true");
+
+      // THEN outdated data is never a pass by default, and with includeUnknown it comes back stale with its date
+      expect(names(strict.body)).toEqual([]);
+      expect(withUnknown.body.items[0].features).toEqual([
+        { feature: "toilet_accessible", state: "stale", asOf: "2025-09-15T00:00:00.000Z" },
+      ]);
+    } finally {
+      repository.current = previous;
+    }
+  });
+
   it("marks steps with unknown ramp data as unknown for step_free, never as step-free", async () => {
     // GIVEN a place with two steps and no ramp data, and one with steps and a known ramp
     const steps = placeRecord({ name: "Schody bez danych o podjeździe", location: { x: 19.94, y: 50.06 } });

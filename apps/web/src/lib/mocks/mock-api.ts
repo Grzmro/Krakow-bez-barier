@@ -11,7 +11,7 @@ import {
   type PlacePointList,
   type PlaceSummary,
 } from "@krakow-bez-barier/contracts";
-import { FEATURE_ATTRIBUTES, featureState } from "@/domain/features";
+import { FEATURE_ATTRIBUTES, featureMatch } from "@/domain/features";
 import { matchProfile } from "@/domain/matcher";
 import { thresholdsFor } from "@/domain/profiles";
 import { defaultLocale, type Locale } from "@/i18n/locale";
@@ -61,17 +61,17 @@ export const mockPlaceExists = (id: string) => EXAMPLE_PLACES.some((p) => p.id =
 function stateFromChips(summary: PlaceSummary, feature: FeatureFilter): FeatureMatch["state"] {
   const chips = summary.summary.filter((chip) => FEATURE_ATTRIBUTES[feature].includes(chip.attribute));
   if (chips.some((chip) => chip.state === "known")) return "met";
-  return chips.some((chip) => chip.state === "conflict") ? "conflict" : "unknown";
+  if (chips.some((chip) => chip.state === "conflict")) return "conflict";
+  return chips.some((chip) => chip.state === "stale") ? "stale" : "unknown";
 }
 
 /** Answers each feature filter from the example's facts, like the API does. */
 function withFeatures(summary: PlaceSummary, query: ListPlacesQuery): PlaceSummary {
   if (!query.feature?.length) return summary;
   const place = EXAMPLE_PLACES.find((p) => p.id === summary.id);
-  const features = query.feature.map((feature) => ({
-    feature,
-    state: place ? featureState(place.attributes, feature) : stateFromChips(summary, feature),
-  }));
+  const features = query.feature.map((feature) =>
+    place ? featureMatch(place.attributes, feature) : { feature, state: stateFromChips(summary, feature) },
+  );
   return { ...summary, features };
 }
 

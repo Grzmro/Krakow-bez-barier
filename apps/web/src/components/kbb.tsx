@@ -32,9 +32,10 @@ export function VerdictBlock({ unconfirmed, ...props }: Omit<VerdictBlockProps, 
   return <UiVerdictBlock {...props} label={t.status[props.status]} note={unconfirmed ? t.unconfirmed : undefined} />;
 }
 
-export function ReliabilityBadge({ value, className }: { value: Reliability; className?: string }) {
+/** `label` replaces the reliability word, e.g. "Może być nieaktualne · 15.09.2025". */
+export function ReliabilityBadge({ value, label, className }: { value: Reliability; label?: string; className?: string }) {
   const t = useMessages().common;
-  return <UiReliabilityBadge value={value} label={t.reliability[value]} className={className} />;
+  return <UiReliabilityBadge value={value} label={label ?? t.reliability[value]} className={className} />;
 }
 
 export function SampleTag({ className }: { className?: string }) {
