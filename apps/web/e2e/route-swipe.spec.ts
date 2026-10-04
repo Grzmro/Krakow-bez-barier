@@ -81,7 +81,7 @@ test.describe("route panel swipe on iPhone 15", () => {
     await page.goto("/trasa?z=station");
     await expect(panel(page)).toHaveAttribute("data-stowed", "true");
     const bar = await settledHeight(page);
-    const half = 0.55 * (await page.locator("main").boundingBox())!.height;
+    const half = 0.48 * (await page.locator("main").boundingBox())!.height;
     const touch = await finger(page);
 
     // WHEN a finger swipes the bar up, most of the way to half height

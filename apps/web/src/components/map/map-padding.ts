@@ -40,3 +40,15 @@ export function insidePadding(point: { x: number; y: number }, width: number, he
 export function paddedCentre(width: number, height: number, padding: Padding): [number, number] {
   return [(padding.left + width - padding.right) / 2, (padding.top + height - padding.bottom) / 2];
 }
+
+/**
+ * Padding for fitting a whole route into a map whose top `overlays.top` px are covered by an opaque card and whose
+ * bottom `inset` px by a panel. The top is never scaled below the card (that hid the route under it); only the
+ * bottom margin above the panel gives way, down to nothing, so the route keeps at least `minRoute` px where possible.
+ */
+export function routeFitPadding(overlays: VerticalPadding, inset: number, height: number, minRoute = 96): Padding {
+  const covered = Math.max(0, Math.min(inset, height));
+  const free = height - covered - overlays.top - minRoute;
+  const margin = Math.max(0, Math.min(overlays.bottom, free));
+  return { top: overlays.top, bottom: covered + margin, left: 0, right: 0 };
+}
