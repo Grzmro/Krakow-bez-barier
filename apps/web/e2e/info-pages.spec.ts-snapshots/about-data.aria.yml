@@ -3,6 +3,9 @@
     - /url: /
   - heading "O danych" [level=1]
   - paragraph: Każda cecha ma źródło, datę i status wiarygodności. Nie liczymy jednej oceny miejsca.
+  - paragraph:
+    - 'link "Raport jakości danych: pokrycie, wiek, konflikty i luki"':
+      - /url: /o-danych/jakosc
   - heading "Źródła" [level=2]
   - paragraph: Dane przykładowe Statusy źródeł są przykładowe, bo serwer danych nie działa.
   - list:

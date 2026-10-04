@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Info } from "@phosphor-icons/react/ssr";
 import { RELIABILITIES } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge } from "@/components/kbb";
 import { InfoPage, InfoSection } from "@/components/layout/info-page";
 import { getMessages } from "@/i18n/server";
+import { routes } from "@/lib/routes";
 import { SourcesList } from "./sources-list";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -17,6 +19,11 @@ export default async function AboutDataPage() {
   return (
     <InfoPage title={t.title} backLabel={m.pages.back} width="full">
       <p className="max-w-3xl text-body text-foreground/85">{t.lead}</p>
+      <p className="mt-2">
+        <Link href={routes.dataQuality} className="inline-flex min-h-6 items-center font-semibold text-primary underline underline-offset-2">
+          {m.quality.aboutLink}
+        </Link>
+      </p>
       <InfoSection title={t.sources}>
         <SourcesList />
       </InfoSection>

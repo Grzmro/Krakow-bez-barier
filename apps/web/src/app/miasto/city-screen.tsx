@@ -238,6 +238,11 @@ function CityPanel({ token, onSignOut }: { token: string; onSignOut: (message: s
         <p>{t.scope(excluded)}</p>
       </MoreInfo>
       <p className="mt-1 text-caption text-muted-foreground">{stats.isSample ? t.introSample : t.realOnly}</p>
+      <p className="mt-2">
+        <Link href={routes.dataQuality} className="inline-flex min-h-6 items-center font-semibold text-primary underline underline-offset-2">
+          {messages.quality.cityLink}
+        </Link>
+      </p>
 
       <InfoSection title={t.tiles.heading}>
         <dl className="grid grid-cols-2 gap-2 lg:grid-cols-3">

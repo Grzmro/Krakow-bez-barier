@@ -17,6 +17,7 @@ export const routes = {
   /** Routes kept on this device (IndexedDB); precached by public/sw.js so it opens offline. */
   savedRoutes: "/zapisane-trasy",
   aboutData: "/o-danych",
+  dataQuality: "/o-danych/jakosc",
   privacy: "/prywatnosc",
   accessibility: "/deklaracja-dostepnosci",
   moderator: "/moderator",
