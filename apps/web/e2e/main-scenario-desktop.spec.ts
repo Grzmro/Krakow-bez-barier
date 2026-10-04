@@ -21,7 +21,9 @@ for (const screen of DESKTOP_SCREENS) {
     // THEN nothing needs sideways scrolling
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
 
-    // AND it has no WCAG 2.2 AA violations axe can detect
+    // AND it has no WCAG 2.2 AA violations axe can detect (read once the list has faded in, not mid-transition)
+    if (screen.name === "home") await expect(page.locator("#lista li").first()).toBeVisible();
+    await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished)));
     await expectAccessible();
     await evidence(`desktop-${screen.name}`);
   });
@@ -113,7 +115,9 @@ for (const zoom of [
         // THEN the content fits the width — nothing needs sideways scrolling
         expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
 
-        // AND it has no WCAG 2.2 AA violations axe can detect
+        // AND it has no WCAG 2.2 AA violations axe can detect (read once the list has faded in, not mid-transition)
+        if (screen.name === "home") await expect(page.locator("#lista li").first()).toBeVisible();
+        await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished)));
         await expectAccessible();
         if (screen.name === "home" || screen.name === "place-conflict") {
           await evidence(`desktop-zoom-${zoom.deviceScaleFactor * 100}-${screen.name}`);
