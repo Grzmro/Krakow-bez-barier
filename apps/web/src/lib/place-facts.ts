@@ -58,19 +58,21 @@ export interface FactView {
   confirmFactId?: string;
 }
 
-const dateFormats = new Map<Locale, Intl.DateTimeFormat>();
+const dateFormats = new Map<string, Intl.DateTimeFormat>();
 const numberFormats = new Map<Locale, Intl.NumberFormat>();
 
-export function formatDate(iso: string, locale: Locale): string {
-  let format = dateFormats.get(locale);
+/** A date as the UI shows it (`3.10.2026`); `month: "long"` for speech (`3 października 2026`). */
+export function formatDate(iso: string, locale: Locale, month: "numeric" | "long" = "numeric"): string {
+  const key = `${locale}-${month}`;
+  let format = dateFormats.get(key);
   if (!format) {
     format = new Intl.DateTimeFormat(intlLocale[locale], {
       day: "numeric",
-      month: "numeric",
+      month,
       year: "numeric",
       timeZone: "Europe/Warsaw",
     });
-    dateFormats.set(locale, format);
+    dateFormats.set(key, format);
   }
   return format.format(new Date(iso));
 }

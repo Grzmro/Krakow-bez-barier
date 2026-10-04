@@ -565,6 +565,8 @@ function RouteDetails({
   const status = routeStatus(route);
   const clean = status !== "barrier";
   const unknown = gaps(t, route);
+  // The step "Czytaj na głos" is on, highlighted in the list.
+  const [reading, setReading] = useState<number | null>(null);
   const background = route.fallback ? "bg-status-barrier-bg" : CARD[status];
 
   return (
@@ -638,8 +640,15 @@ function RouteDetails({
       <SaveRoute route={route} input={saveInput} />
 
       <h2 className="mt-7 mb-1 text-title font-semibold">{t.steps}</h2>
-      <ReadAloud route={route} />
-      <StepList route={route} selected={selected} onSelect={onSelect} stepRefs={stepRefs} />
+      <ReadAloud route={route} reading={reading} onReading={setReading} stepRefs={stepRefs} />
+      <StepList
+        route={route}
+        selected={selected}
+        onSelect={onSelect}
+        stepRefs={stepRefs}
+        current={reading ?? undefined}
+        currentLabel={t.speech.current}
+      />
 
       {route.attribution ? (
         <p className="mt-6 text-caption text-muted-foreground">

@@ -1,15 +1,17 @@
 "use client";
 
-import { Fragment, useEffect, useRef, type Ref, type RefObject } from "react";
-import { CaretLeft, CaretRight, CloudSlash, FlagCheckered, MapPin } from "@phosphor-icons/react";
+import { Fragment, useEffect, useRef, useState, type Ref, type RefObject } from "react";
+import { ArrowCounterClockwise, CaretLeft, CaretRight, CloudSlash, FlagCheckered, MapPin } from "@phosphor-icons/react";
 import type { Route } from "@krakow-bez-barier/contracts";
 import { Button, cn, LabeledSwitch, StatusIcon, useAnnounce } from "@krakow-bez-barier/ui";
 import { useLocale, useMessages } from "@/i18n/client";
 import { SampleTag } from "@/components/kbb";
 import { formatDate } from "@/lib/place-facts";
 import { concerns, provenance, type Concern } from "@/lib/navigation";
-import { segmentStatusLabel } from "@/lib/route-speech";
+import { announce as scheduleAnnouncement, initialAnnouncer, type AnnouncerState } from "@/lib/announcements";
+import { announcementSpeech, guidanceSpeech, segmentStatusLabel } from "@/lib/route-speech";
 import type { Guidance } from "@/lib/use-guidance";
+import { useReadAloud } from "@/lib/use-read-aloud";
 import { StepList, STATUS_TEXT } from "./route-steps";
 
 /** Guidance in the route panel: the step being walked, what's next, barriers and gaps ahead with their sources, the whole list. */
@@ -128,6 +130,7 @@ export function RouteNavigation({
         {modeText}
       </p>
       {mode === "located" ? <LabeledSwitch label={t.follow} checked={follow} onCheckedChange={setFollow} className="mt-1" /> : null}
+      {route && !loading && !error ? <GuidanceVoice route={route} guidance={guidance} /> : null}
 
       {route && progress && !loading && !error ? (
         <>
@@ -136,6 +139,82 @@ export function RouteNavigation({
         </>
       ) : null}
     </section>
+  );
+}
+
+/**
+ * "Czytaj na głos" while guiding, off by default (a screen reader already reads the live region). By GPS it says only
+ * what the scheduler (`announce`) finds due at the walker's position, each message once, a new one cutting off the old.
+ * Without a position it says the step the walker moves to with "Następny/Poprzedni krok". "Powtórz komunikat" says the
+ * whole picture at the step, with the sources. Turning it on is a tap, so it speaks there: that unlocks speech on iOS.
+ */
+function GuidanceVoice({ route, guidance }: { route: Route; guidance: Guidance }) {
+  const m = useMessages();
+  const t = m.route.speech;
+  const locale = useLocale();
+  const announce = useAnnounce();
+  const { supported, say, stop } = useReadAloud();
+  const [on, setOn] = useState(false);
+  const [noVoice, setNoVoice] = useState(false);
+  const { mode, progress } = guidance;
+  const announcer = useRef<{ route: Route; state: AnnouncerState }>({ route, state: initialAnnouncer });
+  const lastStep = useRef<number | null>(progress?.step ?? null);
+
+  // What is due at this position; `fresh` forgets what was said (voice just turned on, or a new route).
+  const due = (fresh: boolean) => {
+    if (fresh || announcer.current.route !== route) announcer.current = { route, state: initialAnnouncer };
+    const result = scheduleAnnouncement(route, progress, announcer.current.state);
+    announcer.current.state = result.state;
+    return result.announcement;
+  };
+
+  const speak = (text: string) => {
+    const ok = say(text);
+    setNoVoice(!ok);
+    if (!ok) announce(t.noVoice);
+    return ok;
+  };
+  // A device whose voices load late may turn out to have none for the language: say so instead of staying silent.
+  const speakNow = (text: string) => {
+    if (!say(text)) announce(t.noVoice);
+  };
+
+  // No dependency list on purpose: it runs after every render (each GPS fix renders), and the scheduler says each id once.
+  useEffect(() => {
+    const step = progress?.step ?? null;
+    const moved = step !== lastStep.current;
+    lastStep.current = step;
+    if (!on || !progress) return;
+    if (mode === "located") {
+      const announcement = due(false);
+      if (announcement) speakNow(announcementSpeech(m, route, announcement));
+    } else if (moved) speakNow(guidanceSpeech(m, route, progress, locale, false));
+  });
+
+  if (!supported) return null;
+  const toggle = (next: boolean) => {
+    if (!next) {
+      stop();
+      setOn(false);
+      return;
+    }
+    if (progress && !speak(guidanceSpeech(m, route, progress, locale, false))) return;
+    // What was just said is not said again by the scheduler.
+    due(true);
+    setOn(true);
+  };
+
+  return (
+    <div className="mt-1 grid justify-items-start gap-2">
+      <LabeledSwitch label={t.voice} hint={t.voiceHint} checked={on} onCheckedChange={toggle} className="w-full" />
+      {on && progress ? (
+        <Button variant="outline" size="sm" onClick={() => speak(guidanceSpeech(m, route, progress, locale, true))}>
+          <ArrowCounterClockwise weight="bold" />
+          {t.repeatNow}
+        </Button>
+      ) : null}
+      {noVoice ? <p className="text-body-sm text-muted-foreground">{t.noVoice}</p> : null}
+    </div>
   );
 }
 

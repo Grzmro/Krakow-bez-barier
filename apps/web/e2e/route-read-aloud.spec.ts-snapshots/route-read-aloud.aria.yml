@@ -11,6 +11,7 @@
     - button "Najkrótsza"
   - region "Odcinki trasy":
     - button "Rozwiń arkusz"
+    - button "Schowaj szczegóły trasy" [expanded]
     - group "Odcinki trasy":
       - 'heading /Trasa: \d+ minut[ay]?, \d+,\d+ km/ [level=1]'
       - group "Profil potrzeb":
@@ -32,17 +33,27 @@
         - img
         - text: ""
       - heading "Krok po kroku" [level=2]
-      - button "Pauza":
-        - img
-        - text: ""
-      - button "Zatrzymaj czytanie":
-        - img
-        - text: ""
+      - group "Czytanie trasy na głos":
+        - paragraph: "/Czytany krok: 2 z \\d+/"
+        - button "Zakończ czytanie":
+          - img
+        - button "Poprzedni krok":
+          - img
+          - text: ""
+        - button "Powtórz krok":
+          - img
+          - text: ""
+        - button "Następny krok":
+          - text: ""
+          - img
+        - button "Przeczytaj całą trasę":
+          - img
+          - text: ""
       - list "Odcinki trasy, tekstowa wersja mapy":
         - listitem:
           - 'button /Odcinek 1 z \d+\. Kieruj się na południe, \d+ metry\. Spełnia: płyty chodnikowe\./': "/Kieruj się na południe Spełnia: płyty chodnikowe \\d+ m/"
         - listitem:
-          - 'button /Odcinek 2 z \d+\. Skręć w prawo, \d+ metrów\. Częściowo nie wiemy: brak danych o nawierzchni na części odcinka\./': "/Skręć w prawo Częściowo nie wiemy: brak danych o nawierzchni na części odcinka \\d+ m/"
+          - 'button /Odcinek 2 z \d+\. Skręć w prawo, \d+ metrów\. Częściowo nie wiemy: brak danych o nawierzchni na części odcinka\. czytany krok\./': "/Skręć w prawo Częściowo nie wiemy: brak danych o nawierzchni na części odcinka \\d+ m/"
         - listitem:
           - 'button /Odcinek 3 z \d+\. Skręć w lewo, \d+ metrów\. Spełnia: utwardzona\./': "/Skręć w lewo Spełnia: utwardzona \\d+ m/"
         - listitem:
@@ -112,5 +123,6 @@
   - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
   - button "Informacje o źródłach mapy"
   - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors, openrouteservice"
+  - button "Pokaż moją lokalizację"
   - button "Przybliż"
   - button "Oddal"

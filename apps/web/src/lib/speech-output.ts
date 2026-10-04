@@ -20,7 +20,7 @@ export type SpeechOutputWindow = {
   SpeechSynthesisUtterance?: UtteranceCtor;
 };
 
-export type ReaderState = "idle" | "speaking" | "paused";
+export type ReaderState = "idle" | "speaking";
 
 /** The browser's speech synthesis, or null without one (Firefox with speech off, Android WebView). */
 export function speechSynthesisFor(win: SpeechOutputWindow | undefined) {
@@ -37,16 +37,16 @@ export function voiceFor<V extends { lang: string }>(voices: V[], lang: string):
 }
 
 /**
- * Reads texts one utterance each. Pause cancels and remembers the text being read, resume starts from it again:
- * `speechSynthesis.pause()` is unreliable (Chrome on Android ignores it, long pauses drop the queue).
+ * Reads texts one utterance each; every `play` cancels what was being said first, so a new message never talks over an
+ * old one. `onPosition` gets the index of the text being read (for highlighting a step). There is no pause:
+ * `speechSynthesis.pause()` is unreliable (Chrome on Android ignores it, Safari sometimes never resumes), so the caller
+ * keeps the index and plays from it again.
  */
 export function createReader(
   { synth, Utterance }: { synth: SpeechSynthesisLike; Utterance: UtteranceCtor },
   onState: (state: ReaderState) => void,
+  onPosition: (index: number) => void = () => {},
 ) {
-  let texts: string[] = [];
-  let lang = "";
-  let position = 0;
   let run = 0;
   let state: ReaderState = "idle";
   // Chrome drops the events of utterances nothing references, so the queue is kept here.
@@ -58,33 +58,6 @@ export function createReader(
     onState(next);
   };
 
-  const speakFrom = (start: number) => {
-    const current = ++run;
-    synth.cancel();
-    const voice = voiceFor(synth.getVoices(), lang);
-    queue = texts.slice(start).map((text, offset) => {
-      const utterance = new Utterance(text);
-      utterance.lang = lang;
-      if (voice) utterance.voice = voice;
-      const index = start + offset;
-      utterance.onstart = () => {
-        if (current === run) position = index;
-      };
-      const finish = () => {
-        if (current !== run || index !== texts.length - 1) return;
-        position = 0;
-        queue = [];
-        set("idle");
-      };
-      utterance.onend = finish;
-      utterance.onerror = finish;
-      return utterance;
-    });
-    position = start;
-    set("speaking");
-    for (const utterance of queue) synth.speak(utterance);
-  };
-
   const halt = () => {
     run++;
     queue = [];
@@ -92,24 +65,44 @@ export function createReader(
   };
 
   return {
-    play(next: string[], nextLang: string) {
-      if (!next.length) return;
-      texts = next;
-      lang = nextLang;
-      speakFrom(0);
+    /**
+     * False when the device has voices but none in `lang`: a Polish text read by an English voice is worse than
+     * silence. No voices at all (still loading — `getVoices()` fills in late, iOS may never say so) lets the browser
+     * pick by `lang`.
+     */
+    hasVoice(lang: string) {
+      const voices = synth.getVoices();
+      return !voices.length || voiceFor(voices, lang) !== null;
     },
-    pause() {
-      if (state !== "speaking") return;
+    play(texts: string[], lang: string) {
       halt();
-      set("paused");
-    },
-    resume() {
-      if (state !== "paused") return;
-      speakFrom(position);
+      if (!texts.length) return set("idle");
+      const current = run;
+      const voice = voiceFor(synth.getVoices(), lang);
+      queue = texts.map((text, index) => {
+        const utterance = new Utterance(text);
+        utterance.lang = lang;
+        if (voice) utterance.voice = voice;
+        utterance.onstart = () => {
+          if (current === run) onPosition(index);
+        };
+        // `cancel()` ends utterances with an error event ("canceled"/"interrupted"); only the current run's last one
+        // finishes the reading, and an error is no reason to show anything.
+        const finish = () => {
+          if (current !== run || index !== texts.length - 1) return;
+          queue = [];
+          set("idle");
+        };
+        utterance.onend = finish;
+        utterance.onerror = finish;
+        return utterance;
+      });
+      onPosition(0);
+      set("speaking");
+      for (const utterance of queue) synth.speak(utterance);
     },
     stop() {
       halt();
-      position = 0;
       set("idle");
     },
   };
