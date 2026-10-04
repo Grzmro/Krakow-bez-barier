@@ -2,7 +2,7 @@
   - link "Wróć na stronę główną":
     - /url: /
   - heading "Zapisane trasy" [level=1]
-  - paragraph: Trasy zapisane tylko na tym telefonie — otworzysz je bez internetu. Bez połączenia trasa jest opisana krok po kroku, mapa może się nie wczytać.
+  - paragraph: Tylko na tym telefonie, działają bez internetu. Bez sieci mapa może się nie wczytać — kroki tak.
   - list:
     - listitem:
       - article "Dworzec Główny → Rynek Główny":

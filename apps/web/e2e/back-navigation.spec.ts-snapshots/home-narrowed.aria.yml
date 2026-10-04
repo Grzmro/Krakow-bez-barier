@@ -84,7 +84,7 @@
         - option "Wzgórza Krzesławickie"
         - option "Nowa Huta"
       - button "Pokaż okolicę" [disabled]
-      - paragraph: Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.
+      - paragraph: Dokładna pozycja zostaje na urządzeniu. Wysyłamy tylko obszar ok. 2 km.
       - group "Filtry cech":
         - button "Bez schodów"
         - button "Winda"

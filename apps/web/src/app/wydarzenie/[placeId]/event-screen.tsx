@@ -220,7 +220,7 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
                   ) : null}
                 </span>
                 {failed.has(source.id) ? (
-                  <span className="font-semibold text-status-conflict">{` · ${source.statusNote ?? t.sourceOutage}`}</span>
+                  <span className="font-semibold text-status-conflict">{` · ${t.sourceOutage}`}</span>
                 ) : null}
               </li>
             ))}

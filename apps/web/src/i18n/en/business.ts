@@ -15,7 +15,7 @@ export const business: Messages["business"] = {
     sourceLine: (source: string, date?: string) => (date ? `${source} · ${date}` : source),
     fullCard: "Full card",
     newTab: "(opens in a new tab)",
-    noRating: "No overall rating — check the features that matter to you.",
+    noRating: "Check the features that matter to you.",
   },
   page: {
     title: "For businesses",

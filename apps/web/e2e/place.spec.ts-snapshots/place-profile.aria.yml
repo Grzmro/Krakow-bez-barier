@@ -17,7 +17,7 @@
       - text: ""
     - 'region "Twój profil: Wózek"':
       - 'heading "Twój profil: Wózek" [level=2]'
-      - paragraph: Według progów Twojego profilu. Źródła i daty w faktach poniżej.
+      - paragraph: Źródła i daty są w faktach poniżej.
       - paragraph: Nie spełnia · 2 stopnie
       - paragraph: Pasuje 0 z 4 potrzeb profilu
       - heading "Blokuje (2)" [level=3]
@@ -33,7 +33,7 @@
       - paragraph: Rozwiń cechę, by zobaczyć źródło i datę.
       - list:
         - listitem:
-          - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych Brak danych
+          - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
@@ -46,12 +46,12 @@
             - img
             - text: ""
         - listitem:
-          - 'button "Wysokość stopnia: Brak danych. Wiarygodność: Brak danych."': Wysokość stopnia Brak danych Brak danych
+          - 'button "Wysokość stopnia: Brak danych. Wiarygodność: Brak danych."': Wysokość stopnia Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych Brak danych
+          - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
@@ -72,7 +72,7 @@
             - img
             - text: ""
         - listitem:
-          - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych Brak danych
+          - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
@@ -80,42 +80,41 @@
             - img
             - text: ""
         - listitem:
-          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych Brak danych
+          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
+          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Toaleta dostosowana: Brak danych. Wiarygodność: Brak danych."': Toaleta dostosowana Brak danych Brak danych
+          - 'button "Toaleta dostosowana: Brak danych. Wiarygodność: Brak danych."': Toaleta dostosowana Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych Brak danych
+          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych Brak danych
+          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych Brak danych
+          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
-    - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
+    - paragraph: Brakuje danych?
     - button "Uzupełnij":
       - img
       - text: ""
     - region "Skąd wiemy?":
       - heading "Skąd wiemy?" [level=2]
-      - paragraph: Źródła danych o tym miejscu, ich licencje i stan odświeżenia.
       - list:
         - listitem:
           - paragraph: OpenStreetMap
@@ -131,4 +130,4 @@
         - text: ""
       - link "Edytuj w OpenStreetMap":
         - /url: https://www.openstreetmap.org/edit?node=555111
-      - paragraph: Popraw dane u źródła — trafią do nas przy następnym pobraniu.
+      - paragraph: Poprawka trafi do nas przy następnym pobraniu.

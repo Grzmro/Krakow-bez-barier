@@ -20,32 +20,32 @@
       - paragraph: Rozwiń cechę, by zobaczyć źródło i datę.
       - list:
         - listitem:
-          - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych Brak danych
+          - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Wejście — stopnie: Brak danych. Wiarygodność: Brak danych."': Wejście — stopnie Brak danych Brak danych
+          - 'button "Wejście — stopnie: Brak danych. Wiarygodność: Brak danych."': Wejście — stopnie Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Wysokość stopnia: Brak danych. Wiarygodność: Brak danych."': Wysokość stopnia Brak danych Brak danych
+          - 'button "Wysokość stopnia: Brak danych. Wiarygodność: Brak danych."': Wysokość stopnia Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych Brak danych
+          - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych Brak danych
+          - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Podjazd: Brak danych. Wiarygodność: Brak danych."': Podjazd Brak danych Brak danych
+          - 'button "Podjazd: Brak danych. Wiarygodność: Brak danych."': Podjazd Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
@@ -69,12 +69,12 @@
               - link "Strona źródła":
                 - /url: https://www.bip.krakow.pl/?mmi=19180
         - listitem:
-          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych Brak danych
+          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
+          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
@@ -87,27 +87,27 @@
             - img
             - text: ""
         - listitem:
-          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych Brak danych
+          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych Brak danych
+          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych Brak danych
+          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
-    - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
+    - paragraph: Brakuje danych?
     - button "Uzupełnij":
       - img
       - text: ""
     - region "Najbliższe odjazdy":
       - heading "Najbliższe odjazdy" [level=2]
-      - paragraph: /Przystanki do \d+ m od miejsca i odjazdy w ciągu godziny\. Czy pojazd przyjmie wózek, mówi przewoźnik w danych na żywo\./
+      - paragraph: /Przystanki do \d+ m, odjazdy w ciągu godziny\./
       - paragraph: /Nagranie danych przewoźnika z \d+\.\d+\.\d+, \d+:\d+ — to nie są odjazdy na żywo\./
       - list:
         - listitem "Plac Wolnica":
@@ -212,11 +212,10 @@
               - paragraph: kierunek Salwator
               - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
               - text: Niezweryfikowane
-      - paragraph: "„Niezweryfikowane”: przewoźnik oznacza każdy tramwaj jako dostępny dla wózka, także wysokopodłogowe, więc nie traktujemy tego jako potwierdzenia. „Brak danych”: dane na żywo nic nie mówią o pojeździe — to nie znaczy, że jest dostępny."
+      - group: Co znaczą oznaczenia pojazdów?
       - paragraph: "/Źródło: ZTP Kraków: GTFS i GTFS-Realtime · dane z \\d+\\.\\d+\\.\\d+, \\d+:\\d+ · licencja: do potwierdzenia z urzędem · Zarząd Transportu Publicznego w Krakowie/"
     - region "Skąd wiemy?":
       - heading "Skąd wiemy?" [level=2]
-      - paragraph: Źródła danych o tym miejscu, ich licencje i stan odświeżenia.
       - list:
         - listitem:
           - paragraph: "BIP Miasta Krakowa: dostępność architektoniczna"

@@ -20,9 +20,8 @@
       - text: ""
     - paragraph: /Odświeżenie nie powiodło się — dane z \d+\.\d+\.\d+/
     - paragraph: "Źródło: MSIP: Toalety publiczne"
-    - paragraph: /Źródło niedostępne \(HTTP \d+\)\. Pokazujemy ostatnie znane dane jako nieaktualne\./
     - paragraph: Źródła podają sprzeczne dane
-    - paragraph: "Dotyczy: Toaleta dostosowana. Pokazujemy obie wartości ze źródłami — sprawdź na miejscu albo zapytaj obiekt."
+    - paragraph: "Dotyczy: Toaleta dostosowana. Obie wersje są w faktach poniżej."
     - table "Porównanie źródeł":
       - caption: Porównanie źródeł
       - rowgroup:
@@ -46,7 +45,7 @@
       - paragraph: Rozwiń cechę, by zobaczyć źródło i datę.
       - list:
         - listitem:
-          - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych Brak danych
+          - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
@@ -59,17 +58,17 @@
             - img
             - text: ""
         - listitem:
-          - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych Brak danych
+          - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych Brak danych
+          - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych Brak danych
+          - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
@@ -77,12 +76,12 @@
             - img
             - text: ""
         - listitem:
-          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych Brak danych
+          - 'button "Kondygnacje: Brak danych. Wiarygodność: Brak danych."': Kondygnacje Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
+          - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
@@ -92,21 +91,21 @@
             - img
             - text: ""
         - listitem:
-          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych Brak danych
+          - 'button "Miejsca odpoczynku: Brak danych. Wiarygodność: Brak danych."': Miejsca odpoczynku Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych Brak danych
+          - 'button "Parking dla osób z niepełnosprawnościami: Brak danych. Wiarygodność: Brak danych."': Parking dla osób z niepełnosprawnościami Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
         - listitem:
-          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych Brak danych
+          - 'button "Przewijak: Brak danych. Wiarygodność: Brak danych."': Przewijak Brak danych
           - button "Uzupełnij":
             - img
             - text: ""
-    - paragraph: Czegoś nie wiadomo? Zapytaj obiekt albo uzupełnij.
+    - paragraph: Brakuje danych?
     - button "Uzupełnij":
       - img
       - text: ""
@@ -115,7 +114,7 @@
       - text: ""
     - region "Najbliższe odjazdy":
       - heading "Najbliższe odjazdy" [level=2]
-      - paragraph: /Przystanki do \d+ m od miejsca i odjazdy w ciągu godziny\. Czy pojazd przyjmie wózek, mówi przewoźnik w danych na żywo\./
+      - paragraph: /Przystanki do \d+ m, odjazdy w ciągu godziny\./
       - paragraph: /Nagranie danych przewoźnika z \d+\.\d+\.\d+, \d+:\d+ — to nie są odjazdy na żywo\./
       - list:
         - listitem "Plac Wszystkich Świętych":
@@ -152,11 +151,10 @@
               - paragraph: kierunek Czerwone Maki P+R
               - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
               - text: Niezweryfikowane
-      - paragraph: "„Niezweryfikowane”: przewoźnik oznacza każdy tramwaj jako dostępny dla wózka, także wysokopodłogowe, więc nie traktujemy tego jako potwierdzenia. „Brak danych”: dane na żywo nic nie mówią o pojeździe — to nie znaczy, że jest dostępny."
+      - group: Co znaczą oznaczenia pojazdów?
       - paragraph: "/Źródło: ZTP Kraków: GTFS i GTFS-Realtime · dane z \\d+\\.\\d+\\.\\d+, \\d+:\\d+ · licencja: do potwierdzenia z urzędem · Zarząd Transportu Publicznego w Krakowie/"
     - region "Skąd wiemy?":
       - heading "Skąd wiemy?" [level=2]
-      - paragraph: Źródła danych o tym miejscu, ich licencje i stan odświeżenia.
       - list:
         - listitem:
           - paragraph: OpenStreetMap
@@ -169,6 +167,7 @@
           - paragraph: "MSIP: Toalety publiczne"
           - paragraph: "Dane urzędowe · Licencja: Do sprawdzenia"
           - paragraph: /Niedostępne · Ostatnie udane pobranie \d+\.\d+\.\d+/
+          - paragraph: /Źródło niedostępne \(HTTP \d+\)\. Pokazujemy ostatnie znane dane jako nieaktualne\./
           - link "msip3.um.krakow.pl":
             - /url: https://msip3.um.krakow.pl
       - paragraph: /2 źródła · najnowsze \d+\.\d+\.\d+/
@@ -178,7 +177,7 @@
         - text: ""
       - link "Edytuj w OpenStreetMap":
         - /url: https://www.openstreetmap.org/edit?node=123456
-      - paragraph: Popraw dane u źródła — trafią do nas przy następnym pobraniu.
+      - paragraph: Poprawka trafi do nas przy następnym pobraniu.
     - region "Mapa z położeniem miejsca. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Adres jest podany w tekście powyżej."
     - button "Informacje o źródłach mapy"
     - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"

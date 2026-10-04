@@ -8,6 +8,7 @@ import type { CityStats, NeedVerdict } from "@krakow-bez-barier/contracts";
 import { Button, cn, useAnnounce } from "@krakow-bez-barier/ui";
 import { bearer, DemoSignIn, ModeratorSignIn, StatusError, useModeratorSession } from "@/components/moderator/moderator-session";
 import { InfoSection } from "@/components/layout/info-page";
+import { MoreInfo } from "@/components/more-info";
 import { useLocale, useMessages } from "@/i18n/client";
 import { CITY_EXCLUDED_CATEGORIES } from "@/domain/city-stats";
 import { GUS_BDL_SOURCE, gusIndicator, gusSnapshot } from "@/domain/gus-bdl";
@@ -231,8 +232,11 @@ function CityPanel({ token, onSignOut }: { token: string; onSignOut: (message: s
       </div>
       <p className="mt-2 text-body-sm text-foreground/85">
         {stats.isSample ? null : `${t.intro} `}
-        {t.introRules} {t.scope(excluded)}
+        {t.introRules}
       </p>
+      <MoreInfo summary={t.scopeToggle}>
+        <p>{t.scope(excluded)}</p>
+      </MoreInfo>
       <p className="mt-1 text-caption text-muted-foreground">{stats.isSample ? t.introSample : t.realOnly}</p>
 
       <InfoSection title={t.tiles.heading}>
@@ -357,12 +361,15 @@ function CityPanel({ token, onSignOut }: { token: string; onSignOut: (message: s
           ) : null}
         </div>
         <p className="text-body-sm text-foreground/85">{t.priorities.lead}</p>
-        <ul className="mt-2 list-disc space-y-1 pl-5 text-body-sm">
-          {stats.criteria.map((c) => (
-            <li key={c.factor}>{t.priorities.criterion[c.factor](c.points, c.max, busy)}</li>
-          ))}
-        </ul>
-        <p className="mt-2 text-caption text-muted-foreground">{t.priorities.noVisits}</p>
+        <MoreInfo summary={t.priorities.criteriaToggle}>
+          <p className="text-body-sm text-foreground">{t.priorities.criteriaLead}</p>
+          <ul className="list-disc space-y-1 pl-5 text-body-sm text-foreground">
+            {stats.criteria.map((c) => (
+              <li key={c.factor}>{t.priorities.criterion[c.factor](c.points, c.max, busy)}</li>
+            ))}
+          </ul>
+          <p className="mt-2">{t.priorities.noVisits}</p>
+        </MoreInfo>
 
         {stats.priorities.items.length ? (
           <TableRegion label={t.priorities.regionLabel} className="mt-3">

@@ -369,7 +369,6 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
                 {t.outage.sourceLabel} <SourceText>{source.name}</SourceText>
                 {source.simulatedOutage ? <DemoOutageTag className="ml-2 align-middle" /> : null}
               </p>
-              {source.statusNote ? <p className="mt-0.5 text-caption text-foreground">{source.statusNote}</p> : null}
             </div>
           </div>
         ))}
@@ -561,7 +560,6 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
           <h2 id="place-why" className="text-title font-semibold">
             {t.why.title}
           </h2>
-          <p className="mt-1 text-caption text-muted-foreground">{t.why.lead}</p>
           {place.sources.length ? (
             <ul className="mt-3 space-y-2">
               {place.sources.map((source) => (
@@ -583,6 +581,9 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
                     {t.refreshStatus[source.refreshStatus]} · {t.why.lastSuccess}{" "}
                     {source.lastSuccessAt ? formatDate(source.lastSuccessAt, locale) : t.why.never}
                   </p>
+                  {source.refreshStatus === "outage" && source.statusNote ? (
+                    <p className="mt-0.5 text-caption text-muted-foreground">{source.statusNote}</p>
+                  ) : null}
                   {source.attribution ? (
                     <p className="mt-0.5 text-caption text-muted-foreground">
                       <SourceText>{source.attribution}</SourceText>

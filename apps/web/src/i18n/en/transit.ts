@@ -5,7 +5,7 @@ const plural = (n: number, one: string, many: string) => (n === 1 ? one : many);
 export const transit: Messages["transit"] = {
   title: "Nearest departures",
   lead: (radius: number) =>
-    `Stops within ${radius} m of the place and departures within the hour. Whether the vehicle takes a wheelchair comes from the operator's live data.`,
+    `Stops within ${radius} m, departures within the hour.`,
   loading: "Loading departures…",
   loadError: "Departures could not be loaded. The rest of the card works as usual.",
   retry: "Try again",
@@ -49,14 +49,18 @@ export const transit: Messages["transit"] = {
   evidenceLine: (kind: string, value: string, reliability: string, detail: string | null) =>
     `${kind}: ${value}${detail ? ` (${detail})` : ""} · reliability: ${reliability}`,
   vehicleNumber: (label: string) => `vehicle no. ${label}`,
-  unverifiedHint:
-    "“Unverified”: the operator flags every tram as wheelchair-accessible, high-floor ones too, so we don't treat it as confirmation. “No data”: the live data says nothing about the vehicle — that doesn't mean it is accessible.",
+  legendToggle: "What do the vehicle labels mean?",
+  legend: [
+    "Vehicle accessibility comes from the operator or the fleet list.",
+    "“Unverified”: the operator flags every tram as wheelchair-accessible, high-floor ones too — that is not a confirmation.",
+    "“No data”: we don't know whether the vehicle takes a wheelchair. That doesn't mean it is accessible.",
+  ],
   sourceLabel: "Source:",
   fetchedAt: (time: string) => `data from ${time}`,
   licenseLabel: "licence:",
   recorded: (time: string) => `A recording of the operator's data from ${time} — these are not live departures.`,
   outage: (time: string) => `The operator's data is unavailable right now. Showing the last data we fetched, from ${time}.`,
-  stale: (time: string) => `The operator's data hasn't updated since ${time} — departures may be out of date.`,
+  stale: (time: string) => `Operator data from ${time} — departures may be out of date.`,
   outageNoData: "The operator's data is unavailable right now and we have nothing earlier. Check the departure board at the stop.",
   disabled: "Departures with vehicle accessibility will appear once the ZTP data licence is confirmed.",
   statusNote: {

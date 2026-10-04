@@ -24,7 +24,7 @@
         - text: Dziecięcy
         - radio "Senior"
         - text: Senior
-      - paragraph: Bez profilu sprawdzamy schody i nawierzchnię. Włącz profil, by ocenić krawężniki i nachylenie.
+      - paragraph: Sprawdzamy schody i nawierzchnię. Profil doda krawężniki i nachylenie.
       - paragraph: "Tryb demonstracyjny: bez klucza openrouteservice działa tylko przykładowa trasa Dworzec Główny → Rynek Główny, z domyślnymi progami profilu."
       - link "Pokaż przykładową trasę":
         - /url: /trasa?z=station
@@ -33,13 +33,13 @@
         - paragraph: Fakty z karty miejsca.
         - list:
           - listitem:
-            - 'button "Wejście — stopnie: Brak danych. Wiarygodność: Brak danych."': Wejście — stopnie Brak danych Brak danych
+            - 'button "Wejście — stopnie: Brak danych. Wiarygodność: Brak danych."': Wejście — stopnie Brak danych
           - listitem:
-            - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych Brak danych
+            - 'button "Próg: Brak danych. Wiarygodność: Brak danych."': Próg Brak danych
           - listitem:
-            - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych Brak danych
+            - 'button "Szerokość drzwi: Brak danych. Wiarygodność: Brak danych."': Szerokość drzwi Brak danych
           - listitem:
-            - 'button "Podjazd: Brak danych. Wiarygodność: Brak danych."': Podjazd Brak danych Brak danych
+            - 'button "Podjazd: Brak danych. Wiarygodność: Brak danych."': Podjazd Brak danych
         - link "Otwórz kartę miejsca":
           - /url: /miejsca/kawiarnia-przyklad
     - button "Ruszamy" [disabled]:

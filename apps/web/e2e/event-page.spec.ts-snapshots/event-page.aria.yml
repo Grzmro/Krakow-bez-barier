@@ -2,14 +2,14 @@
   - article "Koncert jesienny":
     - paragraph: Dojazd i wejście bez barier
     - heading "Koncert jesienny" [level=1]
-    - paragraph: Nazwa i termin podane przez organizatora wydarzenia.
+    - paragraph: Nazwę i termin podał organizator.
     - text: Dane przykładowe
     - term: Miejsce
     - definition: /Pałac Krzysztofory · Rynek Główny \d+, Kraków/
     - term: Termin
     - definition: /sobota, \d+ października \d+/
-    - paragraph: "Fakty o dostępności miejsca wydarzenia — każdy ze źródłem i datą. Bez zbiorczej oceny: sprawdź cechy ważne dla Ciebie."
-    - paragraph: Dane oznaczone PRZYKŁAD są przykładowe — nie planuj na ich podstawie wizyty.
+    - paragraph: Sprawdź cechy ważne dla Ciebie. Przy każdej wartości jest źródło i data.
+    - paragraph: Dane PRZYKŁAD są tylko poglądowe — nie planuj według nich wizyty.
     - region "Wejście":
       - heading "Wejście" [level=2]
       - paragraph: "Jak wejść: Wejście główne od Rynku, bez stopni."
@@ -42,7 +42,7 @@
           - paragraph: Nikt jeszcze tego nie sprawdził — to nie znaczy, że jest dostępne.
     - region "Przystanki w pobliżu":
       - heading "Przystanki w pobliżu" [level=2]
-      - paragraph: /Do 3 najbliższych przystanków w promieniu \d+ m, z faktami o ich peronach\. Źródło i data są przy każdym fakcie\./
+      - paragraph: /Do 3 przystanków w promieniu \d+ m\./
       - list:
         - listitem:
           - heading /Plac Wszystkich Świętych \d+ \d+ m od miejsca Dane przykładowe/ [level=3]:
@@ -77,7 +77,7 @@
       - heading "Źródła danych" [level=2]
       - list:
         - listitem: /OpenStreetMap · ostatnie pobranie \d+\.\d+\.\d+ · © OpenStreetMap contributors/
-        - listitem: "/MSIP: Toalety publiczne · ostatnie pobranie \\d+\\.\\d+\\.\\d+ · Źródło niedostępne \\(HTTP \\d+\\)\\. Pokazujemy ostatnie znane dane jako nieaktualne\\./"
+        - listitem: "/MSIP: Toalety publiczne · ostatnie pobranie \\d+\\.\\d+\\.\\d+ · źródło niedostępne, dane mogą być nieaktualne/"
       - paragraph: /Stan na \d+\.\d+\.\d+\./
     - link "Pełna karta miejsca":
       - /url: /miejsca/palac-krzysztofory

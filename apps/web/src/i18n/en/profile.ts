@@ -88,7 +88,7 @@ export const profile: Messages["profile"] = {
       title: "No place on the list has complete data for this profile yet",
       missing: (missing: { need: Need; count: number }[], total: number) =>
         `Most often missing: ${missing.map(({ need, count }) => `${needName[need].toLowerCase()} (${count} of ${total})`).join(", ")}.`,
-      hint: "Open data rarely records steps, thresholds or door width. “No data” doesn't mean “not accessible” — see “Why?” on a place.",
+      hint: "“No data” doesn't mean “not accessible”. See “Why?” on a place.",
     },
   },
 };

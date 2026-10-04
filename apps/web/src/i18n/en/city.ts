@@ -26,7 +26,7 @@ const reason: Record<PriorityFactor, (count: number, needs: string) => string> =
 
 export const city: Messages["city"] = {
   title: "City dashboard",
-  signInLead: "The city dashboard uses the same sign-in as the moderator panel.",
+  signInLead: "Sign in as you do in the moderator panel.",
   signedIn: "Signed in. The city statistics are below.",
   loading: "Computing the statistics…",
   loaded: (total: number) => `Statistics ready: ${places(total)} in the database.`,
@@ -34,8 +34,9 @@ export const city: Messages["city"] = {
   loadLockedOut: (minutes: number) => `Too many failed attempts. The statistics will be available in ${minutes} min.`,
   intro: "Figures from the Kraków bez barier database: OpenStreetMap, the city's open data and residents' reports.",
   introRules: "Aggregates only, no personal data. Missing data never counts as “accessible”.",
+  scopeToggle: "Which places do we count?",
   scope: (excluded: string) =>
-    `Every place is counted except the categories hidden on the map by default (${excluded}) — the “Wheelchair” needs don't apply to them.`,
+    `All except the categories hidden on the map by default (${excluded}) — the “Wheelchair” needs don't apply to them.`,
   introSample: "Sample mode: statistics computed from the sample places, not from Kraków's data.",
   realOnly: "Places and facts marked SAMPLE are left out.",
   generatedAt: (date: string) => `As of ${date}`,
@@ -90,7 +91,9 @@ export const city: Messages["city"] = {
   },
   priorities: {
     heading: "Repair and data priorities",
-    lead: "Places worth dealing with first. The score is the sum of points for each reason:",
+    lead: "Places worth dealing with first.",
+    criteriaToggle: "How do we score?",
+    criteriaLead: "The score is the sum of points for each reason:",
     criterion,
     noVisits:
       "We have no visitor counts, so the place's category stands in for footfall. The weights are public and easy to change.",

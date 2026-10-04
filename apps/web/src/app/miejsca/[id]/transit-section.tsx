@@ -4,6 +4,7 @@ import { Bus, CloudSlash, Info, Tram } from "@phosphor-icons/react";
 import type { TransitDeparture, TransitDepartures, TransitStop } from "@krakow-bez-barier/contracts";
 import { Button } from "@krakow-bez-barier/ui";
 import { SourceText, VehicleBadge } from "@/components/kbb";
+import { MoreInfo } from "@/components/more-info";
 import { useLocale, useMessages } from "@/i18n/client";
 import { DEPARTURES_RADIUS_M, departuresNotice, formatClock, formatDateTime } from "@/lib/transit";
 import { useDepartures } from "@/lib/use-departures";
@@ -78,7 +79,13 @@ function Departures({ data }: { data: TransitDepartures }) {
         )
       ) : null}
 
-      {hasStops ? <p className="mt-3 text-caption text-muted-foreground">{t.unverifiedHint}</p> : null}
+      {hasStops ? (
+        <MoreInfo summary={t.legendToggle} className="mt-2">
+          {t.legend.map((line) => (
+            <p key={line}>{line}</p>
+          ))}
+        </MoreInfo>
+      ) : null}
       <p className="mt-2 text-caption text-muted-foreground">
         {t.sourceLabel} <SourceText>{data.source.name}</SourceText>
         {fetchedAt ? ` · ${t.fetchedAt(fetchedAt)}` : null}

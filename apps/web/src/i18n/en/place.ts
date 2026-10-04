@@ -18,7 +18,7 @@ export const place: Messages["place"] = {
   shared: "Card link copied",
   shareFailed: "Couldn't copy the link",
   contact: "Ask the venue",
-  contactHint: "Something unknown? Ask the venue or fill it in.",
+  contactHint: "Missing data?",
   phone: "Phone",
   www: "Website",
   email: "Email",
@@ -29,7 +29,7 @@ export const place: Messages["place"] = {
   confirmFailed: "Couldn't save the confirmation. Try again.",
   confirmLimited: "This value was already confirmed from this network today. Try again tomorrow.",
   editOsm: "Edit in OpenStreetMap",
-  editOsmHint: "Fix the data at the source — it reaches us with the next fetch.",
+  editOsmHint: "Your fix reaches us with the next fetch.",
   mine: {
     report: "Your report",
     otherReport: "A visitor's report",
@@ -86,7 +86,7 @@ export const place: Messages["place"] = {
   profileVerdict: {
     title: (profile: string) => `Your profile: ${profile}`,
     needsMet: (met: number, total: number) => `Fits ${met} of ${total} profile ${plural(total, "need", "needs")}`,
-    hint: "Based on your profile's thresholds. Sources and dates are in the facts below.",
+    hint: "Sources and dates are in the facts below.",
   },
   facts: "Facts",
   factsHint: "Expand a feature to see its source and date.",
@@ -102,7 +102,7 @@ export const place: Messages["place"] = {
     heading: "Reported outages",
     title: (equipment) => (equipment === "lift" ? "Lift reported out of order" : "Ramp reported out of order"),
     confirmations: (n) => `${n} ${plural(n, "confirmation", "confirmations")}`,
-    source: "Reported by visitors, not moderated. Profile verdicts count the outage as a barrier.",
+    source: "From visitors, not moderated. We count it as a barrier.",
     expires: (time) => `Disappears ${time} unless someone confirms it.`,
     communityConfirmed: "Confirmed by the community",
     confirm: "Still broken",
@@ -128,13 +128,11 @@ export const place: Messages["place"] = {
   mapLabel: "Map showing where the place is. Arrow keys move the view, plus and minus change the zoom. The address is given in the text above.",
   conflict: {
     title: "Sources give conflicting data",
-    body: (attributes: string) =>
-      `Concerns: ${attributes}. We show both values with their sources — check on site or ask the venue.`,
+    body: (attributes: string) => `Concerns: ${attributes}. Both versions are in the facts below.`,
     table: { caption: "Source comparison", attribute: "Feature", source: "Source", value: "Value", date: "Fetched" },
   },
   why: {
     title: "How do we know?",
-    lead: "Data sources for this place, their licences and refresh status.",
     none: "We don't have any source for this place yet.",
     license: "Licence",
     lastSuccess: "Last successful fetch",

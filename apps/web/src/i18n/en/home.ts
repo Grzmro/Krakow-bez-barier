@@ -24,7 +24,7 @@ export const home: Messages["home"] = {
       start: "Type by voice",
       listening: "Listening… speak now",
       processing: "Recognising speech…",
-      notice: "Your browser recognises the speech and may send the recording to its provider's service (e.g. Google in Chrome); we store nothing.",
+      notice: "Your browser recognises the speech (it may use a service such as Google). We store nothing.",
       notAllowedApp:
         "No access to the microphone. Turn it on in Settings → Apps → Kraków bez barier → Permissions → Microphone. Searching by text still works.",
       errors: {
@@ -76,7 +76,7 @@ export const home: Messages["home"] = {
     zoomedToCluster: (n, parts) => `Zoomed in: ${n} ${placesWord(n)}${verdictParts(parts)}`,
     inView: (n) => `In view: ${n} ${placesWord(n)}.`,
     pinsCut: (shown, total) =>
-      `The map shows ${shown} of ${total} places in this area. Zoom in or narrow the search to see the rest.`,
+      `The map shows ${shown} of ${total} places. Zoom in to see the rest.`,
     pin: (name, category, status) => [name, category, status].filter(Boolean).join(" · "),
   },
   quick: {
@@ -91,7 +91,7 @@ export const home: Messages["home"] = {
     needLocation: "To find the nearest one, turn on “Near me” or choose a district.",
     searching: "Looking for the nearest one…",
     none: (result) => `${result}: none nearby (about 2 km) in the data`,
-    noneHint: "Places without accessibility data don't count as accessible. You can show them in the list below.",
+    noneHint: "Places without data don't count as accessible. You can show them in the list below.",
     found: (result, name, distance) => `${result}: ${name}, ${distance}`,
     foundStale: (result, name, distance, outdated) => `${result}: ${name}, ${distance}. ${outdated}`,
     maybeOutdated: "May be outdated",
@@ -102,7 +102,7 @@ export const home: Messages["home"] = {
   },
   list: {
     label: "List of places",
-    start: { summary: "Nearest places", hint: "The map is clear. Type a name and press Enter, pick a quick action, or tick a category and features and then “Show results”. The list and pins appear then.", nearYou: "Nearest to you", nearChosen: "Nearest to the point you chose", nearCentre: "Nearest to the Main Square (no location)", empty: "No places nearby." },
+    start: { summary: "Nearest places", hint: "Type a name and press Enter. Or pick a category and “Show results”.", nearYou: "Nearest to you", nearChosen: "Nearest to the point you chose", nearCentre: "Nearest to the Main Square (no location)", empty: "No places nearby." },
     stow: { hide: "Hide the list", show: "Show the list" },
     filtersJump: "Filters and profile",
     results: (n: number) => `${n} ${placesWord(n)}`,
@@ -120,12 +120,12 @@ export const home: Messages["home"] = {
     emptyHintKeepName: "Try a wider search: the same name, without the category, filters or area.",
     searchWider: "Search all of Kraków",
     licenceHold: {
-      parking: "Parking space data is waiting for the ZDMK licence to be confirmed.",
+      parking: "We'll show parking spaces once the ZDMK licence is confirmed.",
       link: "About the data",
     },
     more: (shown, total) => `Show more places (${shown} of ${total})`,
     noFeatureMatch: (features: string) =>
-      `No place in the results has this in its data: ${features}. Often nobody has described it yet — no data doesn't mean the facility is missing.`,
+      `No places with: ${features}. Often nobody has described it — no data doesn't mean the facility is missing.`,
     distance: (m: number, from: DistanceFrom = "centre") =>
       `${m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${m} m`} ${
         from === "user" ? "from you" : from === "chosen" ? "from the chosen point" : "from the Main Square"

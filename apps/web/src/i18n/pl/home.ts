@@ -26,7 +26,7 @@ export const home = {
       start: "Wpisz głosem",
       listening: "Słucham… mów teraz",
       processing: "Rozpoznaję mowę…",
-      notice: "Mowę rozpoznaje Twoja przeglądarka — może wysłać nagranie do usługi swojego dostawcy (np. Google w Chrome); my nic nie zapisujemy.",
+      notice: "Mowę rozpoznaje Twoja przeglądarka (może użyć usługi np. Google). My nic nie zapisujemy.",
       notAllowedApp:
         "Brak dostępu do mikrofonu. Włącz go w Ustawienia → Aplikacje → Kraków bez barier → Uprawnienia → Mikrofon. Wyszukiwanie tekstem nadal działa.",
       errors: {
@@ -78,7 +78,7 @@ export const home = {
     zoomedToCluster: (n: number, parts: [string, number][]) => `Przybliżono: ${n} ${placesWord(n)}${verdictParts(parts)}`,
     inView: (n: number) => `W widoku: ${n} ${placesWord(n)}.`,
     pinsCut: (shown: number, total: number) =>
-      `Mapa pokazuje ${shown} z ${total} miejsc w tym obszarze. Przybliż mapę albo zawęź wyszukiwanie, żeby zobaczyć pozostałe.`,
+      `Mapa pokazuje ${shown} z ${total} miejsc. Przybliż, by zobaczyć resztę.`,
     pin: (name: string, category: string, status: string | null) => [name, category, status].filter(Boolean).join(" · "),
   },
   quick: {
@@ -93,7 +93,7 @@ export const home = {
     needLocation: "Żeby znaleźć najbliższe, włącz „W mojej okolicy” albo wybierz dzielnicę.",
     searching: "Szukam najbliższego…",
     none: (result: string) => `${result}: brak w okolicy (ok. 2 km) według danych`,
-    noneHint: "Miejsca bez danych o dostępności nie liczą się jako dostępne. Możesz je pokazać na liście poniżej.",
+    noneHint: "Miejsc bez danych nie liczymy jako dostępnych. Pokażesz je na liście poniżej.",
     found: (result: string, name: string, distance: string) => `${result}: ${name}, ${distance}`,
     foundStale: (result: string, name: string, distance: string, outdated: string) => `${result}: ${name}, ${distance}. ${outdated}`,
     maybeOutdated: "Może być nieaktualne",
@@ -104,7 +104,7 @@ export const home = {
   },
   list: {
     label: "Lista miejsc",
-    start: { summary: "Najbliższe miejsca", hint: "Mapa jest czysta. Wpisz nazwę i naciśnij Enter, wybierz szybką akcję albo zaznacz kategorię i cechy, a potem „Pokaż wyniki”. Wtedy pojawią się lista i pinezki.", nearYou: "Najbliżej Ciebie", nearChosen: "Najbliżej wybranego punktu", nearCentre: "Najbliżej Rynku (bez lokalizacji)", empty: "Brak miejsc w okolicy." },
+    start: { summary: "Najbliższe miejsca", hint: "Wpisz nazwę i naciśnij Enter. Albo wybierz kategorię i „Pokaż wyniki”.", nearYou: "Najbliżej Ciebie", nearChosen: "Najbliżej wybranego punktu", nearCentre: "Najbliżej Rynku (bez lokalizacji)", empty: "Brak miejsc w okolicy." },
     stow: { hide: "Schowaj listę", show: "Pokaż listę" },
     filtersJump: "Filtry i profil",
     results: (n: number) => `${n} ${placesWord(n)}`,
@@ -122,12 +122,12 @@ export const home = {
     emptyHintKeepName: "Spróbuj szerzej: ta sama nazwa, bez kategorii, filtrów i okolicy.",
     searchWider: "Szukaj w całym Krakowie",
     licenceHold: {
-      parking: "Dane o miejscach postojowych czekają na potwierdzenie licencji ZDMK.",
+      parking: "Miejsca postojowe pokażemy po potwierdzeniu licencji ZDMK.",
       link: "O danych",
     },
     more: (shown: number, total: number) => `Pokaż więcej miejsc (${shown} z ${total})`,
     noFeatureMatch: (features: string) =>
-      `Żadne miejsce w wynikach nie ma w danych: ${features}. Często po prostu nikt tego nie opisał — brak danych to nie brak udogodnienia.`,
+      `Brak miejsc z: ${features}. Często nikt tego nie opisał — brak danych to nie brak udogodnienia.`,
     distance: (m: number, from: DistanceFrom = "centre") =>
       `${m >= 1000 ? `${(m / 1000).toFixed(1).replace(".", ",")} km` : `${m} m`} ${
         from === "user" ? "od Ciebie" : from === "chosen" ? "od wybranego punktu" : "od Rynku"

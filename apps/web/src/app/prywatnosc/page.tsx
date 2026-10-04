@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ShieldCheck } from "@phosphor-icons/react/ssr";
 import { InfoPage } from "@/components/layout/info-page";
+import { MoreInfo } from "@/components/more-info";
 import { getMessages } from "@/i18n/server";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -18,10 +19,15 @@ export default async function PrivacyPage() {
         {t.lead}
       </p>
       <div className="mt-2 grid gap-2.5 lg:grid-cols-2">
-        {t.sections.map(([title, body]) => (
+        {t.sections.map(([title, body, details]) => (
           <section key={title} className="rounded-[20px] bg-surface-raised p-4 ring-1 ring-border/70">
             <h2 className="text-body font-semibold">{title}</h2>
             <p className="mt-1 text-body-sm text-foreground/80">{body}</p>
+            {details ? (
+              <MoreInfo summary={t.details} className="mt-1">
+                <p>{details}</p>
+              </MoreInfo>
+            ) : null}
           </section>
         ))}
       </div>

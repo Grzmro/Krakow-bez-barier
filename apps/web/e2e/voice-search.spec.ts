@@ -70,6 +70,8 @@ test("dictation fills the search field in Polish, which the visitor can still ed
   await gotoAllPlaces(page);
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
+  // The list's own (debounced) announcement would otherwise replace "Słucham…" in the one live region on a slow run.
+  await expect(page.getByRole("status").filter({ hasText: "Znaleziono 10 miejsc" })).toBeAttached();
   const mic = page.getByRole("button", { name: "Wpisz głosem" });
   const field = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
 
@@ -145,8 +147,11 @@ test("the privacy page explains that the browser processes speech", async ({ pag
   // WHEN the privacy page is opened
   await page.goto("/prywatnosc");
 
-  // THEN it has a section about voice search and the browser's speech service
+  // THEN it has a section about voice search, with the browser's speech service one tap away under "Szczegóły"
   await expect(page.getByRole("heading", { level: 2, name: "Wyszukiwanie głosem" })).toBeVisible();
+  await expect(page.getByText("Mowę rozpoznaje Twoja przeglądarka, nie nasz serwer.")).toBeVisible();
+  const voice = page.locator("section").filter({ has: page.getByRole("heading", { name: "Wyszukiwanie głosem" }) });
+  await voice.getByText("Szczegóły").click();
   await expect(page.getByText(/może wysłać nagranie do usługi rozpoznawania mowy/)).toBeVisible();
 });
 

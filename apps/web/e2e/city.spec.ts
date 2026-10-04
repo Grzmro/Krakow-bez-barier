@@ -17,7 +17,7 @@ test("the city panel shows statistics and the priority ranking, keyboard-reachab
   await page.getByRole("link", { name: /Panel dla miasta/ }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Panel dla miasta" })).toBeVisible();
   const main = page.locator("main");
-  await expect(main).toContainText("tego samego logowania co panel moderatora");
+  await expect(main).toContainText("Zaloguj się jak do panelu moderatora");
 
   // WHEN a moderator token is pasted and sent with Enter
   await page.getByLabel("Token moderatora").fill(TOKEN);
@@ -52,8 +52,10 @@ test("the city panel shows statistics and the priority ranking, keyboard-reachab
   await expectAccessible();
   await evidence("city-panel");
 
-  // WHEN the ranking is reached with the keyboard
+  // WHEN the ranking is reached with the keyboard, past the "Jak liczymy punkty?" toggle
   await page.getByRole("button", { name: "Pobierz CSV" }).focus();
+  await page.keyboard.press("Tab");
+  await expect(page.getByText("Jak liczymy punkty?")).toBeFocused();
   await page.keyboard.press("Tab");
 
   // THEN the scrollable table takes focus, and the next Tab reaches the first place's card link
