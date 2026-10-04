@@ -222,3 +222,54 @@ describe("storeysFromLevel", () => {
     expect(storeysFromLevel("0;")).toBeNull();
   });
 });
+
+describe("mapOsmElement: pharmacies", () => {
+  const pharmacy = (id: number, tags: Record<string, string>): OsmElement => ({
+    type: "node",
+    id,
+    version: 3,
+    lat: 50.06,
+    lon: 19.94,
+    tags: { name: `Apteka ${id}`, ...tags },
+  });
+
+  it.each(["yes", "limited", "no"])("keeps wheelchair=%s of an amenity=pharmacy as one fact with its record ref", (value) => {
+    // GIVEN a pharmacy tagged wheelchair=<value>
+    const el = pharmacy(11, { amenity: "pharmacy", wheelchair: value });
+    // WHEN mapping it
+    const { place } = mapOsmElement(el);
+    // THEN it is a pharmacy with the value and provenance ref, nothing more guessed
+    expect(place?.category).toBe("pharmacy");
+    expect(place?.facts).toHaveLength(1);
+    expect(place?.facts[0]).toMatchObject({ value: { kind: "text", text: value }, recordRef: "osm:node/11@v3" });
+  });
+
+  it("gives no accessibility fact to a pharmacy without a wheelchair tag, so the UI shows Brak danych", () => {
+    // GIVEN a pharmacy with no wheelchair tag
+    // WHEN mapping it
+    const { place } = mapOsmElement(pharmacy(12, { amenity: "pharmacy" }));
+    // THEN the place exists with no facts (unknown, never accessible)
+    expect(place?.category).toBe("pharmacy");
+    expect(place?.facts).toEqual([]);
+  });
+
+  it("recognises healthcare=pharmacy and reads the step count and door width", () => {
+    // GIVEN a pharmacy tagged only with healthcare=pharmacy plus entrance details
+    const el = pharmacy(13, {
+      healthcare: "pharmacy",
+      wheelchair: "limited",
+      "wheelchair:description": "dwa stopnie",
+      step_count: "2",
+      "door:width": "85 cm",
+    });
+    // WHEN mapping it
+    const { place } = mapOsmElement(el);
+    // THEN the category and each fact come from the existing mapping
+    expect(place?.category).toBe("pharmacy");
+    expect(place?.facts.map((f) => [f.attribute, f.value])).toEqual([
+      ["wheelchair_overall", { kind: "text", text: "limited" }],
+      ["step_count", { kind: "number", number: 2, unit: "count" }],
+      ["door_width_cm", { kind: "number", number: 85, unit: "cm" }],
+    ]);
+  });
+});

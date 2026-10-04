@@ -53,6 +53,7 @@ describe("category config", () => {
 
     // THEN the pharmacy tag is queried and the place is categorised
     expect(query).toContain('nwr["amenity"~"^(pharmacy)$"]');
+    expect(query).toContain('nwr["healthcare"~"^(pharmacy)$"]');
     expect(place).toMatchObject({ category: "pharmacy", name: "Apteka Pod Orłem" });
     expect(categories.find((c) => c.id === "pharmacy")).toMatchObject({ label: "Apteki", icon: "pill" });
   });
@@ -64,8 +65,8 @@ describe("category config", () => {
     // WHEN the query is built from the city's categories
     const query = buildQuery(city.bbox, cityCategories(city));
 
-    // THEN only the pharmacy clause is present
-    expect(query.match(/nwr\[/g)).toHaveLength(1);
+    // THEN only the pharmacy clauses (amenity and healthcare tag) are present
+    expect(query.match(/nwr\[/g)).toHaveLength(2);
     expect(query).toContain("pharmacy");
   });
 });

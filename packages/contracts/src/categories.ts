@@ -42,7 +42,7 @@ export const categories: readonly CategoryConfig[] = [
   { id: "hotel", label: "Hotele", singularLabel: "Hotel", icon: "bed", osm: [{ key: "tourism", values: ["hotel", "hostel", "guest_house"] }] },
   { id: "monument", label: "Zabytki", singularLabel: "Zabytek", icon: "church", osm: [{ key: "historic", values: ["monument", "memorial"] }] },
   { id: "theatre", label: "Teatry i kina", singularLabel: "Teatr lub kino", icon: "mask-happy", osm: [{ key: "amenity", values: ["theatre", "cinema"] }] },
-  { id: "pharmacy", label: "Apteki", singularLabel: "Apteka", icon: "pill", osm: [{ key: "amenity", values: ["pharmacy"] }] },
+  { id: "pharmacy", label: "Apteki", singularLabel: "Apteka", icon: "pill", osm: [{ key: "amenity", values: ["pharmacy"] }, { key: "healthcare", values: ["pharmacy"] }] },
   {
     id: "parking",
     label: "Miejsca postojowe",
