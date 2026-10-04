@@ -1,0 +1,5 @@
+- region "Dla jury i do wypróbowania":
+  - heading "Dla jury i do wypróbowania" [level=2]
+  - paragraph: /Wejdź bez tokenu na konto demonstracyjne\. Jego decyzje działają naprawdę, ale po \d+ min cofamy je automatycznie\./
+  - button "Wejdź na konto demonstracyjne (dla jury)"
+  - paragraph: Masz token moderatora? Zaloguj się nim poniżej.

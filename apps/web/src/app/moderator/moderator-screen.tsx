@@ -40,7 +40,7 @@ async function fetchReports(token: string): Promise<Queue> {
   return { items, moderator: moderator! };
 }
 
-/** `demoRevertMinutes`: set when the server has a demo account, which then gets a one-click sign-in. */
+/** `demoRevertMinutes` (`demoSignInMinutes`): set when the server has a demo account, which then gets a one-click sign-in. */
 export function ModeratorScreen({ demoRevertMinutes }: { demoRevertMinutes: number | null }) {
   const t = useMessages().moderator;
   const { token, notice, signIn, signOut } = useModeratorSession(QUERY_KEY);
@@ -49,9 +49,7 @@ export function ModeratorScreen({ demoRevertMinutes }: { demoRevertMinutes: numb
     <ModerationPanel token={token} onSignOut={signOut} />
   ) : (
     <>
-      {demoRevertMinutes ? (
-        <DemoSignIn revertMinutes={demoRevertMinutes} signedInMessage={t.signIn.signedIn} onSignedIn={signIn} />
-      ) : null}
+      <DemoSignIn revertMinutes={demoRevertMinutes} signedInMessage={t.signIn.signedIn} onSignedIn={signIn} />
       <ModeratorSignIn notice={notice} signedInMessage={t.signIn.signedIn} onSignedIn={signIn} />
     </>
   );

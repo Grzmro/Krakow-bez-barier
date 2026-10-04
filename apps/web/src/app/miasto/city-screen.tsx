@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowSquareOut, DownloadSimple, SignOut } from "@phosphor-icons/react";
 import type { CityStats, NeedVerdict } from "@krakow-bez-barier/contracts";
 import { Button, cn, useAnnounce } from "@krakow-bez-barier/ui";
-import { bearer, ModeratorSignIn, StatusError, useModeratorSession } from "@/components/moderator/moderator-session";
+import { bearer, DemoSignIn, ModeratorSignIn, StatusError, useModeratorSession } from "@/components/moderator/moderator-session";
 import { InfoSection } from "@/components/layout/info-page";
 import { useLocale, useMessages } from "@/i18n/client";
 import { CITY_EXCLUDED_CATEGORIES } from "@/domain/city-stats";
@@ -42,7 +42,8 @@ async function fetchStats(token: string, limit = RANKING_SIZE): Promise<CityStat
   return data;
 }
 
-export function CityScreen() {
+/** `demoRevertMinutes` (`demoSignInMinutes`): as on /moderator — the same demo account opens this panel. */
+export function CityScreen({ demoRevertMinutes }: { demoRevertMinutes: number | null }) {
   const m = useMessages();
   const { token, notice, signIn, signOut } = useModeratorSession(QUERY_KEY);
 
@@ -51,6 +52,7 @@ export function CityScreen() {
   ) : (
     <>
       <p className="mt-2 text-body-sm text-foreground/85">{m.city.signInLead}</p>
+      <DemoSignIn revertMinutes={demoRevertMinutes} signedInMessage={m.city.signedIn} onSignedIn={signIn} />
       <ModeratorSignIn notice={notice} signedInMessage={m.city.signedIn} onSignedIn={signIn} />
     </>
   );

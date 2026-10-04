@@ -26,7 +26,7 @@ const reason: Record<PriorityFactor, (count: number, needs: string) => string> =
 
 export const city: Messages["city"] = {
   title: "City dashboard",
-  signInLead: "The city dashboard uses the same sign-in as the moderator panel — the demo account included.",
+  signInLead: "The city dashboard uses the same sign-in as the moderator panel.",
   signedIn: "Signed in. The city statistics are below.",
   loading: "Computing the statistics…",
   loaded: (total: number) => `Statistics ready: ${places(total)} in the database.`,

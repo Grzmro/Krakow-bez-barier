@@ -175,15 +175,16 @@ export function ModeratorSignIn({
 
 /**
  * One-click sign-in to the demo account for the jury: the server issues a demo-only session, so no token is pasted
- * and no real one reaches the browser. Render it only when the server has a demo account.
+ * and no real one reaches the browser. Without a demo account on the server (`revertMinutes` null) it says so
+ * instead of offering a button that can't work.
  */
 export function DemoSignIn({
   revertMinutes,
   signedInMessage,
   onSignedIn,
 }: {
-  /** After how many minutes the demo account's decisions are undone. */
-  revertMinutes: number;
+  /** After how many minutes the demo account's decisions are undone; `null` when the server has no demo account. */
+  revertMinutes: number | null;
   signedInMessage: string;
   onSignedIn: (token: string) => void;
 }) {
@@ -213,6 +214,8 @@ export function DemoSignIn({
       setEntering(false);
     }
   };
+
+  if (revertMinutes === null) return <p className="mt-4 text-body-sm text-muted-foreground">{t.unavailable}</p>;
 
   return (
     <section aria-labelledby={ids.heading} className="mt-4 rounded-[20px] bg-status-unknown-bg p-4 ring-1 ring-border/70">

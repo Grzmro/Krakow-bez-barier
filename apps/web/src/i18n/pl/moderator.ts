@@ -22,7 +22,7 @@ export const moderator = {
     sessionNote: "Token zostaje tylko w tej karcie przeglądarki i znika po jej zamknięciu.",
     mockNote: "Tryb przykładowy: zadziała dowolny token, a decyzje nie trafiają na serwer.",
   },
-  // One-click sign-in to the demo account (shown only when the server has one).
+  // One-click sign-in to the demo account on /moderator and /miasto; `unavailable` alone when the server has none.
   demoEntry: {
     heading: "Dla jury i do wypróbowania",
     lead: (minutes: number) =>

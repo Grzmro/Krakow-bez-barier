@@ -3,6 +3,7 @@ import { SampleTag } from "@/components/kbb";
 import { InfoPage } from "@/components/layout/info-page";
 import { getMessages } from "@/i18n/server";
 import { isMockApi } from "@/lib/api";
+import { demoSignInMinutes } from "@/server/reports/moderator-auth";
 import { CityScreen } from "./city-screen";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -14,7 +15,7 @@ export default async function CityPage() {
   const t = await getMessages();
   return (
     <InfoPage title={t.city.title} backLabel={t.pages.back} width="wide" aside={isMockApi ? <SampleTag className="shrink-0" /> : undefined}>
-      <CityScreen />
+      <CityScreen demoRevertMinutes={demoSignInMinutes(isMockApi)} />
     </InfoPage>
   );
 }

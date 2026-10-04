@@ -8,6 +8,7 @@ export {
 export { COMMUNITY_MODERATED_SOURCE, createDrizzleReportsStore, reportsStore } from "./drizzle-store";
 export {
   authenticateModerator,
+  demoSignInMinutes,
   isDemoAccountEnabled,
   issueDemoSession,
   parseModerators,

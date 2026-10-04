@@ -6,6 +6,7 @@ import {
   DEMO_MODERATED_SOURCE,
   DEMO_MODERATOR_NAME,
   DEMO_REVERT_MINUTES,
+  demoSignInMinutes,
   issueDemoSession,
   parseModerators,
 } from "@/server/reports";
@@ -40,6 +41,25 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllEnvs();
+});
+
+describe("demoSignInMinutes (the one-click entry on /moderator and /miasto)", () => {
+  it("offers the entry with its revert time when the server has a demo account", () => {
+    // GIVEN MODERATOR_DEMO_TOKEN is set (beforeEach), real data
+    // WHEN the sign-in screen asks whether to offer the entry
+    // THEN it gets the revert time
+    expect(demoSignInMinutes(false)).toBe(DEMO_REVERT_MINUTES);
+  });
+
+  it("offers nothing on real data without a demo account, but does in the example-data mode", () => {
+    // GIVEN no demo account configured
+    vi.stubEnv("MODERATOR_DEMO_TOKEN", "");
+
+    // WHEN the sign-in screens ask, on real data and in the example-data mode
+    // THEN real data gets no entry (the screen says it is off) and the mock stands in for the demo account
+    expect(demoSignInMinutes(false)).toBeNull();
+    expect(demoSignInMinutes(true)).toBe(DEMO_REVERT_MINUTES);
+  });
 });
 
 describe("POST /moderation/demo-session", () => {
