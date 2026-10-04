@@ -68,6 +68,8 @@ export const home = {
     cluster: (n: number, parts: [string, number][]) => `Grupa: ${n} ${placesWord(n)}${verdictParts(parts)}`,
     zoomedToCluster: (n: number, parts: [string, number][]) => `Przybliżono: ${n} ${placesWord(n)}${verdictParts(parts)}`,
     inView: (n: number) => `W widoku: ${n} ${placesWord(n)}.`,
+    pinsCut: (shown: number, total: number) =>
+      `Mapa pokazuje ${shown} z ${total} miejsc w tym obszarze. Przybliż mapę albo zawęź wyszukiwanie, żeby zobaczyć pozostałe.`,
     pin: (name: string, category: string, status: string | null) => [name, category, status].filter(Boolean).join(" · "),
   },
   quick: {
@@ -93,6 +95,9 @@ export const home = {
     start: { summary: "Najbliższe miejsca", hint: "Mapa jest czysta. Wpisz nazwę, wybierz kategorię albo szybką akcję, a pokażemy wyniki na liście i na mapie.", nearYou: "Najbliżej Ciebie", nearChosen: "Najbliżej wybranego punktu", nearCentre: "Najbliżej Rynku (bez lokalizacji)", empty: "Brak miejsc w okolicy." },
     stow: { hide: "Schowaj listę", show: "Pokaż listę" },
     results: (n: number) => `${n} ${placesWord(n)}`,
+    firstOf: (shown: number, total: number) => `Lista: pierwsze ${shown} z ${total} ${placesWord(total)}`,
+    announcePartial: (shown: number, total: number) =>
+      `W widoku ${total} ${placesWord(total)}, na liście pierwsze ${shown}. „Pokaż więcej” wczyta kolejne`,
     announce: (n: number) => (n === 0 ? "Nie znaleziono miejsc" : `Znaleziono ${n} ${placesWord(n)}`),
     loading: "Szukam miejsc…",
     error: "Nie udało się pobrać miejsc.",

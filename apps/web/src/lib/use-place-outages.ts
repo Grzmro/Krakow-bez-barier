@@ -37,6 +37,7 @@ export function usePlaceOutages(placeId: string) {
       Promise.all([
         queryClient.invalidateQueries({ queryKey: ["place"], predicate: (q) => q.queryKey.includes(placeId) }),
         queryClient.invalidateQueries({ queryKey: ["places"] }),
+        queryClient.invalidateQueries({ queryKey: ["places-pages"] }),
       ]),
     [placeId, queryClient],
   );

@@ -1,0 +1,71 @@
+import { describe, expect, it } from "vitest";
+import { isPartial, listArea, pointsCut, roundView } from "./view-list";
+
+describe("listArea", () => {
+  it("follows the map view when there is no fixed search area", () => {
+    // GIVEN the map moved to a new view and "W mojej okolicy" is off
+    const view: [number, number, number, number] = [19.9, 50.0, 20.0, 50.1];
+
+    // WHEN choosing the list's box
+    // THEN it is that view, the same one the points load for
+    expect(listArea(undefined, view)).toEqual(view);
+  });
+
+  it("keeps the fixed search area over the view", () => {
+    // GIVEN "W mojej okolicy" with its coarse area
+    const area: [number, number, number, number] = [19.93, 50.05, 19.96, 50.08];
+
+    // WHEN the map is panned elsewhere
+    // THEN the list stays on the area
+    expect(listArea(area, [20, 50, 20.1, 50.1])).toEqual(area);
+  });
+
+  it("covers the whole city until the map reports a view", () => {
+    // GIVEN no area and no view yet (map unavailable or still loading)
+    // WHEN choosing the list's box
+    // THEN there is none, so the list is not empty
+    expect(listArea(undefined, null)).toBeUndefined();
+  });
+});
+
+describe("roundView", () => {
+  it("rounds to four decimals so a settled view repeats the same request", () => {
+    // GIVEN two views a hair apart
+    // WHEN rounding
+    // THEN they are the same box
+    expect(roundView([19.900001, 50.000002, 20.000004, 50.1000049])).toEqual(roundView([19.9000014, 50.0000024, 20.0000041, 50.1000041]));
+  });
+});
+
+describe("isPartial", () => {
+  it("is true when the area holds more places than were loaded", () => {
+    // GIVEN 100 of 340 places loaded
+    // THEN the list says "first 100 of 340"
+    expect(isPartial(100, 340)).toBe(true);
+  });
+
+  it("is false when everything is loaded or the total is unknown", () => {
+    // GIVEN all 12 loaded, or no response yet
+    // THEN nothing is cut
+    expect(isPartial(12, 12)).toBe(false);
+    expect(isPartial(0, undefined)).toBe(false);
+  });
+});
+
+describe("pointsCut", () => {
+  it("reports how many points the server left out", () => {
+    // GIVEN a truncated points response
+    const points = { items: Array.from({ length: 3 }), total: 9, truncated: true };
+
+    // WHEN asking what was cut
+    // THEN shown and total are returned
+    expect(pointsCut(points)).toEqual({ shown: 3, total: 9 });
+  });
+
+  it("is null for a complete response", () => {
+    // GIVEN a complete response or none yet
+    // THEN no note
+    expect(pointsCut({ items: [], total: 0, truncated: false })).toBeNull();
+    expect(pointsCut(undefined)).toBeNull();
+  });
+});
