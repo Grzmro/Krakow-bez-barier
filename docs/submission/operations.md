@@ -45,10 +45,12 @@ tylko na Vercelu; ingest nigdy nie działa w czasie żądania użytkownika (R5).
   ostatnią dobrą kopię z datą; nic nie jest kasowane. Źródło bez udanego odświeżenia przez dwa
   interwały jest pokazywane jako nieaktualne (`GET /sources`, strona „O danych”).
 - **Źródło bez potwierdzonej licencji nie jest ładowane** — wymuszone w kodzie
-  (`licenseConfirmed`). Dziś ładowany jest OpenStreetMap; adaptery MSIP (toalety), ZDMK (parking OZN)
-  i ZTP (przystanki) są gotowe i czekają na potwierdzenie licencji przez Miasto.
-- Poprawki faktów obiektywnych (np. liczba stopni) docelowo wracają do OpenStreetMap — link do
-  edycji w OSM (US-4.7) jest w planie.
+  (`licenseConfirmed`). Dziś ładowane są OpenStreetMap, BIP Miasta Krakowa, BIP Małopolska
+  i lista toalet z krakow.pl (licencja niekomercyjna, oznaczona); adaptery ZDMK (parking OZN) i ZTP
+  (przystanki) są gotowe i czekają na potwierdzenie licencji przez Miasto, a toalety MSIP są
+  wyłączone, bo warstwa nie jest danymi otwartymi.
+- Poprawki faktów obiektywnych (np. liczba stopni) wracają do OpenStreetMap: przy faktach z OSM
+  jest link „Edytuj w OpenStreetMap” (US-4.7).
 
 ## Bezpieczeństwo
 
@@ -84,10 +86,11 @@ gmin) i granty (PFRON, fundusze UE) na pierwsze 12 miesięcy. Szczegóły i ceny
 ## Prawa i licencje
 
 - Dane z OSM pozostają na ODbL 1.0 z atrybucją „© OpenStreetMap contributors”.
-- Licencja kodu projektu i audyt licencji zależności: **do ustalenia przez zespół**
-  ([deployment.md](../deployment.md) → Licences). Planujemy licencję open source, tak by po
-  ewentualnym przeniesieniu praw majątkowych na sponsora nagrody operator mógł dalej legalnie
-  hostować i rozwijać usługę — **do potwierdzenia z Miastem**.
+- Kod projektu jest na licencji **MIT** ([LICENSE](../../LICENSE), © 2026 Zespół Kraków bez barier),
+  tak by po ewentualnym przeniesieniu praw majątkowych na sponsora nagrody operator mógł dalej
+  legalnie hostować i rozwijać usługę (warunki przeniesienia **do potwierdzenia z Miastem**). MIT
+  nie obejmuje danych: każde źródło ma własną licencję ([data-sources.md](../data-sources.md)).
+- Audyt licencji zależności: **do zrobienia** ([deployment.md](../deployment.md) → Licences).
 
 ## Plan prac (cele, nie wyniki)
 

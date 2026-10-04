@@ -146,8 +146,8 @@ its last data and is shown as stale.
 
 **Components.** Open-source dependencies come from `package.json` files (npm). We have not run a
 licence audit; **to confirm** with a tool such as `license-checker` before the submission states
-a licence for the whole product. The project's own licence has not been chosen yet (**to
-confirm** with the team).
+a licence for the whole product. The project's own code is under the MIT License (`LICENSE`); it
+does not cover the data, which keeps the licences listed above.
 
 ## Moving to other infrastructure
 
