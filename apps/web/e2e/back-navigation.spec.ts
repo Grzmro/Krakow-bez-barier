@@ -35,7 +35,7 @@ test("a narrowed map has a back button and the logo, both returning to the whole
   // THEN the clean map and the peek are back, the button is gone and focus lands on the search field
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("Najbliżej Rynku (bez lokalizacji)");
   await expect(page.locator("[data-place-id], [data-cluster-count]")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Wszystko" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Muzea" })).toHaveAttribute("aria-pressed", "false");
   await expect(back).toHaveCount(0);
   await expect(page.getByRole("combobox", { name: "Wyszukaj miejsce" })).toBeFocused();
 

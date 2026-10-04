@@ -9,7 +9,6 @@
     - button "Wpisz głosem"
     - button "Wyczyść wyszukiwanie"
   - group "Kategorie":
-    - button "Wszystko" [pressed]
     - button "Restauracje"
     - button "Muzea"
     - button "Toalety"

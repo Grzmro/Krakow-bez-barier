@@ -62,7 +62,6 @@ import { PlaceListSkeleton, PlaceRow } from "./place-list";
 import { QuickActionRow, QuickResult, useQuickResult } from "./quick-actions";
 import { SEARCH_INPUT_ID, SearchBox, type SearchSuggestion } from "./search-box";
 
-const ALL = "all";
 const FEATURES = FEATURE_FILTERS;
 const LIST_ID = "lista";
 const CONTROLS_ID = "filtry";
@@ -114,7 +113,7 @@ export function HomeScreen() {
   // `category`, `features`, `showUnknown` or `nearby` is the committed query; the controls show the draft.
   const [selection, setSelection] = useState(START_SELECTION);
   const { committed, draft } = selection;
-  const category = committed.category ?? ALL;
+  const category = committed.category;
   const features = committed.features;
   const showUnknown = committed.showUnknown;
   const categories = useCategories();
@@ -222,7 +221,7 @@ export function HomeScreen() {
   const query = { q: committed.q, category, features, includeUnknown: showUnknown, area };
   const filters = {
     q: query.q || undefined,
-    category: category === ALL ? undefined : [category],
+    category: category ? [category] : undefined,
     feature: features.length ? [...features] : undefined,
     includeUnknown: features.length ? showUnknown : undefined,
     ...profileQuery(settings),
@@ -289,7 +288,7 @@ export function HomeScreen() {
     (QUICK_ACTIONS as readonly QuickAction[]).find(
       (action) =>
         action.id === quickId &&
-        quickStillApplies(action, { category: category === ALL ? null : category, features }),
+        quickStillApplies(action, { category, features }),
     ) ?? null;
   const pending = places.isPlaceholderData || total === undefined;
   const quickState = useQuickResult({
@@ -479,6 +478,14 @@ export function HomeScreen() {
     setHideFailing(false);
   }
 
+  // The chips toggle: pressing the chosen category again goes back to every category.
+  function changeCategory(value: string[]) {
+    const next = value[0] ?? null;
+    pick({ category: next });
+    if (next) locateForCategory(next, false);
+    else announce(t.categoryCleared);
+  }
+
   function startQuick(action: QuickAction) {
     setQuickId(action.id);
     const filters = quickFilters(action);
@@ -515,25 +522,25 @@ export function HomeScreen() {
       } else startQuick(quickAction);
       return true;
     }
-    pickCategory(id ?? ALL);
+    pickCategory(id ?? null);
     return true;
   }
 
   // The nearest places of a category: around the device when the position is known (or already allowed), else
   // the user is asked, since picking a category is an explicit action. Declined: the list says it is from Rynek.
   // `forCommand`: the position joins the query at once (a command), not only the draft (a chip).
-  function locateForCategory(id: string, forCommand: boolean) {
-    if (id === ALL || draft.nearby) return;
+  function locateForCategory(id: string | null, forCommand: boolean) {
+    if (!id || draft.nearby) return;
     if (peekNearby) setSelection((current) => (forCommand ? commitChange(current, { nearby: peekNearby }) : choose(current, { nearby: peekNearby })));
     else if (forCommand) locateForCommand();
     else nearbyRef.current?.locate();
   }
 
   // A category chosen by name (suggestion, Enter on an exact word, spoken command): the chip, nothing else narrowing.
-  function pickCategory(id: string) {
+  function pickCategory(id: string | null) {
     setQuickId(null);
     setUnknownCommand(false);
-    ask({ category: id === ALL ? null : id });
+    ask({ category: id });
     announce(t.command.applied(categories.data?.find((c) => c.id === id)?.label ?? ""));
     locateForCategory(id, true);
   }
@@ -969,18 +976,11 @@ export function HomeScreen() {
         </div>
         <ToggleGroup
           aria-label={t.categoriesLabel}
-          value={[draft.category ?? ALL]}
-          onValueChange={(value) => {
-            if (!value[0]) return;
-            pick({ category: value[0] === ALL ? null : value[0] });
-            locateForCategory(value[0], false);
-          }}
+          value={draft.category ? [draft.category] : []}
+          onValueChange={changeCategory}
           // iOS WebKit won't pan a scroller with pointer-events: none, even under chips that have auto.
           className={cn(CHIP_ROW, "pointer-events-auto mx-auto mt-1.5 max-w-xl pl-4")}
         >
-          <Toggle value={ALL} className={cn("shadow-soft", CHIP)}>
-            {t.categoryAll}
-          </Toggle>
           {categories.data?.map((c) => (
             <Toggle key={c.id} value={c.id} className={cn("shadow-soft", CHIP)}>
               {c.label}

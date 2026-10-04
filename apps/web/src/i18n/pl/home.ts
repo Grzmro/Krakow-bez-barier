@@ -43,7 +43,7 @@ export const home = {
     unknownHint: "Spróbuj: „najbliższa toaleta”, „apteka w pobliżu” albo „winda koło mnie”.",
   },
   categoriesLabel: "Kategorie",
-  categoryAll: "Wszystko",
+  categoryCleared: "Pokazuję wszystkie kategorie",
   filtersLabel: "Filtry cech",
   filters: {
     step_free: "Bez schodów",
