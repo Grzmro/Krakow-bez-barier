@@ -25,6 +25,7 @@ import {
   escapeStep,
   FEATURE_FILTERS,
   type HomeChoices,
+  type HomeCommitted,
   homeView,
   isSearching,
   panelAfterAsk,
@@ -34,7 +35,7 @@ import {
   showResults,
   START_SELECTION,
 } from "@/lib/home-start";
-import { committedToSearch, searchToCommitted } from "@/lib/home-url";
+import { committedToSearch, searchToCommitted, searchWantsNear } from "@/lib/home-url";
 import { listedCount } from "@/lib/list-count";
 import { matchCategories, parseNearestCommand } from "@/lib/nearest-command";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
@@ -161,7 +162,11 @@ export function HomeScreen() {
   }, [searching, expanded, stowedFlag, selectedId, setStowed]);
   // The query lives in the URL (`?q=…&category=…`), so Back from a place card shows the same results. A position
   // never goes there. Declared before the restore below: its first run (nothing restored yet) must not write.
-  const committedSearch = committedToSearch(committed);
+  // `restoredNear`: the committed query restored from a URL that asked for results around the device; while it is
+  // still the committed one, the URL keeps `near=1` and the position joins as soon as the device gives it.
+  const [restoredNear, setRestoredNear] = useState<HomeCommitted | null>(null);
+  const waitingForPosition = restoredNear !== null && restoredNear === committed;
+  const committedSearch = committedToSearch(committed, waitingForPosition || undefined);
   const urlReady = useRef(false);
   useEffect(() => {
     if (urlReady.current && window.location.search !== committedSearch) {
@@ -170,15 +175,22 @@ export function HomeScreen() {
   }, [committedSearch]);
   useEffect(() => {
     const restored = searchToCommitted(window.location.search);
-    if (isSearching(restored)) {
+    const wantsNear = searchWantsNear(window.location.search);
+    if (isSearching(restored) || wantsNear) {
       // The URL is only readable after hydration (reading it in the initial state would mismatch the server HTML).
       /* eslint-disable react-hooks/set-state-in-effect */
       setSelection({ committed: restored, draft: restored });
       setQ(restored.q);
+      if (wantsNear) setRestoredNear(restored);
       /* eslint-enable react-hooks/set-state-in-effect */
     }
     urlReady.current = true;
   }, []);
+  useEffect(() => {
+    // The device answers after mount, so the position can only join the restored query from an effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (waitingForPosition && peekNearby) setSelection((current) => commitChange(current, { nearby: peekNearby }));
+  }, [waitingForPosition, peekNearby]);
   const peekQuery = usePlaces(
     {
       bbox: peekFrom.area,

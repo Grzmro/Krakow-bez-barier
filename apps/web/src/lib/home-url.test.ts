@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { type HomeCommitted, NO_CHOICES } from "./home-start";
-import { committedToSearch, searchToCommitted } from "./home-url";
+import { committedToSearch, searchToCommitted, searchWantsNear } from "./home-url";
 
 describe("home URL", () => {
   it("round-trips a committed query", () => {
@@ -18,12 +18,31 @@ describe("home URL", () => {
     expect(searchToCommitted("")).toEqual({ ...NO_CHOICES, q: "" });
   });
 
-  it("never carries a position", () => {
-    // GIVEN results around a position
+  it("never carries a position, only that the results are around the device", () => {
+    // GIVEN results around the device's position
     const nearby = { position: { latitude: 50.06, longitude: 19.94 } };
     // WHEN written
-    // THEN the position is not in the URL
+    const search = committedToSearch({ ...NO_CHOICES, q: "", category: "toilet", nearby });
+    // THEN the coordinates are not in the URL, a flag is
+    expect(search).toBe("?category=toilet&near=1");
+    expect(searchWantsNear(search)).toBe(true);
+  });
+
+  it("does not keep a point the user chose by name", () => {
+    // GIVEN results around a chosen place
+    const nearby = { place: "Rynek", position: { latitude: 50.06, longitude: 19.94 } };
+    // WHEN written
+    // THEN nothing about it is in the URL
     expect(committedToSearch({ ...NO_CHOICES, q: "", category: "toilet", nearby })).toBe("?category=toilet");
+  });
+
+  it("reads a near-only URL as the start until the position arrives", () => {
+    // GIVEN a URL that only says "around me"
+    // WHEN read
+    // THEN the query is the start state, and the flag is available separately
+    expect(searchToCommitted("?near=1")).toEqual({ ...NO_CHOICES, q: "" });
+    expect(searchWantsNear("?near=1")).toBe(true);
+    expect(searchWantsNear("?category=toilet")).toBe(false);
   });
 
   it("drops unknown feature names and a stray unknown flag", () => {
