@@ -40,6 +40,44 @@ describe("eventSections", () => {
     expect(sections.parking).toEqual([expect.objectContaining({ attribute: "disabled_parking", unknown: true, reliability: "unknown" })]);
   });
 
+  it("shows every known fact of the place card, the ones outside the three sections first", async () => {
+    // GIVEN a place whose only known facts are the overall wheelchair tag and its storeys (like a hotel from OSM)
+    const base = await examplePlace("hotel-przyklad");
+    const keep = new Set(["wheelchair_overall", "levels"]);
+    const known = base.attributes.filter((a) => a.state !== "unknown" && a.facts.length);
+    const template = known[0];
+    const place = {
+      ...base,
+      attributes: [
+        { ...template, attribute: "wheelchair_overall" as const, value: { kind: "text" as const, text: "yes" } },
+        { ...template, attribute: "levels" as const, value: { kind: "number" as const, number: 9 } },
+      ].map((a) => ({ ...a, facts: a.facts.map((f) => ({ ...f, attribute: a.attribute, value: a.value })) })),
+    };
+
+    // WHEN the event page groups its facts
+    const sections = eventSections(place, "pl");
+
+    // THEN a general section leads with exactly those known facts
+    expect(sections[0].id).toBe("general");
+    expect(sections[0].facts.map((f) => [f.attribute, f.unknown])).toEqual([
+      ["wheelchair_overall", false],
+      ["levels", false],
+    ]);
+    expect(sections[0].facts.every((f) => keep.has(f.attribute))).toBe(true);
+    // AND the other sections hold only missing data, named as missing
+    expect(sections.slice(1).flatMap((s) => s.facts).every((f) => f.unknown && f.reliability === "unknown")).toBe(true);
+  });
+
+  it("has no general section when nothing outside the three sections is known", async () => {
+    // GIVEN a place without any fact
+    const base = await examplePlace("hotel-przyklad");
+    // WHEN its facts are grouped
+    const sections = eventSections({ ...base, attributes: [] }, "pl");
+    // THEN only the entrance, toilet and parking remain, every row "Brak danych"
+    expect(sections.map((s) => s.id)).toEqual(["entrance", "toilet", "parking"]);
+    expect(sections.flatMap((s) => s.facts).every((f) => f.unknown)).toBe(true);
+  });
+
   it("shows both sides of a conflict with their sources", async () => {
     // GIVEN a place where two sources disagree about the toilet
     const place = await examplePlace("palac-krzysztofory");

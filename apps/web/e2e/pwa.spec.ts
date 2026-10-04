@@ -68,4 +68,16 @@ test.describe("install banner on an iPhone", () => {
     await expect(page.getByRole("complementary", { name: "Instalacja aplikacji" })).toHaveCount(0);
     await evidence("install-banner-native");
   });
+
+  test("the embeddable widget and the event page offer no install", async ({ page }) => {
+    // GIVEN Safari on an iPhone, which shows the hint on the app's own pages
+    for (const path of ["/widget/hotel-przyklad", "/wydarzenie/hotel-przyklad"]) {
+      // WHEN the widget (framed by a venue's site) or the organizer's event page has loaded its place
+      await page.goto(path);
+      await expect(page.getByRole("heading", { level: 1 })).toContainText("Hotel Przykład");
+
+      // THEN there is no install banner
+      await expect(page.getByRole("complementary", { name: "Instalacja aplikacji" })).toHaveCount(0);
+    }
+  });
 });

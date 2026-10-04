@@ -2,8 +2,9 @@
 
 import { ArrowSquareOut } from "@phosphor-icons/react";
 import { Button, LogoMark, buttonVariants, cn } from "@krakow-bez-barier/ui";
-import { ReliabilityBadge, SampleTag } from "@/components/kbb";
+import { ReliabilityBadge, SampleTag, UnknownFactsItem } from "@/components/kbb";
 import { useLocale, useMessages } from "@/i18n/client";
+import { splitUnknown } from "@/lib/place-facts";
 import { routes } from "@/lib/routes";
 import { useWidgetCard } from "@/lib/use-widget-card";
 import { widgetFactView } from "@/lib/widget-facts";
@@ -36,7 +37,7 @@ export function WidgetCard({ placeId }: { placeId: string }) {
   }
 
   const card = query.data;
-  const facts = card.facts.map((fact) => widgetFactView(fact, locale));
+  const { known, unknown } = splitUnknown(card.facts.map((fact) => widgetFactView(fact, locale)));
   return (
     <article aria-labelledby="widget-name" className="rounded-[20px] bg-card p-4 shadow-float ring-1 ring-primary/25">
       <div className="flex items-start justify-between gap-2">
@@ -51,7 +52,7 @@ export function WidgetCard({ placeId }: { placeId: string }) {
       <p className="mt-1 text-caption text-muted-foreground">{t.noRating}</p>
 
       <ul aria-label={t.factsLabel} className="mt-3 divide-y divide-border">
-        {facts.map((fact) => (
+        {known.map((fact) => (
           <li key={fact.attribute} className="py-2.5">
             <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
               <p className="text-body-sm">
@@ -63,6 +64,7 @@ export function WidgetCard({ placeId }: { placeId: string }) {
             <p className="mt-0.5 text-caption text-muted-foreground">{fact.source ?? t.noSource}</p>
           </li>
         ))}
+        <UnknownFactsItem labels={unknown.map((fact) => fact.label)} className="py-2.5" />
       </ul>
 
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2">

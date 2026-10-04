@@ -81,6 +81,7 @@ export const common: Messages["common"] = {
     acquired: "Collected",
     noValue: "No data",
     noSources: "Nobody has checked yet.",
+    unknownGroupHint: "Nobody has checked these yet — that doesn't mean they are accessible.",
     maybeOutdated: (date: string) => `May be outdated · ${date}`,
     aria: (label: string, value: string, reliability: string, status?: string) =>
       `${label}: ${value}. ${status ? `${status}. ` : ""}Reliability: ${reliability}.`,

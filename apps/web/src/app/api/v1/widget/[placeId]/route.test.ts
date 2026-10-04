@@ -22,6 +22,7 @@ const repository = createFakePlaceRepository(
     factRecord(hotel, "lift", bool(true), { source: city, reliability: "confirmed" }),
     factRecord(hotel, "toilet_accessible", bool(true)),
     factRecord(hotel, "toilet_accessible", bool(false), { source: city, reliability: "confirmed" }),
+    factRecord(hotel, "entrance_level", bool(true)),
   ],
 );
 
@@ -62,6 +63,19 @@ describe("GET /api/v1/widget/{placeId}", () => {
     expect(fact(body, "toilet_accessible")).toMatchObject({ state: "conflict", status: "conflict", value: null, sourceName: null });
     expect(body.attribution).toContain("Kraków bez barier");
     expect(body.attribution).toContain("OpenStreetMap");
+  });
+
+  it("lists the place card's attributes in its order, plus known facts outside it, without street attributes", async () => {
+    // GIVEN a hotel with a known entrance level (not on the card) and nothing about inclines or kerbs
+    // WHEN the widget card is read
+    const { body } = await get(hotel.id);
+    const attributes = body.facts.map((f: { attribute: string }) => f.attribute);
+
+    // THEN the card's set comes first in the card's order, the known extra follows, the street attributes are absent
+    expect(attributes.slice(0, 3)).toEqual(["wheelchair_overall", "step_count", "step_height_cm"]);
+    expect(attributes.at(-1)).toBe("entrance_level");
+    expect(attributes).not.toContain("incline_pct");
+    expect(attributes).not.toContain("kerb_height_cm");
   });
 
   it("credits the source and date of the fresh fact that gave the value, not a stale one", async () => {

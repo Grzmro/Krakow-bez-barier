@@ -2,10 +2,21 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ArrowRight, Bus, Car, CalendarBlank, DoorOpen, MapPin, Printer, Toilet, type Icon } from "@phosphor-icons/react";
+import {
+  ArrowRight,
+  Bus,
+  Car,
+  CalendarBlank,
+  DoorOpen,
+  MapPin,
+  Printer,
+  Toilet,
+  Wheelchair,
+  type Icon,
+} from "@phosphor-icons/react";
 import type { Place, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { Button, LogoMark, buttonVariants, cn } from "@krakow-bez-barier/ui";
-import { ReliabilityBadge, SampleTag } from "@/components/kbb";
+import { ReliabilityBadge, SampleTag, UnknownFactsItem } from "@/components/kbb";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { EventDetails } from "@/lib/event-link";
 import {
@@ -17,12 +28,12 @@ import {
   nearbyStopsQuery,
   type EventSectionId,
 } from "@/lib/event-page";
-import { factViews, failedSources, formatDate, latestSourceDate, type FactView } from "@/lib/place-facts";
+import { factViews, failedSources, formatDate, latestSourceDate, splitUnknown, type FactView } from "@/lib/place-facts";
 import { usePlace, usePlaces, usePlacesById } from "@/lib/places";
 import { routes } from "@/lib/routes";
 import { useOrigin } from "@/lib/use-origin";
 
-const SECTION_ICON: Record<EventSectionId, Icon> = { entrance: DoorOpen, toilet: Toilet, parking: Car };
+const SECTION_ICON: Record<EventSectionId, Icon> = { general: Wheelchair, entrance: DoorOpen, toilet: Toilet, parking: Car };
 
 export function EventScreen({ placeId, details }: { placeId: string; details: EventDetails }) {
   const t = useMessages().event;
@@ -309,11 +320,13 @@ function NearbyStop({
 }
 
 function FactList({ facts, label }: { facts: FactView[]; label: string }) {
+  const { known, unknown } = splitUnknown(facts);
   return (
     <ul aria-label={label} className="mt-1 divide-y divide-border">
-      {facts.map((fact) => (
+      {known.map((fact) => (
         <FactItem key={fact.attribute} fact={fact} />
       ))}
+      <UnknownFactsItem labels={unknown.map((fact) => fact.label)} className="py-2.5 break-inside-avoid" />
     </ul>
   );
 }

@@ -181,6 +181,14 @@ export function factViews(place: Place, locale: Locale): FactView[] {
   });
 }
 
+/**
+ * Rows with something to show (a value or a conflict) in their order, and the rows without data apart, so a list can
+ * lead with what is known and name the missing ones together — still named, never hidden, never counted as accessible.
+ */
+export function splitUnknown<T extends { unknown: boolean }>(facts: readonly T[]): { known: T[]; unknown: T[] } {
+  return { known: facts.filter((f) => !f.unknown), unknown: facts.filter((f) => f.unknown) };
+}
+
 /** Sources whose last refresh failed — their facts are last known data. */
 export function failedSources(place: Place): Source[] {
   return place.sources.filter((s) => s.refreshStatus === "outage");

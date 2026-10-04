@@ -5,7 +5,7 @@ import { matchProfile } from "@/domain/matcher";
 import { PROFILE_PRESETS } from "@/domain/profiles";
 import { resolveAttributes } from "@/domain/resolver";
 import { messagesFor } from "@/i18n/messages";
-import { factViews, failedSources, formatValue, latestSourceDate, osmEditUrl, parseOsmRecordRef } from "./place-facts";
+import { factViews, failedSources, formatValue, latestSourceDate, osmEditUrl, parseOsmRecordRef, splitUnknown } from "./place-facts";
 
 const api = createApiClient({ baseUrl: "http://localhost/api/v1", fetch: createMockFetch() });
 
@@ -174,6 +174,25 @@ describe("factViews", () => {
     // THEN the value is kept but flagged
     expect(ramp).toMatchObject({ value: "Jest", reliability: "outdated" });
     expect(ramp?.sources[0].staleNote).toBe("Może być nieaktualne · 10.05.2022");
+  });
+});
+
+describe("splitUnknown", () => {
+  it("keeps known rows and conflicts in order and sets the missing ones apart", () => {
+    // GIVEN rows mixing missing data, a value and a conflict
+    const rows = [
+      { attribute: "ramp", unknown: true },
+      { attribute: "lift", unknown: false },
+      { attribute: "bench", unknown: true },
+      { attribute: "toilet_accessible", unknown: false, conflict: true },
+    ];
+
+    // WHEN they are split
+    const { known, unknown } = splitUnknown(rows);
+
+    // THEN the value and the conflict lead in their order, the missing ones are kept, not dropped
+    expect(known.map((r) => r.attribute)).toEqual(["lift", "toilet_accessible"]);
+    expect(unknown.map((r) => r.attribute)).toEqual(["ramp", "bench"]);
   });
 });
 

@@ -66,6 +66,20 @@ export function FactRow({ status, reliability, ...props }: FactRowBoundProps) {
   );
 }
 
+/** One list row naming every attribute without data ("Brak danych: Przewijak, Parking"), after the known ones. */
+export function UnknownFactsItem({ labels, className }: { labels: readonly string[]; className?: string }) {
+  const t = useMessages().common.fact;
+  if (!labels.length) return null;
+  return (
+    <li className={className}>
+      <p className="text-body-sm">
+        <span className="font-semibold text-muted-foreground">{t.noValue}:</span> {labels.join(", ")}
+      </p>
+      <p className="mt-0.5 text-caption text-muted-foreground">{t.unknownGroupHint}</p>
+    </li>
+  );
+}
+
 export function BottomPanel(props: Omit<BottomPanelProps, "toggleLabels">) {
   const t = useMessages().common;
   return <UiBottomPanel {...props} toggleLabels={t.bottomPanel} />;

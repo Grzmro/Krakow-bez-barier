@@ -15,6 +15,7 @@ export const event = {
   sampleNote: "Dane oznaczone PRZYKŁAD są przykładowe — nie planuj na ich podstawie wizyty.",
   entranceHint: "Jak wejść",
   sections: {
+    general: "Ogólnie",
     entrance: "Wejście",
     toilet: "Toaleta",
     parking: "Parking",
