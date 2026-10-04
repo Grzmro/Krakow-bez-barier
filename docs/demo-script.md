@@ -1,13 +1,13 @@
 # Scenariusz demo
 
-Dwa scenariusze na tych samych prawdziwych danych:
+Dwa scenariusze z tymi samymi scenami:
 
 1. **[Pokaz na żywo dla jury](#pokaz-na-żywo-dla-jury)** (3:00, osoba na wózku): klik po kliku,
    z planem B dla każdej sceny. Pokazuje pętlę „Uzupełnij → konto demo moderatora → Zatwierdź → nowy
    fakt”, stan „Sprzeczne” i awarię źródła. Odpowiedzi na pytania jury są w
    [submission/jury-qa.md](submission/jury-qa.md).
-2. **[Wideo do zgłoszenia](#wideo-do-zgłoszenia)** (KBB-31): nagrywane automatycznie przez
-   Playwright, wystarczy dograć lektora.
+2. **[Wideo do zgłoszenia](#wideo-do-zgłoszenia)** (KBB-31, KBB-181): MP4 2:51 z polskimi napisami,
+   nagrywane automatycznie przez Playwright (`npm run demo:record`); lektora można dograć.
 
 ## Pokaz na żywo dla jury
 
@@ -65,102 +65,102 @@ każdą scenę jeszcze raz, bo identyfikatory miejsc są tam inne.
 
 ## Wideo do zgłoszenia
 
-Scenariusz wideo do zgłoszenia (KBB-31). Nagranie przejścia przez aplikację robi Playwright; na
-gotowe wideo wystarczy nagrać lektora z tekstu poniżej.
+Wideo do zgłoszenia (KBB-31, odświeżone w KBB-181): te same sceny co pokaz na żywo, dla osoby na wózku.
+Nagranie robi Playwright, bez lektora: 1920×1080, aplikacja na ekranie desktopowym, pod nią pasek z polskim
+napisem (wypalony w obrazie, więc widać go w każdym odtwarzaczu), krótki fragment w ramce telefonu.
 
-> **Uwaga do czasu KBB-178:** scena 2 wpisuje „Qubus” w wyszukiwarkę na ekranie głównym, a
-> wyszukiwanie po nazwie przeszukuje dziś tylko widok mapy (Qubus jest poza widokiem Rynku). Przed
-> nagraniem sprawdź, czy KBB-178 jest scalone, albo czy scena 2 nie kończy się „0 miejsc”.
+**Dwa serwery, żeby nagranie niczego nie zostawiło w bazie:**
 
-**Wszystko na prawdziwych danych**: miejsca z OpenStreetMap (ekstrakt Geofabrik), fakty z BIP Miasta
-Krakowa i BIP Małopolska, lista toalet z krakow.pl („Kraków bez barier”), z bazy, na której działa aplikacja. Warstwa
-toalet MSIP (`WT_WC_2023`) nie jest danymi otwartymi, więc jest wyłączona (KBB-133). Żadnych przykładowych miejsc ze specyfikacji API
-i żadnej etykiety „PRZYKŁAD” na ekranie.
+- **Prawdziwe dane** (sceny 1, 2, 6, 7, 8): miejsca z OpenStreetMap, fakty z BIP Miasta Krakowa, trasa
+  z openrouteservice — z bazy, na której działa aplikacja. Te sceny tylko czytają; nagranie sprawdza, że
+  nie ma na nich etykiety „PRZYKŁAD”.
+- **Dane przykładowe** (sceny 3–5): „Uzupełnij”, zatwierdzenie na koncie demo moderatora, „Sprzeczne”
+  i przełącznik awarii źródła działają na przykładowym API (`next dev` z `NEXT_PUBLIC_API_MOCK=true`).
+  Na prawdziwej bazie zgłoszenie zostaje na stałe (po cofnięciu decyzji konta demo wraca do kolejki),
+  a przełącznik awarii zmienia stan widoczny dla wszystkich. Na ekranie jest wtedy „PRZYKŁAD”, a pasek
+  napisów ma plakietkę „PRZYKŁAD · dane przykładowe”.
 
 ### Jak nagrać
 
 ```bash
-npm run db:setup                      # migracje + seed (źródła, hotele ze sceny 2–4)
-npm run ingest -- --city krakow --source osm                # miejsca z OpenStreetMap
-npm run ingest -- --city krakow --source krakow-pl-toilets  # toalety z krakow.pl (strona „miasto” rozbieżności)
-npm run demo:record                   # build bez mocka + dwa `next start` tego repo, nagranie
+npm run db:setup                      # migracje + seed
+npm run ingest -- --city krakow --source osm          # miejsca z OpenStreetMap
+npm run ingest -- --city krakow --source bip-mk       # fakty z BIP MK (Hangar Czyżyny)
+npm run demo:record                   # build bez mocka + `next start`, `next dev` z przykładowym API, nagranie
+                                      # (root .env: DATABASE_URL i ORS_API_KEY — trasa Dworzec → Hangar idzie do openrouteservice)
 DEMO_PACE=0.2 npm run demo:record     # szybki przebieg kontrolny (krótsze pauzy)
-E2E_BASE_URL=https://<deploy> DEMO_OUTAGE_BASE_URL=https://<deploy z awarią> npm run demo:record
+E2E_BASE_URL=http://127.0.0.1:3100 DEMO_OUT_DIR=/tmp/video npm run demo:record   # na działającym serwerze
 ```
 
-- Wynik: `apps/web/demo-output/kbb-demo.webm` i `kbb-demo.mp4` (MP4 tylko, gdy jest `ffmpeg`;
-  zgłoszenie wymaga MP4). 1920×1080: aplikacja w ramce telefonu (412×915), obok napis sceny,
-  kółko w miejscu „dotknięcia”.
-- Test kończy się błędem, gdy przejście trwa dłużej niż 3:00. W konsoli wypisuje czas każdej
-  sceny — według niego układamy lektora.
-- **Baza jest wymagana.** Bez `DATABASE_URL` nagranie nie startuje (błąd konfiguracji z instrukcją),
-  a gdy baza nie odpowiada albo brakuje miejsca ze scenariusza, kończy się błędem na starcie —
-  nigdy nie przechodzi po cichu na przykładowe dane. Build ma zawsze `NEXT_PUBLIC_API_MOCK` puste.
-- Miejsca są wyszukiwane w API po nazwie (Qubus, Hotel Miodowa) albo po stanie (toaleta najbliżej Rynku,
-  w której miasto i OpenStreetMap podają różną ogólną dostępność), nie po identyfikatorach. Nazwy są w
-  jednym miejscu skryptu, `PLACES`.
-- **Awaria źródła** to przełącznik operatora `SIMULATE_SOURCE_OUTAGE=krakow-pl-toilets` (zmienna serwera,
-  KBB-29). Lokalnie nagranie uruchamia drugi `next start` tego samego buildu i tej samej bazy z tym
-  przełącznikiem i tylko scena „Źródło niedostępne” oraz „O danych” idą przez niego. Dla wdrożenia
-  podaj jego adres w `DEMO_OUTAGE_BASE_URL` (np. wdrożenie podglądowe z przełącznikiem, patrz
-  [deployment.md](deployment.md) pkt 7); bez niego nagranie pomija tę scenę z ostrzeżeniem.
-- **Awaria źródła na żywo (KBB-179)**: na produkcji bez zmiennych serwera — `/moderator` → „Wejdź na konto
-  demonstracyjne” → zakładka „Demo źródeł” → wybierz źródło → „Symuluj awarię”. „O danych” i karty miejsc
-  pokazują „Odświeżenie nie powiodło się — dane z …” z etykietą „Tryb demo”; wyłącza się przyciskiem „Wyłącz”
-  albo sama po 15 min. Wymaga migracji `0007_source_outage_simulations` (`npm run db:migrate`).
-- **Scena 5 wysyła prawdziwe zgłoszenie** („Ogólna dostępność: Dostępne dla wózków”) do bazy, na której działa aplikacja.
-  Czeka na moderację i nie zmienia danych. Nagrywaj na bazie demo, nie produkcyjnej.
-- **Przed każdym kolejnym nagraniem odrzuć zgłoszenia z poprzedniego** w `/moderator` (albo postaw
-  bazę demo od nowa: `npm run db:setup` + ingest). Inaczej karta toalety pokaże starsze wpisy
-  „Zgłoszenie użytkownika” obok nowego.
+- Wynik w `apps/web/demo-output/` (albo w `DEMO_OUT_DIR`): `kbb-demo.mp4` (H.264, 1920×1080, napisy
+  w obrazie i dodatkowo jako ścieżka napisów `pol`), `kbb-demo.srt`, `kbb-demo.webm` (surowe nagranie)
+  i `axe.json`. MP4 powstaje, gdy jest `ffmpeg`; bez niego zostaje WebM, a test wypisuje komendę konwersji
+  (`ffmpeg -i kbb-demo.webm -c:v libx264 -pix_fmt yuv420p -movflags +faststart kbb-demo.mp4`).
+- Test kończy się błędem, gdy przejście trwa dłużej niż 3:00. W konsoli wypisuje czas każdego napisu.
+  Napis zostaje na ekranie co najmniej tyle, ile trwa jego przeczytanie (ok. 20 znaków na sekundę).
+- **Dostępność w trakcie nagrania:** na 13 ekranach (każda scena) axe sprawdza WCAG 2.2 A/AA ramki
+  aplikacji; wynik w `axe.json`, test kończy się błędem przy każdym naruszeniu. Nagranie 4.10.2026:
+  0 naruszeń.
+- **Baza jest wymagana.** Bez `DATABASE_URL` (albo `E2E_BASE_URL`) nagranie nie startuje, a gdy baza
+  nie odpowiada albo brakuje miejsca, kończy się błędem na starcie — sceny na prawdziwych danych nigdy
+  nie przechodzą po cichu na przykładowe dane. Build ma zawsze `NEXT_PUBLIC_API_MOCK` puste.
+- Miejsce sceny 2 jest wyszukiwane w API po nazwie, nie po identyfikatorze (`PLACES` w skrypcie);
+  przykładowe miejsca scen 3–5 pochodzą z `openapi.yaml` (`SAMPLE`).
+- Serwer z przykładowym API to ten sam `next dev`, co w `npm run test:e2e` (port worktree; Next.js pozwala na jeden
+  `next dev` na katalog), więc działający serwer e2e jest używany ponownie. `DEMO_SAMPLE_BASE_URL` wskazuje inny.
 - Skrypt: `apps/web/e2e/demo/record-demo.ts` (osobna konfiguracja `playwright.demo.config.ts`, poza
   `npm run test:e2e`).
 
 ### Miejsca w scenariuszu
 
-Stan danych z 2026-10-04 (OSM: ekstrakt Geofabrik z 2026-10-02, krakow.pl: strona z aktualizacją 2025-09-15).
-Przed nagraniem nagranie samo sprawdza, że każde z nich jest w bazie.
+Stan danych z nagrania 4.10.2026 (lokalna baza demo, ten sam ingest co wdrożenie).
 
-Skąd są w bazie: Qubus i Hotel Miodowa pochodzą ze snapshotu seeda `npm run db:setup`
-(`packages/db/seed/demo-places.json`), toaleta i jej fakty OSM z `ingest --source osm`, a fakty miasta
-z `ingest --source krakow-pl-toilets` (wpis „Rynek Główny (Sukiennice)” przypięty do toalety OSM
-`node/3533569749`, patrz `apps/ingest/src/cities/data/krakow-pl-toilets.ts`). OSM nadpisuje nazwy, stąd
-toaleta ma na karcie samą nazwę z OSM.
-
-| Scena | Miejsce | Co mówią dane |
-|---|---|---|
-| 2–3 · Fakty | **Qubus** (hotel, Nadwiślańska 6) | OSM: `wheelchair=yes`, 9 kondygnacji, sprawdzone 2026-02-11. Wejście, drzwi, winda, toaleta — brak danych. Werdykt dla profilu „Wózek”: „Brak danych · wejście”. |
-| 4 · Niepełne dane | **Hotel Miodowa** (Miodowa 51) | OSM: tylko `wheelchair=yes`; żadnej konkretnej bariery. Na karcie „Brak danych” przy każdej cesze. |
-| 4 · Rozbieżne dane | **Toaleta publiczna** (OSM `node/3533569749`, Sukiennice, Rynek Główny) | krakow.pl: na liście toalet dostosowanych, „platforma” (stan na 15.09.2025, licencja niekomercyjna, do potwierdzenia); OpenStreetMap: `wheelchair=limited`. Lista miasta jest starsza niż 12 miesięcy, więc jej fakt jest „Może być nieaktualne”, a wartość daje świeższe OSM; karta pokazuje oba źródła z datami. Gdy miasto odświeży stronę, ten sam przypadek stanie się „Sprzeczne”. Tak samo: toaleta przy pl. Szczepańskim (`node/274115129`) i przy Cmentarzu Mogilskim (`way/963795022`, OSM `no`). |
-| 4 · Źródło niedostępne | ta sama toaleta, przy symulowanej awarii krakow.pl | „Odświeżenie nie powiodło się”; fakty krakow.pl oznaczone jako nieaktualne, ogólną dostępność rozstrzyga świeższe OpenStreetMap. |
-| 7 · Dla firm | widget hotelu **Qubus** (`/dla-firm?miejsce=<id>`) | Ta sama karta co w aplikacji, z tymi samymi źródłami. |
+| Scena | Miejsce | Dane | Co mówią dane |
+|---|---|---|---|
+| 2 · Miejsce i źródło | **Hangar Czyżyny Oddział Muzeum Inżynierii Miejskiej** | prawdziwe | BIP MK „Dostępność architektoniczna” (stan na 19.03.2026): wejście, winda, toaleta, parking, przewijak z cytatem i linkiem; szerokości drzwi brak. Werdykt „Brak danych · drzwi”, „Pasuje 3 z 4 potrzeb profilu”. |
+| 3 · Uzupełnij | **Kawiarnia Przykład** (`kawiarnia-przyklad`) | przykładowe | Prawie wszystko „Brak danych”; zgłoszenie „Szerokość drzwi: 90 cm” czeka na weryfikację. |
+| 3 · Zatwierdź | kolejka przykładowa: **Podziemia Rynku · Winda → Nie ma** | przykładowe | „Co się zmieni na karcie”: teraz „Jest” (OSM), po zatwierdzeniu „Nie ma”, źródło „Konto demonstracyjne moderatora (zmiana tymczasowa)”. Przykładowe API nie przenosi zgłoszenia z karty do kolejki, więc zatwierdzamy zgłoszenie z przykładowej kolejki; napisy nie twierdzą, że to to samo. |
+| 4 · Sprzeczne | **Pałac Krzysztofory** (`palac-krzysztofory`) | przykładowe | Toaleta: MSIP „Jest”, OSM „Nie ma” → „Sprzeczne”, obie wartości z datami. |
+| 5 · Awaria źródła | przełącznik konta demo (OpenStreetMap) → „O danych” → **Hotel Przykład** | przykładowe | „Niedostępne”, „Odświeżenie nie powiodło się — dane z 3.10.2026”, „Tryb demo”; na końcu sceny „Wyłącz”. |
+| 6 · Trasa | Dworzec Główny → Hangar Czyżyny, „Unikaj schodów” | prawdziwe | openrouteservice + fakty OSM: „Brak znanych barier, ale 4,3 km bez danych”, „Najkrótsza: Nie spełnia · schody”. |
+| 7 · Dla firm | widget i strona wydarzenia dla **Hangaru**; `/api/docs` | prawdziwe | Ta sama karta co w aplikacji, z tymi samymi źródłami i datami. |
+| 8 · Telefon | karta **Hangaru** w ramce telefonu (390×844) | prawdziwe | Ten sam układ telefonu co w PWA i aplikacjach (Capacitor). |
 
 ### Scenariusz
 
-Grupa docelowa: **osoba na wózku** (profil „Wózek”); ten sam przebieg działa dla profilu
-„Wózek dziecięcy”. Czasy z przebiegu `npm run demo:record` (plik wideo ok. 2:35); po każdym nagraniu sprawdź je w konsoli.
+Grupa docelowa: **osoba na wózku** (profil „Wózek”). Czasy z nagrania 4.10.2026 (MP4 2:51; ostatni napis
+od 2:41, potem kilka sekund ostatniego kadru). Kolumna „Napis” to dokładny tekst z wideo i z `kbb-demo.srt`;
+lektor może go czytać.
 
-| Czas | Scena | Co widać | Lektor |
+| Czas | Scena | Co widać | Napis |
 |---|---|---|---|
-| 0:00 | 1 · Dla kogo | Strona główna: wyszukiwarka, mapa, lista prawdziwych miejsc | Pani Anna porusza się na wózku. Zanim wyjdzie z domu, chce wiedzieć, czy w miejscu docelowym nie zatrzymają jej schody albo za wąskie drzwi. Nie zakłada konta. |
-| 0:06 | 1 · Dla kogo | Wybór profilu „Wózek”, okno „Progi profilu” | Wybiera profil „Wózek”. Profil to tylko progi: ile stopni, jaka szerokość drzwi, czy potrzebna toaleta. Nie pytamy o niepełnosprawność. |
-| 0:17 | 2 · Miejsce | Wpisanie „Qubus”, wynik na liście i na mapie | Szuka hotelu Qubus. To prawdziwe miejsca z OpenStreetMap — wynik jest na liście i na mapie, a lista to pełna, tekstowa wersja mapy. |
-| 0:22 | 2 · Miejsce | „Brak danych · wejście”, rozwinięte „Dlaczego?”: wejście, drzwi, winda, toaleta — nie wiadomo | Werdykt jest słowem, nie kolorem. OpenStreetMap mówi tylko „dostępny dla wózków” — o stopniach i drzwiach nie mówi nic, więc aplikacja nie udaje, że wie. |
-| 0:32 | 3 · Konkretne fakty | Karta miejsca: stopnie, drzwi, winda, toaleta, kondygnacje | Na karcie nie ma etykiety „dostępne”. Są konkretne cechy, a tam, gdzie nikt ich nie sprawdził, „Brak danych”. |
-| 0:39 | 3 · Skąd wiemy? | Rozwinięte „Kondygnacje”: źródło OpenStreetMap, data, „Niezweryfikowane” | Przy każdej informacji jest źródło, data i wiarygodność. Jedno źródło społeczności to „niezweryfikowane”, a nie gwarancja. |
-| 0:47 | 4 · Niepełne dane | Hotel Miodowa: „Brak danych” przy każdej cesze | Hotel Miodowa: w danych jest tylko ogólne „tak”. Mówimy „brak danych” — szarym kolorem, nigdy jako „dostępne”. Można zapytać obiekt albo uzupełnić dane. |
-| 0:55 | 4 · Rozbieżne dane | „Toaleta publiczna” w Sukiennicach: „Ogólna dostępność: Częściowo dostępne dla wózków”, rozwinięte: krakow.pl „Może być nieaktualne · 15.09.2025” z cytatem, OpenStreetMap | Miasto wpisuje tę toaletę na listę dostosowanych, z platformą; OpenStreetMap mówi „częściowo”. Lista miasta ma ponad rok, więc pokazujemy ją jako możliwie nieaktualną — ale obok, ze źródłem i datą, nie ukrywamy jej. |
-| 1:08 | 5 · Zgłoszenie | „To się nie zgadza” → „Dostępne dla wózków” → „Wyślij” | Pani Anna była na miejscu, więc poprawia dane: trzy kroki, bez konta i bez e-maila. |
-| 1:16 | 5 · Zgłoszenie | „Twoje zgłoszenie: Dostępne dla wózków · Niezweryfikowane” | Zgłoszenie czeka na moderację. Do tego czasu nie zmienia danych — jest widoczne obok jako niezweryfikowane. |
-| 1:24 | 4 · Źródło niedostępne | Ta sama toaleta przy awarii krakow.pl: „Odświeżenie nie powiodło się” | Symulujemy awarię miejskiego serwisu krakow.pl. Nie ukrywamy jej: dane miasta zostają, z datą i jako nieaktualne. |
-| 1:32 | 6 · Źródła danych | „O danych”: krakow.pl „Niedostępne” (symulowana awaria), OSM i BIP działają, MSIP „Wyłączone” z powodem, zasady wiarygodności | Dane pochodzą z OpenStreetMap, BIP Miasta Krakowa, BIP Małopolska i krakow.pl. Dla każdego: licencja, częstotliwość odświeżania i stan — także awaria. Warstwę miejską bez jasnej licencji wyłączamy i mówimy dlaczego. Miasto nie utrzymuje żadnej bazy. |
-| 1:43 | 7 · Dla firm | Widget z kartą hotelu Qubus na stronie obiektu, kod do wklejenia, API | Hotel osadza na swojej stronie aktualną kartę dostępności jednym kodem. Systemy rezerwacyjne i aplikacje turystyczne biorą te same dane z API. |
-| 1:50 | 7 · Model biznesowy | Cennik: karta na stronie, weryfikacja na miejscu | Płacą obiekty — za kartę na stronie i weryfikację na miejscu. Mieszkańcy i turyści korzystają za darmo. |
-| 1:57 | 8 · Dostępność | Przejścia klawiszem Tab: „Przejdź do treści”, widoczny fokus, menu | Aplikacja sama jest dostępna: cały scenariusz przejdziemy klawiaturą, statusy są tekstem, nie tylko kolorem, a mapa ma tekstowy odpowiednik. |
-| 2:05 | 8 · Dostępność | „Deklaracja dostępności”: co działa, ograniczenia, plan | Celem jest WCAG 2.2 AA. Każdy ekran sprawdzamy automatycznie, a w deklaracji uczciwie piszemy, czego jeszcze nie ma — na przykład testów z czytnikami ekranu — i kiedy to zrobimy. |
-| 2:17 | 9 · Od prototypu do usługi | Strona główna | Usługę prowadzi niezależny operator — nie Urząd Miasta, który nie utrzymuje żadnej bazy. Hosting, moderację zgłoszeń i utrzymanie opłacają obiekty: za kartę na swojej stronie i weryfikację na miejscu; mieszkańcy i turyści korzystają za darmo. |
-| 2:24 | 9 · Od prototypu do usługi | Strona główna | Plan: pilotaż w Krakowie z testami z użytkownikami, potem panel właściciela obiektu. Kolejne miasto to konfiguracja — obszar OpenStreetMap i lista otwartych źródeł — oraz lokalny moderator; bez nowego kodu. |
-| 2:31 | Zakończenie | Strona główna | Kraków bez barier: konkretne fakty, źródło przy każdej informacji, otwarte dane. Dziękujemy. |
+| 0:00 | 1 · Dla kogo | Strona główna: mapa, lista najbliżej Rynku, szybkie akcje | Pani Anna jeździ na wózku. Chce wiedzieć, czy wjedzie, zanim wyjdzie z domu. Bez konta. |
+| 0:05 | 1 · Dla kogo | Przełącznik profilu → „Wózek” | Wybiera profil „Wózek”: same progi — stopnie, drzwi, winda, toaleta. Profil zostaje w przeglądarce. |
+| 0:11 | 2 · Miejsce i źródło | Wpisanie „Hangar”, Enter: 1 miejsce na liście i na mapie | Szuka „Hangar”. Prawdziwe miejsca z OpenStreetMap i deklaracji dostępności w BIP. |
+| 0:16 | 2 · Miejsce i źródło | Wiersz „Brak danych · drzwi”, podsumowanie „Najczęściej brakuje danych o: drzwi” | Werdykt jest słowem, nie kolorem: „Brak danych · drzwi”. Brak danych nigdy nie znaczy „dostępne”. |
+| 0:23 | 2 · Miejsce i źródło | Karta: „Twój profil: Wózek”, grupy „Pasuje (3)” i „Nie wiadomo (1)”, „Skąd wiemy?” z BIP MK | Karta: pasuje 3 z 4 potrzeb profilu. Winda i toaleta są w deklaracji BIP; szerokości drzwi nie podaje żadne źródło. |
+| 0:30 | 2 · Miejsce i źródło | Rozwinięta „Winda”: źródło BIP MK, „stan na 19.03.2026 wg źródła”, cytat, „Strona źródła” | Przy każdej cesze: źródło, cytat ze strony BIP, data stanu i link. Jedno źródło — „Niezweryfikowane”. |
+| 0:38 | 3 · Uzupełnij | **PRZYKŁAD**: karta Kawiarni Przykład | Zapis pokazujemy na danych przykładowych (PRZYKŁAD), żeby nagranie nie zmieniło prawdziwej bazy. |
+| 0:44 | 3 · Uzupełnij | „Uzupełnij” → „Szerokość drzwi” → 90 → „Wyślij” | Ktoś zmierzył drzwi: „Uzupełnij” → „Szerokość drzwi” → 90 cm. Bez konta i bez e-maila. |
+| 0:49 | 3 · Uzupełnij | „Twoje zgłoszenie: 90 cm”, toast „Czeka na weryfikację” | Zgłoszenie czeka na moderatora. Do tego czasu nie zmienia danych na karcie. |
+| 0:54 | 3 · Zatwierdź | `/moderator` → „Wejdź na konto demonstracyjne (dla jury)”, ramka „Konto demonstracyjne” | Jury może wejść na konto demonstracyjne moderatora jednym przyciskiem. |
+| 0:59 | 3 · Zatwierdź | Przykładowe zgłoszenie z kolejki (Podziemia Rynku · Winda), „Co się zmieni na karcie”: Teraz „Jest” (OSM) → Po zatwierdzeniu „Nie ma” | Moderator otwiera przykładowe zgłoszenie z kolejki i widzi, co zmieni się na karcie: teraz „Jest” z OpenStreetMap, potem „Nie ma”. |
+| 1:07 | 3 · Zatwierdź | „Zatwierdź” → „Historia zmian”: „Konto demonstracyjne ·” | Decyzja trafia do historii. Konto demo cofa każdą zmianę samo po 30 minutach. |
+| 1:12 | 4 · Sprzeczne | **PRZYKŁAD**: Pałac Krzysztofory, „Toaleta dostosowana: Jest / Nie ma · Sprzeczne”, rozwinięte oba źródła z datami | Dwa źródła się nie zgadzają? Nie wybieramy za użytkownika: „Sprzeczne” i obie wartości z datami. |
+| 1:20 | 5 · Awaria źródła | **PRZYKŁAD**: zakładka „Demo źródeł” → „Symuluj awarię” (OpenStreetMap) | Symulujemy awarię źródła przełącznikiem konta demo. Wyłączy się sama po 15 minutach. |
+| 1:26 | 5 · Awaria źródła | „O danych”: OpenStreetMap „Niedostępne”, „Odświeżenie nie powiodło się — dane z …”, „Tryb demo” | Nic nie znika: zostaje ostatnia dobra kopia z datą, a aplikacja mówi wprost „Niedostępne”. |
+| 1:32 | 5 · Awaria źródła | Karta Hotelu Przykład z banerem awarii | Na karcie: „Odświeżenie nie powiodło się”, fakty oznaczone jako możliwie nieaktualne. |
+| 1:38 | 5 · Awaria źródła | „Wyłącz symulowaną awarię” → „Żadna symulacja nie trwa” | Wyłączamy symulację — źródło znów działa. |
+| 1:41 | 6 · Trasa | Trasa do Hangaru, pole „Start” → „Dworzec Główny” | Trasa z Dworca Głównego do hangaru, z profilem Wózek. Wyznacza ją openrouteservice. |
+| 1:45 | 6 · Trasa | „79 min · 5,8 km”, „Brak znanych barier, ale 4,3 km bez danych”, pasek odcinków, „Najkrótsza: Nie spełnia · schody” | Odcinek bez danych nigdy nie jest „spełnia”: „Brak znanych barier, ale 4,3 km bez danych”. Wariant „Najkrótsza” ma schody. |
+| 1:52 | 6 · Trasa | „Czytaj na głos” → „Czytany krok: 1 z …” → „Następny krok” → „Zakończ czytanie” | „Krok po kroku” to tekstowa wersja mapy. „Czytaj na głos” czyta po jednym kroku. |
+| 2:01 | 6 · Trasa | „Ruszamy” → „Prowadzenie”: krok, odcinek, „Następny krok” | „Ruszamy” prowadzi krok po kroku — także bez zgody na lokalizację, przyciskami. |
+| 2:09 | 7 · Dla firm | `/dla-firm`: widget Hangaru na „strona-hotelu.example”, kod `<iframe>` | Obiekt osadza aktualną kartę na swojej stronie jednym kodem — te same fakty, źródła i daty. |
+| 2:14 | 7 · Dla firm | Generator strony wydarzenia, potem strona „Piknik lotniczy” (wejście, toaleta, parking, przystanki w pobliżu) | Organizator generuje stronę „Dojazd i wejście bez barier”, a systemy biorą dane z API. |
+| 2:24 | 7 · Model | `/api/docs` (Scalar) | Płacą obiekty i partnerzy — za kartę i weryfikację. Mieszkańcy i turyści korzystają za darmo. |
+| 2:30 | 8 · Telefon | Karta Hangaru w ramce telefonu | Na telefonie to samo: aplikacja webowa, PWA i aplikacje na Androida i iOS. |
+| 2:35 | 8 · Zakończenie | Strona główna, Tab: „Przejdź do treści” z widocznym fokusem | Całość działa z klawiatury, statusy są tekstem, lista to pełna wersja mapy. Prowadzi niezależny operator. |
+| 2:41 | Kraków bez barier | Strona główna | Konkretne fakty, źródło przy każdej informacji, otwarte dane. Dziękujemy! |
 
 ### Pokrycie oceny jury (wideo)
 
@@ -169,13 +169,14 @@ Punkty z [challenge.md](challenge.md) → „How the jury will evaluate it”.
 | Punkt jury | Sceny |
 |---|---|
 | Grupa docelowa i jej potrzeby | 1 (osoba na wózku, profil jako progi, bez pytań o niepełnosprawność) |
-| Sprawdzenie miejsca, konkretne bariery i udogodnienia | 2, 3 |
-| Pochodzenie danych: źródło, data, wiarygodność | 3, 6 |
-| Oznaczenie danych niepełnych, nieaktualnych, niezweryfikowanych | 2–3 (niezweryfikowane, brak danych), 4 (brak danych, nieaktualne) |
-| Przypadek awarii: sprzeczne, niepełne, niedostępne źródło; brak informacji ≠ dostępność | 4 (niepełne, rozbieżne/nieaktualne i niedostępne źródło, na prawdziwych miejscach; stan „Sprzeczne” dla dwóch świeżych źródeł pokazuje `/o-danych` i e2e na danych przykładowych) |
-| Poprawianie błędnych danych | 5 |
-| Kontrola dostępności: klawiatura, czytnik ekranu, kontrast, mapa jako tekst; ograniczenia i plan | 2 (lista = mapa), 8 |
-| Prototyp → usługa: właściciel, dane, hosting, plan, kolejne miasto | 6 (dane), 7 (kto płaci), 9 (operator, finansowanie hostingu, plan, warunki dla kolejnego miasta) |
+| Sprawdzenie miejsca, konkretne bariery i udogodnienia | 2 |
+| Pochodzenie danych: źródło, data, wiarygodność | 2 (cytat BIP, data stanu, link), 4, 5 („O danych”) |
+| Oznaczenie danych niepełnych, nieaktualnych, niezweryfikowanych | 2 (brak danych o drzwiach, niezweryfikowane), 3 („Czeka na weryfikację”), 5 (możliwie nieaktualne) |
+| Przypadek awarii: sprzeczne, niepełne, niedostępne źródło; brak informacji ≠ dostępność | 2 (niepełne), 4 (sprzeczne), 5 (niedostępne źródło), 6 (odcinki bez danych) |
+| Poprawianie błędnych danych | 3 (zgłoszenie i moderacja) |
+| Dane przykładowe oznaczone | 3–5 („PRZYKŁAD” w aplikacji i na pasku napisów) |
+| Kontrola dostępności: klawiatura, czytnik ekranu, kontrast, mapa jako tekst; ograniczenia i plan | 6 („Krok po kroku”, czytanie na głos), 8; axe na każdym ekranie nagrania |
+| Prototyp → usługa: właściciel, dane, hosting, plan, kolejne miasto | 7 (kto płaci), 8 (operator), szczegóły w [jury-qa.md](submission/jury-qa.md) |
 
 ### Kontrola dostępności głównego scenariusza
 

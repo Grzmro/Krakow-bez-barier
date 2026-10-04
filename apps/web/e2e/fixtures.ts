@@ -1,8 +1,8 @@
 import path from "node:path";
 import AxeBuilder from "@axe-core/playwright";
-import { test as base, expect, type Page, type TestInfo } from "@playwright/test";
+import { test as base, expect, type Frame, type Page, type TestInfo } from "@playwright/test";
 
-const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
+export const WCAG_TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 type Fixtures = {
   /** Runs axe-core against the current page with WCAG 2.2 A/AA rules and fails on any violation. */
@@ -33,7 +33,7 @@ export const test = base.extend<Fixtures>({
 const EVIDENCE_DIR = path.join(__dirname, "..", "test-results", "evidence");
 
 /** Waits for running CSS transitions and finite CSS animations (a row fading in) to end; loops like a spinner don't. */
-export async function settleMotion(page: Page) {
+export async function settleMotion(page: Page | Frame) {
   await page.evaluate(() =>
     Promise.all(
       document
