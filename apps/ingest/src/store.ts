@@ -128,6 +128,22 @@ export function drizzleStore(db: Db): IngestStore {
           .set({ status: "superseded", supersededAt: fetchedAt })
           .where(eq(facts.id, existing.id));
       }
+      if (f.entrance) {
+        // The entrance moved to this place (a new venue, the old one gone): its fact on the old place gives way.
+        await tx
+          .update(facts)
+          .set({ status: "superseded", supersededAt: fetchedAt })
+          .where(
+            and(
+              eq(facts.sourceId, meta.id),
+              eq(facts.status, "active"),
+              eq(facts.subject, factSubject(f.entrance)),
+              eq(facts.attribute, f.attribute),
+              sql`split_part(${facts.sourceRecordRef}, '@', 1) = ${baseRef(f.recordRef)}`,
+              sql`${facts.placeId} <> ${placeId}`,
+            ),
+          );
+      }
       await tx.insert(facts).values({
         placeId,
         subject: factSubject(f.entrance),

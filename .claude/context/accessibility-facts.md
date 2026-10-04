@@ -32,7 +32,7 @@ in `docs/challenge.md`). Read before touching ingestion, the API or the place/ro
   `ramp`, `lift`, `door_width_cm`, `entrance_level`, `toilet_accessible`, `changing_table`,
   `surface`, `smoothness`, `incline_pct`, `kerb_height_cm`, `bench`, `disabled_parking`,
   `wheelchair_overall`, `levels` (storeys the place spans), `automatic_door`. A fact about one entrance
-  (OSM `entrance=*` node) carries `entrance` (main / secondary / service / shop / unspecified).
+  (OSM `entrance=*` node) carries `entrance` (main / secondary / shop / unspecified).
 - **Reliability:** `confirmed` (official source or verified by owner/moderator) > `community` (OSM) >
   `extracted` (automatic, e.g. from an accessibility declaration) > `user_report` (unverified) >
   `inferred`. `sample` is always labeled "PRZYKŁAD".

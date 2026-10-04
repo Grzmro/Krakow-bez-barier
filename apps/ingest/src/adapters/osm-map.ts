@@ -27,11 +27,13 @@ export type OsmElement = {
   entrancesChecked?: boolean;
 };
 
-/** OSM `entrance=*` values we attach to a place, and the kind each one is. Exits, garages and stairwells are left out. */
+/**
+ * OSM `entrance=*` values we attach to a place, and the kind each one is. Exits, garages, stairwells and staff-only
+ * service doors are left out: they say nothing about how a visitor gets in.
+ */
 export const ENTRANCE_KINDS: Readonly<Record<string, FactEntrance>> = {
   main: "main",
   secondary: "secondary",
-  service: "service",
   shop: "shop",
   yes: "unspecified",
 };

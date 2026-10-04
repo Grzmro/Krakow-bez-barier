@@ -95,8 +95,28 @@ export function entrancesFromOverpass(elements: readonly OverpassEntranceElement
   return { entrances, outlines };
 }
 
+type Bounds = { west: number; south: number; east: number; north: number };
+const boundsCache = new WeakMap<OsmOutline, Bounds>();
+
+function boundsOf(outline: OsmOutline): Bounds {
+  let bounds = boundsCache.get(outline);
+  if (!bounds) {
+    const points = outline.lines.flat();
+    bounds = {
+      west: Math.min(...points.map((p) => p[0])),
+      east: Math.max(...points.map((p) => p[0])),
+      south: Math.min(...points.map((p) => p[1])),
+      north: Math.max(...points.map((p) => p[1])),
+    };
+    boundsCache.set(outline, bounds);
+  }
+  return bounds;
+}
+
 /** Even-odd ray casting over all the outline's lines, so holes (inner rings) count as outside. */
 export function insideOutline(outline: OsmOutline, lon: number, lat: number): boolean {
+  const b = boundsOf(outline);
+  if (lon < b.west || lon > b.east || lat < b.south || lat > b.north) return false;
   let inside = false;
   for (const line of outline.lines) {
     for (let i = 1; i < line.length; i++) {
@@ -123,8 +143,8 @@ type Owner = { place: OsmElement; how: "onOutline" | "inBuilding" | "nearby" } |
 
 /**
  * Attaches to each place the entrance node whose facts it takes. An entrance belongs to a place when it lies on the
- * place's own outline, else when it lies on a building with exactly one place node inside, else when exactly one place
- * is within `radiusM`; anything less certain gives no owner. A place with several entrances takes its single main one,
+ * place's own outline, else when it lies on a building with exactly one place node inside, else — on no building at
+ * all — when exactly one place is within `radiusM`; anything less certain gives no owner. A place with several entrances takes its single main one,
  * or its only one; otherwise none, so two entrances of one place never stand as a conflict.
  * Every returned place is marked `entrancesChecked`.
  */
@@ -166,6 +186,8 @@ export function attachEntrances(
     const inside = nodes.filter((p) => buildings.some((b) => insideOutline(b, p.lon!, p.lat!)));
     if (inside.length > 1) return "ambiguous";
     if (inside.length === 1) return { place: inside[0], how: "inBuilding" };
+    // A door of a building with no venue inside is not given to a venue next door.
+    if (buildings.length > 0) return null;
     const near = eligible.filter((p) => distanceM(entrance, p) <= radiusM);
     if (near.length > 1) return "ambiguous";
     return near.length === 1 ? { place: near[0], how: "nearby" } : null;

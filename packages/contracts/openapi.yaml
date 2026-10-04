@@ -2362,11 +2362,10 @@ components:
     FactEntrance:
       type: string
       description: 'The entrance of a place a fact describes (OSM `entrance=*`): `main` (główne), `secondary`
-        (boczne), `service` (służbowe), `shop` (wejście do lokalu), `unspecified` (an entrance of unknown kind).'
+        (boczne), `shop` (wejście do lokalu), `unspecified` (an entrance of unknown kind).'
       enum:
       - main
       - secondary
-      - service
       - shop
       - unspecified
     FeatureFilter:

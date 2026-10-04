@@ -168,7 +168,7 @@ describe("factViews", () => {
     expect(order.indexOf("automatic_door")).toBe(order.indexOf("door_width_cm") + 1);
     expect(rows.find((r) => r.attribute === "automatic_door")).toMatchObject({ label: "Drzwi automatyczne", value: "Jest" });
     // AND the wheelchair profile's door need is met by the entrance's width
-    expect(matchProfile(place, PROFILE_PRESETS.wheelchair, "pl").needs.find((n) => n.need === "door")).toMatchObject({ state: "met" });
+    expect(matchProfile(place, PROFILE_PRESETS.wheelchair, "pl").needs?.find((n) => n.need === "door")).toMatchObject({ state: "met" });
   });
 
   it("leaves the automatic door row out when no source says anything about it", () => {
@@ -292,12 +292,12 @@ describe("OSM edit link", () => {
     const place = structuredClone(await demoPlace("palac-krzysztofory"));
     const osmFacts = place.attributes.flatMap((a) => a.facts).filter((f) => f.source.recordRef?.includes("node/"));
     if (osmFacts.length === 0) throw new Error("demo place has no OSM fact");
+    osmFacts[0].source.recordRef = "osm:node/979972831@v21";
     const entranceFact = { ...osmFacts[0], entrance: "main" as const, source: { ...osmFacts[0].source, recordRef: "osm:node/42@v1" } };
     place.attributes.unshift({ attribute: "automatic_door", state: "known", status: "unverified", value: entranceFact.value, facts: [entranceFact] });
 
     // WHEN building the edit link
     // THEN it skips the entrance and points at the place's own node
-    expect(osmEditUrl(place)).not.toContain("node=42");
-    expect(osmEditUrl(place)).toBeDefined();
+    expect(osmEditUrl(place)).toBe("https://www.openstreetmap.org/edit?node=979972831");
   });
 });

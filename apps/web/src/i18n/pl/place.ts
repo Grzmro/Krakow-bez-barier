@@ -183,7 +183,6 @@ export const place = {
   entrance: {
     main: "wejście główne",
     secondary: "wejście boczne",
-    service: "wejście służbowe",
     shop: "wejście do lokalu",
     unspecified: "jedno z wejść",
   } satisfies Record<FactEntrance, string>,

@@ -169,7 +169,6 @@ export const place: Messages["place"] = {
   entrance: {
     main: "main entrance",
     secondary: "side entrance",
-    service: "service entrance",
     shop: "shop entrance",
     unspecified: "one of the entrances",
   },

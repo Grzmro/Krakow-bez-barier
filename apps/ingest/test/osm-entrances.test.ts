@@ -130,6 +130,31 @@ describe("attachEntrances", () => {
     expect(stats.ambiguous).toBe(1);
   });
 
+  it("doesn't give the door of a building without venues to a venue next door", () => {
+    // GIVEN an entrance on an empty building and a café 3 m away in the neighbouring building
+    const data = {
+      entrances: [entrance(1, { entrance: "main", wheelchair: "yes" })],
+      outlines: [square(100, { building: "yes" }, [1, 2, 3, 4, 1])],
+    };
+    // WHEN attaching
+    const { places, stats } = attach([cafe(10, 50.049673, 19.94)], data);
+    // THEN the café takes nothing
+    expect(places[0].entrance).toBeUndefined();
+    expect(stats.unmatched).toBe(1);
+  });
+
+  it("never attaches a staff-only service door", () => {
+    // GIVEN the only entrance of a café's building is a service door
+    const data = {
+      entrances: [entrance(1, { entrance: "service", wheelchair: "no" })],
+      outlines: [square(100, { building: "yes" }, [1, 2, 3, 4, 1])],
+    };
+    // WHEN attaching THEN the café takes nothing, so a staff door never decides its verdict
+    const { places, stats } = attach([cafe(10)], data);
+    expect(places[0].entrance).toBeUndefined();
+    expect(stats.otherKind).toBe(1);
+  });
+
   it("gives a place with several entrances its single main one", () => {
     // GIVEN a building with one café inside, a main entrance and a service entrance on its outline
     const data = {
