@@ -78,6 +78,21 @@ test("a number out of the contract's range is explained in text and not sent", a
   await expect(page.locator("li").filter({ has: door })).toContainText("Twoje zgłoszenie:90 cm");
 });
 
+test("opening the sheet on a number attribute doesn't focus a text field, so no keyboard pops up", async ({ page }) => {
+  // GIVEN the incomplete demo place, whose door width is unknown
+  await page.goto("/miejsca/kawiarnia-przyklad");
+  const door = page.locator("li").filter({ has: page.getByRole("button", { name: /Szerokość drzwi/ }) });
+
+  // WHEN the visitor taps "Uzupełnij" on the door width (a number)
+  await door.getByRole("button", { name: "Uzupełnij" }).click();
+  const drawer = page.getByRole("dialog", { name: "Uzupełnij dane" });
+  await expect(drawer.getByRole("spinbutton", { name: /Jak jest naprawdę/ })).toBeVisible();
+
+  // THEN focus is on the sheet's title, not on a field that would open the keyboard
+  await expect(drawer.getByRole("heading", { name: "Uzupełnij dane" })).toBeFocused();
+  expect(await page.evaluate(() => document.activeElement?.matches("input:not([type=radio]), textarea, select"))).toBe(false);
+});
+
 test("swiping the attribute chips scrolls only the chip row, not the sheet or the page", async ({ page }) => {
   // GIVEN the "Uzupełnij dane" sheet of the incomplete demo place, opened from a scrolled card
   await page.goto("/miejsca/kawiarnia-przyklad");

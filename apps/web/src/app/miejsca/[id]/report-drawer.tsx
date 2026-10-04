@@ -45,7 +45,10 @@ export function ReportDrawer({ open, onOpenChange, placeName, mode, formKey, ...
         aria-describedby="report-place"
         onOpenAutoFocus={(e) => {
           // Land on the value, not the attribute chips: the attribute is already the one the visitor tapped.
-          const target = contentRef.current?.querySelector<HTMLElement>("[data-autofocus]");
+          // A number goes to the title instead: focusing its field would open the keyboard on its own.
+          const target =
+            contentRef.current?.querySelector<HTMLElement>("[data-autofocus]") ??
+            contentRef.current?.querySelector<HTMLElement>("[data-report-title]");
           if (!target) return;
           e.preventDefault();
           target.focus();
@@ -139,7 +142,7 @@ function ReportForm({
       <VaulDrawerDescription id="report-place" className="text-body-sm text-muted-foreground">
         {placeName}
       </VaulDrawerDescription>
-      <VaulDrawerTitle className="mt-1 font-display text-h2 font-bold">
+      <VaulDrawerTitle data-report-title tabIndex={-1} className="mt-1 font-display text-h2 font-bold outline-none">
         {mode === "fill" ? r.titleFill : r.titleCorrect}
       </VaulDrawerTitle>
 
@@ -182,7 +185,6 @@ function ReportForm({
           <div className="flex items-center gap-2">
             <input
               id="report-number"
-              data-autofocus
               type="number"
               inputMode="decimal"
               min={input.range.min}
