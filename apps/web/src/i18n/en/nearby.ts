@@ -53,6 +53,24 @@ export const nearby: Messages["nearby"] = {
     you: "You",
     emptyHint: "You're searching only near you (within about 2 km).",
     emptyHintChosen: (place: string) => `You're searching only near ${place} (within about 2 km).`,
+    searchHere: "Search this area",
+    widen: { wide: "Widen to 5 km", city: "Widen to the whole city" },
+    poorHint: "Few places around here.",
+    scopeHint: {
+      wide: "You're searching within about 5 km.",
+      city: "You're searching the whole of Kraków.",
+      view: "You're searching the area shown on the map.",
+    },
+    privacyScope: {
+      wide: "Your exact position stays on the device. For the search we send only an approximate area within about 5 km, not your position.",
+      city: "Your exact position stays on the device. For the search we send the area of the whole city, not your position.",
+      view: "Your exact position stays on the device. For the search we send the area shown on the map, not your position.",
+    },
+    announceScope: {
+      wide: "Searching within about 5 km",
+      city: "Searching the whole of Kraków",
+      view: "Searching the area shown on the map",
+    },
   },
   devPage: {
     title: "Native features",
