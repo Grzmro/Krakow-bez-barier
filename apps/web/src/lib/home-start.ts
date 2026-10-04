@@ -70,7 +70,7 @@ export function runAsk(selection: HomeSelection, ask: Partial<HomeChoices> & { q
  * (nothing wider to offer). Without a name it returns to the start, as before.
  */
 export function widenSearch({ committed }: HomeSelection): HomeSelection | null {
-  if (!committed.q) return START_SELECTION;
+  if (!committed.q.trim()) return START_SELECTION;
   if (!isSearching({ ...committed, q: "" })) return null;
   return { committed: { q: committed.q, ...NO_CHOICES }, draft: NO_CHOICES };
 }

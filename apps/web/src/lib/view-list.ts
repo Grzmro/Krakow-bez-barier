@@ -23,7 +23,7 @@ export const FIT_TOP = 5;
 
 /**
  * The places the map fits after a search: for a typed name the one place it clearly names (the only hit, or the only
- * name equal to or starting with the text), else the first few results; while browsing, every place listed.
+ * name equal to or starting with the text), else the first few rows in list order (nearest first, not by relevance); while browsing, every place listed.
  */
 export function fitTargets<T extends { name: string }>(q: string, places: readonly T[]): readonly T[] {
   const wanted = fold(q);

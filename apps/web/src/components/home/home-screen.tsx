@@ -396,7 +396,7 @@ export function HomeScreen() {
       : verdicts && profile
         ? tp.announce(profile, shown.length, items.length, counts)
         : partial
-          ? t.list.announcePartial(items.length, total!)
+          ? (listBox ? t.list.announcePartial : t.list.announcePartialFound)(items.length, total!)
           : t.list.announce(listedCount(places.data!, shown.length));
   const announcement =
     listAnnouncement &&
@@ -849,7 +849,9 @@ export function HomeScreen() {
                   </Link>
                 </p>
               ) : null}
-              {origin ? null : <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>}
+              {origin ? null : (
+                <p className="text-body-sm text-muted-foreground">{widened?.committed.q ? t.list.emptyHintKeepName : t.list.emptyHint}</p>
+              )}
               <div className="flex flex-wrap justify-center gap-2">
                 {wider ? (
                   <Button onClick={() => changeScope(wider)}>{tn.widen[wider.kind as "wide" | "city"]}</Button>

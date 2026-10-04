@@ -111,12 +111,15 @@ export const home = {
     firstOf: (shown: number, total: number) => `Lista: pierwsze ${shown} z ${total} ${placesWord(total)}`,
     announcePartial: (shown: number, total: number) =>
       `W widoku ${total} ${placesWord(total)}, na liście pierwsze ${shown}. „Pokaż więcej” wczyta kolejne`,
+    announcePartialFound: (shown: number, total: number) =>
+      `Znaleziono ${total} ${placesWord(total)}, na liście pierwsze ${shown}. „Pokaż więcej” wczyta kolejne`,
     announce: (n: number) => (n === 0 ? "Nie znaleziono miejsc" : `Znaleziono ${n} ${placesWord(n)}`),
     loading: "Szukam miejsc…",
     error: "Nie udało się pobrać miejsc.",
     retry: "Spróbuj ponownie",
     empty: "Brak miejsc dla tego wyszukiwania.",
     emptyHint: "Spróbuj szerzej: bez nazwy, kategorii i filtrów.",
+    emptyHintKeepName: "Spróbuj szerzej: ta sama nazwa, bez kategorii, filtrów i okolicy.",
     searchWider: "Szukaj w całym Krakowie",
     licenceHold: {
       parking: "Dane o miejscach postojowych czekają na potwierdzenie licencji ZDMK.",

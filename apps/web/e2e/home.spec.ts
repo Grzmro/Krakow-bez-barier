@@ -142,6 +142,7 @@ test("the wider search keeps the typed name and drops the category", async ({ pa
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByText("Brak miejsc dla tego wyszukiwania.")).toBeVisible();
+  await expect(list.getByText("Spróbuj szerzej: ta sama nazwa, bez kategorii, filtrów i okolicy.")).toBeVisible();
 
   // WHEN the visitor searches the whole city
   await list.getByRole("button", { name: "Szukaj w całym Krakowie" }).click();
