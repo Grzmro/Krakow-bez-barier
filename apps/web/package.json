@@ -13,6 +13,7 @@
     "test": "vitest run --passWithNoTests",
     "test:e2e": "playwright test",
     "demo:record": "playwright test -c playwright.demo.config.ts",
+    "demo:video:record": "playwright test -c playwright.video.config.ts",
     "icons": "node scripts/generate-icons.mjs",
     "routes:record": "node --env-file=../../.env scripts/record-ors-fixtures.mjs",
     "transit:record": "vite-node -c vitest.config.ts scripts/record-transit-fixture.ts",
