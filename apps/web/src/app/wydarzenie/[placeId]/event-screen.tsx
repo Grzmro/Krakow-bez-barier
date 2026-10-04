@@ -3,14 +3,21 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, Bus, Car, CalendarBlank, DoorOpen, MapPin, Printer, Toilet, type Icon } from "@phosphor-icons/react";
-import type { Place } from "@krakow-bez-barier/contracts";
+import type { Place, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { Button, LogoMark, buttonVariants, cn } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge, SampleTag } from "@/components/kbb";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { EventDetails } from "@/lib/event-link";
-import { eventSections, formatEventDate, type EventSectionId } from "@/lib/event-page";
-import { failedSources, formatDate, latestSourceDate, type FactView } from "@/lib/place-facts";
-import { usePlace } from "@/lib/places";
+import {
+  EVENT_STOP_RADIUS_M,
+  eventSections,
+  formatEventDate,
+  nearbyStops,
+  nearbyStopsQuery,
+  type EventSectionId,
+} from "@/lib/event-page";
+import { factViews, failedSources, formatDate, latestSourceDate, type FactView } from "@/lib/place-facts";
+import { usePlace, usePlaces } from "@/lib/places";
 import { routes } from "@/lib/routes";
 import { useOrigin } from "@/lib/use-origin";
 
@@ -165,9 +172,8 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
           </Card>
         ))}
 
-        {/* TODO(KBB-60): list the nearest ZTP stops with their accessibility facts once the ZTP licence is confirmed. */}
         <Card id="event-transit" title={t.transit.title} icon={Bus}>
-          <p className="mt-2 text-body-sm text-muted-foreground">{t.transit.noData}</p>
+          <NearbyStops place={place} />
         </Card>
       </div>
 
@@ -218,6 +224,57 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
         </p>
       </footer>
     </article>
+  );
+}
+
+/** The stops nearest the venue, each with its platform facts; none in reach (or no data) says so, never "no stops". */
+function NearbyStops({ place }: { place: Place }) {
+  const t = useMessages().event.transit;
+  const list = usePlaces(nearbyStopsQuery(place));
+  const stops = list.data ? nearbyStops(list.data.items, place) : [];
+  return (
+    <>
+      <p className="mt-1 text-caption text-muted-foreground">{t.hint(EVENT_STOP_RADIUS_M)}</p>
+      {list.isPending ? (
+        <p role="status" className="mt-2 text-body-sm text-muted-foreground">
+          {t.loading}
+        </p>
+      ) : list.isError ? (
+        <p className="mt-2 text-body-sm text-muted-foreground">{t.error}</p>
+      ) : stops.length === 0 ? (
+        <p className="mt-2 text-body-sm text-muted-foreground">{t.noData(EVENT_STOP_RADIUS_M)}</p>
+      ) : (
+        <ul className="mt-1 divide-y divide-border">
+          {stops.map(({ stop, distance }) => (
+            <NearbyStop key={stop.id} stop={stop} distance={distance} />
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+
+function NearbyStop({ stop, distance }: { stop: PlaceSummary; distance: number }) {
+  const t = useMessages().event.transit;
+  const locale = useLocale();
+  const detail = usePlace(stop.id, {});
+  return (
+    <li className="py-2 break-inside-avoid">
+      <h3 className="flex flex-wrap items-baseline gap-x-2 text-body font-semibold">
+        <Link href={routes.place(stop.id)} className="underline-offset-2 hover:underline">
+          {stop.name}
+        </Link>
+        <span className="text-caption font-medium text-muted-foreground tabular-nums">{t.distance(distance)}</span>
+        {stop.isSample ? <SampleTag className="self-center" /> : null}
+      </h3>
+      {detail.data ? (
+        <FactList facts={factViews(detail.data, locale)} label={t.facts(stop.name)} />
+      ) : detail.isPending ? (
+        <p className="mt-1 text-caption text-muted-foreground">{t.loading}</p>
+      ) : (
+        <p className="mt-1 text-caption text-muted-foreground">{t.error}</p>
+      )}
+    </li>
   );
 }
 

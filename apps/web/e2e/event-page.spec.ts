@@ -48,7 +48,6 @@ test("an organizer generates an event link and it opens the event page without a
     /Jest — .*Nie ma — /,
   );
   await expect(main.getByRole("list", { name: "Parking" })).toContainText(/Brak danych.*Nikt jeszcze nie sprawdził\./);
-  await expect(main).toContainText("Brak danych o dostępności przystanków w pobliżu");
   await expect(main.getByRole("heading", { name: "Źródła danych" })).toBeVisible();
   // AND a source that is down says so next to its last fetch, and the free-text name is attributed
   await expect(main.getByRole("region", { name: "Źródła danych" })).toContainText(/MSIP: Toalety publiczne · .* · Źródło niedostępne/);
@@ -64,6 +63,7 @@ test("the event page is accessible, keyboard-operable and prints without the app
   await page.goto(EVENT_PATH);
   const main = page.locator("main");
   await expect(main.getByRole("heading", { level: 1, name: "Koncert jesienny" })).toBeVisible();
+  await expect(main.getByRole("list", { name: "Dostępność przystanku Plac Wszystkich Świętych 01" })).toBeVisible();
   await expect(main).toMatchAriaSnapshot({ name: "event-page.aria.yml" });
   await expectAccessible();
   await evidence("event-page");
@@ -86,6 +86,32 @@ test("the event page is accessible, keyboard-operable and prints without the app
   await expect(main.getByText(/Pełna karta i zgłaszanie zmian: http.*\/miejsca\/palac-krzysztofory/)).toBeVisible();
   await expect(main.getByText("PRZYKŁAD").first()).toBeVisible();
   await evidence("event-page-print");
+});
+
+test("the event page lists the stop within walking distance with its platform facts, source and date", async ({ page, evidence }) => {
+  // GIVEN the event page of Pałac Krzysztofory (the example stop Plac Wszystkich Świętych 01 is ~350 m away,
+  // Rondo Mogilskie 07 ~1.6 km)
+  await page.goto(EVENT_PATH);
+  const stops = page.getByRole("region", { name: "Przystanki w pobliżu" });
+
+  // THEN only the stop in reach is listed, with its distance and a link to its card
+  await expect(stops.getByRole("heading", { level: 3 })).toHaveCount(1);
+  await expect(stops.getByRole("heading", { level: 3 })).toContainText(/Plac Wszystkich Świętych 01\s*\d{3} m od miejsca/);
+  await expect(stops.getByRole("link", { name: "Plac Wszystkich Świętych 01" })).toHaveAttribute(
+    "href",
+    "/miejsca/przystanek-plac-wszystkich-swietych-01",
+  );
+  await expect(stops).not.toContainText("Rondo Mogilskie");
+  // AND each platform fact names OpenStreetMap and its date; an untagged one is "Brak danych", never a pass
+  const facts = stops.getByRole("list", { name: "Dostępność przystanku Plac Wszystkich Świętych 01" });
+  await expect(facts.getByRole("listitem").filter({ hasText: "Oznaczenia dotykowe" }).first()).toContainText(
+    /Nie ma.*OpenStreetMap · 4\.10\.2026/,
+  );
+  await expect(facts.getByRole("listitem").filter({ hasText: "Wiata" }).first()).toContainText("Jest");
+  await expect(facts.getByRole("listitem").filter({ hasText: "Ogólna dostępność" }).first()).toContainText(
+    /Brak danych.*Nikt jeszcze nie sprawdził\./,
+  );
+  await evidence("event-page-stops");
 });
 
 test("an event link to an unknown place says so", async ({ page }) => {

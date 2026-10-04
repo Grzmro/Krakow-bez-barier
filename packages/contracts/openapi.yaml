@@ -561,6 +561,9 @@ paths:
                 transitStop:
                   $ref: '#/components/examples/PlaceTransitStop'
                   summary: A stop from an OSM platform (tactile paving, bench, shelter; kerb and surface untagged)
+                transitStopRynek:
+                  $ref: '#/components/examples/PlaceTransitStopRynek'
+                  summary: The stop nearest the Rynek (about 350 m from Pałac Krzysztofory), for the event page
         '404':
           $ref: '#/components/responses/NotFound'
         '429':
@@ -4717,6 +4720,140 @@ components:
               name: OpenStreetMap
               kind: community
               recordRef: osm:node/13987866361
+            fetchedAt: '2026-10-04T03:00:00Z'
+            observedAt: null
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: active
+            stale: false
+        verdict: null
+        sources:
+        - id: osm
+          name: OpenStreetMap
+          kind: community
+          license: ODbL 1.0
+          attribution: © OpenStreetMap contributors
+          url: https://www.openstreetmap.org
+          refreshInterval: daily
+          refreshStatus: ok
+          lastSuccessAt: '2026-10-04T03:00:00Z'
+          lastAttemptAt: '2026-10-04T03:00:00Z'
+          statusNote: null
+          isSample: false
+        updatedAt: '2026-10-04T03:00:00Z'
+        isSample: true
+    PlaceTransitStopRynek:
+      value:
+        id: przystanek-plac-wszystkich-swietych-01
+        name: Plac Wszystkich Świętych 01
+        category: transit_stop
+        location:
+          type: Point
+          coordinates:
+          - 19.9383564
+          - 50.0591657
+        address:
+          street: null
+          houseNumber: null
+          postalCode: null
+          city: Kraków
+        contact: null
+        entranceHint: null
+        attributes:
+        - attribute: tactile_paving
+          state: known
+          status: unverified
+          value:
+            kind: boolean
+            boolean: false
+          facts:
+          - id: fact_osm_pws01_tactile
+            attribute: tactile_paving
+            value:
+              kind: boolean
+              boolean: false
+            unit: null
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: osm:way/304544076
+            fetchedAt: '2026-10-04T03:00:00Z'
+            observedAt: null
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: active
+            stale: false
+        - attribute: surface
+          state: known
+          status: unverified
+          value:
+            kind: text
+            text: paving_stones
+          facts:
+          - id: fact_osm_pws01_surface
+            attribute: surface
+            value:
+              kind: text
+              text: paving_stones
+            unit: null
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: osm:way/304544076
+            fetchedAt: '2026-10-04T03:00:00Z'
+            observedAt: null
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: active
+            stale: false
+        - attribute: bench
+          state: known
+          status: unverified
+          value:
+            kind: boolean
+            boolean: true
+          facts:
+          - id: fact_osm_pws01_bench
+            attribute: bench
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: osm:way/304544076
+            fetchedAt: '2026-10-04T03:00:00Z'
+            observedAt: null
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: active
+            stale: false
+        - attribute: shelter
+          state: known
+          status: unverified
+          value:
+            kind: boolean
+            boolean: true
+          facts:
+          - id: fact_osm_pws01_shelter
+            attribute: shelter
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: osm:way/304544076
             fetchedAt: '2026-10-04T03:00:00Z'
             observedAt: null
             confirmedAt: null

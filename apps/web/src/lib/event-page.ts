@@ -1,6 +1,26 @@
-import type { AccessibilityAttribute, Place } from "@krakow-bez-barier/contracts";
+import type { AccessibilityAttribute, ListPlacesQuery, Place, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { intlLocale, type Locale } from "@/i18n/locale";
+import { byDistance } from "@/lib/nearby";
 import { factViews, type FactView } from "@/lib/place-facts";
+
+/** Stops a participant can walk from: within this many metres of the venue, at most `EVENT_STOP_LIMIT`. */
+export const EVENT_STOP_RADIUS_M = 400;
+export const EVENT_STOP_LIMIT = 3;
+
+/** `GET /places` for the stops nearest the venue, nearest first. */
+export function nearbyStopsQuery(place: Pick<Place, "location">): ListPlacesQuery {
+  const [lon, lat] = place.location.coordinates;
+  return { category: ["transit_stop"], near: [lon, lat], limit: EVENT_STOP_LIMIT };
+}
+
+/** The listed stops within walking distance of the venue, nearest first, with their distance in whole metres. */
+export function nearbyStops(stops: readonly PlaceSummary[], place: Pick<Place, "location">): { stop: PlaceSummary; distance: number }[] {
+  const [lon, lat] = place.location.coordinates;
+  return byDistance([...stops], [lon, lat])
+    .filter(({ distance }) => distance <= EVENT_STOP_RADIUS_M)
+    .slice(0, EVENT_STOP_LIMIT)
+    .map(({ place: stop, distance }) => ({ stop, distance: Math.round(distance) }));
+}
 
 /** "sobota, 10 października 2026" — the date is a calendar day, so it's formatted without a time zone shift. */
 export function formatEventDate(date: string, locale: Locale): string {
