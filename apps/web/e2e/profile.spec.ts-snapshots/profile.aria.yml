@@ -25,20 +25,6 @@
     - button "Rozwiń arkusz"
     - button "Schowaj listę" [expanded]
     - group "Lista miejsc":
-      - group "Profil potrzeb":
-        - text: ""
-        - radio "Profil wyłączony, widok dla każdego"
-        - text: Dla każdego
-        - radio "Wózek" [checked]
-        - text: Wózek
-        - radio "Wózek dziecięcy"
-        - text: Dziecięcy
-        - radio "Senior"
-        - text: Senior
-      - button "W mojej okolicy"
-      - text: Pokaż miejsca od najbliższych
-      - button "Albo wybierz dzielnicę"
-      - paragraph: Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.
       - group "Pokaż tylko miejsca z wynikiem":
         - button "1 spełnia"
         - button "0 sprzeczne"
@@ -46,18 +32,8 @@
         - button "1 nie spełnia"
       - button "Progi profilu":
         - img
-      - text: Ukryj niespełniające
-      - switch "Ukryj niespełniające"
-      - group "Filtry cech":
-        - button "Bez schodów"
-        - button "Winda"
-        - button "Toaleta dostosowana" [pressed]
-        - button "Ławki"
-        - button "Parking dla niepełnosprawnych"
-        - button "Przewijak"
-      - text: Pokaż też miejsca bez danych
-      - switch "Pokaż też miejsca bez danych" [checked]
       - heading "5 miejsc" [level=2]
+      - button "Filtry i profil"
       - list:
         - listitem:
           - link /Spełnia · niepotwierdzone Hotel Przykład ul\. Sienna 5, Kraków Dane przykładowe \d+ m od Rynku/:
@@ -85,6 +61,31 @@
           - link /Nie spełnia · 2 stopnie Brak danych · Toaleta dostosowana Restauracja Przykład ul\. Szewska 8, Kraków Dane przykładowe \d+ m od Rynku/:
             - /url: /miejsca/restauracja-przyklad
           - button "Dlaczego Restauracja Przykład nie spełnia?": Dlaczego?
+      - group "Profil potrzeb":
+        - text: ""
+        - radio "Profil wyłączony, widok dla każdego"
+        - text: Dla każdego
+        - radio "Wózek" [checked]
+        - text: Wózek
+        - radio "Wózek dziecięcy"
+        - text: Dziecięcy
+        - radio "Senior"
+        - text: Senior
+      - button "W mojej okolicy"
+      - text: Pokaż miejsca od najbliższych
+      - button "Albo wybierz dzielnicę"
+      - paragraph: Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.
+      - text: Ukryj niespełniające
+      - switch "Ukryj niespełniające"
+      - group "Filtry cech":
+        - button "Bez schodów"
+        - button "Winda"
+        - button "Toaleta dostosowana" [pressed]
+        - button "Ławki"
+        - button "Parking dla niepełnosprawnych"
+        - button "Przewijak"
+      - text: Pokaż też miejsca bez danych
+      - switch "Pokaż też miejsca bez danych" [checked]
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
   - 'img "Grupa: 2 miejsca (Spełnia: 1, Brak danych: 1)"'
   - button "Informacje o źródłach mapy"

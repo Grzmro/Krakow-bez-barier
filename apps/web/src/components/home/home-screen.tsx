@@ -25,6 +25,7 @@ import {
   escapeStep,
   FEATURE_FILTERS,
   type HomeChoices,
+  type HomeCommitted,
   homeView,
   isSearching,
   panelAfterAsk,
@@ -34,7 +35,7 @@ import {
   showResults,
   START_SELECTION,
 } from "@/lib/home-start";
-import { committedToSearch, searchToCommitted } from "@/lib/home-url";
+import { committedToSearch, searchToCommitted, searchWantsNear } from "@/lib/home-url";
 import { listedCount } from "@/lib/list-count";
 import { matchCategories, parseNearestCommand } from "@/lib/nearest-command";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
@@ -61,6 +62,7 @@ import { SEARCH_INPUT_ID, SearchBox, type SearchSuggestion } from "./search-box"
 const ALL = "all";
 const FEATURES = FEATURE_FILTERS;
 const LIST_ID = "lista";
+const CONTROLS_ID = "filtry";
 // One chip look for categories and feature filters; the scroll rows fade out at the right edge on a phone.
 const CHIP = "lg:h-8 lg:px-3 lg:text-[13px]";
 const CHIP_ROW = "no-scrollbar overflow-x-auto py-1.5 pr-10 [mask-image:linear-gradient(to_right,black_calc(100%-2rem),transparent)] lg:flex-wrap lg:overflow-visible lg:pr-4 lg:[mask-image:none]";
@@ -127,6 +129,7 @@ export function HomeScreen() {
   const rowRefs = useRef(new Map<string, HTMLAnchorElement>());
   const listRef = useRef<HTMLDivElement>(null);
   const moreRef = useRef<HTMLDivElement>(null);
+  const controlsRef = useRef<HTMLDivElement>(null);
   const focusRowRef = useRef<string | null>(null);
   const desktop = useMediaQuery(DESKTOP);
   const stowed = stowedFlag && !desktop;
@@ -159,7 +162,11 @@ export function HomeScreen() {
   }, [searching, expanded, stowedFlag, selectedId, setStowed]);
   // The query lives in the URL (`?q=…&category=…`), so Back from a place card shows the same results. A position
   // never goes there. Declared before the restore below: its first run (nothing restored yet) must not write.
-  const committedSearch = committedToSearch(committed);
+  // `restoredNear`: the committed query restored from a URL that asked for results around the device; while it is
+  // still the committed one, the URL keeps `near=1` and the position joins as soon as the device gives it.
+  const [restoredNear, setRestoredNear] = useState<HomeCommitted | null>(null);
+  const waitingForPosition = restoredNear !== null && restoredNear === committed;
+  const committedSearch = committedToSearch(committed, waitingForPosition || undefined);
   const urlReady = useRef(false);
   useEffect(() => {
     if (urlReady.current && window.location.search !== committedSearch) {
@@ -168,15 +175,22 @@ export function HomeScreen() {
   }, [committedSearch]);
   useEffect(() => {
     const restored = searchToCommitted(window.location.search);
-    if (isSearching(restored)) {
+    const wantsNear = searchWantsNear(window.location.search);
+    if (isSearching(restored) || wantsNear) {
       // The URL is only readable after hydration (reading it in the initial state would mismatch the server HTML).
       /* eslint-disable react-hooks/set-state-in-effect */
       setSelection({ committed: restored, draft: restored });
       setQ(restored.q);
+      if (wantsNear) setRestoredNear(restored);
       /* eslint-enable react-hooks/set-state-in-effect */
     }
     urlReady.current = true;
   }, []);
+  useEffect(() => {
+    // The device answers after mount, so the position can only join the restored query from an effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (waitingForPosition && peekNearby) setSelection((current) => commitChange(current, { nearby: peekNearby }));
+  }, [waitingForPosition, peekNearby]);
   const peekQuery = usePlaces(
     {
       bbox: peekFrom.area,
@@ -620,8 +634,46 @@ export function HomeScreen() {
     return () => observer.disconnect();
   }, [hasMore, isFetchingNextPage, windowKey, shown.length, rendered]);
 
+  // The verdict counters filter the results, so they stay above the list as one compact row.
+  const verdictCounters =
+    profile && searching ? (
+      <div key="counters" className="space-y-2 px-4 pb-2">
+        <div className="flex items-center gap-2">
+          <div role="group" aria-label={tp.countersLabel} className="flex min-w-0 items-center gap-2">
+            {STATUS_ORDER.map((status) => (
+              <Toggle
+                key={status}
+                pressed={statusFilter === status}
+                onPressedChange={() => toggleStatus(status)}
+                aria-label={tp.counter(counts[status], m.common.status[status])}
+                className={cn("h-11 min-w-0 gap-1.5 px-3 aria-pressed:ring-2", COUNTER_PRESSED[status])}
+              >
+                <StatusIcon status={status} className="size-5!" />
+                <span className="font-num text-[17px] text-foreground">{counts[status]}</span>
+              </Toggle>
+            ))}
+          </div>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label={tp.settings}
+            onClick={() => setThresholdsOpen(true)}
+            className="ml-auto size-11 shrink-0"
+          >
+            <SlidersHorizontal weight="bold" />
+          </Button>
+        </div>
+        {missing.length && !pending ? (
+          <div role="note" className="space-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-body-sm">
+            <p className="font-semibold">{tp.list.noneMet.title}</p>
+            <p>{tp.list.noneMet.missing(missing, verdictCount)}</p>
+            <p className="text-muted-foreground">{tp.list.noneMet.hint}</p>
+          </div>
+        ) : null}
+      </div>
+    ) : null;
   const controls = (
-    <div key="controls" className="space-y-2 px-4 pb-2">
+    <div key="controls" ref={controlsRef} id={CONTROLS_ID} tabIndex={-1} className="space-y-2 px-4 pb-2 outline-none">
       <ProfileSwitch value={profile} onChange={changeProfile} />
       <NearbyToggle
         ref={nearbyRef}
@@ -636,41 +688,7 @@ export function HomeScreen() {
         </div>
       ) : null}
       {profile && searching ? (
-        <>
-          <div className="flex items-center gap-2">
-            <div role="group" aria-label={tp.countersLabel} className="flex min-w-0 items-center gap-2">
-              {STATUS_ORDER.map((status) => (
-                <Toggle
-                  key={status}
-                  pressed={statusFilter === status}
-                  onPressedChange={() => toggleStatus(status)}
-                  aria-label={tp.counter(counts[status], m.common.status[status])}
-                  className={cn("h-11 min-w-0 gap-1.5 px-3 aria-pressed:ring-2", COUNTER_PRESSED[status])}
-                >
-                  <StatusIcon status={status} className="size-5!" />
-                  <span className="font-num text-[17px] text-foreground">{counts[status]}</span>
-                </Toggle>
-              ))}
-            </div>
-            <Button
-              variant="outline"
-              size="icon"
-              aria-label={tp.settings}
-              onClick={() => setThresholdsOpen(true)}
-              className="ml-auto size-11 shrink-0"
-            >
-              <SlidersHorizontal weight="bold" />
-            </Button>
-          </div>
-          <LabeledSwitch label={tp.hideFailing} checked={hideFailing} onCheckedChange={changeHideFailing} className="-my-1" />
-          {missing.length && !pending ? (
-            <div role="note" className="space-y-1 rounded-2xl border border-border bg-card px-3 py-2.5 text-body-sm">
-              <p className="font-semibold">{tp.list.noneMet.title}</p>
-              <p>{tp.list.noneMet.missing(missing, verdictCount)}</p>
-              <p className="text-muted-foreground">{tp.list.noneMet.hint}</p>
-            </div>
-          ) : null}
-        </>
+        <LabeledSwitch label={tp.hideFailing} checked={hideFailing} onCheckedChange={changeHideFailing} className="-my-1" />
       ) : null}
       <div role="group" aria-label={t.filtersLabel} className={cn(CHIP_ROW, "-mx-4 flex gap-2 pl-4")}>
         {FEATURES.map((feature) => (
@@ -689,9 +707,18 @@ export function HomeScreen() {
   );
   const listBlock = (
     <div key="list" ref={listRef} id={LIST_ID} tabIndex={-1} className="scroll-mt-2 px-4 pt-1 pb-8 outline-none">
-      <h2 className="mb-2 text-caption font-semibold text-muted-foreground">
-        {resultsLabel}
-      </h2>
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <h2 className="text-caption font-semibold text-muted-foreground">{resultsLabel}</h2>
+        {searching ? (
+          <button
+            type="button"
+            onClick={() => controlsRef.current?.focus()}
+            className="min-h-6 rounded-full text-caption font-semibold text-primary underline outline-offset-2"
+          >
+            {t.list.filtersJump}
+          </button>
+        ) : null}
+      </div>
       {pinsCut ? <p className="mb-2 text-body-sm text-muted-foreground">{t.map.pinsCut(pinsCut.shown, pinsCut.total)}</p> : null}
       {searching && wider && !pending && !places.isError && shown.length > 0 && shown.length < POOR_RESULTS ? (
         <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -948,7 +975,7 @@ export function HomeScreen() {
             </div>
           ) : null}
         </div>
-        {searching ? [controls, listBlock] : [listBlock, controls]}
+        {searching ? [verdictCounters, listBlock, controls] : [listBlock, controls]}
       </BottomPanel>
       {/* Resolves --list-collapsed in px: the map's padding and controls never rise above the half-height panel. */}
       <div ref={collapsedRef} aria-hidden className="pointer-events-none invisible absolute bottom-0 left-0 h-(--list-collapsed) w-px lg:hidden" />

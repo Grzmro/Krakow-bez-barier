@@ -101,6 +101,7 @@ export const home: Messages["home"] = {
     label: "List of places",
     start: { summary: "Nearest places", hint: "The map is clear. Type a name and press Enter, pick a quick action, or tick a category and features and then “Show results”. The list and pins appear then.", nearYou: "Nearest to you", nearChosen: "Nearest to the point you chose", nearCentre: "Nearest to the Main Square (no location)", empty: "No places nearby." },
     stow: { hide: "Hide the list", show: "Show the list" },
+    filtersJump: "Filters and profile",
     results: (n: number) => `${n} ${placesWord(n)}`,
     firstOf: (shown: number, total: number) => `List: first ${shown} of ${total} ${placesWord(total)}`,
     announcePartial: (shown: number, total: number) =>
