@@ -6,6 +6,11 @@ const words = (text: string) => text.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
 
 export const MAX_SEARCH_RANK = 4;
 
+/** Whether a text search names something: a single letter does not, so its hits keep the plain order (distance or name). */
+export function ranksByName(query: string): boolean {
+  return words(query).join("").length >= 2;
+}
+
 /**
  * How well a place's name answers a text search, lower is better; the list breaks ties by distance (or name).
  * Both texts must already be folded the same way (lower-case, no diacritics):
@@ -18,7 +23,7 @@ export const MAX_SEARCH_RANK = 4;
 export function searchRank(name: string, category: string, query: string): number {
   const nameWords = words(name);
   const queryWords = words(query);
-  if (!queryWords.length) return 0;
+  if (!ranksByName(query)) return 0;
   if (nameWords.join(" ") === queryWords.join(" ")) return 0;
   const starts = queryWords.every((q) => nameWords.some((w) => w.startsWith(q)));
   if (starts && LANDMARKS.has(category)) return 1;

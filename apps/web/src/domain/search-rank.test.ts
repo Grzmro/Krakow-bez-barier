@@ -25,6 +25,14 @@ describe("searchRank", () => {
     expect(searchRank("muzeum narodowe", "museum", "muz nar")).toBe(1);
   });
 
+  it("ranks every place the same for a single letter, which names nothing", () => {
+    // GIVEN "r", the start of one name and inside many addresses
+    // WHEN ranking
+    // THEN no place goes first, so the plain order (distance or name) stays
+    expect(searchRank("restauracja przyklad", "restaurant", "r")).toBe(0);
+    expect(searchRank("sukiennice", "museum", "r")).toBe(0);
+  });
+
   it("ranks every place the same without a query", () => {
     // GIVEN an empty query
     // WHEN ranking

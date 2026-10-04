@@ -1,3 +1,4 @@
+import { ranksByName } from "@/domain/search-rank";
 import type { Bbox } from "@/lib/map-points";
 import { fold } from "@/lib/route-intent";
 import { searchFitTargets } from "@/lib/search-fit";
@@ -19,17 +20,14 @@ export function listArea(area: Bbox | undefined, view: Bbox | null, q = ""): Bbo
   return q.trim() ? undefined : (view ?? undefined);
 }
 
-/** The shortest text that can name a place; anything shorter fits every result, as while browsing. */
-const MIN_NAME = 2;
-
 /**
  * The places the map fits after a search: for a typed name the one place it clearly names (the only hit, or the only
  * name equal to or starting with the text), else the best match and the next few near it (`places` in the API's ranked
- * order); while browsing, or for a single letter (it names no place), every place listed.
+ * order); while browsing, or for a single letter (`ranksByName`: it names no place), every place listed.
  */
 export function fitTargets<T extends { name: string; location: { coordinates: number[] } }>(q: string, places: readonly T[]): readonly T[] {
   const wanted = fold(q);
-  if (wanted.length < MIN_NAME || places.length <= 1) return places;
+  if (!ranksByName(wanted) || places.length <= 1) return places;
   const exact = places.filter((place) => fold(place.name) === wanted);
   if (exact.length === 1) return exact;
   const prefix = places.filter((place) => fold(place.name).startsWith(wanted));

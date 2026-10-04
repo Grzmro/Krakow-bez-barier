@@ -11,6 +11,7 @@ import { CONTROLS_ABOVE_PANEL, STOWED_HEIGHT, usePanelInset } from "@/components
 import { ProfileSwitch } from "@/components/profile/profile-switch";
 import { ThresholdsDrawer } from "@/components/profile/thresholds-drawer";
 import { useLocale, useMessages } from "@/i18n/client";
+import { ranksByName } from "@/domain/search-rank";
 import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
 import { routes } from "@/lib/routes";
@@ -265,9 +266,10 @@ export function HomeScreen() {
     setMapView((current) => nextTaggedView(current, roundView(view), moved, settledSearch.current));
   }, []);
   const origin = searchFrom.from;
-  // A text search keeps the API's ranking (best name matches and landmarks first); everything else is nearest first.
+  // A text search that names something keeps the API's ranking (best name matches and landmarks first); everything
+  // else is nearest first.
   const items = useMemo(
-    () => (committed.q ? withDistance : byDistance)(places.data?.items ?? [], origin ?? config.cityCenter),
+    () => (ranksByName(committed.q) ? withDistance : byDistance)(places.data?.items ?? [], origin ?? config.cityCenter),
     [places.data, origin, committed.q],
   );
   const counts = useMemo(() => countByStatus(items), [items]);
