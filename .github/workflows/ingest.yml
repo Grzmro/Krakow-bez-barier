@@ -24,12 +24,13 @@ jobs:
   ingest:
     name: ingest krakow
     runs-on: ubuntu-latest
-    # Whole city: Overpass retries (up to ~8 min when it is down) + Geofabrik extract + ~4,600 records written
-    # 16 at a time (~5 min at 90 ms to the database, measured through a latency proxy).
-    timeout-minutes: 30
+    # Whole city: Overpass retries (up to ~8 min when it is down) + Geofabrik extract + ~37,000 places (stops, benches,
+    # shops, steps, kerbs since KBB-131/146) written 32 at a time; at 16 writers 4,600 records took ~5 min.
+    timeout-minutes: 75
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       INGEST_AREA: ${{ inputs.area }}
+      INGEST_CONCURRENCY: "32"
     steps:
       - name: Check configuration
         id: config
