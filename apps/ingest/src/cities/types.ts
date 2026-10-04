@@ -43,4 +43,10 @@ export type PagePlace = {
   heading?: string;
 };
 
-export type SourcePage = { url: string; places: PagePlace[] };
+/**
+ * The reuse terms of one publisher, for a source that reads pages of many publishers (`bip-malopolska`). A page
+ * whose terms are not confirmed is not fetched, like a source without a confirmed licence.
+ */
+export type PageLicense = { confirmed: boolean; terms: string; termsUrl?: string };
+
+export type SourcePage = { url: string; places: PagePlace[]; license?: PageLicense };

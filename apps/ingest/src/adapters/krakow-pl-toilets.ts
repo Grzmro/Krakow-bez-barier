@@ -3,7 +3,7 @@ import type { FetchContext, MappedFact, MapResult, SourceAdapter } from "../adap
 import { withDownloadCache } from "../cache";
 import type { PagePlace } from "../cities/types";
 import { retryAfterMs, SourceHttpError } from "../errors";
-import { htmlLines } from "./bip-mk-extract";
+import { htmlLines } from "./declaration-extract";
 
 /** One toilet of the krakow.pl list, as the page words it. */
 export type ToiletEntry = {

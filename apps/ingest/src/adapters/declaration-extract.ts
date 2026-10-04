@@ -1,14 +1,6 @@
 import type { AccessibilityAttribute, FactValue } from "@krakow-bez-barier/contracts";
 import type { PageSection } from "../cities/types";
 
-/** The readable part of one BIP MK page and the dates from its "metka". */
-export type BipPage = {
-  /** One entry per paragraph, heading or list item, whitespace collapsed. */
-  lines: string[];
-  publishedAt: Date | null;
-  updatedAt: Date | null;
-};
-
 export type ExtractedFact = { attribute: AccessibilityAttribute; value: FactValue; quote: string };
 
 export type Extraction = {
@@ -17,7 +9,33 @@ export type Extraction = {
   skipped: string[];
 };
 
-const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+/** Named entities that editors of Polish declarations produce ("&oacute;", "&ndash;", "&bdquo;"). */
+const ENTITIES: Record<string, string> = {
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  apos: "'",
+  nbsp: " ",
+  shy: "",
+  oacute: "ó",
+  Oacute: "Ó",
+  ndash: "–",
+  mdash: "—",
+  bdquo: "„",
+  rdquo: "”",
+  ldquo: "“",
+  lsquo: "‘",
+  rsquo: "’",
+  laquo: "«",
+  raquo: "»",
+  hellip: "…",
+  middot: "·",
+  bull: "•",
+  deg: "°",
+  sup2: "²",
+  times: "×",
+};
 
 function decodeEntities(text: string): string {
   return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (whole, code: string) => {
@@ -25,28 +43,26 @@ function decodeEntities(text: string): string {
       const n = code[1] === "x" || code[1] === "X" ? parseInt(code.slice(2), 16) : Number(code.slice(1));
       return Number.isFinite(n) ? String.fromCodePoint(n) : whole;
     }
-    return ENTITIES[code.toLowerCase()] ?? whole;
+    return ENTITIES[code] ?? ENTITIES[code.toLowerCase()] ?? whole;
   });
 }
 
-function metkaDate(html: string, label: string): Date | null {
-  const m = new RegExp(`${label}:</div>\\s*<div[^>]*>\\s*(\\d{4}-\\d{2}-\\d{2})`).exec(html);
-  if (!m) return null;
-  const date = new Date(`${m[1]}T00:00:00Z`);
-  return Number.isNaN(date.getTime()) ? null : date;
+/**
+ * The "Dostępność architektoniczna" part of an accessibility declaration made from the official
+ * template: from the element with `id="a11y-architektura"` up to the next part of the template
+ * (usually `a11y-komunikacja`, "Dostępność komunikacyjno-informacyjna"), or the end. Empty when the
+ * declaration has no such part.
+ */
+export function declarationArchitecture(html: string): string[] {
+  const id = html.indexOf('id="a11y-architektura"');
+  if (id < 0) return [];
+  const start = html.lastIndexOf("<", id);
+  const next = NEXT_PART.exec(html.slice(id + 1));
+  return htmlLines(html.slice(start, next ? html.lastIndexOf("<", id + 1 + next.index) : undefined));
 }
 
-/**
- * Text of a BIP MK document page: everything under the page heading up to the "metka" box, one
- * line per block element. Fetch the page with `&metka=1`, otherwise the dates are not in the HTML.
- */
-export function parseBipPage(html: string): BipPage {
-  const heading = /<h1 class="bip">[\s\S]*?<\/h1>/.exec(html);
-  const start = heading ? heading.index + heading[0].length : -1;
-  const end = html.indexOf('<div class="labelBox">', start);
-  const body = start >= 0 ? html.slice(start, end > start ? end : undefined) : "";
-  return { lines: htmlLines(body), publishedAt: metkaDate(html, "Data publikacji"), updatedAt: metkaDate(html, "Data aktualizacji") };
-}
+/** Parts of the template that may follow the architecture part. */
+const NEXT_PART = /id="a11y-(?:komunikacja|aplikacje|kontakt|procedura|informacje-zwrotne)"/;
 
 /** Readable text of an HTML fragment: one line per block element, entities decoded, whitespace collapsed. */
 export function htmlLines(html: string): string[] {
@@ -98,7 +114,8 @@ const pl = (source: string) =>
 /** Abbreviations after which a full stop does not end the sentence ("ul. Szczepańska", "tzw. koperta"). */
 const ABBREVIATIONS = "ul|al|os|pl|tzw|św|im|nr|np|ok|tj|godz|ww|in|dr|prof|ks|gen|płk|pn|m";
 const SENTENCE_END = new RegExp(
-  `(?<!(?:^|[\\s(])(?:${ABBREVIATIONS})\\.)(?<=[.!?;])\\s+(?=[A-ZĄĆĘŁŃÓŚŹŻ„"–-])`,
+  // A colon before a capital letter ends a lead-in ("Informacje o dostępności toalet: W budynku …").
+  `(?<!(?:^|[\\s(])(?:${ABBREVIATIONS})\\.)(?<=[.!?;:])\\s+(?=[A-ZĄĆĘŁŃÓŚŹŻ„"–-])`,
   "u",
 );
 const MAX_QUOTE = 320;
@@ -122,21 +139,38 @@ type Rule = {
   number?: (sentence: string) => number | null;
 };
 
-const NO = String.raw`(?:nie ma\w*|brak\w*|nie posiada\w*|nie dysponuj\w*|nie zapewnia\w*|nie wyznaczono|bez)\>`;
+const NO_WORD = String.raw`nie ma\w*|brak\w*|nie posiada\w*|nie dysponuj\w*|nie zapewnia\w*|nie wyznaczono`;
+const NO = String.raw`(?:${NO_WORD}|bez)\>`;
+/** At most three words between a negation and the thing it denies. */
 const GAP = String.raw`(?:\s+\S+){0,3}?\s+`;
-const missing = (thing: string) => pl(String.raw`${NO}${GAP}?${thing}`);
+/** Things a declaration lists as missing together: "brak windy oraz platformy …, a także podjazdu". */
+const FEATURE = String.raw`(?:wind|platform|podjazd|pochylni|ramp|toalet|łazien|wc|parking|miejsc|podnośnik|dźwig|schodołaz|przewijak|kopert)\w*`;
+const AND = String.raw`,?\s+(?:oraz|a\s+także|ani|lub|i)\s+`;
+/** A negation, then a list whose every item starts with one of those things; `thing` is a later item. */
+const LIST = String.raw`\s+${FEATURE}(?:\s+[^\s,;.]+)*?(?:${AND}${FEATURE}(?:\s+[^\s,;.]+)*?)*${AND}(?:\S+\s+)?`;
+/** The negation reaches `thing`: right after it, or as an item of a list of missing things. */
+const denied = (thing: string) => String.raw`${NO}(?:${GAP}?|${LIST})${thing}`;
+const missing = (thing: string) => pl(denied(thing));
+/**
+ * A sentence that negates something the attribute's rule doesn't connect to the thing ("nie ma tłumacza PJM na
+ * miejscu oraz windy", "Toaleta: brak") is unclear: it gives no value rather than "there is one". Denying an
+ * obstacle ("brak progów", "nie ma przeszkód", "brak barier") is not such a negation.
+ */
+const SOME_NEGATION = pl(
+  String.raw`\<(?:${NO_WORD}|nie|pozbawion\w*)\>(?!\s+(?:\w+\s+)?(?:przeszk|barier|prog|różnic))|\<(?:niedostępn|nieczynn|wyłączon)\w*`,
+);
 
 /** Plans, wishes, requests and what the building "does not allow" describe something that is not there. */
 const NOT_YET = pl(String.raw`planuj|planowan|w planach|\<budow[ayię]\>|zostanie|zostaną|\<będzie\>|\<będą\>|prośb|wniosk|modernizac|nie pozwala`);
 /**
- * Contact lines, section headings ("Informacje o …", "Opis dostępności …"), evacuation and public
- * transport (lifts at a tram stop) say nothing about the building itself.
+ * Contact lines, section headings ("Informacje o …", "Opis dostępności …", any lead-in ending with a colon),
+ * evacuation and public transport (lifts at a tram stop) say nothing about the building itself.
  */
-const NOT_A_FACT = pl(String.raw`@|\<tel\.|telefon|^informacj[ae] o\>|^opis dost|^dostępność (architektoniczna|komunikac)|ewakuac|przystan`);
+const NOT_A_FACT = pl(String.raw`@|\<tel\.|telefon|^(\d+\.\s*)?informacj[ae] o\>|^opis dost|^dostępność (architektoniczna|komunikac)|ewakuac|przystan|:$`);
 
 const DISABLED = String.raw`(niepełnospr|specjalnymi potrzebami|na wózk|inwalid|dostosowan|przystosowan)`;
 const ENTRANCE_LEVEL = String.raw`z poziomu (chodnika|terenu|gruntu|ulicy|0\>|zero)|na poziomie (chodnika|terenu|gruntu|ulicy)|bez schodów|bez stopni|bezprogow|wolne od barier|bez barier`;
-const STEPS_BEFORE_ENTRANCE = String.raw`(do|przed) (głównego )?wej(ś|s)ci\w*.*(prowadz\w* schod|znajduj\w* się schod|są schody|stopni)|wej(ś|s)ci\w* (\S+ ){0,2}?po schod`;
+const STEPS_BEFORE_ENTRANCE = String.raw`(do|przed) (głównego )?wej(ś|s)ci\w*.*(prowadz\w* schod|znajduj\w* się schod|są schody|stopni)|wej(ś|s)ci\w* (\S+ ){0,2}?po (\S+ )?(schod|stopni)`;
 
 /** "do wejścia", "od drzwi wejściowych", "wejście z podjazdem", "na dziedziniec": the way into the building. */
 const ENTRANCE = String.raw`((do|przy|przed|od|obok) (głównego |bocznego )?(wej(ś|s)ci|drzwi|budynk)|wej(ś|s)ci\w* (\S+ ){0,3}?(z|po|przez) (podjazd|pochyln|ramp)|drzwi wej|na (dziedziniec|podwórz|teren))`;
@@ -145,30 +179,30 @@ const RULES: Rule[] = [
   {
     attribute: "lift",
     about: pl(String.raw`\<wind(a|y|ę|zie|ą|ach|ami|om)\>|\<dźwig|\<podnośnik|\<platform\w*(?=.*(niepełnospr|pionow|przyschodow|schod|wózk|poziom|piętr))`),
-    absent: pl(String.raw`${NO}${GAP}?(wind[yę]|dźwig|podnośnik|platform)|nie jest wyposażon\w* w wind`),
+    absent: pl(String.raw`${denied(String.raw`(wind(y|ę)?\>|dźwig(u|ów)\>|podnośnik(a|ów)\>|platform(y)?\>)`)}|nie jest wyposażon\w* w wind`),
   },
   {
     attribute: "ramp",
     // Only a ramp to the entrance or the grounds counts: the matcher reads `ramp` as the way in.
     about: pl(String.raw`(pochylni|\<ramp(a|y|ę|ą|ami)\>|\<podjazd(y|em|u|ami)?\>(?!\s+(wind|wózk))(?!.*samochod))(?=.*${ENTRANCE})|${ENTRANCE}.*(pochylni|\<ramp(a|y|ę|ą|ami)\>|\<podjazd(y|em|u|ami)?\>(?!\s+(wind|wózk))(?!.*samochod))`),
-    absent: missing(String.raw`(pochylni|ramp|podjazd)`),
+    absent: missing(String.raw`(pochylni\>|ramp(y)?\>|podjazd(u|ów)\>)`),
   },
   {
     attribute: "toilet_accessible",
     about: pl(String.raw`(toalet|\<wc\>|łazien)\w*(?=.*${DISABLED})|${DISABLED}.*(toalet|\<wc\>|łazien)|dostępn\w* toalet|toalet\w* dostępn`),
-    absent: pl(String.raw`${NO}${GAP}?(toalet|\<wc\>|łazien)|toalet\w*.*\<nie (jest|są) (\S+ )?(przystosowan|dostosowan)`),
+    absent: pl(String.raw`${denied(String.raw`(toalet(y)?\>|wc\>|łazien(ki|ek)\>)`)}|toalet\w*.*\<nie (jest|są) (\S+ )?(przystosowan|dostosowan)`),
   },
   {
     attribute: "changing_table",
     about: pl(String.raw`przewijak`),
-    absent: missing("przewijak"),
+    absent: missing(String.raw`przewijak(a|ów)\>`),
   },
   {
     attribute: "disabled_parking",
     about: pl(
       String.raw`kopert[aęy]\>|(parking|postoj|parkowan)\w*(?=.*\<dla (os[óo]b|pojazd|samochod|kierow)\w*[^.]{0,40}?(niepełnospr|specjalnymi potrzebami|inwalid))`,
     ),
-    absent: missing(String.raw`(\S+ )?(miejsc\w* (parkingow|postojow)|parking|kopert)`),
+    absent: missing(String.raw`(\S+ )?(miejsc\w* (parkingow|postojow)|parking(u|ów)\>|kopert(y)?\>)`),
   },
   {
     attribute: "entrance_level",
@@ -196,6 +230,7 @@ function valuesOf(rule: Rule, sentence: string): FactValue[] {
     return n === null ? [] : [{ kind: "number", number: n, unit: "cm" }];
   }
   const absent = rule.absent?.test(sentence) ?? false;
+  if (!rule.present && !absent && SOME_NEGATION.test(sentence)) return [];
   const present = rule.present ? rule.present.test(sentence) : !absent;
   if (present && absent) return [{ kind: "boolean", boolean: true }, { kind: "boolean", boolean: false }];
   return [{ kind: "boolean", boolean: present }];

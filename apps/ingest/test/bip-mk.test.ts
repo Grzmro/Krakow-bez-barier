@@ -1,8 +1,8 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { categories } from "@krakow-bez-barier/contracts";
-import { bipMk, mapBipPlace, type BipRecord } from "../src/adapters/bip-mk";
-import { extractFacts, parseBipPage, sentences, sliceSections } from "../src/adapters/bip-mk-extract";
+import { bipMk, mapBipPlace, parseBipPage, type BipRecord } from "../src/adapters/bip-mk";
+import { extractFacts, sentences, sliceSections } from "../src/adapters/declaration-extract";
 import { krakow } from "../src/cities/krakow";
 import type { PagePlace } from "../src/cities/types";
 import { adapters } from "../src/registry";
