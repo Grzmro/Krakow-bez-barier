@@ -30,6 +30,21 @@
         - button "Najbliższa winda"
         - button "Najbliższa apteka"
         - button "Najbliższy przystanek"
+      - heading "4 miejsca" [level=2]
+      - button "Filtry i profil"
+      - list:
+        - listitem:
+          - link /Podziemia Rynku Rynek Główny 1, Kraków Toaleta dostosowana Dane przykładowe \d+ m od Rynku/:
+            - /url: /miejsca/podziemia-rynku
+        - listitem:
+          - 'link /Sukiennice Rynek Główny 1-3, Kraków Wejście bez stopni · Winda · Toaleta: brak danych Dane przykładowe \d+ m od Rynku/':
+            - /url: /miejsca/sukiennice
+        - listitem:
+          - 'link /Pałac Krzysztofory Rynek Główny \d+, Kraków Wejście bez stopni · Toaleta: sprzeczne dane · Winda: brak danych Dane przykładowe \d+ m od Rynku/':
+            - /url: /miejsca/palac-krzysztofory
+        - listitem:
+          - link /Muzeum Inżynierii i Techniki ul\. św\. Wawrzyńca \d+, Kraków Winda · Toaleta dostosowana Dane przykładowe \d+,\d+ km od Rynku/:
+            - /url: /miejsca/muzeum-inzynierii-i-techniki
       - group "Profil potrzeb":
         - text: ""
         - radio "Profil wyłączony, widok dla każdego" [checked]
@@ -77,20 +92,6 @@
         - button "Ławki"
         - button "Parking dla niepełnosprawnych"
         - button "Przewijak"
-      - heading "4 miejsca" [level=2]
-      - list:
-        - listitem:
-          - link /Podziemia Rynku Rynek Główny 1, Kraków Toaleta dostosowana Dane przykładowe \d+ m od Rynku/:
-            - /url: /miejsca/podziemia-rynku
-        - listitem:
-          - 'link /Sukiennice Rynek Główny 1-3, Kraków Wejście bez stopni · Winda · Toaleta: brak danych Dane przykładowe \d+ m od Rynku/':
-            - /url: /miejsca/sukiennice
-        - listitem:
-          - 'link /Pałac Krzysztofory Rynek Główny \d+, Kraków Wejście bez stopni · Toaleta: sprzeczne dane · Winda: brak danych Dane przykładowe \d+ m od Rynku/':
-            - /url: /miejsca/palac-krzysztofory
-        - listitem:
-          - link /Muzeum Inżynierii i Techniki ul\. św\. Wawrzyńca \d+, Kraków Winda · Toaleta dostosowana Dane przykładowe \d+,\d+ km od Rynku/:
-            - /url: /miejsca/muzeum-inzynierii-i-techniki
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
   - 'img "Grupa: 3 miejsca"'
   - button "Informacje o źródłach mapy"

@@ -39,6 +39,12 @@
           - /url: /trasa?do=toaleta-planty-przyklad
         - link "Szczegóły":
           - /url: /miejsca/toaleta-planty-przyklad
+      - heading "1 miejsce" [level=2]
+      - button "Filtry i profil"
+      - list:
+        - listitem:
+          - link /Toaleta publiczna Planty \(przykład\) ul\. Basztowa 1, Kraków Toaleta dostosowana · Przewijak · Ławki obok Dane przykładowe \d+ m od Ciebie/:
+            - /url: /miejsca/toaleta-planty-przyklad
       - group "Profil potrzeb":
         - text: ""
         - radio "Profil wyłączony, widok dla każdego" [checked]
@@ -62,11 +68,6 @@
         - button "Przewijak"
       - text: Pokaż też miejsca bez danych
       - switch "Pokaż też miejsca bez danych"
-      - heading "1 miejsce" [level=2]
-      - list:
-        - listitem:
-          - link /Toaleta publiczna Planty \(przykład\) ul\. Basztowa 1, Kraków Toaleta dostosowana · Przewijak · Ławki obok Dane przykładowe \d+ m od Ciebie/:
-            - /url: /miejsca/toaleta-planty-przyklad
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
   - button "Informacje o źródłach mapy"
   - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
