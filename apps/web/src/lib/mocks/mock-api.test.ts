@@ -14,8 +14,21 @@ describe("mockListPlaces", () => {
     const labels = (id: string) => result.items.find((p) => p.id === id)?.summary.map((chip) => chip.label);
 
     // THEN a place with facts gets English labels, and a list-only example falls back to no label
-    expect(labels("sukiennice")).toEqual(["Step-free entrance", "Lift", "Accessible toilet: no data"]);
+    expect(labels("sukiennice")).toEqual(["Entrance: no steps", "Lift: yes", "Accessible toilet: no data"]);
     expect(labels("bistro-przyklad")).toEqual([undefined, undefined]);
+  });
+
+  it("labels every chip of a place with facts with its value, like the API", () => {
+    // GIVEN example places with facts, which the mock lists without the API's labels
+    // WHEN listing in Polish
+    const result = mockListPlaces({});
+    const labels = (id: string) => result.items.find((p) => p.id === id)?.summary.map((chip) => chip.label);
+
+    // THEN no chip is a bare feature name: each says "cecha: wartość" (or "brak danych")
+    for (const id of ["restauracja-przyklad", "hotel-przyklad", "sukiennice"]) {
+      for (const label of labels(id) ?? []) expect(label).toMatch(/: |dostępne dla wózków/);
+    }
+    expect(labels("sukiennice")).toEqual(["Wejście: bez stopni", "Winda: jest", "Toaleta dostosowana: brak danych"]);
   });
 
   it("finds Sukiennice by name, ignoring case and diacritics", () => {

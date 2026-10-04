@@ -1,38 +1,26 @@
 import type { AccessibilityAttribute, FactValue } from "@krakow-bez-barier/contracts";
+import { factValueText, joinValue } from "../fact-value";
 import { common } from "./common";
 import { place } from "./place";
 
-function plural(n: number, one: string, few: string, many: string) {
-  if (n === 1) return one;
-  const d = n % 10;
-  const t = n % 100;
-  return d >= 2 && d <= 4 && (t < 12 || t > 14) ? few : many;
-}
+// The list names an attribute shorter where the value already says the rest ("Wejście: 2 stopnie").
+const SHORT_NAME: Partial<Record<AccessibilityAttribute, string>> = { step_count: "Wejście" };
 
-const UNIT = { cm: " cm", pct: "%", count: "", m: " m" } as const;
+const nameOf = (attribute: AccessibilityAttribute) => SHORT_NAME[attribute] ?? common.attribute[attribute];
 
 function valueLabel(attribute: AccessibilityAttribute, value: FactValue): string {
-  const name = common.attribute[attribute];
-  if (attribute === "step_count" && value.kind === "number") {
-    const n = value.number;
-    return n === 0 ? "Wejście bez stopni" : `${n} ${plural(n, "stopień", "stopnie", "stopni")} przy wejściu`;
-  }
-  if (attribute === "wheelchair_overall" && value.kind === "text" && place.overall[value.text]) return place.overall[value.text];
-  switch (value.kind) {
-    case "boolean":
-      return value.boolean ? name : `${name}: brak`;
-    case "number":
-      return `${name}: ${value.number}${value.unit ? UNIT[value.unit] : ""}`;
-    case "text":
-      return `${name}: ${value.text}`;
-  }
+  const text = joinValue(factValueText(attribute, value, place, "pl"));
+  // The overall tag is already a whole sentence ("Częściowo dostępne dla wózków"), as on the card.
+  if (attribute === "wheelchair_overall" && value.kind === "text" && place.overall[value.text]) return text;
+  return `${nameOf(attribute)}: ${text.charAt(0).toLocaleLowerCase("pl") + text.slice(1)}`;
 }
 
-// Short chip texts in place lists returned by the places API (`SummaryChip.label`).
+// Short chip texts in place lists returned by the places API (`SummaryChip.label`): always "cecha: wartość",
+// in the place card's words.
 export const summary = {
   chip: (attribute: AccessibilityAttribute, state: "known" | "stale" | "unknown" | "conflict", value: FactValue | null | undefined) => {
-    if (state === "conflict") return `${common.attribute[attribute]}: sprzeczne dane`;
-    if (!value || state === "unknown") return `${common.attribute[attribute]}: brak danych`;
+    if (state === "conflict") return `${nameOf(attribute)}: sprzeczne dane`;
+    if (!value || state === "unknown") return `${nameOf(attribute)}: brak danych`;
     return state === "stale" ? `${valueLabel(attribute, value)} · nieaktualne` : valueLabel(attribute, value);
   },
 } as const;

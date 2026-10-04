@@ -34,16 +34,16 @@
       - button "Filtry i profil"
       - list:
         - listitem:
-          - link /Podziemia Rynku Rynek Główny 1, Kraków Toaleta dostosowana Dane przykładowe \d+ m od Rynku/:
+          - 'link /Podziemia Rynku Rynek Główny 1, Kraków Toaleta dostosowana: jest · nieaktualne Dane przykładowe \d+ m od Rynku/':
             - /url: /miejsca/podziemia-rynku
         - listitem:
-          - 'link /Sukiennice Rynek Główny 1-3, Kraków Wejście bez stopni · Winda · Toaleta: brak danych Dane przykładowe \d+ m od Rynku/':
+          - 'link /Sukiennice Rynek Główny 1-3, Kraków Wejście: bez stopni · Winda: jest · Toaleta dostosowana: brak danych Dane przykładowe \d+ m od Rynku/':
             - /url: /miejsca/sukiennice
         - listitem:
-          - 'link /Pałac Krzysztofory Rynek Główny \d+, Kraków Wejście bez stopni · Toaleta: sprzeczne dane · Winda: brak danych Dane przykładowe \d+ m od Rynku/':
+          - 'link /Pałac Krzysztofory Rynek Główny \d+, Kraków Wejście: bez stopni · Toaleta dostosowana: sprzeczne dane · Winda: brak danych Dane przykładowe \d+ m od Rynku/':
             - /url: /miejsca/palac-krzysztofory
         - listitem:
-          - link /Muzeum Inżynierii i Techniki ul\. św\. Wawrzyńca \d+, Kraków Winda · Toaleta dostosowana Dane przykładowe \d+,\d+ km od Rynku/:
+          - 'link /Muzeum Inżynierii i Techniki ul\. św\. Wawrzyńca \d+, Kraków Winda: jest · Toaleta dostosowana: jest Dane przykładowe \d+,\d+ km od Rynku/':
             - /url: /miejsca/muzeum-inzynierii-i-techniki
       - group "Profil potrzeb":
         - text: ""

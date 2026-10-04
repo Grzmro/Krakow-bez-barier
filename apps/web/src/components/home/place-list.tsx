@@ -15,11 +15,12 @@ import type { DistanceFrom } from "@/lib/nearby";
 import { filterGapStatus, formatAddress, matchFeature, summaryLine } from "@/lib/place-features";
 import { routes } from "@/lib/routes";
 
-/** Words for a summary chip without its own label, with its state when it is not known. */
+/** Words for a summary chip without its own label (the API always sends one), with its state unless known. */
 export function chipFallback(chip: PlaceSummary["summary"][number], t: Messages["common"]) {
   const name = t.attribute[chip.attribute];
   if (chip.state === "unknown") return `${name}: ${t.status.unknown.toLowerCase()}`;
   if (chip.state === "conflict") return `${name}: ${t.status.conflict.toLowerCase()}`;
+  if (chip.state === "stale") return `${name} · ${t.reliability.outdated.toLowerCase()}`;
   return name;
 }
 
