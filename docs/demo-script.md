@@ -9,8 +9,8 @@ Dwa scenariusze z tymi samymi scenami:
 2. **[Wideo do zgłoszenia](#wideo-do-zgłoszenia)** (KBB-31, KBB-181): MP4 2:51 z polskimi napisami,
    nagrywane automatycznie przez Playwright (`npm run demo:record`); lektora można dograć.
 
-3. **[Wideo z lektorem](#wideo-z-lektorem)** (KBB-195): MP4 2:45, telefon + komputer, polski głos AI (Piper),
-   napisy, jedna komenda `npm run demo:video`.
+3. **[Wideo z lektorem](#wideo-z-lektorem)** (KBB-195): MP4 2:22, telefon + komputer, polski głos (Microsoft Marek),
+   montaż w Remotion, napisy, jedna komenda `npm run demo:video`.
 
 ## Pokaz na żywo dla jury
 
@@ -75,51 +75,62 @@ każdą scenę jeszcze raz, bo identyfikatory miejsc są tam inne.
 
 ## Wideo z lektorem
 
-Finalne wideo (KBB-195): `apps/web/demo-output/kbb-demo-final.mp4` (H.264 + AAC, 1920×1080, 2:45, limit 3:00
-sprawdzany w skrypcie), `kbb-demo-final.srt` i ścieżka napisów `pol` w MP4. Tylko prawdziwe dane, bez „PRZYKŁAD”.
-Plik i dźwięk nie trafiają do gita (`apps/web/demo-output/` jest w `.gitignore`).
+Finalne wideo (KBB-195, wersja 2): `apps/web/demo-output/kbb-demo-final.mp4` (H.264 yuv420p + AAC, 1920×1080,
+2:22, limit 3:00 sprawdzany w skrypcie), `kbb-demo-final.srt` i ścieżka napisów `pol` w MP4. Tylko prawdziwe
+miejsca z lokalnej bazy jednorazowej, bez „PRZYKŁAD”. Plik, głos i nagrania nie trafiają do gita
+(`apps/web/demo-output/` oraz `video/public/{voice,capture}` są w `.gitignore`).
 
 ```bash
-# baza jednorazowa z danymi (nigdy wspólna): npm run db:setup && npm run ingest -- --city krakow
-DATABASE_URL=<jednorazowa baza> npm run demo:video      # build + next start, nagranie, głos, montaż
+# baza jednorazowa (nigdy wspólna): npm run db:setup && npm run ingest -- --city krakow
+DATABASE_URL=<jednorazowa baza> npm run demo:video      # build + next start, głos, nagranie, montaż w Remotion
 E2E_BASE_URL=http://localhost:3187 npm run demo:video   # na działającej aplikacji (build z NEXT_PUBLIC_API_MOCK puste)
-npm run demo:video -- --skip-record                     # tylko montaż, z już nagranych segmentów
+npm run demo:video -- --skip-voice --skip-capture       # tylko montaż (po zmianach w video/src)
+cd video && npm run dev                                 # Remotion Studio: podgląd i poprawki kompozycji
 ```
 
-- **Narracja:** `apps/web/e2e/demo/narration.json` (id sceny, segment `phone`/`desktop`, tytuł, tekst; opcjonalne
-  `speak` = zapis fonetyczny dla syntezatora, np. „a pe i”). Ten sam tekst jest napisem na ekranie i w pliku `.srt`.
-- **Głos:** Piper (`piper-tts`, offline, neuronowy) z modelem `pl_PL-gosia-medium` (rhasspy/piper-voices; dane
-  głosowe na licencji CC0, silnik Piper na GPL-3.0). `scripts/demo-video/synthesize.py` robi jeden WAV na scenę.
-  Narzędzia (venv, ffmpeg z `imageio-ffmpeg`, model) instalują się przy pierwszym uruchomieniu w
-  `~/.cache/kbb-demo-video` (`DEMO_TOOLS_DIR`), poza repozytorium; systemowy `ffmpeg` nie jest potrzebny.
-- **Synchronizacja z konstrukcji:** `apps/web/e2e/demo/record-final.ts` trzyma każdą scenę na ekranie przez
-  max(czas akcji, długość głosu + 0,5 s) i zapisuje początki scen w `timeline.json`. Segment telefonu (aplikacja w
-  ramce 412×915, napis obok) i segment komputera (szeroki układ z panelem bocznym, pasek napisów pod spodem) to dwa
-  nagrania Playwright (`playwright.video.config.ts`, poza `test:e2e`).
-- **Montaż:** `scripts/demo-video/assemble.mjs`: segmenty → H.264, sklejenie, WAV-y przesunięte do początków scen
-  (`adelay` + `amix`), napisy `.srt`, MP4 `+faststart`. Kończy się błędem powyżej 3:00.
-- **Trasa bez klucza:** bez `ORS_API_KEY` serwer odpowiada nagranymi odpowiedziami openrouteservice, tylko dla
-  Dworzec Główny → Rynek Główny (`src/server/routing/fixtures`). Wideo pokazuje tę trasę z profilem Wózek. Z kluczem w
-  środowisku (nie w pliku w repozytorium) działa dowolna trasa.
-- **Poza wideo:** plan dnia (`/plan`: odcinki między dowolnymi miejscami wymagają klucza openrouteservice) oraz
-  zapis/zatwierdzanie zgłoszeń i symulowana awaria (konto demo; pokazuje je nagranie z KBB-181 na danych przykładowych).
-  Jedyny zapis w nagraniu to „Nadal aktualne” (potwierdzenie) — dlatego baza ma być jednorazowa.
+- **Opowieść (3 minuty):** liczby GUS (111 014 osób z niepełnosprawnością, NSP 2021; 183 315 osób w wieku
+  poprodukcyjnym, 2025; źródło na ekranie) → Anna na wózku i jej plan dnia (kolacja, potem muzeum) → jej dzień w
+  aplikacji na telefonie (profil, szukanie, najbliższa toaleta, karta ze źródłami, „Nadal aktualne” i „To się nie
+  zgadza”, Hangar Czyżyny z deklaracją dostępności, udostępnienie z kodem QR) → komputer (trasa dla wózka,
+  „Ruszamy”, źródła i raport jakości, dla firm i model biznesowy, klawiatura) → zakończenie.
+- **Narracja:** `video/narration.json` (scena, rodzaj `card`/`phone`/`desktop`, zdania). Pisana do słuchania:
+  liczby słowami, bez skrótów, krótkie zdania. Słowo „dane” tylko w nazwie stanu „brak danych”.
+- **Głos:** Microsoft `pl-PL-MarekNeural` przez `edge-tts` (`video/scripts/voice.py`, jeden plik na zdanie, cisza
+  przycięta, pauzy dodajemy sami). `edge-tts` korzysta nieoficjalnie z usługi czytania na głos przeglądarki Edge
+  (licencja niejasna); oficjalna droga z tymi samymi głosami to Azure Speech. Głosu `pl-PL-AgnieszkaNeural` ta usługa
+  nie udostępnia; do wyboru były Marek i Zofia.
+- **Nagranie:** `apps/web/e2e/demo/record-final.ts` (Playwright, `playwright.video.config.ts`, poza `test:e2e`)
+  nagrywa czyste ekrany, bez napisów: telefon 412×915 i komputer 1600×900. Każda scena trwa max(akcje, długość
+  głosu), ładowanie stron jest przed znacznikiem sceny i wypada z montażu. Zapisuje odcinki scen i miejsca dotknięć
+  w `capture.json`. Adres lokalnego serwera (link udostępniania, kod osadzenia) jest rozmyty.
+- **Montaż:** Remotion w `video/` (własny `package.json`, poza workspace’ami i CI). `video/scripts/build-timeline.mjs`
+  liczy z głosu i nagrań `public/timeline.json` oraz `.srt` (synchronizacja z konstrukcji). Kompozycja `KbbDemo`:
+  karty z animowanymi liczbami, ramka telefonu i okno przeglądarki, przybliżenie do miejsca dotknięcia, kursor i
+  fala dotknięcia, napisy pojawiające się słowo po słowie. Na końcu ffmpeg (`imageio-ffmpeg`, poza repozytorium)
+  zapisuje yuv420p, `+faststart` i ścieżkę napisów.
+- **Trasa bez klucza:** bez `ORS_API_KEY` serwer odpowiada nagranymi odpowiedziami openrouteservice tylko dla
+  Dworzec Główny → Rynek Główny; wideo pokazuje tę trasę.
+- **Poza wideo:** plan dnia (odcinki między dowolnymi miejscami wymagają klucza openrouteservice), zatwierdzanie
+  zgłoszeń, stan „Sprzeczne” i symulowana awaria (konto demo; pokazuje je nagranie z KBB-181 na przykładowych
+  miejscach), „Zgłoś miastu”. Jedyny zapis w nagraniu to „Nadal aktualne”, dlatego baza ma być jednorazowa.
 
-| Czas | Scena | Co widać |
-|---|---|---|
-| 0:00 | 1 · Dla kogo (telefon) | Czysty ekran startowy z mapą i najbliższymi miejscami, profil „Wózek”, „Pokaż moją lokalizację”, przybliżenie |
-| 0:14 | 2 · Szukanie | „restauracja” → podpowiedź kategorii → „Pokaż wyniki (N)” → lista z werdyktami słowami |
-| 0:26 | 3 · Najbliższa toaleta | Szybka akcja: toaleta ze 100 m od lokalizacji, „Może być nieaktualne” (krakow.pl z 15.09.2025) |
-| 0:39 | 4 · Skąd wiemy | Karta: fakty, „Ogólna dostępność” rozwinięta, „Skąd wiemy?” (OpenStreetMap i krakow.pl) |
-| 0:52 | 5 · Poprawianie danych | „To się nie zgadza” (okno), „Nadal aktualne” przy windzie |
-| 1:05 | 6 · Deklaracja w BIP | Hangar Czyżyny: winda z cytatem i datą z BIP, „Brak danych · drzwi” |
-| 1:19 | 7 · Udostępnianie | „Udostępnij”: link i kod QR |
-| 1:27 | 8 · Trasa dla wózka (komputer) | Dworzec Główny → Rynek, „Wózek”, odcinki bez danych, „Najkrótsza: Nie spełnia · schody”, „Ruszamy” |
-| 1:52 | 9 · Skąd dane | „O danych”: źródła, licencje, atrybucja |
-| 2:04 | 10 · Jakość danych | Raport jakości (`/o-danych/jakosc`) |
-| 2:15 | 11 · Dla firm | Widżet, strona wydarzenia, kod i API, model biznesowy |
-| 2:30 | 12 · Dostępność | Tab: „Przejdź do treści”, deklaracja dostępności |
-| 2:39 | Zakończenie | Ekran główny na komputerze |
+| Czas | Scena |
+|---|---|
+| 0:00 | Kraków w liczbach GUS |
+| 0:11 | Anna i jej plan dnia |
+| 0:18 | Telefon: start, profil „Wózek” |
+| 0:30 | „restauracja” → podpowiedź kategorii → „Pokaż wyniki (N)” |
+| 0:43 | Najbliższa toaleta, „Może być nieaktualne” |
+| 0:53 | Karta: źródło, data, wiarygodność, „Brak danych” |
+| 1:05 | „Nadal aktualne”, „To się nie zgadza” |
+| 1:15 | Hangar Czyżyny: winda z deklaracji dostępności |
+| 1:26 | Udostępnienie: link i kod QR |
+| 1:32 | Komputer: trasa dla wózka z Dworca na Rynek |
+| 1:42 | „Ruszamy” |
+| 1:48 | „O danych” i raport jakości |
+| 1:57 | Dla firm, API, kto płaci, kolejne miasto |
+| 2:09 | Klawiatura, deklaracja dostępności |
+| 2:17 | Kraków bez barier |
 
 ## Wideo do zgłoszenia
 
