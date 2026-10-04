@@ -1,9 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createFakePlaceRepository, placeRecord } from "./fake-repository";
 import { findPlaceName } from "./place-name";
 
 const qubus = placeRecord({ name: "Qubus" });
 const repository = () => createFakePlaceRepository([qubus], []);
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 describe("findPlaceName", () => {
   it("names a place that exists, for the card's title", async () => {
@@ -22,17 +26,30 @@ describe("findPlaceName", () => {
     expect(await findPlaceName("nie-istnieje", { mock: false, repository })).toBeNull();
   });
 
-  it("can't tell without a database or when it fails, so the card renders and reports its own state", async () => {
-    // GIVEN no database, and a database that throws
+  it("can't tell without a database, so the card renders and reports its own state", async () => {
+    // GIVEN no database
+    // WHEN the card looks the place up
+    // THEN the answer doesn't claim the place is missing
+    expect(await findPlaceName(qubus.id, { mock: false, repository: () => null })).toBeUndefined();
+  });
+
+  it("can't tell when the database fails, so an existing card never turns into a 404", async () => {
+    // GIVEN a database that throws, and one whose client can't even be created
     const broken = createFakePlaceRepository([], []);
     broken.findPlace = () => Promise.reject(new Error("connection refused"));
     vi.spyOn(console, "error").mockImplementation(() => {});
 
     // WHEN the card looks the place up
     // THEN neither answer claims the place is missing
-    expect(await findPlaceName(qubus.id, { mock: false, repository: () => null })).toBeUndefined();
     expect(await findPlaceName(qubus.id, { mock: false, repository: () => broken })).toBeUndefined();
-    vi.restoreAllMocks();
+    expect(
+      await findPlaceName(qubus.id, {
+        mock: false,
+        repository: () => {
+          throw new Error("invalid DATABASE_URL");
+        },
+      }),
+    ).toBeUndefined();
   });
 
   it("looks places up in the spec's examples in the example-data mode", async () => {

@@ -15,12 +15,12 @@ const defaultRepository = () => (isDbConfigured() ? createDbPlaceRepository() : 
 export async function findPlaceName(id: string, deps: PlaceNameDeps = {}): Promise<string | null | undefined> {
   const { mock = isMockApi, repository = defaultRepository } = deps;
   if (mock) {
-    const { EXAMPLE_PLACES } = await import("@/lib/mocks/mock-api");
-    return EXAMPLE_PLACES.find((p) => p.id === id)?.name ?? null;
+    const { mockGetPlace } = await import("@/lib/mocks/mock-api");
+    return mockGetPlace(id)?.name ?? null;
   }
-  const repo = repository();
-  if (!repo) return undefined;
   try {
+    const repo = repository();
+    if (!repo) return undefined;
     return (await repo.findPlace(id))?.name ?? null;
   } catch (error) {
     console.error("place name lookup failed", error);
