@@ -66,6 +66,8 @@ export const home: Messages["home"] = {
     cluster: (n, parts) => `Group: ${n} ${placesWord(n)}${verdictParts(parts)}`,
     zoomedToCluster: (n, parts) => `Zoomed in: ${n} ${placesWord(n)}${verdictParts(parts)}`,
     inView: (n) => `In view: ${n} ${placesWord(n)}.`,
+    pinsCut: (shown, total) =>
+      `The map shows ${shown} of ${total} places in this area. Zoom in or narrow the search to see the rest.`,
     pin: (name, category, status) => [name, category, status].filter(Boolean).join(" · "),
   },
   quick: {
@@ -91,6 +93,9 @@ export const home: Messages["home"] = {
     start: { summary: "Nearest places", hint: "The map is clear. Type a name, pick a category or a quick action and we show the results in the list and on the map.", nearYou: "Nearest to you", nearChosen: "Nearest to the point you chose", nearCentre: "Nearest to the Main Square (no location)", empty: "No places nearby." },
     stow: { hide: "Hide the list", show: "Show the list" },
     results: (n: number) => `${n} ${placesWord(n)}`,
+    firstOf: (shown: number, total: number) => `List: first ${shown} of ${total} ${placesWord(total)}`,
+    announcePartial: (shown: number, total: number) =>
+      `${total} ${placesWord(total)} in view, the list has the first ${shown}. “Show more” loads the rest`,
     announce: (n: number) => (n === 0 ? "No places found" : `Found ${n} ${placesWord(n)}`),
     loading: "Searching for places…",
     error: "Couldn't load places.",

@@ -22,13 +22,14 @@ import { matchCategories, parseNearestCommand } from "@/lib/nearest-command";
 import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
 import { LIST_PAGE, nextWindow, windowFor } from "@/lib/list-window";
 import { nextPointsArea, type Bbox } from "@/lib/map-points";
-import { usePlacePoints, usePlaces } from "@/lib/places";
+import { useInfinitePlaces, usePlacePoints, usePlaces } from "@/lib/places";
 import { nearestMatch, QUICK_ACTIONS, quickFilters, quickStillApplies, type QuickAction, type QuickActionId } from "@/lib/quick-actions";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { countByStatus, filterByVerdict, filterPointsByVerdict, missingNeeds, STATUS_ORDER } from "@/lib/profile/verdict-list";
 import { scrollIntoViewWithin, scrollParent } from "@/lib/scroll-within";
 import { useDebounced, useDebouncedValue } from "@/lib/use-debounced";
+import { isPartial, listArea, pointsCut, roundView } from "@/lib/view-list";
 import { useGrantedPosition } from "@/lib/use-granted-position";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useSessionFlag } from "@/lib/use-session-flag";
@@ -59,6 +60,8 @@ const NO_HIGHLIGHT = () => {};
 const DESKTOP = "(min-width: 64rem)";
 // Waits out a run of quick pans and zooms before loading points for where the map ended up.
 const POINTS_DEBOUNCE_MS = 300;
+// Waits out the debounce and the response of a pan before the list's new count is read out.
+const ANNOUNCE_DELAY_MS = 600;
 
 const COUNTER_PRESSED: Record<Status, string> = {
   met: "aria-pressed:bg-status-met-bg aria-pressed:ring-status-met",
@@ -151,12 +154,27 @@ export function HomeScreen() {
     includeUnknown: features.length ? showUnknown : undefined,
     ...profileQuery(settings),
   };
-  // The list is one page of the nearest places; the map shows every match in the area it has loaded, or in the
-  // "W mojej okolicy" area like the list.
-  const placesQuery = usePlaces({ ...filters, bbox: area, near: searchFrom.centre, limit: 100 }, { enabled: searching });
+  // The list holds the places of the map's view (the "W mojej okolicy" area when set), nearest first, a page at a
+  // time; the map's pins come from the same filters, so everything on the map is also in the list (R6).
+  const [mapView, setMapView] = useState<Bbox | null>(null);
+  const listView = useDebounced(mapView, POINTS_DEBOUNCE_MS);
+  const placesQuery = useInfinitePlaces(
+    { ...filters, bbox: listArea(area, listView), near: searchFrom.centre, limit: 100 },
+    { enabled: searching },
+  );
+  const pages = placesQuery.data?.pages;
+  const placesData = useMemo(
+    () =>
+      pages && {
+        items: pages.flatMap((page) => page.items),
+        total: pages[pages.length - 1].total,
+        nextCursor: pages[pages.length - 1].nextCursor,
+      },
+    [pages],
+  );
   // Keep-previous-data would otherwise leave the last results standing after the search is cleared.
   const places = {
-    data: searching ? placesQuery.data : undefined,
+    data: searching ? placesData : undefined,
     isError: searching && placesQuery.isError,
     isPlaceholderData: searching && placesQuery.isPlaceholderData,
     refetch: placesQuery.refetch,
@@ -164,7 +182,11 @@ export function HomeScreen() {
   const [loadedArea, setLoadedArea] = useState<Bbox | null>(null);
   const pointsBbox = useDebounced(area ?? loadedArea, POINTS_DEBOUNCE_MS);
   const points = usePlacePoints(searching && pointsBbox ? { ...filters, bbox: pointsBbox } : null);
-  const followView = useCallback((view: Bbox) => setLoadedArea((loaded) => nextPointsArea(loaded, view)), []);
+  const followView = useCallback((view: Bbox) => {
+    setLoadedArea((loaded) => nextPointsArea(loaded, view));
+    const rounded = roundView(view);
+    setMapView((current) => (current && current.every((value, i) => value === rounded[i]) ? current : rounded));
+  }, []);
   const origin = searchFrom.from;
   const items = useMemo(() => byDistance(places.data?.items ?? [], origin ?? config.cityCenter), [places.data, origin]);
   const counts = useMemo(() => countByStatus(items), [items]);
@@ -185,11 +207,8 @@ export function HomeScreen() {
         action.id === quickId &&
         quickStillApplies(action, { category: category === ALL ? null : category, features }),
     ) ?? null;
-  // The API returns only the nearest page: near me of the area, otherwise of the whole city around the Rynek.
-  const cutNote =
-    places.data?.nextCursor && total !== undefined
-      ? (origin ? tn.nearestOnly : tn.nearestRynekOnly)(places.data.items.length, total)
-      : null;
+  const partial = isPartial(places.data?.items.length ?? 0, total);
+  const pinsCut = pointsCut(searching && !points.isError ? points.data : undefined);
   const verdicts = Boolean(profile && items.some(({ place }) => place.verdict));
   const verdictCount = items.filter(({ place }) => place.verdict).length;
   const missing = useMemo(() => (verdicts && counts.met === 0 ? missingNeeds(items).slice(0, 3) : []), [verdicts, counts.met, items]);
@@ -212,7 +231,13 @@ export function HomeScreen() {
     return [...named, ...placeNames.map((name): SearchSuggestion => ({ kind: "place", name }))];
   }, [q, categories.data, placeNames]);
 
-  const resultsLabel = !searching ? t.list.start[view.heading] : total === undefined ? t.list.loading : t.list.results(listedCount(places.data!, shown.length));
+  const resultsLabel = !searching
+    ? t.list.start[view.heading]
+    : total === undefined
+      ? t.list.loading
+      : partial && shown.length === items.length
+        ? t.list.firstOf(items.length, total!)
+        : t.list.results(listedCount(places.data!, shown.length));
   const queryKey = JSON.stringify(query);
   // The list renders a window of rows that grows by a page; a new search or verdict filter starts it over.
   const windowKey = `${queryKey}|${statusFilter}|${hideFailing}`;
@@ -237,14 +262,23 @@ export function HomeScreen() {
         : null
     : null;
   const listAnnouncement =
-    total === undefined ? null : verdicts && profile ? tp.announce(profile, shown.length, items.length, counts) : t.list.announce(listedCount(places.data!, shown.length));
+    total === undefined
+      ? null
+      : verdicts && profile
+        ? tp.announce(profile, shown.length, items.length, counts)
+        : partial
+          ? t.list.announcePartial(items.length, total!)
+          : t.list.announce(listedCount(places.data!, shown.length));
   const announcement =
     listAnnouncement &&
-    [quickAnnouncement, origin ? (chosenPlace ? tn.announceChosen(chosenPlace) : tn.announce) : null, listAnnouncement, cutNote]
+    [quickAnnouncement, origin ? (chosenPlace ? tn.announceChosen(chosenPlace) : tn.announce) : null, listAnnouncement, pinsCut ? t.map.pinsCut(pinsCut.shown, pinsCut.total) : null]
       .filter(Boolean)
       .join(". ");
   useEffect(() => {
-    if (!pending && announcement) announce(announcement);
+    if (pending || !announcement) return;
+    // A run of pans settles into one announcement.
+    const timer = setTimeout(() => announce(announcement), ANNOUNCE_DELAY_MS);
+    return () => clearTimeout(timer);
   }, [announce, pending, announcement, queryKey]);
 
   function changeProfile(next: typeof profile) {
@@ -381,7 +415,7 @@ export function HomeScreen() {
   }
 
   function selectFromMap(id: string) {
-    // The map shows more places than the list's page: one that isn't on the list opens its card.
+    // A pin whose row isn't loaded yet (a later page of the view) opens its card.
     if (!shown.some(({ place }) => place.id === id)) {
       router.push(routes.place(id));
       return;
@@ -395,10 +429,37 @@ export function HomeScreen() {
     } else reveal(id);
   }
 
-  function showMore() {
-    focusRowRef.current = shown[rendered]?.place.id ?? null;
-    growWindow((current) => nextWindow(current, shown.length));
+  // One more step of the list: rows already fetched first, then the next page from the server.
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = placesQuery;
+  const moreOnServer = searching && Boolean(hasNextPage);
+  const pendingMore = useRef<{ key: string; pages: number; from: number; focus: boolean } | null>(null);
+  const listKey = JSON.stringify([queryKey, listArea(area, listView)]);
+  function loadMore(focus: boolean) {
+    if (rendered < shown.length) {
+      if (focus) focusRowRef.current = shown[rendered]?.place.id ?? null;
+      growWindow((current) => nextWindow(current, shown.length));
+    } else if (moreOnServer && !isFetchingNextPage) {
+      pendingMore.current = { key: listKey, pages: pages?.length ?? 0, from: shown.length, focus };
+      fetchNextPage();
+    }
   }
+  // A page the server had to send: once it lands, the window grows over its first row (a page the verdict filter
+  // hides entirely asks for the next).
+  useEffect(() => {
+    const waiting = pendingMore.current;
+    if (!waiting) return;
+    if (waiting.key !== listKey) pendingMore.current = null;
+    else if (!isFetchingNextPage && (pages?.length ?? 0) > waiting.pages) {
+      if (shown.length > waiting.from) {
+        pendingMore.current = null;
+        if (waiting.focus) focusRowRef.current = shown[waiting.from].place.id;
+        growWindow((current) => nextWindow(current, shown.length));
+      } else if (hasNextPage) {
+        pendingMore.current = { ...waiting, pages: pages?.length ?? 0 };
+        fetchNextPage();
+      } else pendingMore.current = null;
+    }
+  });
 
   useEffect(() => {
     if (!stowed && revealRef.current) {
@@ -411,24 +472,20 @@ export function HomeScreen() {
   }, [stowed, rendered]);
 
   // Scrolling near the end of the list renders the next page, so nobody has to press the button.
-  const hasMore = rendered < shown.length;
-  const shownCount = shown.length;
+  const hasMore = rendered < shown.length || moreOnServer;
+  const loadMoreOnScroll = useEffectEvent(() => loadMore(false));
   useEffect(() => {
     const more = moreRef.current;
-    if (!more || !hasMore) return;
+    if (!more || !hasMore || isFetchingNextPage) return;
     const observer = new IntersectionObserver(
       (entries) => {
-        if (!entries.some((entry) => entry.isIntersecting)) return;
-        setListWindow((current) => ({
-          key: windowKey,
-          rendered: nextWindow(current.key === windowKey ? current.rendered : LIST_PAGE, shownCount),
-        }));
+        if (entries.some((entry) => entry.isIntersecting)) loadMoreOnScroll();
       },
       { root: scrollParent(more), rootMargin: "0px 0px 400px 0px" },
     );
     observer.observe(more);
     return () => observer.disconnect();
-  }, [hasMore, windowKey, shownCount, rendered]);
+  }, [hasMore, isFetchingNextPage, windowKey, shown.length, rendered]);
 
   const controls = (
     <div key="controls" className="space-y-2 px-4 pb-2">
@@ -497,7 +554,7 @@ export function HomeScreen() {
       <h2 className="mb-2 text-caption font-semibold text-muted-foreground">
         {resultsLabel}
       </h2>
-      {cutNote ? <p className="mb-2 text-body-sm text-muted-foreground">{cutNote}</p> : null}
+      {pinsCut ? <p className="mb-2 text-body-sm text-muted-foreground">{t.map.pinsCut(pinsCut.shown, pinsCut.total)}</p> : null}
       {routeTo ? (
         <div role="group" aria-label={t.search.route.button} className="mb-3 flex flex-wrap items-center gap-3 rounded-2xl bg-primary-container px-4 py-3">
           <p className="min-w-0 flex-1 text-body-sm font-semibold">{t.search.route.prompt(routeTo.name)}</p>
@@ -627,8 +684,8 @@ export function HomeScreen() {
       )}
       {hasMore && !places.isError ? (
         <div ref={moreRef} className="pt-3">
-          <Button variant="outline" className="w-full" onClick={showMore}>
-            {t.list.more(rendered, shown.length)}
+          <Button variant="outline" className="w-full" disabled={isFetchingNextPage} onClick={() => loadMore(true)}>
+            {t.list.more(Math.min(rendered, shown.length), partial && shown.length === items.length ? total! : shown.length)}
           </Button>
         </div>
       ) : null}
@@ -733,6 +790,7 @@ export function HomeScreen() {
       <div className="absolute inset-0 lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0">
         <PlaceMap
           places={mapPlaces}
+          fitKey={searching && !pending ? windowKey : null}
           points={mapPoints ?? (places.isPlaceholderData ? [] : undefined)}
           onViewChange={followView}
           selectedId={selectedId}

@@ -1,6 +1,6 @@
 "use client";
 
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import type { GetPlaceQuery, ListPlacePointsQuery, ListPlacesQuery } from "@krakow-bez-barier/contracts";
 import { useLocale } from "@/i18n/client";
 import { api } from "./api";
@@ -22,7 +22,23 @@ export function usePlaces(query: ListPlacesQuery, { enabled = true }: { enabled?
   });
 }
 
-const filtersOf = (query: ListPlacePointsQuery | null | undefined) => JSON.stringify({ ...query, bbox: undefined });
+/**
+ * `GET /places` as pages: the first page loads with the query, `fetchNextPage` follows `nextCursor` (same filters, same
+ * `near`). Like `usePlaces`, a changed query keeps the previous pages until the new first page arrives.
+ */
+export function useInfinitePlaces(query: ListPlacesQuery, { enabled = true }: { enabled?: boolean } = {}) {
+  const locale = useLocale();
+  return useInfiniteQuery({
+    queryKey: ["places-pages", locale, query],
+    queryFn: ({ signal, pageParam }) => listPlaces(pageParam ? { ...query, cursor: pageParam } : query, signal),
+    initialPageParam: null as string | null,
+    getNextPageParam: (last) => last.nextCursor,
+    placeholderData: keepPreviousData,
+    enabled,
+  });
+}
+
+const filtersOf =(query: ListPlacePointsQuery | null | undefined) => JSON.stringify({ ...query, bbox: undefined });
 
 /**
  * `GET /places/points`: every matching place in `query.bbox` as a light map point. While another area loads the

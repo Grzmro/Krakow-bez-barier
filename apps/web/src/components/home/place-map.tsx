@@ -145,6 +145,11 @@ function revealPoint(map: MapLibreMap, target: [number, number]) {
 export interface PlaceMapProps {
   /** The places of the list: the map fits them when they change and eases to the selected one. */
   places: PlaceSummary[];
+  /**
+   * For a list that follows the map's view: fit once per key (the first `places` that come with it) instead of whenever
+   * the places change, which would pull the map back after every pan. `null` = not yet (still loading).
+   */
+  fitKey?: string | null;
   /** What the pins and clusters show, e.g. every place in the viewport; `places` themselves when left out. */
   points?: PlacePoint[];
   /** The whole map's view (`[west, south, east, north]`) after each move, to load the points for it. */
@@ -176,6 +181,7 @@ export interface PlaceMapProps {
  */
 export function PlaceMap({
   places,
+  fitKey,
   points,
   onViewChange,
   selectedId,
@@ -357,8 +363,8 @@ export function PlaceMap({
         fittedRef.current = null;
         return;
       }
-      const key = places.map((place) => place.id).toSorted().join(",");
-      if (!places.length || key === fittedRef.current) return;
+      const key = fitKey === undefined ? places.map((place) => place.id).toSorted().join(",") : fitKey;
+      if (!places.length || key === null || key === fittedRef.current) return;
       fittedRef.current = key;
       const bounds = new LngLatBounds();
       for (const place of places) bounds.extend(place.location.coordinates as [number, number]);
@@ -375,7 +381,7 @@ export function PlaceMap({
     return () => {
       cancelled = true;
     };
-  }, [map, places, centered, paddingFor]);
+  }, [map, places, fitKey, centered, paddingFor]);
 
   useEffect(() => {
     if (!map || youLon === undefined || youLat === undefined) return;

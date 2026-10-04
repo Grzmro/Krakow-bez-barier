@@ -101,12 +101,6 @@ test("without a position the list starts with the places nearest the Rynek, not 
   await expect(rows.first()).toContainText(/od Rynku/);
   const distances = (await rows.allTextContents()).slice(0, 5).map(fromRynek);
   expect(distances).toEqual([...distances].sort((a, b) => a - b));
-
-  // AND when only the first page of the city is listed, the list says the rest is left out
-  const body = (await response.json()) as { items: unknown[]; total: number; nextCursor?: string | null };
-  const note = list.getByText(/najbliższych Rynku z \d+ miejsc/);
-  if (body.nextCursor) await expect(note).toContainText(`Pokazano ${body.items.length} najbliższych Rynku z ${body.total} miejsc`);
-  else await expect(note).toBeHidden();
 });
 
 test("a full page of real places renders 20 rows at a time, and a pin further down the list jumps to its row", async ({

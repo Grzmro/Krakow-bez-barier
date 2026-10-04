@@ -56,10 +56,6 @@ export const nearby = {
     you: "Ty",
     emptyHint: "Szukasz tylko w Twojej okolicy (w promieniu ok. 2 km).",
     emptyHintChosen: (place: string) => `Szukasz tylko w okolicy: ${place} (w promieniu ok. 2 km).`,
-    nearestOnly: (shown: number, total: number) =>
-      `Pokazano ${shown} najbliższych z ${total} miejsc w okolicy. Zawęź wyszukiwanie nazwą, kategorią lub filtrem, żeby zobaczyć pozostałe.`,
-    nearestRynekOnly: (shown: number, total: number) =>
-      `Pokazano ${shown} najbliższych Rynku z ${total} miejsc. Zawęź wyszukiwanie nazwą, kategorią lub filtrem albo użyj „W mojej okolicy”.`,
   },
   devPage: {
     title: "Funkcje natywne",
