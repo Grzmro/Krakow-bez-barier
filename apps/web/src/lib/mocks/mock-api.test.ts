@@ -31,6 +31,16 @@ describe("mockListPlaces", () => {
     expect(labels("sukiennice")).toEqual(["Wejście: bez stopni", "Winda: jest", "Toaleta dostosowana: brak danych"]);
   });
 
+  it("ranks a text search like the API: a name match before places found by their address", () => {
+    // GIVEN "ryn" starts a word in the name of Podziemia Rynku and is only the street of Sukiennice and Pałac Krzysztofory
+    // WHEN searching from a point nearer to those two
+    const result = mockListPlaces({ q: "ryn", near: [19.938, 50.0623] });
+
+    // THEN the place whose name matches comes first, the address matches after it
+    expect(ids(result)[0]).toBe("podziemia-rynku");
+    expect(ids(result)).toEqual(expect.arrayContaining(["sukiennice", "palac-krzysztofory"]));
+  });
+
   it("finds Sukiennice by name, ignoring case and diacritics", () => {
     // GIVEN the example places
     // WHEN searching for a lower-case name

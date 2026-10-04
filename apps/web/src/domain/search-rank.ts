@@ -9,7 +9,8 @@ export const MAX_SEARCH_RANK = 4;
 /**
  * How well a place's name answers a text search, lower is better; the list breaks ties by distance (or name).
  * Both texts must already be folded the same way (lower-case, no diacritics):
- * 0 the whole name is the query · 1 a landmark (museum, monument, attraction) whose name words start with the query
+ * 0 the whole name is the query · 1 a landmark (a category flagged `landmark`: museum, monument, attraction or another
+ * public place, not a hotel or restaurant) whose name words start with the query
  * words, "Zamek Królewski na Wawelu" for "wawel" · 2 every query word is a whole name word, "Hotel Wawel" ·
  * 3 every query word starts a name word, "Pod Wawelem" · 4 anything else the search let through (inside a word, the
  * address).

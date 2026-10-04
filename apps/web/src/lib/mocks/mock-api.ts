@@ -129,7 +129,8 @@ export function mockListPlaces(query: ListPlacesQuery = {}, locale: Locale = def
   const nearest = lon === undefined || lat === undefined ? items : byDistance(items, [lon, lat]).map(({ place }) => place);
   // Like the API: with `q`, the best name matches first, the distance order kept within a rank (the sort is stable).
   const q = query.q ? normalize(query.q.trim()) : "";
-  const ordered = q ? nearest.toSorted((a, b) => searchRank(normalize(a.name), a.category, q) - searchRank(normalize(b.name), b.category, q)) : nearest;
+  const ranks = new Map(q ? nearest.map((p) => [p.id, searchRank(normalize(p.name), p.category, q)]) : []);
+  const ordered = q ? nearest.toSorted((a, b) => ranks.get(a.id)! - ranks.get(b.id)!) : nearest;
   return { items: ordered, nextCursor: null, total: ordered.length };
 }
 

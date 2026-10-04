@@ -46,7 +46,10 @@ export type CategoryConfig = CategoryDefinition & {
    * never attached to them. Hidden and on-route categories never take entrances either.
    */
   withoutEntrances?: boolean;
-  /** A destination a visitor searches for by name (museum, monument, attraction): ranked above services that share the word. */
+  /**
+   * A destination a visitor searches for by name (museums, monuments, attractions and other public places such as
+   * offices): a text search ranks it above services (hotels, restaurants) that share the word.
+   */
   landmark?: boolean;
 };
 

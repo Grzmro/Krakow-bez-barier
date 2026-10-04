@@ -22,7 +22,7 @@ import { FEATURE_ATTRIBUTES, featureMatch } from "@/domain/features";
 import { matchProfile } from "@/domain/matcher";
 import { thresholdsFor } from "@/domain/profiles";
 import { isStale, resolveAttribute } from "@/domain/resolver";
-import { MAX_SEARCH_RANK as MAX_RANK, searchRank } from "@/domain/search-rank";
+import { MAX_SEARCH_RANK, searchRank } from "@/domain/search-rank";
 import { activeOutagesByPlace } from "@/server/outages/service";
 import { pendingReportsByAttribute, type ReportsStore } from "@/server/reports";
 import { currentSimulatedOutageIds } from "@/server/source-outages/service";
@@ -187,7 +187,7 @@ const encodeNearCursor = ({ near, rank, distance, id }: NearCursor) =>
 function readRank(rest: unknown[]): number | undefined {
   if (rest.length === 0) return 0;
   const [rank] = rest;
-  return rest.length === 1 && Number.isInteger(rank) && (rank as number) >= 0 && (rank as number) <= MAX_RANK
+  return rest.length === 1 && Number.isInteger(rank) && (rank as number) >= 0 && (rank as number) <= MAX_SEARCH_RANK
     ? (rank as number)
     : undefined;
 }
