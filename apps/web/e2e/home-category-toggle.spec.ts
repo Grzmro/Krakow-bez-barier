@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { showResults } from "./map";
 
 test("a category chip toggles: a tap turns it on, a second tap goes back to every category", async ({ page }) => {
   // GIVEN the home screen at its start, with no "all" chip and no category pressed
@@ -9,8 +10,9 @@ test("a category chip toggles: a tap turns it on, a second tap goes back to ever
   await expect(museums).toHaveAttribute("aria-pressed", "false");
   await expect(chips.getByRole("button", { name: "Wszystko" })).toHaveCount(0);
 
-  // WHEN the visitor taps "Muzea"
+  // WHEN the visitor taps "Muzea" and confirms
   await museums.click();
+  await showResults(page);
 
   // THEN only museums are listed
   await expect(museums).toHaveAttribute("aria-pressed", "true");
@@ -19,10 +21,15 @@ test("a category chip toggles: a tap turns it on, a second tap goes back to ever
   // WHEN they tap it again
   await museums.click();
 
-  // THEN no category is chosen, the start state is back and the change is announced
+  // THEN no category is chosen and the change is announced
   await expect(museums).toHaveAttribute("aria-pressed", "false");
-  await expect(list.getByRole("heading", { level: 2 })).toHaveText("Najbliżej Rynku (bez lokalizacji)");
   await expect(page.getByRole("status").filter({ hasText: "Pokazuję wszystkie kategorie" })).toBeAttached();
+
+  // WHEN they confirm the empty choice
+  await page.getByRole("button", { name: "Wyczyść wybór i wróć do mapy" }).click();
+
+  // THEN the start state is back
+  await expect(list.getByRole("heading", { level: 2 })).toHaveText("Najbliżej Rynku (bez lokalizacji)");
 });
 
 for (const key of ["Enter", " "]) {
