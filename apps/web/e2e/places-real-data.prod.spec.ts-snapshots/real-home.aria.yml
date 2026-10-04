@@ -6,7 +6,6 @@
     - text: Wyszukaj miejsce
     - combobox "Wyszukaj miejsce"
   - group "Kategorie":
-    - button "Wszystko" [pressed]
     - button "Restauracje"
     - button "Muzea"
     - button "Toalety"

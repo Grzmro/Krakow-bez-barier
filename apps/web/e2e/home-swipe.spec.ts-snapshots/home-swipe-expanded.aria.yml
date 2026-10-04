@@ -7,7 +7,6 @@
     - combobox "Wyszukaj miejsce"
     - button "Wpisz głosem"
   - group "Kategorie":
-    - button "Wszystko" [pressed]
     - button "Restauracje"
     - button "Muzea"
     - button "Toalety"

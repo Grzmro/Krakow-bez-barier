@@ -41,7 +41,7 @@ export const home: Messages["home"] = {
     unknownHint: "Try: “nearest toilet”, “pharmacy near me” or “lift near me”.",
   },
   categoriesLabel: "Categories",
-  categoryAll: "Everything",
+  categoryCleared: "Showing all categories",
   filtersLabel: "Feature filters",
   filters: {
     step_free: "Step-free",

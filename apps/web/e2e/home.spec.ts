@@ -239,8 +239,7 @@ test("the whole flow works with the keyboard alone", async ({ page }) => {
 
   // WHEN they pick a category with the keyboard (arrow keys move inside the group)
   await page.getByRole("button", { name: "Wyczyść wyszukiwanie" }).press("Enter");
-  await page.getByRole("button", { name: "Wszystko" }).focus();
-  await page.keyboard.press("ArrowRight");
+  await page.getByRole("group", { name: "Kategorie" }).getByRole("button").first().focus();
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: "Muzea" })).toHaveAttribute("aria-pressed", "true");
