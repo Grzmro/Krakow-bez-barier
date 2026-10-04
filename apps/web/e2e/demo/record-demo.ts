@@ -29,7 +29,8 @@ const SAMPLE = {
   conflict: { id: "palac-krzysztofory", name: "Pałac Krzysztofory" },
   outage: { id: "hotel-przyklad", name: "Hotel Przykład" },
 };
-const SETUP_HINT = "Load the data first: `npm run db:setup` and the ingest of osm and bip-mk (docs/demo-script.md).";
+const SETUP_HINT =
+  "Load the data first: `npm run db:setup` and the ingest of osm and bip-mk; the route scene needs ORS_API_KEY on the server (docs/demo-script.md).";
 
 const MAX_SECONDS = 180;
 // DEMO_PACE=0.2 shortens every pause, for checking the walkthrough without waiting 3 minutes.
@@ -232,7 +233,7 @@ test("record the demo video", async ({ browser, baseURL, request }) => {
   await search.press("Escape");
   const row = list.getByRole("listitem").filter({ has: app().getByRole("link", { name: new RegExp(SEARCH) }) }).first();
   await expect(row).toBeVisible();
-  await expect(row).toContainText(pl.common.status.unknown);
+  await expect(row).toContainText(/Brak danych\s*·\s*drzwi/);
   await hold(3.5, "home-search");
   await caption("2 · Miejsce i źródło", "Werdykt jest słowem, nie kolorem: „Brak danych · drzwi”. Brak danych nigdy nie znaczy „dostępne”.");
   await hold(4.5);
@@ -243,13 +244,20 @@ test("record the demo video", async ({ browser, baseURL, request }) => {
   const matches = app().getByText(/^Pasuje \d+ z \d+ potrzeb profilu$/);
   await expect(matches).toBeVisible();
   const matched = (await matches.textContent())!.replace(/^Pasuje/, "pasuje");
-  await caption("2 · Miejsce i źródło", `Karta: ${matched}. Wejście, winda i toaleta są w BIP; szerokości drzwi nie podaje nikt.`);
-  await hold(6, "place");
+  // What the next caption claims: lift and toilet known, door width unknown, BIP MK the card's only source.
   const lift = factRow(pl.common.attribute.lift);
+  await expect(lift).toContainText("Jest");
+  await expect(factRow(pl.common.attribute.toilet_accessible)).toContainText("Jest");
+  await expect(factRow(pl.common.attribute.door_width_cm)).toContainText(pl.common.status.unknown);
+  await expect(app().getByText(/^1 źródło · /)).toBeVisible();
+  await expect(app().getByText("BIP Miasta Krakowa: dostępność architektoniczna", { exact: true }).filter({ visible: true }).first()).toBeVisible();
+  await caption("2 · Miejsce i źródło", `Karta: ${matched}. Winda i toaleta są w deklaracji BIP; szerokości drzwi nie podaje żadne źródło.`);
+  await hold(6, "place");
   await tap(page, lift);
   const liftPanel = app().locator(`#${await lift.getAttribute("aria-controls")}`);
   await expect(liftPanel).toContainText("BIP Miasta Krakowa");
   await expect(liftPanel).toContainText("wg źródła");
+  await expect(lift).toHaveAccessibleName(new RegExp(pl.common.reliability.unverified));
   await caption("2 · Miejsce i źródło", "Przy każdej cesze: źródło, cytat ze strony BIP, data stanu i link. Jedno źródło — „Niezweryfikowane”.");
   await hold(7.5, "place-fact");
 
@@ -280,7 +288,11 @@ test("record the demo video", async ({ browser, baseURL, request }) => {
   await tap(page, app().getByRole("button", { name: "Wejdź na konto demonstracyjne (dla jury)" }));
   await expect(app().getByRole("complementary", { name: "Konto demonstracyjne" })).toBeVisible();
   await hold(3.5, "moderator");
-  await caption("3 · Zatwierdź", "Moderator widzi, co zmieni się na karcie: teraz „Jest” z OpenStreetMap, po zatwierdzeniu „Nie ma”.");
+  await expect(app().getByRole("main")).toContainText(/Teraz\s*Jest\s*OpenStreetMap[\s\S]*Po zatwierdzeniu\s*Nie ma/);
+  await caption(
+    "3 · Zatwierdź",
+    "Moderator otwiera przykładowe zgłoszenie z kolejki i widzi, co zmieni się na karcie: teraz „Jest” z OpenStreetMap, potem „Nie ma”.",
+  );
   await hold(5);
   await tap(page, app().getByRole("button", { name: "Zatwierdź" }));
   const history = app().locator("section").filter({ has: app().getByRole("heading", { name: "Historia zmian" }) });
@@ -290,19 +302,19 @@ test("record the demo video", async ({ browser, baseURL, request }) => {
   await hold(4.5);
 
   // 4. Conflicting sources (sample data)
+  await caption("4 · Sprzeczne", "Dwa źródła się nie zgadzają? Nie wybieramy za użytkownika: „Sprzeczne” i obie wartości z datami.");
   await open(`/miejsca/${SAMPLE.conflict.id}`, sampleURL);
   await expect(app().getByRole("heading", { level: 1, name: SAMPLE.conflict.name })).toBeVisible();
   const toilet = factRow(pl.common.attribute.toilet_accessible);
   await expect(toilet).toContainText("Sprzeczne");
-  await caption("4 · Sprzeczne", "Dwa źródła się nie zgadzają? Nie wybieramy za użytkownika: „Sprzeczne” i obie wartości z datami.");
   await tap(page, toilet);
   await hold(6.5, "place-conflict");
 
   // 5. Source outage via the demo account's switch (sample data)
+  await caption("5 · Awaria źródła", "Symulujemy awarię źródła przełącznikiem konta demo. Wyłączy się sama po 15 minutach.");
   await open("/moderator", sampleURL);
   await tap(page, app().getByRole("tab", { name: "Demo źródeł" }));
   const sources = app().getByRole("tabpanel", { name: "Demo źródeł" });
-  await caption("5 · Awaria źródła", "Symulujemy awarię źródła przełącznikiem konta demo. Wyłączy się sama po 15 minutach.");
   await tap(page, sources.getByRole("button", { name: "Symuluj awarię" }));
   await expect(sources).toContainText("symulowana awaria");
   await hold(2.5);
@@ -331,9 +343,10 @@ test("record the demo video", async ({ browser, baseURL, request }) => {
   await typeSlowly(page, start, "Dworzec");
   await tap(page, app().getByRole("option", { name: ROUTE_START, exact: true }));
   const routeSummary = app().getByText(/^Brak znanych barier|^Nie spełnia|bez danych$/).first();
-  await expect(routeSummary).toBeVisible({ timeout: 30_000 });
+  await expect(routeSummary, `no route Dworzec Główny → ${bip.name}. ${SETUP_HINT}`).toBeVisible({ timeout: 30_000 });
   await expectNoSampleLabel(app());
   const summary = (await routeSummary.textContent())!.trim();
+  await expect(app().getByRole("region", { name: "Odcinki trasy" })).toContainText(/Najkrótsza[\s\S]{0,40}Nie spełnia[\s\S]{0,20}schody/);
   await caption("6 · Trasa", `Odcinek bez danych nigdy nie jest „spełnia”: „${summary}”. Wariant „Najkrótsza” ma schody.`);
   await hold(7, "route");
   const readAloud = app().getByRole("button", { name: "Czytaj na głos" });
@@ -369,10 +382,10 @@ test("record the demo video", async ({ browser, baseURL, request }) => {
   await hold(4.5);
 
   // 8. Phone and closing
+  await caption("8 · Telefon", "Na telefonie to samo: aplikacja webowa, PWA i aplikacje na Androida i iOS.");
   await stageMode({ phone: true });
   await open(`/miejsca/${encodeURIComponent(bip.id)}`);
   await expect(app().getByRole("heading", { level: 1, name: bip.name })).toBeVisible();
-  await caption("8 · Telefon", "Na telefonie to samo: aplikacja webowa, PWA i aplikacje na Androida i iOS.");
   await hold(4.5, "place-phone");
   await stageMode({});
   await open("/");
@@ -401,6 +414,10 @@ test("record the demo video", async ({ browser, baseURL, request }) => {
   expect(
     axe.filter((r) => r.violations.length).map((r) => `${r.screen}: ${r.violations.join("; ")}`),
     "axe WCAG 2.2 AA violations on the demo's screens",
+  ).toEqual([]);
+  expect(
+    axe.filter((r) => r.passedNodes < 50).map((r) => r.screen),
+    "screens where axe saw (almost) nothing of the app",
   ).toEqual([]);
 });
 

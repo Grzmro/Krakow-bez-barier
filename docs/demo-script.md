@@ -6,7 +6,7 @@ Dwa scenariusze z tymi samymi scenami:
    z planem B dla każdej sceny. Pokazuje pętlę „Uzupełnij → konto demo moderatora → Zatwierdź → nowy
    fakt”, stan „Sprzeczne” i awarię źródła. Odpowiedzi na pytania jury są w
    [submission/jury-qa.md](submission/jury-qa.md).
-2. **[Wideo do zgłoszenia](#wideo-do-zgłoszenia)** (KBB-31, KBB-181): MP4 2:49 z polskimi napisami,
+2. **[Wideo do zgłoszenia](#wideo-do-zgłoszenia)** (KBB-31, KBB-181): MP4 2:51 z polskimi napisami,
    nagrywane automatycznie przez Playwright (`npm run demo:record`); lektora można dograć.
 
 ## Pokaz na żywo dla jury
@@ -87,6 +87,7 @@ npm run db:setup                      # migracje + seed
 npm run ingest -- --city krakow --source osm          # miejsca z OpenStreetMap
 npm run ingest -- --city krakow --source bip-mk       # fakty z BIP MK (Hangar Czyżyny)
 npm run demo:record                   # build bez mocka + `next start`, `next dev` z przykładowym API, nagranie
+                                      # (root .env: DATABASE_URL i ORS_API_KEY — trasa Dworzec → Hangar idzie do openrouteservice)
 DEMO_PACE=0.2 npm run demo:record     # szybki przebieg kontrolny (krótsze pauzy)
 E2E_BASE_URL=http://127.0.0.1:3100 DEMO_OUT_DIR=/tmp/video npm run demo:record   # na działającym serwerze
 ```
@@ -121,13 +122,13 @@ Stan danych z nagrania 4.10.2026 (lokalna baza demo, ten sam ingest co wdrożeni
 | 4 · Sprzeczne | **Pałac Krzysztofory** (`palac-krzysztofory`) | przykładowe | Toaleta: MSIP „Jest”, OSM „Nie ma” → „Sprzeczne”, obie wartości z datami. |
 | 5 · Awaria źródła | przełącznik konta demo (OpenStreetMap) → „O danych” → **Hotel Przykład** | przykładowe | „Niedostępne”, „Odświeżenie nie powiodło się — dane z 3.10.2026”, „Tryb demo”; na końcu sceny „Wyłącz”. |
 | 6 · Trasa | Dworzec Główny → Hangar Czyżyny, „Unikaj schodów” | prawdziwe | openrouteservice + fakty OSM: „Brak znanych barier, ale 4,3 km bez danych”, „Najkrótsza: Nie spełnia · schody”. |
-| 7 · Dla firm | widget, strona wydarzenia i odpowiedź API dla **Hangaru**; `/api/docs` | prawdziwe | Ta sama karta co w aplikacji, z tymi samymi źródłami i datami. |
+| 7 · Dla firm | widget i strona wydarzenia dla **Hangaru**; `/api/docs` | prawdziwe | Ta sama karta co w aplikacji, z tymi samymi źródłami i datami. |
 | 8 · Telefon | karta **Hangaru** w ramce telefonu (390×844) | prawdziwe | Ten sam układ telefonu co w PWA i aplikacjach (Capacitor). |
 
 ### Scenariusz
 
-Grupa docelowa: **osoba na wózku** (profil „Wózek”). Czasy z nagrania 4.10.2026 (MP4 2:49; ostatni napis
-od 2:39, potem kilka sekund ostatniego kadru). Kolumna „Napis” to dokładny tekst z wideo i z `kbb-demo.srt`;
+Grupa docelowa: **osoba na wózku** (profil „Wózek”). Czasy z nagrania 4.10.2026 (MP4 2:51; ostatni napis
+od 2:41, potem kilka sekund ostatniego kadru). Kolumna „Napis” to dokładny tekst z wideo i z `kbb-demo.srt`;
 lektor może go czytać.
 
 | Czas | Scena | Co widać | Napis |
@@ -136,29 +137,29 @@ lektor może go czytać.
 | 0:05 | 1 · Dla kogo | Przełącznik profilu → „Wózek” | Wybiera profil „Wózek”: same progi — stopnie, drzwi, winda, toaleta. Profil zostaje w przeglądarce. |
 | 0:11 | 2 · Miejsce i źródło | Wpisanie „Hangar”, Enter: 1 miejsce na liście i na mapie | Szuka „Hangar”. Prawdziwe miejsca z OpenStreetMap i deklaracji dostępności w BIP. |
 | 0:16 | 2 · Miejsce i źródło | Wiersz „Brak danych · drzwi”, podsumowanie „Najczęściej brakuje danych o: drzwi” | Werdykt jest słowem, nie kolorem: „Brak danych · drzwi”. Brak danych nigdy nie znaczy „dostępne”. |
-| 0:23 | 2 · Miejsce i źródło | Karta: „Twój profil: Wózek”, grupy „Pasuje (3)” i „Nie wiadomo (1)”, „Skąd wiemy?” z BIP MK | Karta: pasuje 3 z 4 potrzeb profilu. Wejście, winda i toaleta są w BIP; szerokości drzwi nie podaje nikt. |
+| 0:23 | 2 · Miejsce i źródło | Karta: „Twój profil: Wózek”, grupy „Pasuje (3)” i „Nie wiadomo (1)”, „Skąd wiemy?” z BIP MK | Karta: pasuje 3 z 4 potrzeb profilu. Winda i toaleta są w deklaracji BIP; szerokości drzwi nie podaje żadne źródło. |
 | 0:30 | 2 · Miejsce i źródło | Rozwinięta „Winda”: źródło BIP MK, „stan na 19.03.2026 wg źródła”, cytat, „Strona źródła” | Przy każdej cesze: źródło, cytat ze strony BIP, data stanu i link. Jedno źródło — „Niezweryfikowane”. |
-| 0:37 | 3 · Uzupełnij | **PRZYKŁAD**: karta Kawiarni Przykład | Zapis pokazujemy na danych przykładowych (PRZYKŁAD), żeby nagranie nie zmieniło prawdziwej bazy. |
-| 0:43 | 3 · Uzupełnij | „Uzupełnij” → „Szerokość drzwi” → 90 → „Wyślij” | Ktoś zmierzył drzwi: „Uzupełnij” → „Szerokość drzwi” → 90 cm. Bez konta i bez e-maila. |
+| 0:38 | 3 · Uzupełnij | **PRZYKŁAD**: karta Kawiarni Przykład | Zapis pokazujemy na danych przykładowych (PRZYKŁAD), żeby nagranie nie zmieniło prawdziwej bazy. |
+| 0:44 | 3 · Uzupełnij | „Uzupełnij” → „Szerokość drzwi” → 90 → „Wyślij” | Ktoś zmierzył drzwi: „Uzupełnij” → „Szerokość drzwi” → 90 cm. Bez konta i bez e-maila. |
 | 0:49 | 3 · Uzupełnij | „Twoje zgłoszenie: 90 cm”, toast „Czeka na weryfikację” | Zgłoszenie czeka na moderatora. Do tego czasu nie zmienia danych na karcie. |
 | 0:54 | 3 · Zatwierdź | `/moderator` → „Wejdź na konto demonstracyjne (dla jury)”, ramka „Konto demonstracyjne” | Jury może wejść na konto demonstracyjne moderatora jednym przyciskiem. |
-| 0:58 | 3 · Zatwierdź | „Co się zmieni na karcie”: Teraz „Jest” (OSM) → Po zatwierdzeniu „Nie ma” | Moderator widzi, co zmieni się na karcie: teraz „Jest” z OpenStreetMap, po zatwierdzeniu „Nie ma”. |
-| 1:05 | 3 · Zatwierdź | „Zatwierdź” → „Historia zmian”: „Konto demonstracyjne ·” | Decyzja trafia do historii. Konto demo cofa każdą zmianę samo po 30 minutach. |
-| 1:10 | 4 · Sprzeczne | **PRZYKŁAD**: Pałac Krzysztofory, „Toaleta dostosowana: Jest / Nie ma · Sprzeczne”, rozwinięte oba źródła z datami | Dwa źródła się nie zgadzają? Nie wybieramy za użytkownika: „Sprzeczne” i obie wartości z datami. |
-| 1:18 | 5 · Awaria źródła | **PRZYKŁAD**: zakładka „Demo źródeł” → „Symuluj awarię” (OpenStreetMap) | Symulujemy awarię źródła przełącznikiem konta demo. Wyłączy się sama po 15 minutach. |
-| 1:24 | 5 · Awaria źródła | „O danych”: OpenStreetMap „Niedostępne”, „Odświeżenie nie powiodło się — dane z …”, „Tryb demo” | Nic nie znika: zostaje ostatnia dobra kopia z datą, a aplikacja mówi wprost „Niedostępne”. |
-| 1:30 | 5 · Awaria źródła | Karta Hotelu Przykład z banerem awarii | Na karcie: „Odświeżenie nie powiodło się”, fakty oznaczone jako możliwie nieaktualne. |
-| 1:36 | 5 · Awaria źródła | „Wyłącz symulowaną awarię” → „Żadna symulacja nie trwa” | Wyłączamy symulację — źródło znów działa. |
-| 1:39 | 6 · Trasa | Trasa do Hangaru, pole „Start” → „Dworzec Główny” | Trasa z Dworca Głównego do hangaru, z profilem Wózek. Wyznacza ją openrouteservice. |
-| 1:43 | 6 · Trasa | „79 min · 5,8 km”, „Brak znanych barier, ale 4,3 km bez danych”, pasek odcinków, „Najkrótsza: Nie spełnia · schody” | Odcinek bez danych nigdy nie jest „spełnia”: „Brak znanych barier, ale 4,3 km bez danych”. Wariant „Najkrótsza” ma schody. |
-| 1:50 | 6 · Trasa | „Czytaj na głos” → „Czytany krok: 1 z …” → „Następny krok” → „Zakończ czytanie” | „Krok po kroku” to tekstowa wersja mapy. „Czytaj na głos” czyta po jednym kroku. |
-| 1:59 | 6 · Trasa | „Ruszamy” → „Prowadzenie”: krok, odcinek, „Następny krok” | „Ruszamy” prowadzi krok po kroku — także bez zgody na lokalizację, przyciskami. |
-| 2:07 | 7 · Dla firm | `/dla-firm`: widget Hangaru na „strona-hotelu.example”, kod `<iframe>` | Obiekt osadza aktualną kartę na swojej stronie jednym kodem — te same fakty, źródła i daty. |
-| 2:13 | 7 · Dla firm | Generator strony wydarzenia, potem strona „Piknik lotniczy” (wejście, toaleta, parking, przystanki w pobliżu) | Organizator generuje stronę „Dojazd i wejście bez barier”, a systemy biorą dane z API. |
-| 2:23 | 7 · Model | `/api/docs` (Scalar) | Płacą obiekty i partnerzy — za kartę i weryfikację. Mieszkańcy i turyści korzystają za darmo. |
-| 2:28 | 8 · Telefon | Karta Hangaru w ramce telefonu | Na telefonie to samo: aplikacja webowa, PWA i aplikacje na Androida i iOS. |
-| 2:33 | 8 · Zakończenie | Strona główna, Tab: „Przejdź do treści” z widocznym fokusem | Całość działa z klawiatury, statusy są tekstem, lista to pełna wersja mapy. Prowadzi niezależny operator. |
-| 2:39 | Zakończenie | Strona główna | Konkretne fakty, źródło przy każdej informacji, otwarte dane. Dziękujemy! |
+| 0:59 | 3 · Zatwierdź | Przykładowe zgłoszenie z kolejki (Podziemia Rynku · Winda), „Co się zmieni na karcie”: Teraz „Jest” (OSM) → Po zatwierdzeniu „Nie ma” | Moderator otwiera przykładowe zgłoszenie z kolejki i widzi, co zmieni się na karcie: teraz „Jest” z OpenStreetMap, potem „Nie ma”. |
+| 1:07 | 3 · Zatwierdź | „Zatwierdź” → „Historia zmian”: „Konto demonstracyjne ·” | Decyzja trafia do historii. Konto demo cofa każdą zmianę samo po 30 minutach. |
+| 1:12 | 4 · Sprzeczne | **PRZYKŁAD**: Pałac Krzysztofory, „Toaleta dostosowana: Jest / Nie ma · Sprzeczne”, rozwinięte oba źródła z datami | Dwa źródła się nie zgadzają? Nie wybieramy za użytkownika: „Sprzeczne” i obie wartości z datami. |
+| 1:20 | 5 · Awaria źródła | **PRZYKŁAD**: zakładka „Demo źródeł” → „Symuluj awarię” (OpenStreetMap) | Symulujemy awarię źródła przełącznikiem konta demo. Wyłączy się sama po 15 minutach. |
+| 1:26 | 5 · Awaria źródła | „O danych”: OpenStreetMap „Niedostępne”, „Odświeżenie nie powiodło się — dane z …”, „Tryb demo” | Nic nie znika: zostaje ostatnia dobra kopia z datą, a aplikacja mówi wprost „Niedostępne”. |
+| 1:32 | 5 · Awaria źródła | Karta Hotelu Przykład z banerem awarii | Na karcie: „Odświeżenie nie powiodło się”, fakty oznaczone jako możliwie nieaktualne. |
+| 1:38 | 5 · Awaria źródła | „Wyłącz symulowaną awarię” → „Żadna symulacja nie trwa” | Wyłączamy symulację — źródło znów działa. |
+| 1:41 | 6 · Trasa | Trasa do Hangaru, pole „Start” → „Dworzec Główny” | Trasa z Dworca Głównego do hangaru, z profilem Wózek. Wyznacza ją openrouteservice. |
+| 1:45 | 6 · Trasa | „79 min · 5,8 km”, „Brak znanych barier, ale 4,3 km bez danych”, pasek odcinków, „Najkrótsza: Nie spełnia · schody” | Odcinek bez danych nigdy nie jest „spełnia”: „Brak znanych barier, ale 4,3 km bez danych”. Wariant „Najkrótsza” ma schody. |
+| 1:52 | 6 · Trasa | „Czytaj na głos” → „Czytany krok: 1 z …” → „Następny krok” → „Zakończ czytanie” | „Krok po kroku” to tekstowa wersja mapy. „Czytaj na głos” czyta po jednym kroku. |
+| 2:01 | 6 · Trasa | „Ruszamy” → „Prowadzenie”: krok, odcinek, „Następny krok” | „Ruszamy” prowadzi krok po kroku — także bez zgody na lokalizację, przyciskami. |
+| 2:09 | 7 · Dla firm | `/dla-firm`: widget Hangaru na „strona-hotelu.example”, kod `<iframe>` | Obiekt osadza aktualną kartę na swojej stronie jednym kodem — te same fakty, źródła i daty. |
+| 2:14 | 7 · Dla firm | Generator strony wydarzenia, potem strona „Piknik lotniczy” (wejście, toaleta, parking, przystanki w pobliżu) | Organizator generuje stronę „Dojazd i wejście bez barier”, a systemy biorą dane z API. |
+| 2:24 | 7 · Model | `/api/docs` (Scalar) | Płacą obiekty i partnerzy — za kartę i weryfikację. Mieszkańcy i turyści korzystają za darmo. |
+| 2:30 | 8 · Telefon | Karta Hangaru w ramce telefonu | Na telefonie to samo: aplikacja webowa, PWA i aplikacje na Androida i iOS. |
+| 2:35 | 8 · Zakończenie | Strona główna, Tab: „Przejdź do treści” z widocznym fokusem | Całość działa z klawiatury, statusy są tekstem, lista to pełna wersja mapy. Prowadzi niezależny operator. |
+| 2:41 | Kraków bez barier | Strona główna | Konkretne fakty, źródło przy każdej informacji, otwarte dane. Dziękujemy! |
 
 ### Pokrycie oceny jury (wideo)
 

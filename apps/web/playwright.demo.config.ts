@@ -8,6 +8,8 @@ import { worktreePort } from "./playwright.config";
 // - sample data: `next dev` with the example API (NEXT_PUBLIC_API_MOCK), or DEMO_SAMPLE_BASE_URL. The scenes that
 //   write (a report, the demo moderator's approval, the source-outage switch) run here, labelled PRZYKŁAD, so the
 //   recording never leaves anything behind in a shared database.
+// The stage page lives on the real server's origin and frames the sample server: with an https E2E_BASE_URL, a
+// DEMO_SAMPLE_BASE_URL on plain http (other than localhost) is blocked as mixed content.
 const port = Number(process.env.PORT ?? worktreePort(__dirname) + 2000);
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${port}`;
 const samplePort = port + 1;
@@ -15,10 +17,10 @@ const startSampleServer = !process.env.DEMO_SAMPLE_BASE_URL;
 const sampleURL = process.env.DEMO_SAMPLE_BASE_URL ?? `http://localhost:${samplePort}`;
 process.env.DEMO_SAMPLE_BASE_URL = sampleURL;
 
-if (!process.env.E2E_BASE_URL && !process.env.DATABASE_URL) {
+if (!process.env.E2E_BASE_URL && (!process.env.DATABASE_URL || !process.env.ORS_API_KEY)) {
   throw new Error(
-    "demo:record records real places, so it needs a database: set DATABASE_URL in the root .env, " +
-      "then run `npm run db:setup` and the ingest (docs/demo-script.md), or point E2E_BASE_URL at a running app.",
+    "demo:record records real places and a real route, so the build it starts needs DATABASE_URL and ORS_API_KEY " +
+      "in the root .env (then `npm run db:setup` and the ingest, docs/demo-script.md), or point E2E_BASE_URL at a running app.",
   );
 }
 
