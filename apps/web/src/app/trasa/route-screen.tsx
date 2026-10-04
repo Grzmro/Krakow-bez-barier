@@ -132,6 +132,25 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
   const locateRun = useRef(0);
   const startFieldId = useId();
 
+  // A link to another start on this screen (the example route) is a navigation that keeps this component: take its
+  // start as on first load. The start written into the URL by `replaceState` below doesn't change `from`.
+  const [linkedFrom, setLinkedFrom] = useState(from);
+  if (from !== linkedFrom) {
+    setLinkedFrom(from);
+    setStart(parseStart(from));
+    setSwapped(false);
+    setOrigin(null);
+    setSelected(null);
+    setNotice(null);
+    setLocating(false);
+  }
+  const lastFrom = useRef(from);
+  useEffect(() => {
+    if (lastFrom.current === from) return;
+    lastFrom.current = from;
+    locateRun.current++;
+  }, [from]);
+
   const place = usePlace(to ?? "", {}, { enabled: Boolean(to) });
   const placeEnd = place.data?.location.coordinates as [number, number] | undefined;
   const end = to ? placeEnd : config.routeEnd;
@@ -490,8 +509,7 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
                 <p className="text-body font-semibold">{errorText(current.error)}</p>
                 {routeReason(current.error) === "not_configured" ? (
                   <Link
-                    href={routes.route()}
-                    onClick={() => void pickStart(STATION)}
+                    href={routes.route(undefined, startParam(STATION))}
                     className={buttonVariants({ variant: "outline", size: "sm" })}
                   >
                     {t.error.showExample}

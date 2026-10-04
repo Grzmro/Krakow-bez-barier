@@ -93,8 +93,9 @@ test("a route without a routing key says so, offers the example route, and still
   // WHEN the visitor asks for a route to it (no recorded answer and no ORS key on this server)
   await page.getByRole("link", { name: "Prowadź" }).click();
 
-  // THEN the route screen says this route can't be planned in demo mode, offers the example route (not a pointless retry), and still shows the entrance facts
-  await expect(page).toHaveURL(/\/trasa\?do=kawiarnia-przyklad$/);
+  // THEN the route starts at the shared position, and the link carries it rounded to ~100 m
+  await expect(page).toHaveURL(/\/trasa\?do=kawiarnia-przyklad&z=50\.065,19\.942$/);
+  // AND the screen says this route can't be planned in demo mode, offers the example route (not a pointless retry), and still shows the entrance facts
   const main = page.locator("main");
   await expect(main).toContainText("Tryb demonstracyjny: bez klucza openrouteservice");
   await expect(page.getByRole("link", { name: "Pokaż przykładową trasę" })).toBeVisible();

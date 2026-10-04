@@ -11,6 +11,7 @@
     - button "Najkrótsza"
   - region "Odcinki trasy":
     - button "Rozwiń arkusz"
+    - button "Schowaj szczegóły trasy" [expanded]
     - group "Odcinki trasy":
       - heading "Trasa" [level=1]
       - group "Profil potrzeb":
@@ -26,7 +27,7 @@
       - paragraph: Bez profilu sprawdzamy schody i nawierzchnię. Włącz profil, by ocenić krawężniki i nachylenie.
       - paragraph: "Tryb demonstracyjny: bez klucza openrouteservice działa tylko przykładowa trasa Dworzec Główny → Rynek Główny, z domyślnymi progami profilu."
       - link "Pokaż przykładową trasę":
-        - /url: /trasa
+        - /url: /trasa?z=station
       - 'region "Cel: wejście · Kawiarnia Przykład"':
         - 'heading "Cel: wejście · Kawiarnia Przykład" [level=2]'
         - paragraph: Fakty z karty miejsca.
@@ -47,5 +48,6 @@
   - region "Mapa trasy. Ta sama trasa jest opisana w liście „Krok po kroku”."
   - button "Informacje o źródłach mapy"
   - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
+  - button "Pokaż moją lokalizację"
   - button "Przybliż"
   - button "Oddal"
