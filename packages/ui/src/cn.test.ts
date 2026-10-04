@@ -12,4 +12,12 @@ describe("cn", () => {
     // THEN only the last padding stays and falsy entries are dropped
     expect(result).toBe("px-4 text-sm");
   });
+
+  it("treats the type-scale tokens as font sizes, not colours", () => {
+    // GIVEN a type-scale size next to a text colour, and two sizes
+    // WHEN merged
+    // THEN the size and the colour both stay, and of two sizes the later wins
+    expect(cn("text-body", "text-foreground")).toBe("text-body text-foreground");
+    expect(cn("text-body", "text-[22px]")).toBe("text-[22px]");
+  });
 });

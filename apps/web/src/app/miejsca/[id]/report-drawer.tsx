@@ -4,7 +4,10 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { checkReportNumber, reportRules, type AccessibilityAttribute, type FactValue } from "@krakow-bez-barier/contracts";
 import {
   Button,
-  cn,
+  Field,
+  Input,
+  RadioGroup,
+  Textarea,
   VaulDrawer,
   VaulDrawerContent,
   VaulDrawerDescription,
@@ -146,45 +149,29 @@ function ReportForm({
         {mode === "fill" ? r.titleFill : r.titleCorrect}
       </VaulDrawerTitle>
 
-      <fieldset className="mt-4 min-w-0">
-        <legend className="mb-2 text-body-sm font-semibold">{r.which}</legend>
-        {/* data-vaul-no-drag: a horizontal swipe here scrolls the chips; Vaul would drag the whole sheet. */}
-        <div
-          ref={chipsRef}
-          data-vaul-no-drag
-          className="-mx-4 flex gap-2 overflow-x-auto overscroll-x-contain px-4 pt-1 pb-2"
-        >
-          {attributes.map((a) => (
-            <label
-              key={a}
-              className={cn(
-                "flex h-10 shrink-0 cursor-pointer items-center rounded-full bg-card px-3.5 text-sm font-semibold whitespace-nowrap ring-1 ring-border hover:bg-muted",
-                "has-checked:bg-primary-container has-checked:ring-2 has-checked:ring-primary",
-                "has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
-              )}
-            >
-              <input
-                type="radio"
-                name="report-attribute"
-                value={a}
-                checked={attribute === a}
-                onChange={() => pickAttribute(a)}
-                className="sr-only"
-              />
-              {m.common.attribute[a]}
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      {/* data-vaul-no-drag: a horizontal swipe here scrolls the chips; Vaul would drag the whole sheet. */}
+      <RadioGroup
+        legend={r.which}
+        variant="chip"
+        value={attribute}
+        onValueChange={pickAttribute}
+        options={attributes.map((a) => ({ value: a, label: m.common.attribute[a] }))}
+        className="mt-4"
+        listRef={chipsRef}
+        listProps={{ "data-vaul-no-drag": true }}
+        listClassName="-mx-4 overflow-x-auto overscroll-x-contain px-4 pt-1 pb-2"
+      />
 
-      {input.kind === "number" ? (
-        <div ref={valueRef} className="mt-3">
-          <label htmlFor="report-number" className="mb-2 block text-body-sm font-semibold">
-            {r.trueValue} <span className="sr-only">{r.numberLabel(unit)}</span>
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              id="report-number"
+      <div ref={valueRef} className="mt-3">
+        {input.kind === "number" ? (
+          <Field
+            label={r.trueValue}
+            labelExtra={r.numberLabel(unit)}
+            hint={valueError ? undefined : r.numberHint(input.range.min, input.range.max, unit)}
+            error={valueError}
+          >
+            <Input
+              size="lg"
               type="number"
               inputMode="decimal"
               min={input.range.min}
@@ -193,81 +180,46 @@ function ReportForm({
               autoComplete="off"
               value={number}
               onChange={(e) => setNumber(e.target.value)}
-              aria-invalid={!!valueError}
-              aria-describedby="report-number-hint"
-              className="h-14 min-w-0 flex-1 rounded-2xl border border-input bg-card px-4 font-display text-[22px] font-extrabold tabular-nums outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring aria-invalid:border-status-barrier"
+              end={unit ? <span className="pr-3 text-body font-semibold text-muted-foreground">{unit}</span> : null}
             />
-            {unit ? <span className="text-body font-semibold text-muted-foreground">{unit}</span> : null}
-          </div>
-          <p
-            id="report-number-hint"
-            className={cn("mt-1.5 text-caption", valueError ? "font-semibold text-status-barrier" : "text-muted-foreground")}
-          >
-            {valueError ?? r.numberHint(input.range.min, input.range.max, unit)}
-          </p>
-        </div>
-      ) : (
-        <fieldset className="mt-3 min-w-0" aria-describedby={valueError ? "report-choice-error" : undefined}>
-          <legend className="mb-2 text-body-sm font-semibold">{r.trueValue}</legend>
-          <div ref={valueRef} className="grid gap-2.5">
-            {input.options.map((option, i) => (
-              <label
-                key={option.id}
-                className={cn(
-                  "group flex h-14 cursor-pointer items-center gap-3 rounded-2xl bg-surface-raised px-4 text-body font-semibold ring-1 ring-border-strong/40",
-                  "has-checked:bg-primary-container has-checked:ring-2 has-checked:ring-primary",
-                  "has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
-                )}
-              >
-                <input
-                  type="radio"
-                  name="report-value"
-                  value={option.id}
-                  checked={choice === option.id}
-                  onChange={() => {
-                    setChoice(option.id);
-                    setError(null);
-                  }}
-                  data-autofocus={i === 0 ? true : undefined}
-                  className="peer sr-only"
-                />
-                <span className="flex-1">{option.label}</span>
-                <span
-                  aria-hidden
-                  className="grid size-6 place-items-center rounded-full ring-2 ring-border-strong/60 peer-checked:bg-primary peer-checked:ring-primary"
-                >
-                  <span className="size-2.5 rounded-full bg-primary-foreground opacity-0 group-has-checked:opacity-100" />
-                </span>
-              </label>
-            ))}
-          </div>
-          {valueError ? (
-            <p id="report-choice-error" className="mt-1.5 text-caption font-semibold text-status-barrier">
-              {valueError}
-            </p>
-          ) : null}
-        </fieldset>
-      )}
+          </Field>
+        ) : (
+          <RadioGroup
+            legend={r.trueValue}
+            value={choice}
+            onValueChange={(next) => {
+              setChoice(next);
+              setError(null);
+            }}
+            error={valueError}
+            options={input.options.map((option, i) => ({
+              value: option.id,
+              label: option.label,
+              inputProps: i === 0 ? { "data-autofocus": true } : undefined,
+            }))}
+          />
+        )}
+      </div>
 
-      <label htmlFor="report-comment" className="mt-4 mb-2 block text-body-sm font-semibold">
-        {r.comment}
-      </label>
-      <textarea
-        id="report-comment"
-        ref={commentRef}
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        placeholder={r.commentPlaceholder}
-        rows={2}
-        aria-invalid={!!commentError}
-        aria-describedby={commentError ? "report-comment-error" : undefined}
-        className="min-h-16 w-full rounded-2xl border border-input bg-card px-4 py-3 text-body outline-none placeholder:text-muted-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring aria-invalid:border-status-barrier"
-      />
-      {commentError ? (
-        <p id="report-comment-error" className="mt-1.5 text-caption font-semibold text-status-barrier">
-          {commentError}
-        </p>
-      ) : null}
+      <Field
+        label={r.comment}
+        error={commentError}
+        counter={
+          maxComment !== undefined
+            ? { count: comment.length, max: maxComment, label: m.common.form.characters(comment.length, maxComment) }
+            : undefined
+        }
+        className="mt-4"
+      >
+        <Textarea
+          ref={commentRef}
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder={r.commentPlaceholder}
+          rows={2}
+          className="min-h-16"
+        />
+      </Field>
 
       <Button type="submit" size="lg" className="mt-4 w-full">
         {r.send}

@@ -1,10 +1,10 @@
 "use client";
 
-import { useId, useState } from "react";
-import { ArrowCounterClockwise, Minus, Plus } from "@phosphor-icons/react";
+import { ArrowCounterClockwise } from "@phosphor-icons/react";
 import {
   Button,
   LabeledSwitch,
+  NumberStepper,
   VaulDrawer,
   VaulDrawerContent,
   VaulDrawerDescription,
@@ -19,59 +19,16 @@ type NumberKey = keyof typeof THRESHOLD_LIMITS;
 
 function Stepper({ label, value, limits, onChange }: { label: string; value: number; limits: (typeof THRESHOLD_LIMITS)[NumberKey]; onChange: (v: number) => void }) {
   const t = useMessages().profile.thresholds;
-  const id = useId();
-  const [draft, setDraft] = useState<string | null>(null);
-  const commit = (raw: string) => {
-    const n = Number(raw.replace(",", "."));
-    if (raw.trim() !== "" && Number.isFinite(n)) onChange(Math.min(limits.max, Math.max(limits.min, n)));
-    setDraft(null);
-  };
   return (
-    <div className="flex min-h-14 items-center justify-between gap-3">
-      <span id={id} className="text-body-sm font-semibold">
-        {label}
-      </span>
-      <div role="group" aria-labelledby={id} className="flex items-center gap-1 rounded-full bg-muted p-1">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          className="bg-card"
-          aria-label={t.decrease(label)}
-          disabled={value <= limits.min}
-          onClick={() => onChange(Math.max(limits.min, value - limits.step))}
-        >
-          <Minus weight="bold" />
-        </Button>
-        <div className="flex w-20 items-baseline justify-center gap-1">
-          <input
-            type="number"
-            inputMode="decimal"
-            aria-labelledby={id}
-            min={limits.min}
-            max={limits.max}
-            step={limits.step}
-            value={draft ?? String(value)}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={(e) => commit(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && commit(e.currentTarget.value)}
-            className="w-10 bg-transparent text-center font-heading text-[17px] font-extrabold tabular-nums outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
-          />
-          <span className="text-caption font-semibold text-muted-foreground">{t.cm}</span>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          className="bg-card"
-          aria-label={t.increase(label)}
-          disabled={value >= limits.max}
-          onClick={() => onChange(Math.min(limits.max, value + limits.step))}
-        >
-          <Plus weight="bold" />
-        </Button>
-      </div>
-    </div>
+    <NumberStepper
+      label={label}
+      value={value}
+      {...limits}
+      unit={t.cm}
+      decreaseLabel={t.decrease(label)}
+      increaseLabel={t.increase(label)}
+      onChange={onChange}
+    />
   );
 }
 

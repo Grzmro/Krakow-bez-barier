@@ -105,7 +105,8 @@ test("without location a quick action asks for it or a district", async ({
   await expect(list.getByRole("button", { name: "Albo wybierz dzielnicę" })).toHaveAttribute("aria-expanded", "true");
 
   // WHEN they choose Stare Miasto
-  await list.getByLabel("Dzielnica").selectOption({ label: "Stare Miasto" });
+  await list.getByLabel("Dzielnica").click();
+  await page.getByRole("option", { name: "Stare Miasto" }).click();
   await list.getByRole("button", { name: "Pokaż okolicę" }).click();
 
   // THEN the nearest accessible toilet is measured from that point

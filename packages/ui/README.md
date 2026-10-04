@@ -26,6 +26,8 @@ import { Providers, cn } from "@krakow-bez-barier/ui";
 | `BottomPanel` | non-modal sheet for map screens, two heights, toggled by a button |
 | `SampleTag` | "PRZYKŁAD" labelling |
 | `LiveRegionProvider`, `useAnnounce` | the app's single polite `aria-live` region |
+| `Field`, `Input` / `InputGroup`, `Textarea`, `Select`, `ComboboxPopup` | form fields: visible label, hint, error and character counter via `aria-describedby`, 48 px, ≥ 16 px text, every state |
+| `Checkbox`, `RadioGroup` (card / chip / segmented / plain), `LabeledSwitch`, `Toggle` / `ToggleGroup`, `NumberStepper` | choices on native inputs; every state is on `/dev/components` |
 
 Components carry no copy: every text comes in as a prop. In `apps/web` use the wrappers from
 `@/components/kbb`, which bind the Polish strings from `src/i18n/pl/common.ts`.

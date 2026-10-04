@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from "react";
 import type { FeatureFilter } from "@krakow-bez-barier/contracts";
-import { Button, buttonVariants, cn, LabeledSwitch, StatusIcon, Switch, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
+import { Button, buttonVariants, cn, LabeledSwitch, StatusIcon, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
 import { CaretLeft, MagnifyingGlass, SlidersHorizontal } from "@phosphor-icons/react";
 import { BottomPanel } from "@/components/kbb";
 import { CONTROLS_ABOVE_PANEL, STOWED_HEIGHT, usePanelInset } from "@/components/map/use-panel-inset";
@@ -741,10 +741,8 @@ export function HomeScreen() {
         ))}
       </div>
       {draft.features.length ? (
-        <label className="flex min-h-12 cursor-pointer items-center justify-between gap-3 text-body-sm font-semibold">
-          <span>{t.showUnknown}</span>
-          <Switch checked={draft.showUnknown} onCheckedChange={(on) => pick({ showUnknown: on })} />
-        </label>
+        <LabeledSwitch label={t.showUnknown} checked={draft.showUnknown} onCheckedChange={(on) => pick({ showUnknown: on })} />
+
       ) : null}
     </div>
   );

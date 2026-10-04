@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle, Flask, Question, SignOut, XCircle } from "@phosphor-icons/react";
 import type { ModerationDecisionKind, ModerationReport, ModeratorSession } from "@krakow-bez-barier/contracts";
-import { Button, cn, Tabs, TabsContent, TabsList, TabsTrigger, toast, useAnnounce } from "@krakow-bez-barier/ui";
+import { Button, cn, Field, Tabs, TabsContent, TabsList, Textarea, TabsTrigger, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge } from "@/components/kbb";
 import { bearer, DemoSignIn, ModeratorSignIn, StatusError, useModeratorSession } from "@/components/moderator/moderator-session";
 import { InfoSection } from "@/components/layout/info-page";
@@ -16,6 +16,8 @@ import { formatDate } from "@/lib/place-facts";
 import { routes } from "@/lib/routes";
 import { OutagesTab, useModerationOutages } from "./outages-tab";
 import { SourceOutagesTab } from "./source-outages-tab";
+
+const NOTE_MAX = 500;
 
 const PAGE_SIZE = 100;
 
@@ -57,15 +59,14 @@ export function ModeratorScreen({ demoRevertMinutes }: { demoRevertMinutes: numb
 }
 
 function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (message: string) => void }) {
-  const t = useMessages().moderator;
+  const m = useMessages();
+  const t = m.moderator;
   const locale = useLocale();
   const queryClient = useQueryClient();
   const announce = useAnnounce();
   const queueHeading = useRef<HTMLHeadingElement>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [note, setNote] = useState("");
-  const noteId = useId();
-  const noteHintId = useId();
   const demoHeadingId = useId();
   // Sign-out removes every "moderation" query, so the token itself stays out of the cache key.
   const queryKey = ["moderation", "reports"];
@@ -276,21 +277,14 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
                   </ul>
                 ) : null}
 
-                <label htmlFor={noteId} className="mt-4 mb-2 block text-body-sm font-semibold">
-                  {t.note}
-                </label>
-                <textarea
-                  id={noteId}
-                  value={note}
-                  maxLength={500}
-                  rows={2}
-                  onChange={(e) => setNote(e.target.value)}
-                  aria-describedby={noteHintId}
-                  className="min-h-16 w-full rounded-2xl border border-input bg-card px-4 py-3 text-body-sm outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                />
-                <p id={noteHintId} className="mt-1.5 text-caption text-muted-foreground">
-                  {t.noteHint}
-                </p>
+                <Field
+                  label={t.note}
+                  hint={t.noteHint}
+                  counter={{ count: note.length, max: NOTE_MAX, label: m.common.form.characters(note.length, NOTE_MAX) }}
+                  className="mt-4"
+                >
+                  <Textarea value={note} maxLength={NOTE_MAX} rows={2} onChange={(e) => setNote(e.target.value)} />
+                </Field>
 
                 <div className="mt-4 grid grid-cols-2 gap-2">
                   <Button

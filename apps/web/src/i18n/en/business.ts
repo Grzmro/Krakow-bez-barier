@@ -52,6 +52,7 @@ export const business: Messages["business"] = {
     lead: "A “Step-free access and entry” link for the venue — for an email, a ticket or a poster (print version). Attendees don't need an account.",
     search: "Search for a place",
     searchHint: "Name or street, e.g. “Sukiennice”.",
+    clearSearch: "Clear the search",
     place: "Event venue",
     placesLoading: "Loading places…",
     placesError: "Couldn't load places.",

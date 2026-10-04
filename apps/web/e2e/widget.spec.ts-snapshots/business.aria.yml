@@ -21,16 +21,7 @@
   - searchbox "Szukaj miejsca"
   - paragraph: Nazwa albo ulica, np. „Sukiennice”.
   - text: Miejsce wydarzenia
-  - combobox "Miejsce wydarzenia":
-    - option "Podziemia Rynku (PRZYKŁAD)"
-    - option "Sukiennice (PRZYKŁAD)"
-    - option "Pałac Krzysztofory (PRZYKŁAD)"
-    - option "Restauracja Przykład (PRZYKŁAD)"
-    - option "Hotel Przykład (PRZYKŁAD)" [selected]
-    - option "Bistro Przykład (PRZYKŁAD)"
-    - option "Teatr im. Juliusza Słowackiego (PRZYKŁAD)"
-    - option "Kawiarnia Przykład (PRZYKŁAD)"
-    - option "Toaleta publiczna Planty (przykład) (PRZYKŁAD)"
+  - combobox "Miejsce wydarzenia": Hotel Przykład (PRZYKŁAD)
   - text: Nazwa wydarzenia
   - textbox "Nazwa wydarzenia":
     - /placeholder: np. Koncert jesienny
