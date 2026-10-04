@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { fitPadding, insidePadding, mapPadding, paddedCentre, panelInset } from "./map-padding";
+import { fitPadding, insidePadding, mapPadding, paddedCentre, panelInset, routeFitPadding } from "./map-padding";
 
 describe("panelInset", () => {
   it("is the panel's height while it is at most half height, stowed included", () => {
@@ -95,5 +95,34 @@ describe("paddedCentre", () => {
     // WHEN its centre is computed
     // THEN it sits halfway between the two
     expect(paddedCentre(400, 800, { top: 100, bottom: 300, left: 0, right: 0 })).toEqual([200, 300]);
+  });
+});
+
+describe("routeFitPadding", () => {
+  it("keeps the whole card height on top and trims the bottom margin on a short strip", () => {
+    // GIVEN a 600 px phone map, a 190 px card on top and a 288 px panel with a 64 px margin above it
+    // WHEN the route's fit padding is computed
+    const padding = routeFitPadding({ top: 190, bottom: 64 }, 288, 600);
+
+    // THEN the top is the full card and only the 26 px that leave a 96 px route remain as margin
+    expect(padding).toEqual({ top: 190, bottom: 314, left: 0, right: 0 });
+  });
+
+  it("never scales the top below the card, even when the strip is shorter than card plus route", () => {
+    // GIVEN a strip of only 250 px above the panel
+    // WHEN the padding is computed
+    const padding = routeFitPadding({ top: 190, bottom: 64 }, 350, 600);
+
+    // THEN the top stays 190 and nothing is added beyond the panel
+    expect(padding).toEqual({ top: 190, bottom: 350, left: 0, right: 0 });
+  });
+
+  it("keeps the overlays as given on a map with no panel over it", () => {
+    // GIVEN a desktop map beside its panel
+    // WHEN the padding is computed
+    const padding = routeFitPadding({ top: 48, bottom: 96 }, 0, 800);
+
+    // THEN top and bottom are unchanged
+    expect(padding).toEqual({ top: 48, bottom: 96, left: 0, right: 0 });
   });
 });

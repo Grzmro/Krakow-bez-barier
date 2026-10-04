@@ -8,7 +8,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useMessages } from "@/i18n/client";
 import { config } from "@/lib/config";
 import { blankMissingImages } from "@/lib/map-images";
-import { mapPadding, type VerticalPadding } from "../map/map-padding";
+import { mapPadding, routeFitPadding, type VerticalPadding } from "../map/map-padding";
 import { MapControls } from "../map/map-controls";
 
 const SOURCE = "route";
@@ -199,7 +199,7 @@ export function RouteMap({
     }
     // A new route, or a panel that settled at another height: the whole route is fitted into what stays visible.
     // Not while the map follows the walker, nor once the visitor has panned or zoomed this route themselves.
-    const pad = mapPadding(padding, inset, map.getContainer().clientHeight);
+    const pad = routeFitPadding(padding, inset, map.getContainer().clientHeight);
     const key = `${pad.top},${pad.bottom}`;
     const fitted = fittedRef.current;
     if (fitted?.route === route && (fitted.padding === key || follow || movedRef.current)) return;

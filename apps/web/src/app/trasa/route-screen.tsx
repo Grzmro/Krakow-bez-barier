@@ -339,7 +339,7 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
       id="main"
       tabIndex={-1}
       data-fill-viewport
-      className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[24rem] [--route-collapsed:55%] flex-1 overflow-hidden outline-none lg:mb-0 lg:grid lg:min-h-0 lg:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)]"
+      className="relative mb-[calc(-1*env(safe-area-inset-bottom))] min-h-[24rem] [--route-collapsed:48%] flex-1 overflow-hidden outline-none lg:mb-0 lg:grid lg:min-h-0 lg:grid-cols-[minmax(24rem,28rem)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)]"
     >
       {/* The panel's heading is hidden with its content while the panel is stowed; the page keeps its title. */}
       {stowed ? <h1 className="sr-only">{t.pageTitle}</h1> : null}
