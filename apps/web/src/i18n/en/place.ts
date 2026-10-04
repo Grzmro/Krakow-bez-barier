@@ -125,6 +125,37 @@ export const place: Messages["place"] = {
     repeat: "This vote was already given from this device today.",
     failed: "Couldn't save that. Try again.",
   },
+  cityReport: {
+    heading: "Report to the city",
+    hint: "A ready-made barrier report: address, coordinates, and the sources and dates from the card. It holds none of your data; you send it yourself.",
+    send: "Report to the city",
+    copy: "Copy the report",
+    copied: "Report copied",
+    copyFailed: "Couldn't copy the report",
+    noAddress: "The city's address isn't set yet. Copy the report and send it yourself.",
+    preview: "Show the report text",
+    previewNote: "The message is in Polish because it goes to a city office.",
+    message: {
+      subject: (name, address) => `Accessibility barrier: ${name}${address ? `, ${address}` : ""}`,
+      greeting: "Hello,",
+      intro: "I am reporting an accessibility barrier at a place, indicated by data in the Kraków bez barier app.",
+      place: (name) => `Place: ${name}`,
+      address: (address) => `Address: ${address}`,
+      coordinates: (coordinates) => `Coordinates (lat, lon): ${coordinates}`,
+      link: (url) => `Place card with sources: ${url}`,
+      barriers: "Reported barriers:",
+      fact: (label, value) => `- ${label}: ${value}`,
+      conflict: (values) => `sources disagree (${values})`,
+      source: (name, date, detail, value, sample) =>
+        `  source: ${name}${value ? `, says: ${value}` : ""}, fetched ${date}${detail ? ` (${detail})` : ""}${sample ? ` [${sample}]` : ""}`,
+      sample: "SAMPLE",
+      outage: (equipment, date, confirmations) =>
+        `- ${equipment === "lift" ? "Lift outage" : "Ramp outage"}: visitor report from ${date}, unverified, confirmations: ${confirmations}`,
+      dataNote: (date) =>
+        `The data comes from open sources and user reports, as of ${date}; it may be incomplete or out of date.`,
+      farewell: "Kind regards",
+    },
+  },
   mapLabel: "Map showing where the place is. Arrow keys move the view, plus and minus change the zoom. The address is given in the text above.",
   conflict: {
     title: "Sources give conflicting data",

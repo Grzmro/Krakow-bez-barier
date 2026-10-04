@@ -55,6 +55,8 @@ import { usePlaceOutages } from "@/lib/use-place-outages";
 import { usePlaceReports } from "@/lib/use-place-reports";
 import { routes } from "@/lib/routes";
 import { useMediaQuery } from "@/lib/use-media-query";
+import { hasReportableBarrier } from "@/lib/city-report";
+import { CityReportSection } from "./city-report-section";
 import { OutageBanners } from "./outage-banners";
 import { OutageConfirmDrawer } from "./outage-confirm-drawer";
 import { PlaceNotFound } from "./place-not-found";
@@ -420,6 +422,7 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
             </div>
           </div>
         ) : null}
+        {hasReportableBarrier(place) ? <CityReportSection place={place} /> : null}
       </div>
 
       <div className="lg:col-start-1">

@@ -139,6 +139,38 @@ export const place = {
     repeat: "Ten głos został już dziś oddany z tego urządzenia.",
     failed: "Nie udało się zapisać. Spróbuj ponownie.",
   },
+  // "Zgłoś miastu": a ready-made barrier report the visitor sends to the city from their own mail client.
+  cityReport: {
+    heading: "Zgłoś miastu",
+    hint: "Gotowa wiadomość o barierze: adres, współrzędne, źródła i daty z karty. Nie zawiera Twoich danych — wysyłasz ją sam.",
+    send: "Zgłoś miastu",
+    copy: "Skopiuj zgłoszenie",
+    copied: "Zgłoszenie skopiowane",
+    copyFailed: "Nie udało się skopiować zgłoszenia",
+    noAddress: "Adres miasta nie jest jeszcze ustawiony. Skopiuj zgłoszenie i wyślij je sam.",
+    preview: "Zobacz treść zgłoszenia",
+    previewNote: "Wiadomość jest po polsku, bo trafia do urzędu.",
+    message: {
+      subject: (name: string, address: string) => `Bariera dostępności: ${name}${address ? `, ${address}` : ""}`,
+      greeting: "Dzień dobry,",
+      intro: "zgłaszam barierę w dostępności miejsca, na którą wskazują dane z aplikacji Kraków bez barier.",
+      place: (name: string) => `Miejsce: ${name}`,
+      address: (address: string) => `Adres: ${address}`,
+      coordinates: (coordinates: string) => `Współrzędne (szer., dł.): ${coordinates}`,
+      link: (url: string) => `Karta miejsca ze źródłami: ${url}`,
+      barriers: "Zgłaszane bariery:",
+      fact: (label: string, value: string) => `- ${label}: ${value}`,
+      conflict: (values: string) => `źródła się różnią (${values})`,
+      source: (name: string, date: string, detail?: string, value?: string, sample?: string) =>
+        `  źródło: ${name}${value ? `, podaje: ${value}` : ""}, pobrano ${date}${detail ? ` (${detail})` : ""}${sample ? ` [${sample}]` : ""}`,
+      sample: "PRZYKŁAD",
+      outage: (equipment: OutageEquipment, date: string, confirmations: number) =>
+        `- ${equipment === "lift" ? "Awaria windy" : "Awaria podjazdu"}: zgłoszenie odwiedzających z ${date}, niezweryfikowane, potwierdzeń: ${confirmations}`,
+      dataNote: (date: string) =>
+        `Dane pochodzą z otwartych źródeł i zgłoszeń użytkowników, stan na ${date}; mogą być niepełne lub nieaktualne.`,
+      farewell: "Z poważaniem",
+    },
+  },
   mapLabel: "Mapa z położeniem miejsca. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Adres jest podany w tekście powyżej.",
   conflict: {
     title: "Źródła podają sprzeczne dane",
