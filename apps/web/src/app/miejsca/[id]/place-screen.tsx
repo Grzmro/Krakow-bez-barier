@@ -39,7 +39,7 @@ import {
 import type { AccessibilityAttribute, Outage, OutageEquipment, OutageVote, Place, PlaceSummary, Profile, Verdict } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { PlaceMap } from "@/components/home/place-map";
-import { FactRow, ReliabilityBadge, SampleTag, VerdictBlock } from "@/components/kbb";
+import { FactRow, ReliabilityBadge, SampleTag, SourceText, VerdictBlock } from "@/components/kbb";
 import { NeedGroups } from "@/components/profile/need-groups";
 import { canReportOutage, isActiveOutage, isOutageEquipment } from "@/domain/outages";
 import { useLocale, useMessages } from "@/i18n/client";
@@ -372,7 +372,9 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
               <p className="text-body-sm font-semibold text-status-conflict">
                 {source.lastSuccessAt ? t.outage.title(formatDate(source.lastSuccessAt, locale)) : t.outage.titleNoDate}
               </p>
-              <p className="mt-0.5 text-caption text-foreground">{t.outage.source(source.name)}</p>
+              <p className="mt-0.5 text-caption text-foreground">
+                {t.outage.sourceLabel} <SourceText>{source.name}</SourceText>
+              </p>
               {source.statusNote ? <p className="mt-0.5 text-caption text-foreground">{source.statusNote}</p> : null}
             </div>
           </div>
@@ -407,7 +409,7 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
                         ) : null}
                         <td className="py-1.5 pr-4 break-words">
                           <span className="flex flex-wrap items-center gap-x-2">
-                            {source.name}
+                            <span lang={source.nameLang}>{source.name}</span>
                             {sampleSources.has(source.name) ? <SampleTag /> : null}
                           </span>
                           {source.detail ? <span className="block text-muted-foreground">{source.detail}</span> : null}
@@ -571,11 +573,11 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
               {place.sources.map((source) => (
                 <li key={source.id} className="rounded-2xl bg-surface-raised p-3 ring-1 ring-border">
                   <p className="flex flex-wrap items-center gap-x-2 text-body-sm font-semibold">
-                    {source.name}
+                    <SourceText>{source.name}</SourceText>
                     {source.isSample ? <SampleTag /> : null}
                   </p>
                   <p className="mt-0.5 text-caption text-muted-foreground">
-                    {t.sourceKind[source.kind]} · {t.why.license}: {source.license}
+                    {t.sourceKind[source.kind]} · {t.why.license}: <SourceText license>{source.license}</SourceText>
                   </p>
                   <p
                     className={cn(
@@ -587,7 +589,11 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
                     {t.refreshStatus[source.refreshStatus]} · {t.why.lastSuccess}{" "}
                     {source.lastSuccessAt ? formatDate(source.lastSuccessAt, locale) : t.why.never}
                   </p>
-                  {source.attribution ? <p className="mt-0.5 text-caption text-muted-foreground">{source.attribution}</p> : null}
+                  {source.attribution ? (
+                    <p className="mt-0.5 text-caption text-muted-foreground">
+                      <SourceText>{source.attribution}</SourceText>
+                    </p>
+                  ) : null}
                   {source.url ? (
                     <a
                       href={source.url}

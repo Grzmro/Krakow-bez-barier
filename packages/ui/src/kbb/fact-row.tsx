@@ -19,6 +19,10 @@ export interface FactSource {
   staleNote?: string;
   /** What the source says, e.g. the quoted sentence a fact was read from. */
   note?: string;
+  /** `lang` of the untranslated `name` when it differs from the page, e.g. "pl" on the English page. */
+  nameLang?: string;
+  /** `lang` of the untranslated `note` when it differs from the page. */
+  noteLang?: string;
   /** The page the fact comes from, e.g. { href: "https://www.bip.krakow.pl/?mmi=1", label: "Strona źródła" }. */
   link?: { href: string; label: string };
 }
@@ -142,7 +146,7 @@ export function FactRow({
                 {sources.map((s, i) => (
                   <li key={i} className="flex flex-col gap-0.5 text-caption text-muted-foreground">
                     <span className="font-semibold text-foreground">
-                      {labels.source}: {s.name}
+                      {labels.source}: <span lang={s.nameLang}>{s.name}</span>
                       {s.value ? <span className="font-normal"> · {s.value}</span> : null}
                     </span>
                     <span className="tabular-nums">
@@ -155,7 +159,11 @@ export function FactRow({
                         {s.staleNote}
                       </span>
                     ) : null}
-                    {s.note ? <span className="mt-0.5 text-foreground/85">{s.note}</span> : null}
+                    {s.note ? (
+                      <span lang={s.noteLang} className="mt-0.5 text-foreground/85">
+                        {s.note}
+                      </span>
+                    ) : null}
                     {s.link ? (
                       <a
                         href={s.link.href}

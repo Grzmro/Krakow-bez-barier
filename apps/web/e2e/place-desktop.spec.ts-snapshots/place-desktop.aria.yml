@@ -153,7 +153,7 @@
               - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
               - text: Niezweryfikowane
       - paragraph: "„Niezweryfikowane”: przewoźnik oznacza każdy tramwaj jako dostępny dla wózka, także wysokopodłogowe, więc nie traktujemy tego jako potwierdzenia. „Brak danych”: dane na żywo nic nie mówią o pojeździe — to nie znaczy, że jest dostępny."
-      - paragraph: "/Źródło: ZTP Kraków: GTFS i GTFS-Realtime · dane z \\d+\\.\\d+\\.\\d+, \\d+:\\d+ · licencja: Do sprawdzenia · Zarząd Transportu Publicznego w Krakowie/"
+      - paragraph: "/Źródło: ZTP Kraków: GTFS i GTFS-Realtime · dane z \\d+\\.\\d+\\.\\d+, \\d+:\\d+ · licencja: do potwierdzenia z urzędem · Zarząd Transportu Publicznego w Krakowie/"
     - region "Skąd wiemy?":
       - heading "Skąd wiemy?" [level=2]
       - paragraph: Źródła danych o tym miejscu, ich licencje i stan odświeżenia.
@@ -182,5 +182,6 @@
     - region "Mapa z położeniem miejsca. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Adres jest podany w tekście powyżej."
     - button "Informacje o źródłach mapy"
     - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
+    - button "Pokaż moją lokalizację"
     - button "Przybliż"
     - button "Oddal"

@@ -28,7 +28,7 @@ export const pages = {
     lastOk: "Ostatnia udana aktualizacja",
     lastAttempt: "Ostatnia próba",
     never: "jeszcze nigdy",
-    website: (name: string) => `Strona źródła: ${name}`,
+    websiteLabel: "Strona źródła:",
     status: {
       ok: "Działa",
       stale: "Opóźnione",

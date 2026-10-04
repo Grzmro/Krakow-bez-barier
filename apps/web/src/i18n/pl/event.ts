@@ -33,7 +33,6 @@ export const event = {
     facts: (name: string) => `Dostępność przystanku ${name}`,
   },
   noSource: "Nikt jeszcze nie sprawdził.",
-  sourceLine: (source: string, date: string, value?: string) => (value ? `${value} — ${source} · ${date}` : `${source} · ${date}`),
   sourcesTitle: "Źródła danych",
   sourcesNone: "Żadne źródło nie ma jeszcze danych o tym miejscu.",
   sourceOutage: "Źródło jest teraz niedostępne — dane mogą być nieaktualne.",

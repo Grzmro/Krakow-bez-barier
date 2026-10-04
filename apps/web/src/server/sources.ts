@@ -43,6 +43,13 @@ export function isWithheld(source: Pick<SourceRow, "id" | "license">, withheld: 
   return PENDING_LICENSE.test(source.license) || withheld.includes(source.id);
 }
 
+/** A licence still being confirmed and user-report "licences" in the reader's language; a source's own licence as is. */
+export function localizeLicense(source: Pick<Source, "kind" | "license">, locale: Locale = defaultLocale): string {
+  const t = messagesFor(locale).pages.aboutData.licenseNote;
+  if (PENDING_LICENSE.test(source.license)) return t.pending;
+  return source.kind === "user_report" ? t.userReports : source.license;
+}
+
 /**
  * Swaps the internal licence and status wording of a source for copy in the reader's language: a licence still
  * being confirmed, user-report "licences" and seed notes; a source never fetched gets a note saying why, and a
@@ -55,11 +62,7 @@ export function localizeSourceText<T extends SourceText>(
 ): T {
   const t = messagesFor(locale).pages.aboutData;
   const pending = PENDING_LICENSE.test(source.license);
-  const license = pending
-    ? t.licenseNote.pending
-    : source.kind === "user_report"
-      ? t.licenseNote.userReports
-      : source.license;
+  const license = localizeLicense(source, locale);
   let statusNote = source.statusNote;
   if (statusNote && SEEDED_NOTE.test(statusNote)) statusNote = t.statusNote.seeded;
   const reason = t.statusNote.withheldBySource[source.id];

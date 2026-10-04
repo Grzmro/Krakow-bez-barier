@@ -1,8 +1,9 @@
 "use client";
 
+import { Fragment } from "react";
 import { ArrowSquareOut } from "@phosphor-icons/react";
 import { Button, LogoMark, buttonVariants, cn } from "@krakow-bez-barier/ui";
-import { ReliabilityBadge, SampleTag, UnknownFactsItem } from "@/components/kbb";
+import { ReliabilityBadge, SampleTag, SourceText, UnknownFactsItem } from "@/components/kbb";
 import { useLocale, useMessages } from "@/i18n/client";
 import { splitUnknown } from "@/lib/place-facts";
 import { routes } from "@/lib/routes";
@@ -61,7 +62,16 @@ export function WidgetCard({ placeId }: { placeId: string }) {
               </p>
               <ReliabilityBadge value={fact.reliability} />
             </div>
-            <p className="mt-0.5 text-caption text-muted-foreground">{fact.source ?? t.noSource}</p>
+            <p className="mt-0.5 text-caption text-muted-foreground">
+              {fact.sourceName ? (
+                <>
+                  <SourceText>{fact.sourceName}</SourceText>
+                  {fact.sourceDate ? ` · ${fact.sourceDate}` : null}
+                </>
+              ) : (
+                (fact.source ?? t.noSource)
+              )}
+            </p>
           </li>
         ))}
         <UnknownFactsItem labels={unknown.map((fact) => fact.label)} className="py-2.5" />
@@ -83,7 +93,14 @@ export function WidgetCard({ placeId }: { placeId: string }) {
           {m.common.app.name}
         </p>
       </div>
-      <p className="mt-1 text-caption text-muted-foreground">{card.attribution}</p>
+      <p className="mt-1 text-caption text-muted-foreground">
+        {card.attribution.split(" · ").map((part, i) => (
+          <Fragment key={i}>
+            {i ? " · " : null}
+            <SourceText>{part}</SourceText>
+          </Fragment>
+        ))}
+      </p>
     </article>
   );
 }

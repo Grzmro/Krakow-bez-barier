@@ -51,9 +51,9 @@ export const transit: Messages["transit"] = {
   vehicleNumber: (label: string) => `vehicle no. ${label}`,
   unverifiedHint:
     "“Unverified”: the operator flags every tram as wheelchair-accessible, high-floor ones too, so we don't treat it as confirmation. “No data”: the live data says nothing about the vehicle — that doesn't mean it is accessible.",
-  source: (name: string) => `Source: ${name}`,
+  sourceLabel: "Source:",
   fetchedAt: (time: string) => `data from ${time}`,
-  license: (license: string) => `licence: ${license}`,
+  licenseLabel: "licence:",
   recorded: (time: string) => `A recording of the operator's data from ${time} — these are not live departures.`,
   outage: (time: string) => `The operator's data is unavailable right now. Showing the last data we fetched, from ${time}.`,
   stale: (time: string) => `The operator's data hasn't updated since ${time} — departures may be out of date.`,

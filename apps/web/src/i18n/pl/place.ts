@@ -104,7 +104,9 @@ export const place = {
   outage: {
     title: (date: string) => `Odświeżenie nie powiodło się — dane z ${date}`,
     titleNoDate: "Odświeżenie nie powiodło się — brak wcześniejszych danych",
+    /** Kept for the demo recorder, which looks the line up by its full text. */
     source: (name: string) => `Źródło: ${name}`,
+    sourceLabel: "Źródło:",
   },
   // Temporary outages of a lift or ramp reported by visitors (`Place.outages`); `outage` above is a data source's.
   breakdown: {

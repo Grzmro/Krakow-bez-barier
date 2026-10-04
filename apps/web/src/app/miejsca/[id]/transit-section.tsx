@@ -3,7 +3,7 @@
 import { Bus, CloudSlash, Info, Tram } from "@phosphor-icons/react";
 import type { TransitDeparture, TransitDepartures, TransitStop } from "@krakow-bez-barier/contracts";
 import { Button } from "@krakow-bez-barier/ui";
-import { VehicleBadge } from "@/components/kbb";
+import { SourceText, VehicleBadge } from "@/components/kbb";
 import { useLocale, useMessages } from "@/i18n/client";
 import { DEPARTURES_RADIUS_M, departuresNotice, formatClock, formatDateTime } from "@/lib/transit";
 import { useDepartures } from "@/lib/use-departures";
@@ -80,10 +80,16 @@ function Departures({ data }: { data: TransitDepartures }) {
 
       {hasStops ? <p className="mt-3 text-caption text-muted-foreground">{t.unverifiedHint}</p> : null}
       <p className="mt-2 text-caption text-muted-foreground">
-        {[t.source(data.source.name), fetchedAt ? t.fetchedAt(fetchedAt) : null, t.license(data.source.license)]
-          .filter(Boolean)
-          .join(" · ")}
-        {data.source.attribution ? ` · ${data.source.attribution}` : null}
+        {t.sourceLabel} <SourceText>{data.source.name}</SourceText>
+        {fetchedAt ? ` · ${t.fetchedAt(fetchedAt)}` : null}
+        {` · ${t.licenseLabel} `}
+        <SourceText license>{data.source.license}</SourceText>
+        {data.source.attribution ? (
+          <>
+            {" · "}
+            <SourceText>{data.source.attribution}</SourceText>
+          </>
+        ) : null}
       </p>
     </>
   );
