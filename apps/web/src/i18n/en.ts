@@ -11,6 +11,7 @@ import { moderator } from "./en/moderator";
 import { nearby } from "./en/nearby";
 import { pages } from "./en/pages";
 import { place } from "./en/place";
+import { plan } from "./en/plan";
 import { profile } from "./en/profile";
 import { pwa } from "./en/pwa";
 import { quality } from "./en/quality";
@@ -19,4 +20,4 @@ import { share } from "./en/share";
 import { summary } from "./en/summary";
 import { transit } from "./en/transit";
 
-export const en: Messages = { common, home, place, profile, pages, moderator, nearby, business, event, dev, pwa, summary, route, city, transit, quality, share };
+export const en: Messages = { common, home, place, profile, pages, moderator, nearby, business, event, dev, pwa, summary, route, city, transit, quality, share, plan };

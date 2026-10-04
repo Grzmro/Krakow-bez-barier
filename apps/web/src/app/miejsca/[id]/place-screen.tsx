@@ -40,6 +40,7 @@ import type { AccessibilityAttribute, Outage, OutageEquipment, OutageVote, Place
 import { Button, buttonVariants, cn } from "@krakow-bez-barier/ui";
 import { PlaceMap } from "@/components/home/place-map";
 import { DemoOutageTag, FactRow, ReliabilityBadge, SampleTag, SourceText, VerdictBlock } from "@/components/kbb";
+import { AddToPlan } from "@/components/plan/add-to-plan";
 import { NeedGroups } from "@/components/profile/need-groups";
 import { ShareControls } from "@/components/share/share-controls";
 import { canReportOutage, isActiveOutage, isOutageEquipment } from "@/domain/outages";
@@ -278,6 +279,7 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
               <NavigationArrow weight="fill" />
               {t.route}
             </Link>
+            <AddToPlan place={place} />
             <ShareControls
               buildLink={() => placeShareLink(window.location.origin, place.id)}
               title={m.share.place.title(place.name)}
