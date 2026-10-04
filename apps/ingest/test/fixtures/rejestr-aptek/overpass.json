@@ -1,0 +1,1751 @@
+{
+ "elements": [
+  {
+   "type": "node",
+   "id": 938167743,
+   "lat": 50.0932358,
+   "lon": 19.9469236,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "15",
+    "addr:street": "Józefa Mackiewicza",
+    "amenity": "school"
+   }
+  },
+  {
+   "type": "node",
+   "id": 938167761,
+   "lat": 50.0933437,
+   "lon": 19.9464121,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "15",
+    "addr:street": "Józefa Mackiewicza",
+    "amenity": "kindergarten"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1068345684,
+   "lat": 50.0264036,
+   "lon": 19.9118498,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "93",
+    "addr:street": "Kobierzyńska",
+    "amenity": "post_office"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1708313807,
+   "lat": 50.0450859,
+   "lon": 19.9580346,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "26",
+    "addr:street": "Romualda Traugutta",
+    "amenity": "pharmacy",
+    "healthcare": "pharmacy",
+    "name": "Supra"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1762686042,
+   "lat": 50.0467533,
+   "lon": 19.9283733,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "9A",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1762686043,
+   "lat": 50.0468255,
+   "lon": 19.9285475,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "9B",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1967672921,
+   "lat": 50.0115256,
+   "lon": 19.9247843,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "10",
+    "addr:street": "Orzechowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1967675377,
+   "lat": 50.0118384,
+   "lon": 19.9266334,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "3",
+    "addr:street": "Orzechowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1967675967,
+   "lat": 50.0117992,
+   "lon": 19.925127,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "4",
+    "addr:street": "Orzechowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1967676435,
+   "lat": 50.012066,
+   "lon": 19.9264753,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "5",
+    "addr:street": "Orzechowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1967676761,
+   "lat": 50.0119041,
+   "lon": 19.9263843,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "5a",
+    "addr:street": "Orzechowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1967676815,
+   "lat": 50.0116522,
+   "lon": 19.9251278,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "6",
+    "addr:street": "Orzechowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1967677058,
+   "lat": 50.0116519,
+   "lon": 19.9250016,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "6A",
+    "addr:street": "Orzechowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1973283391,
+   "lat": 50.0122849,
+   "lon": 19.9269374,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "115A",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1973283392,
+   "lat": 50.0122698,
+   "lon": 19.9270686,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "115D",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1973283394,
+   "lat": 50.0121659,
+   "lon": 19.9270734,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "117A",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1973283395,
+   "lat": 50.0121385,
+   "lon": 19.9270261,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "117B",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1973283396,
+   "lat": 50.0121141,
+   "lon": 19.9269793,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "117C",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1973283397,
+   "lat": 50.0120889,
+   "lon": 19.9269341,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "117D",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1973283398,
+   "lat": 50.0120635,
+   "lon": 19.9268847,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "117E",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1973283399,
+   "lat": 50.0120281,
+   "lon": 19.9268213,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "117F",
+    "addr:street": "Zakopiańska",
+    "amenity": "fast_food"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1973283400,
+   "lat": 50.0120459,
+   "lon": 19.9268018,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "117G",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 1973283401,
+   "lat": 50.0120679,
+   "lon": 19.9270701,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "117H",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255627764,
+   "lat": 50.0464208,
+   "lon": 19.9578153,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "10",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255628427,
+   "lat": 50.0459446,
+   "lon": 19.9576309,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "11",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255628788,
+   "lat": 50.0462727,
+   "lon": 19.9578322,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "12",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255629555,
+   "lat": 50.0461321,
+   "lon": 19.9584504,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "14",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255629607,
+   "lat": 50.0455867,
+   "lon": 19.957694,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "15",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255629721,
+   "lat": 50.0458501,
+   "lon": 19.9578918,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "16",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255629763,
+   "lat": 50.0453825,
+   "lon": 19.9577139,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "17",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255629925,
+   "lat": 50.0456976,
+   "lon": 19.9578995,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "18",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255630083,
+   "lat": 50.0451776,
+   "lon": 19.9577401,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "19",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255630255,
+   "lat": 50.045584,
+   "lon": 19.9579161,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "20",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255630465,
+   "lat": 50.045443,
+   "lon": 19.9579318,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "22",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255630598,
+   "lat": 50.0452927,
+   "lon": 19.9579432,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "24",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255630643,
+   "lat": 50.0451386,
+   "lon": 19.9579662,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "26",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2255633544,
+   "lat": 50.0462706,
+   "lon": 19.9575973,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "9",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2392745495,
+   "lat": 50.046723,
+   "lon": 19.9271474,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "13",
+    "addr:street": "Mieszczańska",
+    "amenity": "kindergarten"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2560548938,
+   "lat": 50.0917489,
+   "lon": 19.9004213,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "61",
+    "addr:street": "Stawowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 2765966189,
+   "lat": 50.0121932,
+   "lon": 19.926876,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "115B",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3014943930,
+   "lat": 50.026924,
+   "lon": 19.9121514,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "93",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3014944628,
+   "lat": 50.025889,
+   "lon": 19.9117936,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "95",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3042830118,
+   "lat": 50.0259484,
+   "lon": 19.9134253,
+   "tags": {
+    "amenity": "pharmacy",
+    "healthcare": "pharmacy",
+    "name": "Apteka Janbor S.J."
+   }
+  },
+  {
+   "type": "node",
+   "id": 3060588795,
+   "lat": 50.0106623,
+   "lon": 19.9271279,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "72",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3092742473,
+   "lat": 50.0451555,
+   "lon": 19.9292407,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "2d",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3092742474,
+   "lat": 50.0452909,
+   "lon": 19.9289178,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "2g",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3092742477,
+   "lat": 50.0451353,
+   "lon": 19.9285619,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "4",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3092747515,
+   "lat": 50.0448486,
+   "lon": 19.9268848,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "13",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3092747527,
+   "lat": 50.0452952,
+   "lon": 19.9291562,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "2a",
+    "addr:street": "Dworska",
+    "amenity": "fast_food"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3092747528,
+   "lat": 50.0452467,
+   "lon": 19.9291952,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "2b",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3092749329,
+   "lat": 50.0452007,
+   "lon": 19.9292075,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "2c",
+    "addr:street": "Dworska",
+    "amenity": "fast_food"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3120546841,
+   "lat": 50.0457796,
+   "lon": 19.9576602,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "13",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3259756908,
+   "lat": 50.0936205,
+   "lon": 19.9478011,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "17",
+    "addr:street": "Józefa Mackiewicza"
+   }
+  },
+  {
+   "type": "node",
+   "id": 3865221067,
+   "lat": 50.0269984,
+   "lon": 19.9122222,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "93",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4118840303,
+   "lat": 50.0266708,
+   "lon": 19.9122833,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "93",
+    "addr:street": "Kobierzyńska",
+    "amenity": "pharmacy",
+    "healthcare": "pharmacy",
+    "name": "Ziko Apteka"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4132664248,
+   "lat": 50.0267832,
+   "lon": 19.9122489,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "93",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4192963800,
+   "lat": 50.0941797,
+   "lon": 19.9463273,
+   "tags": {
+    "amenity": "pharmacy",
+    "healthcare": "pharmacy",
+    "name": "Dr Zdrowie"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4381184726,
+   "lat": 50.0269742,
+   "lon": 19.9122251,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "93",
+    "addr:street": "Kobierzyńska",
+    "amenity": "bank"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4381184727,
+   "lat": 50.0269194,
+   "lon": 19.9122299,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "93",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4381184728,
+   "lat": 50.0268153,
+   "lon": 19.9122467,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "93",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4490261391,
+   "lat": 50.0265109,
+   "lon": 19.9131948,
+   "tags": {
+    "addr:housenumber": "98",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 4725660189,
+   "lat": 50.0121243,
+   "lon": 19.9269932,
+   "tags": {
+    "addr:housenumber": "117C",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 5168273221,
+   "lat": 50.045925,
+   "lon": 19.9276821,
+   "tags": {
+    "amenity": "pharmacy",
+    "name": "Apteka Mieszczańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 6192069412,
+   "lat": 50.0265596,
+   "lon": 19.9121526,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "93",
+    "addr:street": "Kobierzyńska",
+    "amenity": "restaurant"
+   }
+  },
+  {
+   "type": "node",
+   "id": 6375882482,
+   "lat": 50.0269509,
+   "lon": 19.9122254,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "93",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 6376220787,
+   "lat": 50.0117224,
+   "lon": 19.9268545,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "1",
+    "addr:street": "Orzechowa",
+    "amenity": "pharmacy",
+    "name": "Ziko Apteka"
+   }
+  },
+  {
+   "type": "node",
+   "id": 7645515819,
+   "lat": 50.0937713,
+   "lon": 19.9465657,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "17",
+    "addr:street": "Józefa Mackiewicza"
+   }
+  },
+  {
+   "type": "node",
+   "id": 7873187342,
+   "lat": 50.0450949,
+   "lon": 19.9290179,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "2a",
+    "addr:street": "Dworska",
+    "amenity": "fast_food"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8209571045,
+   "lat": 50.0120612,
+   "lon": 19.9273661,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "117J",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8209571046,
+   "lat": 50.0121234,
+   "lon": 19.9267665,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "115C",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 8209571047,
+   "lat": 50.0121024,
+   "lon": 19.9267721,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "115E",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 9566956185,
+   "lat": 50.0920458,
+   "lon": 19.9001834,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "61",
+    "addr:street": "Stawowa",
+    "healthcare": "optometrist"
+   }
+  },
+  {
+   "type": "node",
+   "id": 9568259773,
+   "lat": 50.0053306,
+   "lon": 20.0113614,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "9B",
+    "addr:street": "Alberta Schweitzera"
+   }
+  },
+  {
+   "type": "node",
+   "id": 9568259846,
+   "lat": 50.0122708,
+   "lon": 19.9267704,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "115",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 9588531266,
+   "lat": 50.0058293,
+   "lon": 20.0117122,
+   "tags": {
+    "amenity": "pharmacy",
+    "name": "Apteka \"Pod Gwiazdą\""
+   }
+  },
+  {
+   "type": "node",
+   "id": 9588531269,
+   "lat": 50.0121432,
+   "lon": 19.9267665,
+   "tags": {
+    "addr:city": "Kraków-Podgórze",
+    "addr:housenumber": "115c",
+    "addr:street": "Zakopiańska",
+    "amenity": "pharmacy",
+    "name": "Niezapominajka"
+   }
+  },
+  {
+   "type": "node",
+   "id": 9879034104,
+   "lat": 50.0930709,
+   "lon": 19.9009824,
+   "tags": {
+    "addr:housenumber": "134",
+    "addr:street": "Józefa Chełmońskiego",
+    "amenity": "kindergarten"
+   }
+  },
+  {
+   "type": "node",
+   "id": 10075285041,
+   "lat": 50.0450778,
+   "lon": 19.9280916,
+   "tags": {
+    "addr:housenumber": "8a",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 10075285042,
+   "lat": 50.0450283,
+   "lon": 19.9279471,
+   "tags": {
+    "addr:housenumber": "8b",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 10075285043,
+   "lat": 50.0449056,
+   "lon": 19.9276631,
+   "tags": {
+    "addr:housenumber": "8c",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 10075285044,
+   "lat": 50.0448598,
+   "lon": 19.9275071,
+   "tags": {
+    "addr:housenumber": "8d",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "node",
+   "id": 10556439828,
+   "lat": 50.0938487,
+   "lon": 19.9478224,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "17A",
+    "addr:street": "Józefa Mackiewicza"
+   }
+  },
+  {
+   "type": "node",
+   "id": 10691742006,
+   "lat": 50.0919292,
+   "lon": 19.900393,
+   "tags": {
+    "amenity": "pharmacy",
+    "healthcare": "pharmacy",
+    "name": "Dr. Max"
+   }
+  },
+  {
+   "type": "node",
+   "id": 10702735305,
+   "lat": 50.0926123,
+   "lon": 19.8986235,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "61",
+    "addr:street": "Stawowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 10737982507,
+   "lat": 50.0918843,
+   "lon": 19.9000079,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "61",
+    "addr:street": "Stawowa",
+    "amenity": "cafe"
+   }
+  },
+  {
+   "type": "node",
+   "id": 10737982605,
+   "lat": 50.0918075,
+   "lon": 19.9003446,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "61",
+    "addr:street": "Stawowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 11380469587,
+   "lat": 50.0923195,
+   "lon": 19.8984351,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "61",
+    "addr:street": "Stawowa",
+    "amenity": "fast_food"
+   }
+  },
+  {
+   "type": "node",
+   "id": 11697459493,
+   "lat": 50.0117734,
+   "lon": 19.9268013,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "1",
+    "addr:street": "Orzechowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 13043836041,
+   "lat": 50.0935773,
+   "lon": 19.9448428,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "14",
+    "addr:street": "Józefa Mackiewicza"
+   }
+  },
+  {
+   "type": "node",
+   "id": 13603524101,
+   "lat": 50.0919131,
+   "lon": 19.8994441,
+   "tags": {
+    "addr:housenumber": "61",
+    "addr:street": "Stawowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 13607207953,
+   "lat": 50.0919818,
+   "lon": 19.899786,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "61",
+    "addr:street": "Stawowa"
+   }
+  },
+  {
+   "type": "node",
+   "id": 13682111483,
+   "lat": 50.0939447,
+   "lon": 19.9474787,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "17a",
+    "addr:street": "Józefa Mackiewicza",
+    "amenity": "restaurant"
+   }
+  },
+  {
+   "type": "node",
+   "id": 13682111486,
+   "lat": 50.0938582,
+   "lon": 19.9477703,
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "17a",
+    "addr:street": "Józefa Mackiewicza"
+   }
+  },
+  {
+   "type": "node",
+   "id": 13780906310,
+   "lat": 50.0451417,
+   "lon": 19.9579599,
+   "tags": {
+    "addr:housenumber": "26",
+    "addr:street": "Romualda Traugutta"
+   }
+  },
+  {
+   "type": "way",
+   "id": 30824302,
+   "center": {
+    "lat": 50.0938685,
+    "lon": 19.9466555
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "17",
+    "addr:street": "Józefa Mackiewicza"
+   }
+  },
+  {
+   "type": "way",
+   "id": 59275861,
+   "center": {
+    "lat": 50.094977,
+    "lon": 19.946956
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "21",
+    "addr:street": "Józefa Mackiewicza"
+   }
+  },
+  {
+   "type": "way",
+   "id": 59275864,
+   "center": {
+    "lat": 50.0951615,
+    "lon": 19.947708
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "23",
+    "addr:street": "Józefa Mackiewicza"
+   }
+  },
+  {
+   "type": "way",
+   "id": 59276267,
+   "center": {
+    "lat": 50.094578,
+    "lon": 19.947089
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "19",
+    "addr:street": "Józefa Mackiewicza"
+   }
+  },
+  {
+   "type": "way",
+   "id": 80396199,
+   "center": {
+    "lat": 50.0931253,
+    "lon": 19.9467557
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "15",
+    "addr:street": "Józefa Mackiewicza"
+   }
+  },
+  {
+   "type": "way",
+   "id": 106768036,
+   "center": {
+    "lat": 50.0453849,
+    "lon": 19.9260541
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "48",
+    "addr:street": "Szwedzka"
+   }
+  },
+  {
+   "type": "way",
+   "id": 106768037,
+   "center": {
+    "lat": 50.0457959,
+    "lon": 19.9258945
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "44",
+    "addr:street": "Szwedzka"
+   }
+  },
+  {
+   "type": "way",
+   "id": 107562373,
+   "center": {
+    "lat": 50.0449773,
+    "lon": 19.9264153
+   },
+   "tags": {
+    "addr:housenumber": "52",
+    "addr:street": "Szwedzka"
+   }
+  },
+  {
+   "type": "way",
+   "id": 107562379,
+   "center": {
+    "lat": 50.0448705,
+    "lon": 19.9264819
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "54",
+    "addr:street": "Szwedzka"
+   }
+  },
+  {
+   "type": "way",
+   "id": 107562397,
+   "center": {
+    "lat": 50.0449914,
+    "lon": 19.9271215
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "11",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 107562424,
+   "center": {
+    "lat": 50.0458828,
+    "lon": 19.9276526
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "2",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 107562427,
+   "center": {
+    "lat": 50.0460694,
+    "lon": 19.9272856
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "4",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 107562429,
+   "center": {
+    "lat": 50.046763,
+    "lon": 19.9267351
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "18",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 107562432,
+   "center": {
+    "lat": 50.046425,
+    "lon": 19.9270284
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "12",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 107693152,
+   "center": {
+    "lat": 50.0460445,
+    "lon": 19.9280456
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "3",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 107693154,
+   "center": {
+    "lat": 50.0469382,
+    "lon": 19.9281895
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "15",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 107693155,
+   "center": {
+    "lat": 50.0462816,
+    "lon": 19.9277591
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "5a",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 107693156,
+   "center": {
+    "lat": 50.0463673,
+    "lon": 19.9276564
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "7",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 107693158,
+   "center": {
+    "lat": 50.0468063,
+    "lon": 19.9270827
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "17",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 109330038,
+   "center": {
+    "lat": 50.0449114,
+    "lon": 19.927807
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "8",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 154286648,
+   "center": {
+    "lat": 50.0467023,
+    "lon": 19.9273957
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "13",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 154286650,
+   "center": {
+    "lat": 50.0461324,
+    "lon": 19.9296664
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "1a",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 154286654,
+   "center": {
+    "lat": 50.0463813,
+    "lon": 19.9284106
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "6",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 154286661,
+   "center": {
+    "lat": 50.0469861,
+    "lon": 19.9275633
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "19",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 154286665,
+   "center": {
+    "lat": 50.0465369,
+    "lon": 19.9274637
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "9",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 154286668,
+   "center": {
+    "lat": 50.0457394,
+    "lon": 19.9295282
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "1",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 154286669,
+   "center": {
+    "lat": 50.0446837,
+    "lon": 19.9271103
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "10",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 154937506,
+   "center": {
+    "lat": 50.0067008,
+    "lon": 20.0119439
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "5",
+    "addr:street": "Alberta Schweitzera"
+   }
+  },
+  {
+   "type": "way",
+   "id": 154937513,
+   "center": {
+    "lat": 50.0052376,
+    "lon": 20.0103285
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "9",
+    "addr:street": "Alberta Schweitzera"
+   }
+  },
+  {
+   "type": "way",
+   "id": 155027702,
+   "center": {
+    "lat": 50.012109,
+    "lon": 19.9253209
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "5",
+    "addr:street": "Orzechowa",
+    "amenity": "atm"
+   }
+  },
+  {
+   "type": "way",
+   "id": 155027753,
+   "center": {
+    "lat": 50.0124856,
+    "lon": 19.9266168
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "111a",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 155417656,
+   "center": {
+    "lat": 50.0264693,
+    "lon": 19.913241
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "98",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 155417757,
+   "center": {
+    "lat": 50.025,
+    "lon": 19.9128798
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "106",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 160324106,
+   "center": {
+    "lat": 50.0054253,
+    "lon": 20.011629
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "9a",
+    "addr:street": "Alberta Schweitzera"
+   }
+  },
+  {
+   "type": "way",
+   "id": 162890635,
+   "center": {
+    "lat": 50.0259082,
+    "lon": 19.9135008
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "100",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 218798531,
+   "center": {
+    "lat": 50.0057453,
+    "lon": 20.0118892
+   },
+   "tags": {
+    "addr:housenumber": "7",
+    "addr:street": "Alberta Schweitzera"
+   }
+  },
+  {
+   "type": "way",
+   "id": 231346830,
+   "center": {
+    "lat": 50.0924881,
+    "lon": 19.9011682
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "119",
+    "addr:street": "Józefa Chełmońskiego"
+   }
+  },
+  {
+   "type": "way",
+   "id": 231346976,
+   "center": {
+    "lat": 50.0920287,
+    "lon": 19.9023038
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "111",
+    "addr:street": "Józefa Chełmońskiego"
+   }
+  },
+  {
+   "type": "way",
+   "id": 231348110,
+   "center": {
+    "lat": 50.0922648,
+    "lon": 19.901106
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "26",
+    "addr:street": "Stawowa"
+   }
+  },
+  {
+   "type": "way",
+   "id": 231348120,
+   "center": {
+    "lat": 50.0922505,
+    "lon": 19.9014088
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "24",
+    "addr:street": "Stawowa"
+   }
+  },
+  {
+   "type": "way",
+   "id": 231348227,
+   "center": {
+    "lat": 50.0925285,
+    "lon": 19.9020942
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "124",
+    "addr:street": "Józefa Chełmońskiego"
+   }
+  },
+  {
+   "type": "way",
+   "id": 303182606,
+   "center": {
+    "lat": 50.0458372,
+    "lon": 19.9263751
+   },
+   "tags": {
+    "addr:housenumber": "4",
+    "addr:street": "Władysława Mitkowskiego"
+   }
+  },
+  {
+   "type": "way",
+   "id": 304685873,
+   "center": {
+    "lat": 50.0451838,
+    "lon": 19.9289623
+   },
+   "tags": {
+    "addr:housenumber": "2A",
+    "addr:street": "Dworska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 304685922,
+   "center": {
+    "lat": 50.0462242,
+    "lon": 19.9278368
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "5",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 306160887,
+   "center": {
+    "lat": 50.0113325,
+    "lon": 19.926893
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "119",
+    "addr:street": "Zakopiańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 377444354,
+   "center": {
+    "lat": 50.0059639,
+    "lon": 20.0122004
+   },
+   "tags": {
+    "addr:housenumber": "7B",
+    "addr:street": "Alberta Schweitzera"
+   }
+  },
+  {
+   "type": "way",
+   "id": 591578138,
+   "center": {
+    "lat": 50.0919185,
+    "lon": 19.8984279
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "61",
+    "addr:street": "Stawowa"
+   }
+  },
+  {
+   "type": "way",
+   "id": 685506716,
+   "center": {
+    "lat": 50.0257502,
+    "lon": 19.9129824
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "104",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 702853253,
+   "center": {
+    "lat": 50.0462647,
+    "lon": 19.9271045
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "10",
+    "addr:street": "Mieszczańska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 893453417,
+   "center": {
+    "lat": 50.0920711,
+    "lon": 19.9019934
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "113",
+    "addr:street": "Józefa Chełmońskiego"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1057365705,
+   "center": {
+    "lat": 50.0257855,
+    "lon": 19.9129296
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "104",
+    "addr:street": "Kobierzyńska"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1299372562,
+   "center": {
+    "lat": 50.0110255,
+    "lon": 19.927552
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "70 B",
+    "addr:street": "Zakopiańska",
+    "amenity": "fast_food"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1348330377,
+   "center": {
+    "lat": 50.093771,
+    "lon": 19.947618
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "17a",
+    "addr:street": "Józefa Mackiewicza"
+   }
+  },
+  {
+   "type": "way",
+   "id": 1419484953,
+   "center": {
+    "lat": 50.0934879,
+    "lon": 19.9448042
+   },
+   "tags": {
+    "addr:city": "Kraków",
+    "addr:housenumber": "14",
+    "addr:street": "Józefa Mackiewicza"
+   }
+  }
+ ]
+}

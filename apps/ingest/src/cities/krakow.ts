@@ -14,7 +14,7 @@ export const krakow: CityConfig = {
     demo: { south: 50.045, west: 19.925, north: 50.06, east: 19.96 },
   },
   defaults: { center: [19.9373, 50.0614], zoom: 15 },
-  sources: ["osm", "msip-toilets", "zdmk-parking-ozn", "ztp-stops", "bip-mk", "krakow-pl-toilets", "bip-malopolska"],
+  sources: ["osm", "msip-toilets", "zdmk-parking-ozn", "ztp-stops", "bip-mk", "krakow-pl-toilets", "bip-malopolska", "rejestr-aptek"],
   sourceConfig: {
     osm: {
       endpoint: "https://overpass-api.de/api/interpreter",
@@ -34,5 +34,7 @@ export const krakow: CityConfig = {
     "bip-mk": { pages: krakowBipPages },
     "krakow-pl-toilets": { pages: [krakowPlToiletsPage] },
     "bip-malopolska": { endpoint: "https://bip.malopolska.pl/api/", pages: krakowBipMalopolskaPages },
+    // Pharmacies are placed on OSM pharmacies or address points read from the `osm` endpoint above.
+    "rejestr-aptek": { endpoint: "https://rejestry.ezdrowie.gov.pl/api/ra/filegenerator/getcsv" },
   },
 };
