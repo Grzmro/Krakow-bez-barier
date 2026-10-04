@@ -1,6 +1,6 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { clientKey, createRateLimiter, HttpError, type RateLimiter } from "@/server/http";
-import { DEMO_MODERATOR_NAME } from "./demo";
+import { DEMO_MODERATOR_NAME, DEMO_REVERT_MINUTES } from "./demo";
 
 const MIN_TOKEN_LENGTH = 16;
 
@@ -56,6 +56,15 @@ const configuredModerators = () => parseModerators(process.env.MODERATOR_TOKENS,
 /** Whether the server has a demo account, i.e. whether the one-click demo sign-in is offered. */
 export function isDemoAccountEnabled(moderators: Moderator[] = configuredModerators()): boolean {
   return moderators.some((m) => m.sessionKey);
+}
+
+/**
+ * What the sign-in screens (/moderator, /miasto) pass to `DemoSignIn`: the demo account's revert time when the
+ * one-click entry is offered, `null` when it isn't. The example-data mode stands in for a demo account
+ * (see mock-moderation), so it offers the entry too.
+ */
+export function demoSignInMinutes(mockApi: boolean, moderators: Moderator[] = configuredModerators()): number | null {
+  return mockApi || isDemoAccountEnabled(moderators) ? DEMO_REVERT_MINUTES : null;
 }
 
 /**

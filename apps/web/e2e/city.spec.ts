@@ -85,6 +85,24 @@ test("the city panel shows statistics and the priority ranking, keyboard-reachab
   await expect(page.getByRole("heading", { level: 1, name: firstName })).toBeVisible();
 });
 
+test("the jury enters the city panel with the demo account in one click", async ({ page, expectAccessible, evidence }) => {
+  // GIVEN the city panel's sign-in screen on a server with a demo account (the example-data mode stands in for one)
+  await page.goto("/miasto");
+  const entry = page.getByRole("region", { name: "Dla jury i do wypróbowania" });
+  await expect(entry).toContainText("po 30 min cofamy je automatycznie");
+  await expect(entry).toMatchAriaSnapshot({ name: "city-demo-entry.aria.yml" });
+  await expectAccessible();
+  await evidence("city-demo-entry");
+
+  // WHEN the button is reached and pressed with the keyboard
+  await page.getByRole("button", { name: "Wejdź na konto demonstracyjne (dla jury)" }).focus();
+  await page.keyboard.press("Enter");
+
+  // THEN the statistics open, announced, without a token typed in
+  await expect(page.getByRole("status").filter({ hasText: /^Statystyki gotowe: \d+ miejsc/ })).toBeAttached();
+  await expect(page.getByRole("heading", { name: "Priorytety napraw i uzupełnień" })).toBeVisible();
+});
+
 test("one sign-in covers the moderator panel and the city panel", async ({ page }) => {
   // GIVEN a moderator signed in on the city panel
   await page.goto("/miasto");

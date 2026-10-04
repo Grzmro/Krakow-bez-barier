@@ -38,7 +38,7 @@ const reason: Record<PriorityFactor, (count: number, needs: string) => string> =
 // City panel (/miasto): aggregated statistics and repair priorities for the city's staff.
 export const city = {
   title: "Panel dla miasta",
-  signInLead: "Panel dla miasta używa tego samego logowania co panel moderatora — także konta demonstracyjnego.",
+  signInLead: "Panel dla miasta używa tego samego logowania co panel moderatora.",
   signedIn: "Zalogowano. Statystyki miasta są poniżej.",
   loading: "Liczę statystyki…",
   loaded: (total: number) => `Statystyki gotowe: ${places(total)} w bazie.`,
