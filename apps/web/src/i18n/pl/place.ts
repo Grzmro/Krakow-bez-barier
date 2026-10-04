@@ -93,7 +93,13 @@ export const place = {
     title: (profile: string) => `Twój profil: ${profile}`,
     needsMet: (met: number, total: number) => `Pasuje ${met} z ${total} ${plural(total, "potrzeby", "potrzeb", "potrzeb")} profilu`,
     hint: "Źródła i daty są w faktach poniżej.",
-  },
+    // The fact row a need rests on; the link opens that row with its source.
+    basis: {
+      met: (fact: string) => `na podstawie: ${fact}`,
+      barrier: (fact: string) => `na podstawie: ${fact}`,
+      unknown: (fact: string) => `brak danych: ${fact}`,
+      conflict: (fact: string) => `sprzeczne dane: ${fact}`,
+    },  },
   facts: "Fakty",
   factsHint: "Rozwiń cechę, by zobaczyć źródło i datę.",
   sourcesCount: (n: number, latest?: string) =>
@@ -242,6 +248,8 @@ export const place = {
     yes: "Jest",
     no: "Nie ma",
     noSteps: "Bez stopni",
+    levelEntrance: "Na poziomie gruntu",
+    notLevelEntrance: "Nie na poziomie gruntu",
     steps: (n: number) => `${n} ${plural(n, "stopień", "stopnie", "stopni")}`,
     separator: " / ",
   },

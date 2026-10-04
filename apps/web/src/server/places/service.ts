@@ -66,6 +66,7 @@ const ATTRIBUTES = (
 
 // Shown in every list row even without data, so "Brak danych" is explicit, not a missing chip.
 const ALWAYS_SUMMARIZED: AccessibilityAttribute[] = ["step_count", "toilet_accessible"];
+const ENTRANCE_ANSWERS: AccessibilityAttribute[] = ["ramp", "entrance_level"];
 
 const FAILED_REFRESH = new Set<SourceRecord["refreshStatus"]>(["stale", "outage"]);
 
@@ -156,6 +157,11 @@ function summaryChips(
   // A category with its own card (a stop) has no entrance or toilet to call unknown.
   const own = categories.find((c) => c.id === category)?.cardAttributes;
   const wanted = new Set([...ALWAYS_SUMMARIZED.filter((a) => !own || own.includes(a)), ...extra]);
+  // A known ramp or level entrance answers the entrance (as in the Matcher) and has its own chip, so a forced
+  // "Wejście: brak danych" next to it would read as a contradiction.
+  if (attributes.some((a) => ENTRANCE_ANSWERS.includes(a.attribute) && a.state === "known" && a.value?.kind === "boolean" && a.value.boolean)) {
+    wanted.delete("step_count");
+  }
   return attributes
     .filter((a) => a.state !== "unknown" || wanted.has(a.attribute))
     .map(({ attribute, state, status, value }) => ({

@@ -207,6 +207,16 @@ test("with a profile on, the card shows its verdict and the Blokuje / Pasuje / N
   await expectAccessible();
   await evidence("place-profile");
 
+  // WHEN a keyboard user follows the fact the entrance verdict rests on
+  await verdict.getByRole("link", { name: "na podstawie: Wejście — stopnie (2 stopnie)" }).focus();
+  await page.keyboard.press("Enter");
+
+  // THEN that fact's row is focused and open, showing its source
+  const steps = page.getByRole("button", { name: /^Wejście — stopnie: 2 stopnie/ });
+  await expect(steps).toBeFocused();
+  await expect(steps).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator(`#${await steps.getAttribute("aria-controls")}`)).toContainText("Źródło: OpenStreetMap");
+
   // WHEN the profile is turned off
   await page.evaluate(() => window.localStorage.removeItem("kbb.profile.v1"));
   await page.reload();

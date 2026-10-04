@@ -54,7 +54,7 @@ export const common: Messages["common"] = {
     ramp: "Ramp",
     lift: "Lift",
     door_width_cm: "Door width",
-    entrance_level: "Level entrance",
+    entrance_level: "Entrance level",
     toilet_accessible: "Accessible toilet",
     changing_table: "Baby changing table",
     surface: "Path surface",

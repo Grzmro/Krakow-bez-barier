@@ -36,7 +36,7 @@ import {
   Wrench,
   type Icon,
 } from "@phosphor-icons/react";
-import type { AccessibilityAttribute, Outage, OutageEquipment, OutageVote, Place, PlaceSummary, Profile, Verdict } from "@krakow-bez-barier/contracts";
+import type { AccessibilityAttribute, NeedResult, Outage, OutageEquipment, OutageVote, Place, PlaceSummary, Profile, Verdict } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn } from "@krakow-bez-barier/ui";
 import { PlaceMap } from "@/components/home/place-map";
 import { DemoOutageTag, FactRow, ReliabilityBadge, SampleTag, SourceText, VerdictBlock } from "@/components/kbb";
@@ -49,7 +49,7 @@ import { usePlace } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { useCategoryLookup } from "@/lib/categories";
-import { CARD_ATTRIBUTES, factViews, failedSources, formatDate, latestSourceDate, osmEditUrl } from "@/lib/place-facts";
+import { CARD_ATTRIBUTES, factViews, failedSources, formatDate, joinValue, latestSourceDate, osmEditUrl, type FactView } from "@/lib/place-facts";
 import { pendingEntries, withPending, type PendingEntry } from "@/lib/reports";
 import { usePlaceOutages } from "@/lib/use-place-outages";
 import { usePlaceReports } from "@/lib/use-place-reports";
@@ -209,6 +209,12 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
     focusFirstAction.current = null;
     button.focus();
   });
+
+  // From the profile verdict: opens the row the need rests on, with its source, and moves focus there.
+  const showFact = (attribute: AccessibilityAttribute) => {
+    setOpenFacts((o) => ({ ...o, [attribute]: true }));
+    document.getElementById(factRowId(attribute))?.querySelector("button")?.focus();
+  };
 
   const confirmFact = async (attribute: AccessibilityAttribute, factId: string) => {
     if (await reports.confirm(attribute, factId)) focusFirstAction.current = attribute;
@@ -421,7 +427,7 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
       </div>
 
       <div className="lg:col-start-1">
-        {profile && place.verdict ? <ProfileVerdict verdict={place.verdict} profile={profile} /> : null}
+        {profile && place.verdict ? <ProfileVerdict verdict={place.verdict} profile={profile} facts={facts} onShowFact={showFact} /> : null}
         <section aria-labelledby="place-facts">
           <h2 id="place-facts" ref={factsHeadingRef} tabIndex={-1} className="mt-6 mb-1 text-title font-semibold">
             {t.facts}
@@ -447,6 +453,7 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
               return (
                 <FactRow
                   key={fact.attribute}
+                  id={factRowId(fact.attribute)}
                   open={!!openFacts[fact.attribute]}
                   onOpenChange={(open) => setOpenFacts((o) => ({ ...o, [fact.attribute]: open }))}
                   notice={fact.pending.length ? <PendingList entries={fact.pending} /> : undefined}
@@ -664,11 +671,43 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
   );
 }
 
-function ProfileVerdict({ verdict, profile }: { verdict: Verdict; profile: Profile }) {
+const factRowId = (attribute: AccessibilityAttribute) => `fakt-${attribute}`;
+
+function ProfileVerdict({
+  verdict,
+  profile,
+  facts,
+  onShowFact,
+}: {
+  verdict: Verdict;
+  profile: Profile;
+  facts: readonly FactView[];
+  onShowFact: (attribute: AccessibilityAttribute) => void;
+}) {
   const m = useMessages();
+  const locale = useLocale();
   const t = m.place.profileVerdict;
   const needs = verdict.needs ?? [];
   const met = needs.filter((n) => n.state === "met").length;
+  // Every need names the card row it rests on, so a green "Spełnia" is traceable to a sourced fact.
+  const basis = (need: NeedResult) => {
+    const fact = need.outage ? undefined : facts.find((f) => f.attribute === need.attribute);
+    if (!fact) return null;
+    const value = fact.unknown || !fact.value ? null : joinValue({ value: fact.value, unit: fact.unit });
+    const text = value ? `${fact.label} (${value.charAt(0).toLocaleLowerCase(locale) + value.slice(1)})` : fact.label;
+    return (
+      <a
+        href={`#${factRowId(fact.attribute)}`}
+        onClick={(event) => {
+          event.preventDefault();
+          onShowFact(fact.attribute);
+        }}
+        className="mt-0.5 inline-flex min-h-6 items-center text-caption font-semibold text-primary underline underline-offset-2"
+      >
+        {t.basis[need.state](text)}
+      </a>
+    );
+  };
   return (
     <section aria-labelledby="place-profile" className="mt-6">
       <h2 id="place-profile" className="mb-1 text-title font-semibold">
@@ -682,7 +721,7 @@ function ProfileVerdict({ verdict, profile }: { verdict: Verdict; profile: Profi
         sub={needs.length ? t.needsMet(met, needs.length) : undefined}
       />
       {needs.length ? (
-        <NeedGroups verdict={verdict} headingLevel={3} className="mt-4 rounded-[20px] bg-surface-raised p-4 shadow-soft ring-1 ring-border" />
+        <NeedGroups verdict={verdict} headingLevel={3} basis={basis} className="mt-4 rounded-[20px] bg-surface-raised p-4 shadow-soft ring-1 ring-border" />
       ) : null}
     </section>
   );

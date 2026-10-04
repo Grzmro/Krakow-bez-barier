@@ -84,7 +84,12 @@ export const place: Messages["place"] = {
     title: (profile: string) => `Your profile: ${profile}`,
     needsMet: (met: number, total: number) => `Fits ${met} of ${total} profile ${plural(total, "need", "needs")}`,
     hint: "Sources and dates are in the facts below.",
-  },
+    basis: {
+      met: (fact: string) => `based on: ${fact}`,
+      barrier: (fact: string) => `based on: ${fact}`,
+      unknown: (fact: string) => `no data: ${fact}`,
+      conflict: (fact: string) => `conflicting data: ${fact}`,
+    },  },
   facts: "Facts",
   factsHint: "Expand a feature to see its source and date.",
   sourcesCount: (n: number, latest?: string) =>
@@ -240,6 +245,8 @@ export const place: Messages["place"] = {
     yes: "Yes",
     no: "No",
     noSteps: "No steps",
+    levelEntrance: "At ground level",
+    notLevelEntrance: "Not at ground level",
     steps: (n: number) => `${n} ${plural(n, "step", "steps")}`,
     separator: " / ",
   },
