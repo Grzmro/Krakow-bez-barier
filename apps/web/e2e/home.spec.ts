@@ -161,8 +161,11 @@ test("on a 390x844 phone the skip link jumps past the map to the list, below the
   await evidence("home-skip-to-list");
   await page.keyboard.press("Enter");
 
-  // THEN the list has focus and the next Tab lands on the first place, in view
+  // THEN the list has focus, the next Tab offers the jump to the filters (below the results since KBB-162) and the
+  // one after it lands on the first place, in view
   await expect(page.locator("#lista")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(list.getByRole("button", { name: "Filtry i profil" })).toBeFocused();
   await page.keyboard.press("Tab");
   const firstRow = list.getByRole("link").first();
   await expect(firstRow).toBeFocused();

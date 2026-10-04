@@ -51,7 +51,8 @@ test("on a laptop the scenario works from the keyboard alone and focus returns f
 
   // AND opens the profile thresholds and closes them with Escape
   const thresholds = page.getByRole("button", { name: "Progi profilu" });
-  await tabTo(page, thresholds);
+  // The verdict counters and thresholds sit above the list, before the profile switch (KBB-162): tab back to them.
+  await tabTo(page, thresholds, 40, { back: true });
   await page.keyboard.press("Enter");
   const thresholdsDrawer = page.getByRole("dialog", { name: "Progi profilu" });
   await expect(thresholdsDrawer).toBeVisible();

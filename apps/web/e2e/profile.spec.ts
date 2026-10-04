@@ -172,6 +172,8 @@ test("switching the profile releases a pressed counter", async ({ page }) => {
 });
 
 test("thresholds change verdicts, persist in the browser and reset to defaults", async ({ page, expectAccessible, evidence }) => {
+  // Two page loads with a search each, the drawer twice and axe: more than 15 s on a loaded machine.
+  test.setTimeout(30_000);
   // GIVEN the wheelchair profile is on, over search results (the thresholds button comes with them)
   await gotoAllPlaces(page);
   await page.getByRole("radio", { name: "Wózek", exact: true }).check();
@@ -333,10 +335,10 @@ test("profile, counters and details work from the keyboard", async ({ page }) =>
   await expect(page.getByRole("radio", { name: "Wózek", exact: true })).toBeChecked();
   await expect(row(page, "Hotel Przykład")).toContainText("Spełnia");
 
-  // WHEN they tab to a counter and press it with the keyboard
+  // WHEN they tab back to a counter (above the list, before the profile switch since KBB-162) and press it
   const met = page.getByRole("button", { name: "1 spełnia" });
-  for (let i = 0; i < 10 && !(await met.evaluate((el) => el === document.activeElement)); i++) {
-    await page.keyboard.press("Tab");
+  for (let i = 0; i < 20 && !(await met.evaluate((el) => el === document.activeElement)); i++) {
+    await page.keyboard.press("Shift+Tab");
   }
   await expect(met).toBeFocused();
   await page.keyboard.press("Enter");

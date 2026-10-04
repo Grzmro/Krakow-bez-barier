@@ -33,20 +33,6 @@
         - button "Nearest lift"
         - button "Nearest pharmacy"
         - button "Nearest stop"
-      - group "Needs profile":
-        - text: ""
-        - radio "Profile off, view for everyone"
-        - text: For everyone
-        - radio "Wheelchair" [checked]
-        - text: Wheelchair
-        - radio "Pushchair"
-        - text: Pushchair
-        - radio "Senior"
-        - text: Senior
-      - button "Near me"
-      - text: Show nearest places first
-      - button "Or choose a district"
-      - paragraph: Your exact position stays on the device. For the search we send only an approximate area within about 2 km, not your position.
       - group "Show only places with the result":
         - button "1 meets"
         - button "1 conflicting"
@@ -54,16 +40,8 @@
         - button "1 doesn't meet"
       - button "Profile thresholds":
         - img
-      - text: Hide places that don't meet
-      - switch "Hide places that don't meet"
-      - group "Feature filters":
-        - button "Step-free"
-        - button "Lift"
-        - button "Accessible toilet"
-        - button "Benches"
-        - button "Disabled parking"
-        - button "Changing table"
       - heading /\d+ places/ [level=2]
+      - button "Filters and profile"
       - list:
         - listitem:
           - link /Meets · unconfirmed Hotel Przykład ul\. Sienna 5, Kraków Sample data \d+ m from the Main Square/:
@@ -105,6 +83,29 @@
           - link /Doesn't meet · 2 steps Restauracja Przykład ul\. Szewska 8, Kraków Sample data \d+ m from the Main Square/:
             - /url: /miejsca/restauracja-przyklad
           - button "Why does Restauracja Przykład not meet?": Why?
+      - group "Needs profile":
+        - text: ""
+        - radio "Profile off, view for everyone"
+        - text: For everyone
+        - radio "Wheelchair" [checked]
+        - text: Wheelchair
+        - radio "Pushchair"
+        - text: Pushchair
+        - radio "Senior"
+        - text: Senior
+      - button "Near me"
+      - text: Show nearest places first
+      - button "Or choose a district"
+      - paragraph: Your exact position stays on the device. For the search we send only an approximate area within about 2 km, not your position.
+      - text: Hide places that don't meet
+      - switch "Hide places that don't meet"
+      - group "Feature filters":
+        - button "Step-free"
+        - button "Lift"
+        - button "Accessible toilet"
+        - button "Benches"
+        - button "Disabled parking"
+        - button "Changing table"
   - region "Map of places. Arrow keys move the view, plus and minus change the zoom. The list has the same places."
   - 'img /Group: \d+ places/'
   - button "Information about the map sources"
