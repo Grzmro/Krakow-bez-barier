@@ -135,7 +135,7 @@ nie wpisujemy do repozytorium — serwer wydaje sesję demo po kliknięciu. Tras
 - Film (MP4, do 3 min, w otwartym, dostępnym miejscu — regulamin): **[DO UZUPEŁNIENIA: publiczny link do filmu MP4]** — `kbb-demo.mp4` (2:51, desktop, napisy PL); dodatkowo `kbb-demo-phone.mp4` (1:28, telefon) jako materiał opcjonalny
 - Prezentacja (PDF, do 10 slajdów): **[DO UZUPEŁNIENIA: link do PDF]**
 - Repozytorium kodu: prywatne (decyzja zespołu), kod na licencji MIT. **[DO UZUPEŁNIENIA: czy i jak udostępniamy repozytorium jury]**
-- Zespół: Mateusz Oracz, Bartłomiej Leśniewski **[DO UZUPEŁNIENIA: potwierdzić pełny skład; imiona wpisane za slajdem 10 prezentacji]**
+- Zespół „Bez Progów”: Mateusz Oracz (lider zespołu), Marcin Oracz, Bartłomiej Leśniewski, Grzegorz Mróz, Jerzy Boksa
 
 ## Do uzupełnienia przed wysłaniem
 
@@ -144,6 +144,5 @@ nie wpisujemy do repozytorium — serwer wydaje sesję demo po kliknięciu. Tras
 - `[DO UZUPEŁNIENIA: publiczny link do filmu MP4]` — regulamin wymaga filmu w otwartym, dostępnym repozytorium, a nasze repozytorium kodu jest prywatne
 - `[DO UZUPEŁNIENIA: link do PDF]`
 - `[DO UZUPEŁNIENIA: czy i jak udostępniamy repozytorium jury]`
-- `[DO UZUPEŁNIENIA: potwierdzić pełny skład zespołu]` (wpisane: Mateusz Oracz, Bartłomiej Leśniewski — tak jak na slajdzie 10)
 - Decyzja zespołu: czy w `LICENSE` zostaje „Zespół Kraków bez barier”, czy wpisujemy imiona i nazwiska autorów (nazwa zespołu nie jest osobą prawną)
 - Na Vercelu: `MODERATOR_DEMO_TOKEN` i `ORS_API_KEY` ustawione (bez nich przycisk konta demo i trasy nie działają)
