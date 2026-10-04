@@ -115,6 +115,54 @@ test("swiping the attribute chips scrolls only the chip row, not the sheet or th
   await expect(drawer).toBeVisible();
 });
 
+test("the sheet keeps its size when a text field is focused and the page is pinch-zoomed", async ({ page, evidence }) => {
+  // GIVEN the "Uzupełnij dane" sheet of the incomplete demo place, on the door width (a number field)
+  await page.goto("/miejsca/kawiarnia-przyklad");
+  await page.getByRole("button", { name: "Uzupełnij" }).last().click();
+  const drawer = page.getByRole("dialog", { name: "Uzupełnij dane" });
+  await drawer.getByText("Szerokość drzwi", { exact: true }).click();
+  await drawer.evaluate((el) => Promise.all(el.getAnimations().map((a) => a.finished)));
+
+  // THEN every text field is at least 16 px, so iOS doesn't zoom in when one is tapped
+  const fontSizes = await drawer.evaluate((el) =>
+    [...el.querySelectorAll<HTMLElement>("textarea, select, input:not([type=radio]):not([type=checkbox])")].map(
+      (field) => parseFloat(getComputedStyle(field).fontSize),
+    ),
+  );
+  expect(fontSizes).toHaveLength(2);
+  for (const size of fontSizes) expect(size).toBeGreaterThanOrEqual(16);
+
+  // WHEN the visitor taps the comment field
+  await drawer.getByRole("textbox", { name: "Komentarz (opcjonalnie)" }).click();
+
+  // THEN the page isn't zoomed and the sheet fits the screen width
+  const sheet = () =>
+    drawer.evaluate((el) => {
+      const { left, right, top, bottom } = el.getBoundingClientRect();
+      return { left, right, top, bottom, scale: window.visualViewport!.scale, width: window.innerWidth };
+    });
+  const opened = await sheet();
+  expect(opened.scale).toBe(1);
+  expect(opened.left).toBeGreaterThanOrEqual(0);
+  expect(opened.right).toBeLessThanOrEqual(opened.width);
+  expect(await drawer.locator("form").evaluate((el) => el.scrollWidth - el.clientWidth)).toBe(0);
+
+  // WHEN the visitor pinch-zooms to 2x with the field still focused, then back
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setPageScaleFactor", { pageScaleFactor: 2 });
+  await page.waitForFunction(() => window.visualViewport!.scale === 2);
+  // Two frames: the visualViewport resize listeners have run.
+  await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+  const zoomed = await sheet();
+  await cdp.send("Emulation.setPageScaleFactor", { pageScaleFactor: 1 });
+  await page.waitForFunction(() => window.visualViewport!.scale === 1);
+
+  // THEN the sheet is not taken for a keyboard: same place and size while zoomed and after
+  expect({ ...zoomed, scale: 1 }).toEqual(opened);
+  expect(await sheet()).toEqual(opened);
+  await evidence("place-report-focused-comment");
+});
+
 test("Cofnij withdraws the report before it is sent", async ({ page }) => {
   // GIVEN a report just submitted for the ramp of the outdated demo place
   await page.goto("/miejsca/teatr-slowackiego");

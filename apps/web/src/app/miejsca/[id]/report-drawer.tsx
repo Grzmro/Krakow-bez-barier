@@ -259,7 +259,7 @@ function ReportForm({
         rows={2}
         aria-invalid={!!commentError}
         aria-describedby={commentError ? "report-comment-error" : undefined}
-        className="min-h-16 w-full rounded-2xl border border-input bg-card px-4 py-3 text-body-sm outline-none placeholder:text-muted-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring aria-invalid:border-status-barrier"
+        className="min-h-16 w-full rounded-2xl border border-input bg-card px-4 py-3 text-body outline-none placeholder:text-muted-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring aria-invalid:border-status-barrier"
       />
       {commentError ? (
         <p id="report-comment-error" className="mt-1.5 text-caption font-semibold text-status-barrier">
