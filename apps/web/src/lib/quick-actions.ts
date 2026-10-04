@@ -94,6 +94,38 @@ export type QuickResultState =
       stale?: { asOf: string | null };
     };
 
+type Located = { place: PlaceSummary; distance: number };
+
+/**
+ * A quick action's result from the strict list and, when that has no match, the `includeUnknown` lookup for an
+ * outdated match. "None" is said only once the lookup has answered: a lookup still loading or failed is not "none".
+ */
+export function quickOutcome({
+  hasLocation,
+  listReady,
+  strict,
+  needsLookup,
+  lookup,
+  features,
+  from,
+}: {
+  hasLocation: boolean;
+  listReady: boolean;
+  strict: Located | null;
+  needsLookup: boolean;
+  lookup: { status: "loading" | "error" } | { status: "done"; items: readonly Located[] };
+  features: readonly FeatureFilter[];
+  from: DistanceFrom;
+}): QuickResultState {
+  if (!hasLocation) return { kind: "needLocation" };
+  if (!listReady) return { kind: "searching" };
+  if (strict) return { kind: "found", ...strict, from };
+  if (!needsLookup) return { kind: "none" };
+  if (lookup.status !== "done") return { kind: "searching" };
+  const found = nearestStaleMatch(lookup.items, features);
+  return found ? { kind: "found", ...found.item, from, stale: { asOf: found.asOf } } : { kind: "none" };
+}
+
 /** "Może być nieaktualne · 15.09.2025", or without a date when none is known. */
 export const staleLabel = (m: Messages, locale: Locale, asOf: string | null) =>
   asOf ? m.common.fact.maybeOutdated(formatDate(asOf, locale)) : m.home.quick.maybeOutdated;

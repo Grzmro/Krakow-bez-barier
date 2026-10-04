@@ -17,7 +17,7 @@ import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import {
   nearestMatch,
-  nearestStaleMatch,
+  quickOutcome,
   QUICK_ACTIONS,
   staleLabel,
   type QuickAction,
@@ -85,16 +85,16 @@ export function useQuickResult({
   const strict = useMemo(() => (quick && listReady ? nearestMatch(items, quick.features) : null), [quick, listReady, items]);
   const askStale = Boolean(quick?.features.length && listReady && !strict);
   const staleQuery = usePlaces({ ...listQuery, includeUnknown: true, limit: STALE_LOOKUP_LIMIT }, { enabled: askStale });
+  const { isError, isPending, isPlaceholderData, data } = staleQuery;
   return useMemo((): QuickResultState | null => {
     if (!quick) return null;
-    if (!origin) return { kind: "needLocation" };
-    if (!listReady) return { kind: "searching" };
-    if (strict) return { kind: "found", ...strict, from };
-    if (!askStale) return { kind: "none" };
-    if (staleQuery.isPending || staleQuery.isPlaceholderData) return { kind: "searching" };
-    const found = staleQuery.data ? nearestStaleMatch(byDistance(staleQuery.data.items, origin), quick.features) : null;
-    return found ? { kind: "found", ...found.item, from, stale: { asOf: found.asOf } } : { kind: "none" };
-  }, [quick, origin, listReady, strict, from, askStale, staleQuery.isPending, staleQuery.isPlaceholderData, staleQuery.data]);
+    const lookup = isError
+      ? ({ status: "error" } as const)
+      : isPending || isPlaceholderData || !data || !origin
+        ? ({ status: "loading" } as const)
+        : ({ status: "done", items: byDistance(data.items, origin) } as const);
+    return quickOutcome({ hasLocation: Boolean(origin), listReady, strict, needsLookup: askStale, lookup, features: quick.features, from });
+  }, [quick, origin, listReady, strict, from, askStale, isError, isPending, isPlaceholderData, data]);
 }
 
 // The API's page maximum: places without data come too, so the nearest outdated match may sit behind a few of them.
@@ -110,6 +110,7 @@ export function QuickResult({ action, state }: { action: QuickAction; state: Qui
     <section
       aria-labelledby={headingId}
       data-quick-result={state.kind}
+      data-stale={state.kind === "found" && state.stale ? "" : undefined}
       className="rounded-[20px] bg-surface-raised p-3 shadow-soft ring-2 ring-primary"
     >
       <h2 id={headingId} className="text-caption font-semibold text-muted-foreground">

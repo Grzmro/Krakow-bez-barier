@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { FeatureMatch } from "@krakow-bez-barier/contracts";
-import { nearestMatch, nearestStaleMatch, QUICK_ACTIONS, quickAnnouncement, quickFilters, quickStillApplies, type QuickAction } from "./quick-actions";
+import { nearestMatch, nearestStaleMatch, QUICK_ACTIONS, quickAnnouncement, quickOutcome, quickFilters, quickStillApplies, type QuickAction } from "./quick-actions";
 import { ICON_KEYS } from "./categories";
 import { pl } from "@/i18n/pl";
 
@@ -104,6 +104,37 @@ describe("quickAnnouncement", () => {
     const said = [quickAnnouncement(pl, "pl", toilet, { kind: "none" }), "Nie znaleziono miejsc"].join(". ");
     // THEN there is a single full stop between them
     expect(said).not.toContain("..");
+  });
+});
+
+describe("quickOutcome", () => {
+  const place = { id: "t", name: "Toaleta publiczna", category: "toilet", location: { type: "Point" as const, coordinates: [19.94, 50.06] }, summary: [], isSample: false };
+  const stalePlace = { ...place, features: [{ feature: "toilet_accessible" as const, state: "stale" as const, asOf: "2025-09-15T00:00:00Z" }] };
+  const base = { hasLocation: true, listReady: true, strict: null, needsLookup: true, features: ["toilet_accessible"] as const, from: "user" as const };
+
+  it("prefers the strict match and never looks further", () => {
+    // GIVEN a fresh match in the list
+    // WHEN the outcome is decided
+    const outcome = quickOutcome({ ...base, strict: { place, distance: 300 }, needsLookup: false, lookup: { status: "loading" } });
+    // THEN it is that place, not marked outdated
+    expect(outcome).toEqual({ kind: "found", place, distance: 300, from: "user" });
+  });
+
+  it("shows the nearest outdated match, dated, once the lookup answers", () => {
+    // GIVEN no fresh match and a lookup that found an outdated "yes" 600 m away
+    // WHEN the outcome is decided
+    const outcome = quickOutcome({ ...base, lookup: { status: "done", items: [{ place: stalePlace, distance: 600 }] } });
+    // THEN it is found as stale with its date
+    expect(outcome).toEqual({ kind: "found", place: stalePlace, distance: 600, from: "user", stale: { asOf: "2025-09-15T00:00:00Z" } });
+  });
+
+  it("says 'none' only after the lookup answered with nothing, not while it loads or after it failed", () => {
+    // GIVEN no fresh match
+    // WHEN the lookup loads, fails, or answers empty
+    // THEN only the empty answer is "none"
+    expect(quickOutcome({ ...base, lookup: { status: "loading" } }).kind).toBe("searching");
+    expect(quickOutcome({ ...base, lookup: { status: "error" } }).kind).toBe("searching");
+    expect(quickOutcome({ ...base, lookup: { status: "done", items: [{ place, distance: 100 }] } }).kind).toBe("none");
   });
 });
 
