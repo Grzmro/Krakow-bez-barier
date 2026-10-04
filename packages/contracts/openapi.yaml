@@ -256,11 +256,11 @@ paths:
                       - attribute: step_count
                         state: known
                         status: confirmed
-                        label: Wejście bez stopni
+                        label: 'Wejście: bez stopni'
                       - attribute: toilet_accessible
                         state: conflict
                         status: conflict
-                        label: 'Toaleta: sprzeczne dane'
+                        label: 'Toaleta dostosowana: sprzeczne dane'
                       - attribute: lift
                         state: unknown
                         status: no_data
@@ -288,7 +288,7 @@ paths:
                       - attribute: toilet_accessible
                         state: unknown
                         status: no_data
-                        label: 'Toaleta: brak danych'
+                        label: 'Toaleta dostosowana: brak danych'
                       verdict: null
                       isSample: true
                     nextCursor: null
@@ -320,15 +320,15 @@ paths:
                       - attribute: step_count
                         state: known
                         status: confirmed
-                        label: 'Wejście bez stopni'
+                        label: 'Wejście: bez stopni'
                       - attribute: lift
                         state: known
                         status: confirmed
-                        label: 'Winda'
+                        label: 'Winda: jest'
                       - attribute: toilet_accessible
                         state: unknown
                         status: no_data
-                        label: 'Toaleta: brak danych'
+                        label: 'Toaleta dostosowana: brak danych'
                       verdict: null
                       isSample: true
                     - id: bistro-przyklad
@@ -348,11 +348,11 @@ paths:
                       - attribute: step_count
                         state: known
                         status: unverified
-                        label: 'Wejście bez stopni'
+                        label: 'Wejście: bez stopni'
                       - attribute: toilet_accessible
                         state: unknown
                         status: no_data
-                        label: 'Toaleta: brak danych'
+                        label: 'Toaleta dostosowana: brak danych'
                       verdict: null
                       isSample: true
                     - id: toaleta-planty-przyklad
@@ -372,15 +372,15 @@ paths:
                       - attribute: toilet_accessible
                         state: known
                         status: confirmed
-                        label: 'Toaleta dostosowana'
+                        label: 'Toaleta dostosowana: jest'
                       - attribute: changing_table
                         state: known
                         status: unverified
-                        label: 'Przewijak'
+                        label: 'Przewijak: jest'
                       - attribute: bench
                         state: known
                         status: unverified
-                        label: 'Ławki obok'
+                        label: 'Miejsca odpoczynku: jest'
                       verdict: null
                       isSample: true
                     nextCursor: null
@@ -2851,7 +2851,7 @@ components:
           $ref: '#/components/schemas/ReliabilityStatus'
         label:
           type: string
-          description: 'Short text in the language of the `kbb-lang` cookie (`pl` by default, or `en`), e.g. "Winda" or "Toaleta: brak danych".'
+          description: 'Short text in the language of the `kbb-lang` cookie (`pl` by default, or `en`), always "attribute: value" in the words of the place card, e.g. "Winda: jest", "Wejście: 2 stopnie", "Winda: jest · nieaktualne" or "Toaleta dostosowana: brak danych".'
     PlaceSummary:
       type: object
       required:

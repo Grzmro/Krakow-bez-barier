@@ -34,7 +34,7 @@
         - paragraph: Toaleta publiczna Planty (przykład)
         - paragraph: /\d+ m od Ciebie/
         - text: Dane przykładowe
-        - paragraph: Toaleta dostosowana · Przewijak · Ławki obok
+        - paragraph: "Toaleta dostosowana: jest · Przewijak: jest · Miejsca odpoczynku: jest"
         - link "Prowadź":
           - /url: /trasa?do=toaleta-planty-przyklad
         - link "Szczegóły":
@@ -43,7 +43,7 @@
       - button "Filtry i profil"
       - list:
         - listitem:
-          - link /Toaleta publiczna Planty \(przykład\) ul\. Basztowa 1, Kraków Toaleta dostosowana · Przewijak · Ławki obok Dane przykładowe \d+ m od Ciebie/:
+          - 'link /Toaleta publiczna Planty \(przykład\) ul\. Basztowa 1, Kraków Toaleta dostosowana: jest · Przewijak: jest · Miejsca odpoczynku: jest Dane przykładowe \d+ m od Ciebie/':
             - /url: /miejsca/toaleta-planty-przyklad
       - group "Profil potrzeb":
         - text: ""

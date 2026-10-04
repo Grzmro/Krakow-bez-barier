@@ -36,7 +36,7 @@ function toSummary(place: Place): PlaceSummary {
   return { id, name, category, location, address, summary, verdict: null, isSample };
 }
 
-// List examples first: their chips carry the human-written labels the list shows.
+// List examples first: they set which chips a row shows; `localizedChips` labels them.
 const SUMMARIES: PlaceSummary[] = uniqueById([
   ...Object.values<PlaceList>(responseExamples.listPlaces[200]).flatMap((list) => list.items),
   ...EXAMPLE_PLACES.map(toSummary),
@@ -94,20 +94,21 @@ function matchesText(summary: PlaceSummary, q: string) {
 }
 
 /**
- * The examples' chip labels are written in Polish. In another language, a labelled chip of a place with facts is
- * labelled like the API does; other chips lose the label, so the list falls back to the attribute name and state.
+ * A chip of a place with facts is labelled from its value like the API does, in every language. List-only
+ * examples keep their Polish labels; in another language they lose them and the list falls back to name and state.
  */
 function localizedChips(summary: PlaceSummary, locale: Locale): PlaceSummary {
-  if (locale === defaultLocale) return summary;
   const place = EXAMPLE_PLACES.find((p) => p.id === summary.id);
+  if (!place && locale === defaultLocale) return summary;
   const chip = messagesFor(locale).summary.chip;
   return {
     ...summary,
     summary: summary.summary.map(({ attribute, state, status, label }) => {
-      const resolved = label ? place?.attributes.find((a) => a.attribute === attribute) : undefined;
-      return resolved
-        ? { attribute, state, status, label: chip(attribute, resolved.state, resolved.value) }
-        : { attribute, state, status };
+      const resolved = place?.attributes.find((a) => a.attribute === attribute);
+      if (resolved) {
+        return { attribute, state: resolved.state, status: resolved.status, label: chip(attribute, resolved.state, resolved.value) };
+      }
+      return locale === defaultLocale ? { attribute, state, status, label } : { attribute, state, status };
     }),
   };
 }

@@ -68,7 +68,7 @@ describe("GET /api/v1/places", () => {
     expect(body.items.every((p: { verdict: unknown }) => p.verdict === null)).toBe(true);
     const cafe = body.items.find((p: { name: string }) => p.name === "Kawiarnia Przykład");
     expect(cafe.summary).toEqual([
-      { attribute: "step_count", state: "unknown", status: "no_data", label: "Wejście — stopnie: brak danych" },
+      { attribute: "step_count", state: "unknown", status: "no_data", label: "Wejście: brak danych" },
       { attribute: "toilet_accessible", state: "unknown", status: "no_data", label: "Toaleta dostosowana: brak danych" },
     ]);
   });
@@ -81,7 +81,7 @@ describe("GET /api/v1/places", () => {
 
     // THEN the chips and reasons are English, while place names stay as they are
     const museum = body.items.find((p: { name: string }) => p.name === "Muzeum bez windy");
-    expect(museum.summary).toContainEqual({ attribute: "step_count", state: "unknown", status: "no_data", label: "Entrance — steps: no data" });
+    expect(museum.summary).toContainEqual({ attribute: "step_count", state: "unknown", status: "no_data", label: "Entrance: no data" });
     expect(museum.verdict.reasons).toContain("entrance");
   });
 
@@ -235,6 +235,9 @@ describe("GET /api/v1/places", () => {
       // turns unknown instead of vouching for them
       const [item] = body.items;
       expect(item.summary).toContainEqual(expect.objectContaining({ attribute: "step_count", state: "stale", status: "outdated" }));
+      // AND the chip says the value and that it is outdated in words, not by colour
+      const steps = item.summary.find((chip: { attribute: string }) => chip.attribute === "step_count");
+      expect(steps.label).toMatch(/^Wejście: .+ · nieaktualne$/);
       expect(item.verdict.state).toBe("unknown");
     } finally {
       vi.unstubAllEnvs();

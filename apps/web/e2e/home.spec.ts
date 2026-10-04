@@ -71,7 +71,7 @@ test("search for Sukiennice shows it on the list and the map and opens its card"
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
   await expect(page.getByRole("status").filter({ hasText: "Znaleziono 1 miejsce" })).toBeAttached();
   const row = list.getByRole("link", { name: /Sukiennice/ });
-  await expect(row).toContainText("Wejście bez stopni · Winda · Toaleta: brak danych");
+  await expect(row).toContainText("Wejście: bez stopni · Winda: jest · Toaleta dostosowana: brak danych");
   await expect(row).toContainText("od Rynku");
   await expect(page.locator('[data-place-id="sukiennice"]')).toHaveCount(1);
   await expect(page.locator("[data-place-id]")).toHaveCount(1);

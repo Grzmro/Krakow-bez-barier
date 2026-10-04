@@ -1,31 +1,37 @@
 import type { AccessibilityAttribute, FactValue } from "@krakow-bez-barier/contracts";
+import { intlLocale } from "../locale";
 import type { Messages } from "../messages";
 import { common } from "./common";
 import { place } from "./place";
 
-const UNIT = { cm: " cm", pct: "%", count: "", m: " m" } as const;
+const SHORT_NAME: Partial<Record<AccessibilityAttribute, string>> = { step_count: "Entrance" };
 
-function valueLabel(attribute: AccessibilityAttribute, value: FactValue): string {
-  const name = common.attribute[attribute];
-  if (attribute === "step_count" && value.kind === "number") {
-    const n = value.number;
-    return n === 0 ? "Step-free entrance" : `${n} ${n === 1 ? "step" : "steps"} at the entrance`;
-  }
-  if (attribute === "wheelchair_overall" && value.kind === "text" && place.overall[value.text]) return place.overall[value.text];
+const nameOf = (attribute: AccessibilityAttribute) => SHORT_NAME[attribute] ?? common.attribute[attribute];
+
+function valueText(attribute: AccessibilityAttribute, value: FactValue): string {
   switch (value.kind) {
     case "boolean":
-      return value.boolean ? name : `${name}: none`;
-    case "number":
-      return `${name}: ${value.number}${value.unit ? UNIT[value.unit] : ""}`;
+      return (value.boolean ? place.value.yes : place.value.no).toLowerCase();
+    case "number": {
+      if (attribute === "step_count") return value.number === 0 ? place.value.noSteps.toLowerCase() : place.value.steps(value.number);
+      const n = value.number.toLocaleString(intlLocale.en, { maximumFractionDigits: 2, useGrouping: false });
+      const unit = value.unit ? place.unit[value.unit] : "";
+      return unit ? `${n} ${unit}` : n;
+    }
     case "text":
-      return `${name}: ${value.text}`;
+      return place.surface[value.text] ?? value.text;
   }
+}
+
+function valueLabel(attribute: AccessibilityAttribute, value: FactValue): string {
+  if (attribute === "wheelchair_overall" && value.kind === "text" && place.overall[value.text]) return place.overall[value.text];
+  return `${nameOf(attribute)}: ${valueText(attribute, value)}`;
 }
 
 export const summary: Messages["summary"] = {
   chip: (attribute, state, value) => {
-    if (state === "conflict") return `${common.attribute[attribute]}: conflicting data`;
-    if (!value || state === "unknown") return `${common.attribute[attribute]}: no data`;
+    if (state === "conflict") return `${nameOf(attribute)}: conflicting data`;
+    if (!value || state === "unknown") return `${nameOf(attribute)}: no data`;
     return state === "stale" ? `${valueLabel(attribute, value)} · outdated` : valueLabel(attribute, value);
   },
 };

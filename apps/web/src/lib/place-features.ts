@@ -40,7 +40,7 @@ export function filterGapStatus(
   return null;
 }
 
-/** One line of facts for a list row, e.g. "Wejście bez stopni · Winda · Toaleta: brak danych". */
+/** One line of facts for a list row, e.g. "Wejście: bez stopni · Winda: jest · Toaleta dostosowana: brak danych". */
 export function summaryLine(summary: SummaryChip[], fallback: (chip: SummaryChip) => string): string {
   return summary.map((chip) => chip.label || fallback(chip)).join(" · ");
 }
