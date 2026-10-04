@@ -75,13 +75,10 @@ export const home: Messages["home"] = {
       rest: { label: "Place to rest", result: "Nearest place with a bench" },
       lift: { label: "Nearest lift", result: "Nearest place with a lift" },
       pharmacy: { label: "Nearest pharmacy", result: "Nearest step-free pharmacy" },
-      transit_stop: { label: "Nearest stop", result: "Nearest step-free stop" },
+      transit_stop: { label: "Nearest stop", result: "Nearest stop" },
     },
     soon: "soon",
-    unavailable: {
-      awaitingTransitData:
-        "We will show stops once the ZTP data is switched on (licence pending). This does not mean there are no stops nearby.",
-    },
+    unavailable: {},
     needLocation: "To find the nearest one, turn on “Near me” or choose a district.",
     searching: "Looking for the nearest one…",
     none: (result) => `${result}: none nearby (about 2 km) in the data.`,
@@ -104,7 +101,6 @@ export const home: Messages["home"] = {
     emptyHint: "Try a wider search: no name, category or filters.",
     searchWider: "Search all of Kraków",
     licenceHold: {
-      transit_stop: "Stop data is waiting for the ZTP licence to be confirmed.",
       parking: "Parking space data is waiting for the ZDMK licence to be confirmed.",
       link: "About the data",
     },

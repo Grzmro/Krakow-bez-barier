@@ -20,12 +20,14 @@ describe("QUICK_ACTIONS", () => {
     expect(new Set(QUICK_ACTIONS.map((a) => a.id)).size).toBe(QUICK_ACTIONS.length);
   });
 
-  it("marks the transit stop action unavailable until its source is on", () => {
-    // GIVEN the transit stop action
+  it("runs the transit stop action on stops without a filter no stop data could pass", () => {
+    // GIVEN the transit stop action, now that stops come from OSM
     const stop = QUICK_ACTIONS.find((a) => a.id === "transit_stop") as QuickAction;
     // WHEN it is read
-    // THEN it is flagged, so the UI never shows an empty result as "no stops nearby"
-    expect(stop.unavailable).toBe("awaitingTransitData");
+    // THEN it is available and lists stops nearest first, not only those known to be step-free
+    expect(stop.unavailable).toBeUndefined();
+    expect(quickFilters(stop)).toEqual({ category: "transit_stop", features: [] });
+    expect(nearestMatch([row("a"), row("b")], stop.features)?.id).toBe("a");
   });
 });
 

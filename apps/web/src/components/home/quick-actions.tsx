@@ -120,7 +120,10 @@ function FoundPlace({ action, place, distance, from }: { action: QuickAction; pl
   const { settings } = useProfile();
   const detail = usePlace(place.id, profileQuery(settings));
   const attributes = new Set(action.features.flatMap((feature) => FEATURE_ATTRIBUTES[feature]));
-  const facts = detail.data ? factViews(detail.data, locale).filter((fact) => attributes.has(fact.attribute) && !fact.unknown) : [];
+  // Without a filter (nearest stop) the whole card is the answer, unknown rows included, since none of it is a pass.
+  const facts = detail.data
+    ? factViews(detail.data, locale).filter((fact) => (attributes.size ? attributes.has(fact.attribute) && !fact.unknown : true))
+    : [];
   const verdict = place.verdict;
   return (
     <div className="mt-1 space-y-2">

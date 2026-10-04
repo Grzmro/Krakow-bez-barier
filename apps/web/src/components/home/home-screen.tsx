@@ -581,7 +581,7 @@ export function HomeScreen() {
                   {t.list.noFeatureMatch(features.map((f) => t.filters[f]).join(", "))}
                 </p>
               ) : null}
-              {category === "transit_stop" || category === "parking" ? (
+              {category === "parking" ? (
                 <p className="text-body-sm text-muted-foreground">
                   {t.list.licenceHold[category]}{" "}
                   <Link href={routes.aboutData} className="font-semibold text-primary underline">

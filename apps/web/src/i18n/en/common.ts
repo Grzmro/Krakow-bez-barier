@@ -61,6 +61,8 @@ export const common: Messages["common"] = {
     wheelchair_overall: "Overall accessibility",
     levels: "Storeys",
     stairs: "Stairs on the route",
+    tactile_paving: "Tactile paving",
+    shelter: "Shelter",
   },
   unconfirmed: "unconfirmed",
   reliability: {

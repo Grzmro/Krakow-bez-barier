@@ -6,6 +6,7 @@ import {
   ArrowCounterClockwise,
   ArrowSquareOut,
   ArrowsHorizontal,
+  ArrowsVertical,
   Armchair,
   Baby,
   Building,
@@ -13,6 +14,7 @@ import {
   CheckCircle,
   CloudSlash,
   Database,
+  DotsNine,
   Elevator,
   EnvelopeSimple,
   Globe,
@@ -28,6 +30,7 @@ import {
   Stairs,
   Toilet,
   TrendUp,
+  Umbrella,
   WarningDiamond,
   Wheelchair,
   Wrench,
@@ -75,6 +78,9 @@ const FACT_ICON: Partial<Record<AccessibilityAttribute, Icon>> = {
   bench: Armchair,
   disabled_parking: Car,
   changing_table: Baby,
+  tactile_paving: DotsNine,
+  kerb_height_cm: ArrowsVertical,
+  shelter: Umbrella,
 };
 
 export function PlaceScreen({ id }: { id: string }) {

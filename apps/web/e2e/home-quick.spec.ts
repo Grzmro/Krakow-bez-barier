@@ -80,7 +80,7 @@ test.describe("next to a museum whose lift nobody described", () => {
   });
 });
 
-test("without location a quick action asks for it or a district, and stops are marked as not yet available", async ({
+test("without location a quick action asks for it or a district", async ({
   page,
   expectAccessible,
 }) => {
@@ -109,17 +109,37 @@ test("without location a quick action asks for it or a district, and stops are m
   // THEN the nearest accessible toilet is measured from that point
   await expect(result).toContainText("Toaleta publiczna Planty (przykład)");
   await expect(result).toContainText("od wybranego punktu");
-
-  // WHEN they press "Najbliższy przystanek", whose data is not switched on yet
-  const stop = list.getByRole("button", { name: /Najbliższy przystanek/ });
-  await expect(stop).toHaveAttribute("aria-disabled", "true");
-  await expect(stop).toHaveAccessibleDescription(/Przystanki pokażemy po włączeniu danych ZTP/);
-  await stop.focus();
-  await page.keyboard.press("Enter");
-
-  // THEN it says the stops are coming, never that there are no stops nearby
-  const stopResult = list.getByRole("region", { name: "Najbliższy przystanek bez schodów" });
-  await expect(stopResult).toContainText("To nie znaczy, że w pobliżu nie ma przystanków.");
-  await expect(stopResult).not.toContainText("brak w okolicy");
   await expectAccessible();
+});
+
+test.describe("at Rondo Mogilskie", () => {
+  test.use({ geolocation: { latitude: 50.0652, longitude: 19.96, accuracy: 20 }, permissions: ["geolocation"] });
+
+  test("'Najbliższy przystanek' shows the nearest OSM stop with its platform facts, untagged ones as no data", async ({
+    page,
+    expectAccessible,
+    evidence,
+  }) => {
+    // GIVEN the home screen next to the example stop Rondo Mogilskie 07 (OSM: tactile paving no, bench, shelter)
+    await page.goto("/");
+    const list = page.getByRole("region", { name: "Lista miejsc" });
+    const stop = list.getByRole("group", { name: "Szybkie akcje" }).getByRole("button", { name: "Najbliższy przystanek" });
+
+    // WHEN a keyboard user presses "Najbliższy przystanek"
+    await stop.focus();
+    await page.keyboard.press("Enter");
+
+    // THEN the stop is listed with each platform fact, its source and date, and "Brak danych" where OSM has no tag
+    await expect(stop).toHaveAttribute("aria-pressed", "true");
+    const result = list.getByRole("region", { name: "Najbliższy przystanek" });
+    await expect(result).toContainText("Rondo Mogilskie 07");
+    await expect(result).toContainText(/\d+ m od Ciebie/);
+    const facts = result.getByRole("listitem");
+    await expect(facts.filter({ hasText: "Oznaczenia dotykowe" })).toContainText(/Nie ma.*Źródło: OpenStreetMap.*Pozyskano 4\.10\.2026/);
+    await expect(facts.filter({ hasText: "Wiata" })).toContainText("Jest");
+    await expect(facts.filter({ hasText: "Nawierzchnia dojścia" })).toContainText("Brak danych");
+    await expect(result).not.toContainText("Toaleta");
+    await expectAccessible();
+    await evidence("home-quick-stop");
+  });
 });

@@ -77,13 +77,10 @@ export const home = {
       rest: { label: "Miejsce odpoczynku", result: "Najbliższe miejsce z ławką" },
       lift: { label: "Najbliższa winda", result: "Najbliższe miejsce z windą" },
       pharmacy: { label: "Najbliższa apteka", result: "Najbliższa apteka bez schodów" },
-      transit_stop: { label: "Najbliższy przystanek", result: "Najbliższy przystanek bez schodów" },
+      transit_stop: { label: "Najbliższy przystanek", result: "Najbliższy przystanek" },
     } satisfies Record<QuickActionId, { label: string; result: string }>,
     soon: "wkrótce",
-    unavailable: {
-      awaitingTransitData:
-        "Przystanki pokażemy po włączeniu danych ZTP (czekamy na licencję). To nie znaczy, że w pobliżu nie ma przystanków.",
-    } satisfies Record<QuickActionUnavailable, string>,
+    unavailable: {} satisfies Record<QuickActionUnavailable, string>,
     needLocation: "Żeby znaleźć najbliższe, włącz „W mojej okolicy” albo wybierz dzielnicę.",
     searching: "Szukam najbliższego…",
     none: (result: string) => `${result}: brak w okolicy (ok. 2 km) według danych.`,
@@ -106,7 +103,6 @@ export const home = {
     emptyHint: "Spróbuj szerzej: bez nazwy, kategorii i filtrów.",
     searchWider: "Szukaj w całym Krakowie",
     licenceHold: {
-      transit_stop: "Dane o przystankach czekają na potwierdzenie licencji ZTP.",
       parking: "Dane o miejscach postojowych czekają na potwierdzenie licencji ZDMK.",
       link: "O danych",
     },

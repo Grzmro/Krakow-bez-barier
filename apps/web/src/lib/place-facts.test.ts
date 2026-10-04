@@ -66,6 +66,22 @@ describe("factViews", () => {
     expect(rows.every((r) => r.unknown && r.sources.length === 0)).toBe(true);
   });
 
+  it("lists a stop's platform facts, with OSM and its date, and the untagged ones as no data", () => {
+    // GIVEN an OSM platform tagged tactile_paving=no and shelter=yes, nothing else
+    const osm = { source: { id: "osm", name: "OpenStreetMap", kind: "community", recordRef: "osm:node/13987866361" }, fetchedAt: "2026-10-04T10:00:00Z" } as const;
+    const attributes = resolveAttributes([fact("tactile_paving", bool(false), osm), fact("shelter", bool(true), osm)]);
+    const place = { category: "transit_stop", attributes } as unknown as Place;
+
+    // WHEN it is turned into card rows
+    const rows = factViews(place, "pl");
+
+    // THEN the card lists the platform, not an entrance, and only tagged rows carry a value and their source
+    expect(rows.map((r) => r.attribute)).toEqual(["wheelchair_overall", "tactile_paving", "kerb_height_cm", "surface", "bench", "shelter"]);
+    expect(rows.find((r) => r.attribute === "tactile_paving")).toMatchObject({ label: "Oznaczenia dotykowe", value: "Nie ma", unknown: false });
+    expect(rows.find((r) => r.attribute === "shelter")?.sources).toMatchObject([{ name: "OpenStreetMap", date: "4.10.2026" }]);
+    expect(rows.filter((r) => r.unknown).map((r) => r.attribute)).toEqual(["wheelchair_overall", "kerb_height_cm", "surface", "bench"]);
+  });
+
   it("shows the OSM overall wheelchair tag when it is the place's only fact, in the list chip's words", () => {
     // GIVEN a place whose only fact is OSM wheelchair=no
     const osm = fact("wheelchair_overall", text("no"), {
