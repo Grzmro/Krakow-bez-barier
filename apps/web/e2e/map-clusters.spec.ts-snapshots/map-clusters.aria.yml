@@ -32,7 +32,7 @@
         - button "Miejsce odpoczynku"
         - button "Najbliższa winda"
         - button "Najbliższa apteka"
-        - button "Najbliższy przystanek (wkrótce)" [disabled]
+        - button "Najbliższy przystanek"
       - group "Profil potrzeb":
         - text: ""
         - radio "Profil wyłączony, widok dla każdego" [checked]

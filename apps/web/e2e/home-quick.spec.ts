@@ -124,6 +124,7 @@ test.describe("at Rondo Mogilskie", () => {
     await page.goto("/");
     const list = page.getByRole("region", { name: "Lista miejsc" });
     const stop = list.getByRole("group", { name: "Szybkie akcje" }).getByRole("button", { name: "Najbliższy przystanek" });
+    await expect(list.getByRole("heading", { level: 2, name: "Najbliżej Ciebie" })).toBeVisible();
 
     // WHEN a keyboard user presses "Najbliższy przystanek"
     await stop.focus();
