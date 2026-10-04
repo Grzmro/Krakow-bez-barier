@@ -31,7 +31,7 @@
         - text: Dziecięcy
       - button "W mojej okolicy"
       - text: Pokaż miejsca od najbliższych
-      - paragraph: Dokładna pozycja zostaje w telefonie. Wysyłamy tylko obszar ok. 2 km.
+      - paragraph: Dokładna pozycja zostaje na urządzeniu. Wysyłamy tylko obszar ok. 2 km.
       - group "Filtry cech":
         - button "Bez schodów"
         - button "Winda"

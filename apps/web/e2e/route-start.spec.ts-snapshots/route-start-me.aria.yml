@@ -23,7 +23,7 @@
         - text: Dziecięcy
         - radio "Senior"
         - text: Senior
-      - paragraph: Wybierz profil, by sprawdzić też krawężniki i nachylenie.
+      - paragraph: Sprawdzamy schody i nawierzchnię. Profil doda krawężniki i nachylenie.
       - paragraph: Trasa nie zawiera znanych barier
       - paragraph: brak danych na 0 odcinkach
       - paragraph: Szczegóły w „Krok po kroku”.

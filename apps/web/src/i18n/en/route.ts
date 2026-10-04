@@ -39,7 +39,7 @@ export const route: Messages["route"] = {
   distance: km,
   headingAria: (minutes: number, meters: number) => `Route: ${minutes} minutes, ${km(meters)}`,
   profileOn: (p: Profile) => `Checked against your profile: ${profileName[p]}.`,
-  profileOff: "Pick a profile to check kerbs and incline too.",
+  profileOff: "We check stairs and surface. A profile adds kerbs and incline.",
   loading: "Finding a route…",
   noKnown: "No known barriers on this route",
   noKnownGaps: (m: number) => `No known barriers, but ${m < 1000 ? `${Math.round(m)} m` : km(m)} without data`,

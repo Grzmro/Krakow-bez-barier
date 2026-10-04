@@ -54,9 +54,9 @@ export const transit = {
   vehicleNumber: (label: string) => `pojazd nr ${label}`,
   legendToggle: "Co znaczą oznaczenia pojazdów?",
   legend: [
-    "Dane o pojazdach podaje przewoźnik na żywo.",
+    "Dostępność pojazdu podaje przewoźnik albo lista taboru.",
     "„Niezweryfikowane”: przewoźnik oznacza każdy tramwaj jako dostępny dla wózka, także wysokopodłogowe — to nie jest potwierdzenie.",
-    "„Brak danych”: nie wiemy, jaki to pojazd. To nie znaczy, że jest dostępny.",
+    "„Brak danych”: nie wiemy, czy pojazd przyjmie wózek. To nie znaczy, że jest dostępny.",
   ],
   sourceLabel: "Źródło:",
   fetchedAt: (time: string) => `dane z ${time}`,

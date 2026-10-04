@@ -23,7 +23,7 @@
         - text: Dziecięcy
         - radio "Senior"
         - text: Senior
-      - paragraph: Wybierz profil, by sprawdzić też krawężniki i nachylenie.
+      - paragraph: Sprawdzamy schody i nawierzchnię. Profil doda krawężniki i nachylenie.
       - paragraph: /Brak znanych barier, ale \d+ m bez danych/
       - paragraph: /brak danych na 5 odcinkach \(\d+ m\)/
       - paragraph: Szczegóły w „Krok po kroku”.

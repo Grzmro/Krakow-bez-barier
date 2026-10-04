@@ -105,7 +105,7 @@
         - option "Wzgórza Krzesławickie"
         - option "Nowa Huta"
       - button "Pokaż okolicę" [disabled]
-      - paragraph: Dokładna pozycja zostaje w telefonie. Wysyłamy tylko obszar ok. 2 km.
+      - paragraph: Dokładna pozycja zostaje na urządzeniu. Wysyłamy tylko obszar ok. 2 km.
       - group "Filtry cech":
         - button "Bez schodów"
         - button "Winda"

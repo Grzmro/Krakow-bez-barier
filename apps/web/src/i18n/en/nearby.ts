@@ -6,7 +6,7 @@ export const nearby: Messages["nearby"] = {
   locating: "Finding your position…",
   found: (latitude: string, longitude: string, accuracy: number) =>
     `You are here: ${latitude}° N, ${longitude}° E (accuracy ±${accuracy} m)`,
-  privacy: "Your exact position stays on your phone. We send only an area of about 2 km.",
+  privacy: "Your exact position stays on your device. We send only an area of about 2 km.",
   errors: {
     denied: "No permission to use location.",
     off: "Location services are off.",
@@ -46,7 +46,7 @@ export const nearby: Messages["nearby"] = {
     sortOff: "Show nearest places first",
     sortOn: "Nearest first, distance from you",
     sortOnChosen: (place: string) => `Nearest first, distance from: ${place}`,
-    privacy: "Your exact position stays on your phone. We send only an area of about 2 km.",
+    privacy: "Your exact position stays on your device. We send only an area of about 2 km.",
     announce: "Near you, nearest first",
     announceChosen: (place: string) => `Near ${place}, nearest first`,
     you: "You",
@@ -61,9 +61,9 @@ export const nearby: Messages["nearby"] = {
       view: "You're searching the area shown on the map.",
     },
     privacyScope: {
-      wide: "Your exact position stays on your phone. We send only an area of about 5 km.",
-      city: "Your exact position stays on your phone. We send only the area of the whole city.",
-      view: "Your exact position stays on your phone. We send only the area shown on the map.",
+      wide: "Your exact position stays on your device. We send only an area of about 5 km.",
+      city: "Your exact position stays on your device. We send only the area of the whole city.",
+      view: "Your exact position stays on your device. We send only the area shown on the map.",
     },
     announceScope: {
       wide: "Searching within about 5 km",

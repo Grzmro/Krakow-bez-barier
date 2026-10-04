@@ -82,7 +82,7 @@
       - button "W mojej okolicy"
       - text: Pokaż miejsca od najbliższych
       - button "Albo wybierz dzielnicę"
-      - paragraph: Dokładna pozycja zostaje w telefonie. Wysyłamy tylko obszar ok. 2 km.
+      - paragraph: Dokładna pozycja zostaje na urządzeniu. Wysyłamy tylko obszar ok. 2 km.
       - text: Ukryj niespełniające
       - switch "Ukryj niespełniające"
       - group "Filtry cech":

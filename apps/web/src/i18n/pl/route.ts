@@ -44,7 +44,7 @@ export const route = {
   distance: km,
   headingAria: (minutes: number, meters: number) => `Trasa: ${minutes} ${plural(minutes, "minuta", "minuty", "minut")}, ${km(meters)}`,
   profileOn: (p: Profile) => `Ocena według profilu: ${profileName[p]}.`,
-  profileOff: "Wybierz profil, by sprawdzić też krawężniki i nachylenie.",
+  profileOff: "Sprawdzamy schody i nawierzchnię. Profil doda krawężniki i nachylenie.",
   loading: "Wyznaczamy trasę…",
   noKnown: "Trasa nie zawiera znanych barier",
   noKnownGaps: (m: number) => `Brak znanych barier, ale ${m < 1000 ? `${Math.round(m)} m` : km(m)} bez danych`,

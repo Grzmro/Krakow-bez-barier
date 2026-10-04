@@ -51,9 +51,9 @@ export const transit: Messages["transit"] = {
   vehicleNumber: (label: string) => `vehicle no. ${label}`,
   legendToggle: "What do the vehicle labels mean?",
   legend: [
-    "Vehicle data comes live from the operator.",
+    "Vehicle accessibility comes from the operator or the fleet list.",
     "“Unverified”: the operator flags every tram as wheelchair-accessible, high-floor ones too — that is not a confirmation.",
-    "“No data”: we don't know which vehicle it is. That doesn't mean it is accessible.",
+    "“No data”: we don't know whether the vehicle takes a wheelchair. That doesn't mean it is accessible.",
   ],
   sourceLabel: "Source:",
   fetchedAt: (time: string) => `data from ${time}`,

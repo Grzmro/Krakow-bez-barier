@@ -96,7 +96,7 @@
       - button "Near me"
       - text: Show nearest places first
       - button "Or choose a district"
-      - paragraph: Your exact position stays on the device. For the search we send only an approximate area within about 2 km, not your position.
+      - paragraph: Your exact position stays on your device. We send only an area of about 2 km.
       - text: Hide places that don't meet
       - switch "Hide places that don't meet"
       - group "Feature filters":
