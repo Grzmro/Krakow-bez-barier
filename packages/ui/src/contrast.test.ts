@@ -45,6 +45,13 @@ const TEXT: Pair[] = [
   ["ink-foreground", "ink"],
   ["destructive", "background"],
   ["foreground", "card", 0.7], // SampleTag text
+  // Form controls: placeholder and hint, error text, option text on the highlighted option and the chosen card.
+  ["muted-foreground", "popover"],
+  ["muted-foreground", "surface-raised"],
+  ["destructive", "card"],
+  ["destructive", "surface-raised"],
+  ["foreground", "primary-container"],
+  ["foreground", "surface-raised"],
   ...(["met", "barrier", "conflict", "unknown"] as const).flatMap((s): Pair[] => [
     [`status-${s}`, `status-${s}-bg`],
     [`status-${s}`, "card"],
@@ -57,6 +64,14 @@ const NON_TEXT: Pair[] = [
   ["ring", "card"],
   ["border-strong", "card"],
   ["status-unknown", "status-unknown-bg"], // dashed "Brak danych" outline
+  // Form controls: field, box and switch-track borders on every surface they sit on; invalid border; checked fill.
+  ["input", "card"],
+  ["input", "background"],
+  ["input", "surface-raised"],
+  ["destructive", "card"],
+  ["primary", "card"],
+  ["primary", "surface-raised"],
+  ["card", "input"], // switch thumb on the off track
 ];
 
 describe.each([":root", ".dark"] as const)("Fiolet tokens in %s", (selector) => {

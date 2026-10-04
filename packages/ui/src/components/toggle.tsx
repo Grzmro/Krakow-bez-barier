@@ -10,7 +10,7 @@ const toggleVariants = cva(
   {
     variants: {
       variant: {
-        chip: "bg-card text-foreground ring-1 ring-border hover:bg-muted aria-pressed:bg-primary-container aria-pressed:ring-2 aria-pressed:ring-primary/60",
+        chip: "bg-card text-foreground ring-1 ring-input hover:bg-muted aria-pressed:bg-primary-container aria-pressed:ring-2 aria-pressed:ring-primary aria-pressed:hover:bg-primary-container",
         ghost: "hover:bg-muted aria-pressed:bg-muted",
       },
       size: {

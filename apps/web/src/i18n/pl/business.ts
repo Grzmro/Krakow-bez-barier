@@ -52,6 +52,7 @@ export const business = {
     lead: "Link „Dojazd i wejście bez barier” dla miejsca wydarzenia — do maila, biletu albo na plakat (wersja do druku). Uczestnicy nie potrzebują konta.",
     search: "Szukaj miejsca",
     searchHint: "Nazwa albo ulica, np. „Sukiennice”.",
+    clearSearch: "Wyczyść wyszukiwanie",
     place: "Miejsce wydarzenia",
     placesLoading: "Wczytujemy miejsca…",
     placesError: "Nie udało się wczytać miejsc.",

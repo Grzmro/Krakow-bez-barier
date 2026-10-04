@@ -2,7 +2,7 @@
 
 import { type FormEvent, type Ref, useId, useImperativeHandle, useRef, useState } from "react";
 import { ArrowClockwise, CircleNotch, Crosshair } from "@phosphor-icons/react";
-import { Button, Toggle, useAnnounce } from "@krakow-bez-barier/ui";
+import { Button, Field, Select, Toggle, useAnnounce } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
 import { KRAKOW_DISTRICTS } from "@/lib/districts";
 import { locateDevice } from "@/lib/native/geolocation";
@@ -10,6 +10,8 @@ import { locationSettings } from "@/lib/native/platform";
 import { locateFailureText, type NearbyOrigin } from "@/lib/nearby";
 
 export type NearbyToggleHandle = { locate: () => void };
+
+const DISTRICT_ITEMS = KRAKOW_DISTRICTS.map((d) => ({ value: d.id, label: d.name }));
 
 /**
  * "W mojej okolicy" on the home list: pressed, it asks for the device position and hands it up so the
@@ -34,7 +36,6 @@ export function NearbyToggle({
   const announce = useAnnounce();
   const privacyId = useId();
   const errorId = useId();
-  const districtId = useId();
   const manualId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const problemRef = useRef<HTMLDivElement>(null);
@@ -128,29 +129,20 @@ export function NearbyToggle({
         {t.manual.open}
       </Button>
       <form id={manualId} hidden={!manualOpen} onSubmit={choose} className="space-y-2 pb-2">
-        <label htmlFor={districtId} className="block text-body-sm font-semibold">
-          {t.manual.label}
-        </label>
-        <div className="flex flex-wrap gap-2">
-          <select
-            id={districtId}
-            value={district}
-            onChange={(event) => setDistrict(event.target.value)}
-            className="h-11 min-w-0 flex-1 basis-48 rounded-2xl border border-input bg-card px-4 text-body outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-          >
-            <option value="" disabled>
-              {t.manual.placeholder}
-            </option>
-            {KRAKOW_DISTRICTS.map((d) => (
-              <option key={d.id} value={d.id}>
-                {d.name}
-              </option>
-            ))}
-          </select>
-          <Button type="submit" variant="outline" size="sm" className="h-11" aria-disabled={!district}>
-            {t.manual.submit}
-          </Button>
-        </div>
+        <Field label={t.manual.label}>
+          <div className="flex flex-wrap gap-2">
+            <Select
+              items={DISTRICT_ITEMS}
+              value={district || null}
+              onValueChange={setDistrict}
+              placeholder={t.manual.placeholder}
+              className="w-auto flex-1 basis-48"
+            />
+            <Button type="submit" variant="outline" aria-disabled={!district}>
+              {t.manual.submit}
+            </Button>
+          </div>
+        </Field>
       </form>
       <p id={privacyId} className={origin ? "pt-1 text-caption text-muted-foreground" : "sr-only"}>
         {privacy ?? t.home.privacy}

@@ -26,6 +26,7 @@ import {
 } from "@/components/kbb";
 import { useMessages } from "@/i18n/client";
 import { VEHICLE_STATUS } from "@/lib/transit";
+import { FormControlsPreview } from "./form-controls-preview";
 
 const VEHICLE_STATES = Object.keys(VEHICLE_STATUS) as (keyof typeof VEHICLE_STATUS)[];
 
@@ -58,6 +59,17 @@ export function ComponentsPreview() {
           <Button variant="secondary">{t.buttons.secondary}</Button>
           <Button variant="ghost">{t.buttons.ghost}</Button>
           <Button size="lg">{t.buttons.large}</Button>
+        </div>
+      </Section>
+
+      <Section id="sec-forms" title={t.sections.forms}>
+        <FormControlsPreview />
+      </Section>
+
+      <Section id="sec-forms-dark" title={t.sections.formsDark}>
+        {/* The tokens switch under .dark, so the same controls render in the dark theme here. */}
+        <div className="dark rounded-(--radius-card) bg-background p-4 text-foreground">
+          <FormControlsPreview />
         </div>
       </Section>
 

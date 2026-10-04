@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { CaretDown, Check, Crosshair, MapPin, Train, type IconProps } from "@phosphor-icons/react";
 import { Combobox } from "@base-ui/react/combobox";
+import { cn, ComboboxPopup, InputGroup, inputControlClass, optionClass } from "@krakow-bez-barier/ui";
 import { SampleTag } from "@/components/kbb";
 import { useMessages } from "@/i18n/client";
 import { usePlaces } from "@/lib/places";
@@ -100,42 +101,37 @@ export function StartPicker({
       <label htmlFor={id} className="sr-only">
         {label}
       </label>
-      <Combobox.Input
-        id={id}
-        placeholder={t.start.placeholder}
-        onFocus={(event) => event.currentTarget.select()}
-        className="h-10 min-w-0 flex-1 truncate rounded-xl bg-transparent px-1 text-body font-semibold outline-none placeholder:font-normal placeholder:text-muted-foreground focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring"
-      />
-      <CaretDown weight="bold" className="pointer-events-none -ml-2 size-4 shrink-0 text-muted-foreground" aria-hidden />
-      <Combobox.Portal>
-        <Combobox.Positioner sideOffset={8} className="z-50 outline-none">
-          <Combobox.Popup
-            aria-label={t.start.options}
-            className="w-(--anchor-width) min-w-72 max-w-(--available-width) overflow-hidden rounded-3xl bg-card py-2 text-card-foreground shadow-float ring-1 ring-border"
-          >
-            <Combobox.List className="max-h-[min(22rem,var(--available-height))] overflow-y-auto">
-              {(option: StartOption) => (
-                <Combobox.Item
-                  key={option.value}
-                  value={option}
-                  className="flex min-h-12 cursor-default items-center gap-3 px-4 py-2 text-body outline-none select-none data-highlighted:bg-primary-container"
-                >
-                  <StartIcon pick={option.pick} weight="duotone" className="size-5 shrink-0 text-primary" aria-hidden />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate">{option.label}</span>
-                    {option.hint ? <span className="block text-caption text-muted-foreground">{option.hint}</span> : null}
-                  </span>
-                  {option.sample ? <SampleTag /> : null}
-                  <Combobox.ItemIndicator>
-                    <Check weight="bold" className="size-4 text-primary" aria-hidden />
-                  </Combobox.ItemIndicator>
-                </Combobox.Item>
-              )}
-            </Combobox.List>
-            {nothingFound ? <p className="px-4 pt-2 pb-1 text-body-sm text-muted-foreground">{t.start.empty}</p> : null}
-          </Combobox.Popup>
-        </Combobox.Positioner>
-      </Combobox.Portal>
+      <InputGroup
+        variant="inline"
+        className="flex-1"
+        end={<CaretDown weight="bold" className="pointer-events-none size-4 text-muted-foreground" aria-hidden />}
+      >
+        <Combobox.Input
+          id={id}
+          placeholder={t.start.placeholder}
+          onFocus={(event) => event.currentTarget.select()}
+          className={cn(inputControlClass, "truncate px-1 font-semibold placeholder:font-normal")}
+        />
+      </InputGroup>
+      <ComboboxPopup
+        label={t.start.options}
+        className="min-w-72"
+        footer={nothingFound ? <p className="px-4 pt-2 pb-1 text-body-sm text-muted-foreground">{t.start.empty}</p> : null}
+      >
+        {(option: StartOption) => (
+          <Combobox.Item key={option.value} value={option} className={optionClass}>
+            <StartIcon pick={option.pick} weight="duotone" className="size-5 shrink-0 text-primary" aria-hidden />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate">{option.label}</span>
+              {option.hint ? <span className="block text-caption text-muted-foreground">{option.hint}</span> : null}
+            </span>
+            {option.sample ? <SampleTag /> : null}
+            <Combobox.ItemIndicator>
+              <Check weight="bold" className="size-5 text-primary" aria-hidden />
+            </Combobox.ItemIndicator>
+          </Combobox.Item>
+        )}
+      </ComboboxPopup>
     </Combobox.Root>
   );
 }

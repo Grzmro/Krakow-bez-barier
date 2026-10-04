@@ -1,8 +1,8 @@
 "use client";
 
-import { useId } from "react";
 import { Armchair, BabyCarriage, PersonSimpleWalk, Wheelchair, type Icon } from "@phosphor-icons/react";
 import type { Profile } from "@krakow-bez-barier/contracts";
+import { RadioGroup } from "@krakow-bez-barier/ui";
 import { cn } from "@/lib/utils";
 import { useMessages } from "@/i18n/client";
 import { PROFILES } from "@/lib/profile/thresholds";
@@ -28,52 +28,34 @@ export function ProfileSwitch({
   className?: string;
 }) {
   const t = useMessages().profile;
-  const name = useId();
   const current: Option = value ?? "off";
   const options: Option[] = allowOff ? ["off", ...PROFILES] : [...PROFILES];
+  const crowded = options.length > 3;
   return (
-    <fieldset className={cn("@container min-w-0", className)}>
-      <legend className="sr-only">{t.switch.label}</legend>
-      <div
-        className={cn(
-          "w-full bg-muted p-1 ring-1 ring-border",
-          "flex rounded-full",
-        )}
-      >
-        {options.map((option) => {
-          const I = ICON[option];
-          const checked = current === option;
-          return (
-            <label
-              key={option}
-              className={cn(
-                "relative flex min-w-0 cursor-pointer items-center justify-center gap-1 rounded-full px-1 @sm:px-2 font-semibold text-muted-foreground transition-[background-color,color,box-shadow] duration-(--duration-base) hover:text-foreground has-checked:bg-primary has-checked:text-primary-foreground has-checked:shadow-soft has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
-                // Segments size to their text so "Dla każdego" is never cut on a 360 px phone.
-                options.length > 3 ? "flex-auto" : "flex-1",
-                size === "sm" ? "h-10 text-[13px]" : "h-12 text-[14px]",
-              )}
-            >
-              <input
-                type="radio"
-                name={name}
-                value={option}
-                checked={checked}
-                aria-label={option === "off" ? t.switch.offAria : t.name[option]}
-                onChange={() => onChange(option === "off" ? null : option)}
-                className="absolute inset-0 z-10 m-0 size-full cursor-pointer appearance-none rounded-full opacity-0"
-              />
-              {option === "off" ? null : (
-                <I
-                  aria-hidden
-                  weight={checked ? "fill" : "regular"}
-                  className={cn("size-[18px] shrink-0", options.length > 3 && "hidden @sm:block")}
-                />
-              )}
-              <span className={cn(options.length > 3 ? "@max-sm:text-[13px]" : undefined, "truncate")}>{option === "off" ? t.switch.off : t.switch.short[option]}</span>
-            </label>
-          );
-        })}
-      </div>
-    </fieldset>
+    <RadioGroup<Option>
+      legend={t.switch.label}
+      legendHidden
+      variant="segmented"
+      size={size}
+      value={current}
+      onValueChange={(option) => onChange(option === "off" ? null : option)}
+      className={cn("@container", className)}
+      options={options.map((option) => {
+        const I = ICON[option];
+        return {
+          value: option,
+          ariaLabel: option === "off" ? t.switch.offAria : t.name[option],
+          // Segments size to their text so "Dla każdego" is never cut on a 360 px phone.
+          className: cn("px-1 @sm:px-2", crowded ? "flex-auto @max-sm:text-[13px]" : "flex-1"),
+          icon:
+            option === "off"
+              ? undefined
+              : (checked: boolean) => (
+                  <I aria-hidden weight={checked ? "fill" : "regular"} className={cn("size-[18px] shrink-0", crowded && "hidden @sm:block")} />
+                ),
+          label: option === "off" ? t.switch.off : t.switch.short[option],
+        };
+      })}
+    />
   );
 }

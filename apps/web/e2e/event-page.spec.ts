@@ -12,12 +12,14 @@ test("an organizer generates an event link and it opens the event page without a
 
   // THEN before any search the preselected venue is the best-documented one near the Rynek, not the first listed
   const venue = page.getByRole("combobox", { name: "Miejsce wydarzenia" });
-  await expect(venue.locator("option").first()).toHaveText("Podziemia Rynku (PRZYKŁAD)");
-  await expect(venue).toHaveValue("hotel-przyklad");
+  await expect(venue).toHaveText("Hotel Przykład (PRZYKŁAD)");
+  await venue.click();
+  await expect(page.getByRole("option").first()).toHaveText("Podziemia Rynku (PRZYKŁAD)");
+  await page.keyboard.press("Escape");
 
   // WHEN they find the venue, name the event and pick the date
   await page.getByRole("searchbox", { name: "Szukaj miejsca" }).fill("Krzysztof");
-  await expect(venue).toHaveValue("palac-krzysztofory");
+  await expect(venue).toHaveText("Pałac Krzysztofory (PRZYKŁAD)");
   await page.getByRole("textbox", { name: "Nazwa wydarzenia" }).fill("Koncert jesienny");
   await page.getByLabel("Data wydarzenia").fill("2026-10-10");
 

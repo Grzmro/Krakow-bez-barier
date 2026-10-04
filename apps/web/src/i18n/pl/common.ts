@@ -38,6 +38,9 @@ export const common = {
   language: {
     label: "Język",
   },
+  form: {
+    characters: (count: number, max: number) => `${count} z ${max} znaków`,
+  },
   status: {
     met: "Spełnia",
     barrier: "Nie spełnia",

@@ -3,7 +3,7 @@
 import { useCallback, useId, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Flask, LockKey } from "@phosphor-icons/react";
-import { Button, useAnnounce } from "@krakow-bez-barier/ui";
+import { Button, Checkbox, Field, Input, useAnnounce } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
 import { api, isMockApi } from "@/lib/api";
 import { retryMinutes } from "@/lib/moderation";
@@ -95,7 +95,7 @@ export function ModeratorSignIn({
   const [checking, setChecking] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const announce = useAnnounce();
-  const ids = { input: useId(), hint: useId(), error: useId() };
+  const ids = { hint: useId() };
 
   const fail = (message: string) => {
     setError(message);
@@ -138,33 +138,21 @@ export function ModeratorSignIn({
       <p id={ids.hint} className="mt-2 text-body-sm text-foreground/85">
         {t.signIn.lead}
       </p>
-      <label htmlFor={ids.input} className="mt-4 mb-2 block text-body-sm font-semibold">
-        {t.signIn.token}
-      </label>
-      <input
-        id={ids.input}
-        ref={inputRef}
-        name="password"
-        type={show ? "text" : "password"}
-        autoComplete="current-password"
-        autoCapitalize="none"
-        spellCheck={false}
-        value={token}
-        onChange={(e) => setToken(e.target.value)}
-        aria-invalid={!!error}
-        aria-describedby={error ? `${ids.error} ${ids.hint}` : ids.hint}
-        className="h-12 w-full rounded-2xl border border-input bg-card px-4 text-body outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring aria-invalid:border-status-barrier"
-      />
-      {error ? (
-        <p id={ids.error} className="mt-1.5 text-caption font-semibold text-status-barrier">
-          {error}
-        </p>
-      ) : null}
-      <label className="mt-3 flex min-h-6 items-center gap-2 text-body-sm">
-        <input type="checkbox" checked={show} onChange={(e) => setShow(e.target.checked)} className="size-5 accent-primary" />
-        {t.signIn.show}
-      </label>
-      <Button type="submit" className="mt-4 w-full" disabled={checking}>
+      <Field label={t.signIn.token} error={error} className="mt-4">
+        <Input
+          ref={inputRef}
+          name="password"
+          type={show ? "text" : "password"}
+          autoComplete="current-password"
+          autoCapitalize="none"
+          spellCheck={false}
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
+          aria-describedby={ids.hint}
+        />
+      </Field>
+      <Checkbox label={t.signIn.show} checked={show} onCheckedChange={setShow} className="mt-1" />
+      <Button type="submit" className="mt-3 w-full" disabled={checking}>
         {checking ? t.signIn.checking : t.signIn.submit}
       </Button>
       <p className="mt-3 text-caption text-muted-foreground">{t.signIn.sessionNote}</p>

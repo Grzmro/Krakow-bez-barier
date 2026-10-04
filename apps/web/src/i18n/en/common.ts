@@ -36,6 +36,9 @@ export const common: Messages["common"] = {
   language: {
     label: "Language",
   },
+  form: {
+    characters: (count: number, max: number) => `${count} of ${max} characters`,
+  },
   status: {
     met: "Meets",
     barrier: "Doesn't meet",

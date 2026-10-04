@@ -135,7 +135,8 @@ test("'W mojej okolicy' on the list explains a refusal, retries and lets the use
 
   // WHEN they choose a district in the picker that opened with the explanation
   await expect(list.getByRole("button", { name: "Albo wybierz dzielnicę" })).toHaveAttribute("aria-expanded", "true");
-  await list.getByLabel("Dzielnica").selectOption({ label: "Stare Miasto" });
+  await list.getByLabel("Dzielnica").click();
+  await page.getByRole("option", { name: "Stare Miasto" }).click();
 
   // THEN merely choosing in the list changes nothing yet
   await expect(nearby).toHaveAttribute("aria-pressed", "false");
@@ -188,7 +189,17 @@ test("a district can be picked by keyboard without ever sharing the location", a
   await manual.focus();
   await page.keyboard.press("Enter");
   await expect(manual).toHaveAttribute("aria-expanded", "true");
-  await list.getByLabel("Dzielnica").selectOption({ label: "Podgórze" });
+  await page.keyboard.press("Tab");
+  await expect(list.getByLabel("Dzielnica")).toBeFocused();
+  await page.keyboard.press("Enter");
+  // Typing jumps to the first match (Podgórze Duchackie); the arrows move on to Podgórze.
+  await page.keyboard.type("Podg");
+  await expect(page.getByRole("option", { name: "Podgórze Duchackie" })).toHaveAttribute("data-highlighted", "");
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("ArrowDown");
+  await expect(page.getByRole("option", { name: "Podgórze", exact: true })).toHaveAttribute("data-highlighted", "");
+  await page.keyboard.press("Enter");
+  await expect(list.getByLabel("Dzielnica")).toHaveText("Podgórze");
   await expect(nearby).toHaveAttribute("aria-pressed", "false");
   await list.getByRole("button", { name: "Pokaż okolicę" }).focus();
   await page.keyboard.press("Enter");

@@ -1,8 +1,8 @@
 "use client";
 
-import { useDeferredValue, useId, useState } from "react";
-import { ArrowSquareOut } from "@phosphor-icons/react";
-import { buttonVariants, cn } from "@krakow-bez-barier/ui";
+import { useDeferredValue, useState, type ReactNode } from "react";
+import { ArrowSquareOut, MagnifyingGlass } from "@phosphor-icons/react";
+import { buttonVariants, cn, Field, Input, Select } from "@krakow-bez-barier/ui";
 import { useMessages } from "@/i18n/client";
 import { EVENT_NAME_MAX } from "@/lib/event-link";
 import { config } from "@/lib/config";
@@ -14,13 +14,19 @@ import { CodeBlock } from "./code-block";
 
 const PLACES_SHOWN = 50;
 
-const fieldClass =
-  "h-12 w-full rounded-2xl border border-input bg-card px-4 text-body outline-none focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-ring";
+/** The venue's label over a loading, error or empty line, where there is no control yet to label. */
+function PlaceStatus({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div>
+      <p className="mb-2 text-body-sm font-semibold">{label}</p>
+      {children}
+    </div>
+  );
+}
 
 /** Organizer picks a venue, names the event and gets a shareable link to its event page. */
 export function EventLinkGenerator() {
   const t = useMessages().business.event;
-  const ids = { search: useId(), searchHint: useId(), place: useId(), name: useId(), date: useId() };
   const origin = useOrigin();
   const [search, setSearch] = useState("");
   const [chosen, setChosen] = useState<string>();
@@ -39,84 +45,60 @@ export function EventLinkGenerator() {
       <p className="text-body-sm text-foreground/85">{t.lead}</p>
 
       <div className="mt-4 space-y-4">
-        <div>
-          <label htmlFor={ids.search} className="mb-2 block text-body-sm font-semibold">
-            {t.search}
-          </label>
-          <input
-            id={ids.search}
+        <Field label={t.search} hint={t.searchHint}>
+          <Input
             type="search"
             autoComplete="off"
+            startIcon={<MagnifyingGlass />}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            aria-describedby={ids.searchHint}
-            className={fieldClass}
+            onClear={() => setSearch("")}
+            clearLabel={t.clearSearch}
           />
-          <p id={ids.searchHint} className="mt-1.5 text-caption text-muted-foreground">
-            {t.searchHint}
-          </p>
-        </div>
+        </Field>
 
-        <div>
-          <label htmlFor={ids.place} className="mb-2 block text-body-sm font-semibold">
-            {t.place}
-          </label>
-          {places.isPending ? (
+        {places.isPending ? (
+          <PlaceStatus label={t.place}>
             <p role="status" className="text-body-sm text-muted-foreground">
               {t.placesLoading}
             </p>
-          ) : places.isError ? (
+          </PlaceStatus>
+        ) : places.isError ? (
+          <PlaceStatus label={t.place}>
             <p role="alert" className="text-body-sm">
               {t.placesError}
             </p>
-          ) : items.length === 0 ? (
+          </PlaceStatus>
+        ) : items.length === 0 ? (
+          <PlaceStatus label={t.place}>
             <p role="status" className="text-body-sm text-muted-foreground">
               {t.noPlaces}
             </p>
-          ) : (
-            <select
-              id={ids.place}
-              value={placeId}
-              onChange={(e) => setChosen(e.target.value)}
-              className={fieldClass}
-            >
-              {items.map((place) => (
-                <option key={place.id} value={place.id}>
-                  {place.isSample ? t.sampleOption(place.name) : place.name}
-                </option>
-              ))}
-            </select>
-          )}
-        </div>
+          </PlaceStatus>
+        ) : (
+          <Field label={t.place}>
+            <Select
+              items={items.map((place) => ({ value: place.id, label: place.isSample ? t.sampleOption(place.name) : place.name }))}
+              value={placeId ?? null}
+              onValueChange={setChosen}
+            />
+          </Field>
+        )}
 
-        <div>
-          <label htmlFor={ids.name} className="mb-2 block text-body-sm font-semibold">
-            {t.name}
-          </label>
-          <input
-            id={ids.name}
+        <Field label={t.name}>
+          <Input
             type="text"
             autoComplete="off"
             maxLength={EVENT_NAME_MAX}
             placeholder={t.namePlaceholder}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className={fieldClass}
           />
-        </div>
+        </Field>
 
-        <div>
-          <label htmlFor={ids.date} className="mb-2 block text-body-sm font-semibold">
-            {t.date}
-          </label>
-          <input
-            id={ids.date}
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            className={fieldClass}
-          />
-        </div>
+        <Field label={t.date}>
+          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+        </Field>
       </div>
 
       {path ? (
