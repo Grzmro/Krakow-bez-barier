@@ -22,6 +22,8 @@
     - paragraph: "Źródło: MSIP: Toalety publiczne"
     - paragraph: Źródła podają sprzeczne dane
     - paragraph: "Dotyczy: Toaleta dostosowana. Obie wersje są w faktach poniżej."
+    - region "Zgłoś miastu":
+      - heading "Zgłoś miastu" [level=2]
     - region "Fakty":
       - heading "Fakty" [level=2]
       - paragraph: Rozwiń cechę, by zobaczyć źródło i datę.

@@ -10,6 +10,8 @@ export const config = {
   /** Default start and end of the route screen, `[lon, lat]`: the station's main exit and the Rynek. */
   routeStart: [19.9461, 50.0668] as [number, number],
   routeEnd: [19.9373, 50.0617] as [number, number],
+  /** E-mail the city's "Zgłoś miastu" report goes to (ZDMK/ZTP); unset until the owner confirms it, then the button only copies. Build-time. */
+  cityReportAddress: process.env.NEXT_PUBLIC_CITY_REPORT_ADDRESS?.trim() ?? "",
 } as const;
 
 export const mapAttribution = [
