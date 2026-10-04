@@ -257,7 +257,12 @@ export function RouteMap({
           {t.unavailable}
         </p>
       ) : null}
-      <MapControls map={map} extraAttribution={route?.attribution ? "openrouteservice" : undefined} className={controlsClassName} />
+      <MapControls
+        map={map}
+        extraAttribution={route?.attribution ? "openrouteservice" : undefined}
+        className={controlsClassName}
+        compactBelowLg
+      />
     </div>
   );
 }

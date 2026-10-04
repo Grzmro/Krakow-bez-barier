@@ -41,10 +41,13 @@ export function MapControls({
   map,
   extraAttribution,
   className,
+  compactBelowLg = false,
 }: {
   map: MapLibreMap | null;
   extraAttribution?: string;
   className?: string;
+  /** Lays locate and zoom out in one row below `lg`, for a screen whose overlays leave little room above the panel. */
+  compactBelowLg?: boolean;
 }) {
   const messages = useMessages();
   const t = messages.home.map;
@@ -175,7 +178,12 @@ export function MapControls({
           </p>
         )}
       </div>
-      <div className="relative flex shrink-0 flex-col items-end gap-2">
+      <div
+        className={cn(
+          "relative flex shrink-0 flex-col items-end gap-2",
+          compactBelowLg && "max-lg:flex-row max-lg:items-center",
+        )}
+      >
         {failure ? (
           <p className="absolute right-0 bottom-full mb-2 w-max max-w-[min(18rem,calc(100vw-1.5rem))] rounded-2xl bg-card px-3 py-2 text-body-sm text-foreground shadow-float">
             {failure.message}
@@ -205,7 +213,12 @@ export function MapControls({
             <Crosshair weight="bold" className="size-5" aria-hidden />
           )}
         </button>
-        <div className="flex flex-col overflow-hidden rounded-full bg-card shadow-float">
+        <div
+          className={cn(
+            "flex flex-col overflow-hidden rounded-full bg-card shadow-float",
+            compactBelowLg && "max-lg:flex-row",
+          )}
+        >
           <button
             type="button"
             aria-label={t.zoomIn}
@@ -215,7 +228,13 @@ export function MapControls({
           >
             <Plus weight="bold" className="size-5" aria-hidden />
           </button>
-          <span aria-hidden className="mx-3 h-px bg-border" />
+          <span
+            aria-hidden
+            className={cn(
+              "mx-3 h-px bg-border",
+              compactBelowLg && "max-lg:mx-0 max-lg:my-3 max-lg:h-auto max-lg:w-px",
+            )}
+          />
           <button
             type="button"
             aria-label={t.zoomOut}
