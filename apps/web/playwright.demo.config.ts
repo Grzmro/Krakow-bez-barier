@@ -12,7 +12,9 @@ import { worktreePort } from "./playwright.config";
 // DEMO_SAMPLE_BASE_URL on plain http (other than localhost) is blocked as mixed content.
 const port = Number(process.env.PORT ?? worktreePort(__dirname) + 2000);
 const baseURL = process.env.E2E_BASE_URL ?? `http://localhost:${port}`;
-const samplePort = port + 1;
+// The same port and env as the dev server of `npm run test:e2e` (playwright.config.ts): Next.js allows one `next dev`
+// per app directory, so the recording reuses that server when it runs instead of failing to start a second one.
+const samplePort = worktreePort(__dirname);
 const startSampleServer = !process.env.DEMO_SAMPLE_BASE_URL;
 const sampleURL = process.env.DEMO_SAMPLE_BASE_URL ?? `http://localhost:${samplePort}`;
 process.env.DEMO_SAMPLE_BASE_URL = sampleURL;
@@ -56,7 +58,6 @@ export default defineConfig({
           {
             command: `npm run dev -- --port ${samplePort}`,
             url: sampleURL,
-            // This worktree's own port: a server already there is one started for an earlier recording.
             reuseExistingServer: true,
             env: sampleEnv,
             timeout: 120_000,

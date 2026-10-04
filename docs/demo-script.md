@@ -106,7 +106,8 @@ E2E_BASE_URL=http://127.0.0.1:3100 DEMO_OUT_DIR=/tmp/video npm run demo:record  
   nie przechodzą po cichu na przykładowe dane. Build ma zawsze `NEXT_PUBLIC_API_MOCK` puste.
 - Miejsce sceny 2 jest wyszukiwane w API po nazwie, nie po identyfikatorze (`PLACES` w skrypcie);
   przykładowe miejsca scen 3–5 pochodzą z `openapi.yaml` (`SAMPLE`).
-- Serwer z przykładowym API startuje na własnym porcie worktree; `DEMO_SAMPLE_BASE_URL` wskazuje inny.
+- Serwer z przykładowym API to ten sam `next dev`, co w `npm run test:e2e` (port worktree; Next.js pozwala na jeden
+  `next dev` na katalog), więc działający serwer e2e jest używany ponownie. `DEMO_SAMPLE_BASE_URL` wskazuje inny.
 - Skrypt: `apps/web/e2e/demo/record-demo.ts` (osobna konfiguracja `playwright.demo.config.ts`, poza
   `npm run test:e2e`).
 
