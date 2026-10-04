@@ -1,6 +1,6 @@
 import type { AccessibilityAttribute, AccessibilityFact, ReportStatus } from "@krakow-bez-barier/contracts";
 import { confirmations, facts, moderationLog, places, reports, sources, type Db } from "@krakow-bez-barier/db";
-import { and, asc, desc, eq, gt, inArray, isNull, lt, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, isNull, lt, ne, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/server/db";
 import { isWithheld, withheldSourceIds } from "@/server/sources";
 import { DEMO_MODERATED_SOURCE } from "./demo";
@@ -314,16 +314,31 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
           .where(and(eq(moderationLog.moderator, moderator), lt(moderationLog.createdAt, before)))
           .returning({ reportId: moderationLog.reportId });
         for (const reportId of new Set(undone.map((u) => u.reportId))) {
-          await tx.select({ id: reports.id }).from(reports).where(eq(reports.id, reportId)).for("update");
+          const [report] = await tx.select().from(reports).where(eq(reports.id, reportId)).for("update");
           const [latest] = await tx
             .select()
             .from(moderationLog)
             .where(eq(moderationLog.reportId, reportId))
             .orderBy(desc(moderationLog.createdAt), desc(moderationLog.id))
             .limit(1);
+          const status = latest?.decision ?? "new";
+          // Back to pending while the same device has sent a newer report of the attribute: the newer one stays the
+          // device's one pending contribution and this one counts as withdrawn (the unique index allows only one).
+          const superseded =
+            report?.contributorHash && !report.withdrawnAt && PENDING.includes(status)
+              ? await tx
+                  .select({ id: reports.id })
+                  .from(reports)
+                  .where(and(pendingOf(report.contributorHash, report.placeId, report.attribute), ne(reports.id, reportId)))
+                  .limit(1)
+              : [];
           await tx
             .update(reports)
-            .set({ status: latest?.decision ?? "new", decidedAt: latest?.createdAt ?? null })
+            .set({
+              status,
+              decidedAt: latest?.createdAt ?? null,
+              ...(superseded.length > 0 && { withdrawnAt: before }),
+            })
             .where(eq(reports.id, reportId));
         }
 

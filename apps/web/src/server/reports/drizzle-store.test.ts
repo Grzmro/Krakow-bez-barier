@@ -190,4 +190,29 @@ describe.skipIf(!url)("Drizzle reports store (database)", () => {
     const [after] = await db.select().from(facts).where(eq(facts.id, lift.id));
     expect(after.evidence?.confirmations).toBe(0);
   });
+
+  it("reverts a demo acceptance even when the device has reported the attribute again since", async () => {
+    // GIVEN a device's lift report the demo account accepted, and a newer lift report from the same device
+    const { db } = handle!;
+    const store = createDrizzleReportsStore(db);
+    const ref = `test:${randomUUID()}`;
+    const [place] = await db
+      .insert(places)
+      .values({ externalRef: ref, name: "Revert place", category: "museum", location: { x: 19.94, y: 50.06 } })
+      .returning();
+    const token = `device-${randomUUID()}`;
+    const lift = (works: boolean) => ({ placeId: ref, attribute: "lift" as const, value: { kind: "boolean" as const, boolean: works } });
+    const { report: accepted } = await submitReport(store, lift(false), token);
+    await decideReport(store, { reportId: accepted.id, decision: "accepted" }, { name: DEMO_MODERATOR_NAME, demo: true });
+    const { report: newer, replaced } = await submitReport(store, lift(true), token);
+    expect(replaced).toBe(false);
+
+    // WHEN the demo decision is reverted
+    const undone = await revertExpiredDemoDecisions(store, new Date(Date.now() + (DEMO_REVERT_MINUTES + 1) * 60_000));
+
+    // THEN the revert succeeds and the device still has exactly one pending lift report, the newer one
+    expect(undone).toBeGreaterThanOrEqual(1);
+    expect((await pendingReportsByAttribute(store, place.id)).get("lift")).toEqual([expect.objectContaining({ id: newer.id })]);
+    expect(await listContributions(store, place.id, token)).toEqual([expect.objectContaining({ id: newer.id })]);
+  });
 });

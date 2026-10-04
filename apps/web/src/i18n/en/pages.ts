@@ -92,7 +92,7 @@ export const pages: Messages["pages"] = {
       ],
       [
         "Report identifier",
-        "When you open a place card, your browser generates a random identifier (kbb-contributor) and keeps it only on your device. It is sent with your reports and confirmations so that one device has at most one pending report per feature of a place, which you can change or withdraw. It is a random string: it isn't linked to you, an account, your IP address or a device fingerprint, and the server stores only its hash (SHA-256). Clearing the site data removes it.",
+        "When you send your first report or confirmation, your browser generates a random identifier (kbb-contributor) and keeps it only on your device. It is sent with your reports and confirmations so that one device has at most one pending report per feature of a place, which you can change or withdraw. It is a random string: it isn't linked to you, an account, your IP address or a device fingerprint, and the server stores only its hash (SHA-256). Clearing the site data removes it.",
       ],
       [
         "Voice search",

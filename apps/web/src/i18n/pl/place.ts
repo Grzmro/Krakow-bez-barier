@@ -36,6 +36,7 @@ export const place = {
   confirm: "Potwierdzam, byłem tu",
   confirmed: "Potwierdzenie zapisane.",
   confirmFailed: "Nie udało się zapisać potwierdzenia. Spróbuj ponownie.",
+  confirmLimited: "Ta wartość była już dziś potwierdzona z tej sieci. Spróbuj jutro.",
   editOsm: "Edytuj w OpenStreetMap",
   editOsmHint: "Popraw dane u źródła — trafią do nas przy następnym pobraniu.",
   mine: {
@@ -45,6 +46,7 @@ export const place = {
     sending: "wysyłanie…",
     pendingNote: "Czeka na weryfikację — nie zmienia danych powyżej.",
     sentReport: "Wysłano zgłoszenie",
+    sendingReport: "Wysyłamy zgłoszenie…",
     sentConfirmation: "Potwierdzono",
     change: "Zmień",
     withdraw: "Wycofaj",

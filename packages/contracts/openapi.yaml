@@ -633,8 +633,9 @@ paths:
 
 
         With `X-Contributor-Token`, a device has at most one pending contribution per place and attribute: a report
-        replaces the device''s earlier pending report of that attribute (`200`, same `id`, new value and date) and
-        withdraws its confirmation of that attribute, so the latest one wins.
+        replaces the device''s earlier pending report of that attribute (`200`, same `id`, new value and comment;
+        `createdAt` becomes the time of the change and the status stays `new` or `needs_info`) and withdraws its
+        confirmation of that attribute, so the latest one wins.
 
         '
       tags:

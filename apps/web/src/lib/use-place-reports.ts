@@ -6,7 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { useLocale, useMessages } from "@/i18n/client";
 import { api } from "./api";
-import { contributorToken } from "./contributor-token";
+import { contributorToken, storedContributorToken } from "./contributor-token";
 import { ownEntries, type PendingEntry } from "./reports";
 
 /** How long "Cofnij" is offered before the report is actually sent. */
@@ -34,8 +34,11 @@ export function usePlaceReports(placeId: string) {
   const contributions = useQuery({
     queryKey: contributionsKey(placeId),
     queryFn: async (): Promise<Contribution[]> => {
+      // A browser that never sent anything has no token and nothing pending: no request, no identifier created.
+      const token = storedContributorToken();
+      if (!token) return [];
       const { data } = await api.GET("/places/{id}/contributions", {
-        params: { path: { id: placeId }, header: { "X-Contributor-Token": contributorToken() } },
+        params: { path: { id: placeId }, header: { "X-Contributor-Token": token } },
       });
       if (!data) throw new Error("listMyContributions failed");
       return data.items;
@@ -124,10 +127,16 @@ export function usePlaceReports(placeId: string) {
       busy.current.add(attribute);
       try {
         cancelQueued(attribute);
-        const { data } = await api.POST("/places/{id}/confirmations", {
+        const { data, response } = await api.POST("/places/{id}/confirmations", {
           params: { path: { id: placeId }, header: { "X-Contributor-Token": contributorToken() } },
           body: { factId },
         });
+        // One confirmation per fact and address a day, also after withdrawing one: say so instead of "failed".
+        if (response.status === 429) {
+          toast(t.confirmLimited);
+          announce(t.confirmLimited);
+          return false;
+        }
         if (!data) throw new Error("createConfirmation failed");
         await refresh();
         toast(t.confirmed);
@@ -149,9 +158,12 @@ export function usePlaceReports(placeId: string) {
       if (busy.current.has(attribute)) return false;
       busy.current.add(attribute);
       try {
-        if (!cancelQueued(attribute)) {
+        cancelQueued(attribute);
+        // A change still in its undo window replaces a report the server already has; that one is withdrawn too.
+        const token = storedContributorToken();
+        if (token && contributions.data?.some((c) => c.attribute === attribute)) {
           const { response } = await api.DELETE("/places/{id}/contributions/{attribute}", {
-            params: { path: { id: placeId, attribute }, header: { "X-Contributor-Token": contributorToken() } },
+            params: { path: { id: placeId, attribute }, header: { "X-Contributor-Token": token } },
           });
           if (!response.ok) throw new Error("withdrawContribution failed");
           await refresh();
@@ -167,7 +179,7 @@ export function usePlaceReports(placeId: string) {
         busy.current.delete(attribute);
       }
     },
-    [announce, cancelQueued, placeId, refresh, t],
+    [announce, cancelQueued, contributions.data, placeId, refresh, t],
   );
 
   useEffect(() => {

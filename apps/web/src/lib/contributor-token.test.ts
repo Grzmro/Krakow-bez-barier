@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { contributorToken } from "./contributor-token";
+import { contributorToken, storedContributorToken } from "./contributor-token";
 
 const memoryStorage = () => {
   const items = new Map<string, string>();
@@ -19,6 +19,19 @@ describe("contributorToken", () => {
     expect(first).toMatch(/^[A-Za-z0-9_-]{16,128}$/);
     expect(second).toBe(first);
     expect(storage.items.get("kbb-contributor")).toBe(first);
+  });
+
+  it("reads a stored token without creating one", () => {
+    // GIVEN empty storage, then one holding a token
+    const empty = memoryStorage();
+    const filled = memoryStorage();
+    filled.setItem("kbb-contributor", "0123456789abcdef0123456789abcdef");
+
+    // WHEN reading the stored token
+    // THEN nothing is created for the empty one, and the stored token is returned for the other
+    storedContributorToken(empty);
+    expect(empty.items.size).toBe(0);
+    expect(storedContributorToken(filled)).toBe("0123456789abcdef0123456789abcdef");
   });
 
   it("replaces a stored value that isn't a valid token", () => {

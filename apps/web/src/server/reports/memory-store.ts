@@ -211,6 +211,10 @@ export function createMemoryReportsStore(seed: { places?: MemoryPlace[]; facts?:
         const latest = log.filter((e) => e.reportId === reportId).at(-1);
         report.status = latest?.decision ?? "new";
         report.decidedAt = latest?.createdAt ?? null;
+        const newer = reports.some(
+          (r) => r !== report && r.contributor !== null && r.contributor === report.contributor && r.placeId === report.placeId && r.attribute === report.attribute && isPending(r),
+        );
+        if (isPending(report) && newer) report.withdrawnAt = before;
       }
       const expired = facts.filter((f) => f.source.id === DEMO_MODERATED_SOURCE.id && Date.parse(f.fetchedAt) < before.getTime());
       for (const fact of expired) {

@@ -99,7 +99,7 @@ export const pages = {
       ],
       [
         "Identyfikator zgłoszeń",
-        "Gdy otworzysz kartę miejsca, przeglądarka losuje identyfikator (kbb-contributor) i trzyma go tylko u Ciebie. Wysyła go ze zgłoszeniami i potwierdzeniami, żeby z jednego urządzenia było najwyżej jedno oczekujące zgłoszenie na cechę miejsca, które możesz zmienić albo wycofać. To losowy ciąg znaków: nie wiąże się z Tobą, kontem, adresem IP ani odciskiem urządzenia, a serwer zapisuje tylko jego skrót (SHA-256). Usuniesz go, czyszcząc dane strony.",
+        "Gdy wyślesz pierwsze zgłoszenie lub potwierdzenie, przeglądarka losuje identyfikator (kbb-contributor) i trzyma go tylko u Ciebie. Wysyła go ze zgłoszeniami i potwierdzeniami, żeby z jednego urządzenia było najwyżej jedno oczekujące zgłoszenie na cechę miejsca, które możesz zmienić albo wycofać. To losowy ciąg znaków: nie wiąże się z Tobą, kontem, adresem IP ani odciskiem urządzenia, a serwer zapisuje tylko jego skrót (SHA-256). Usuniesz go, czyszcząc dane strony.",
       ],
       [
         "Wyszukiwanie głosem",

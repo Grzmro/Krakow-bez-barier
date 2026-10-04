@@ -462,7 +462,11 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
                       <>
                         <span className="flex min-h-10 items-center gap-1.5 text-body-sm font-semibold">
                           <CheckCircle weight="fill" className="size-4 shrink-0 text-primary" aria-hidden />
-                          {mine.kind === "confirmation" ? t.mine.sentConfirmation : t.mine.sentReport}
+                          {mine.kind === "confirmation"
+                            ? t.mine.sentConfirmation
+                            : mine.sending
+                              ? t.mine.sendingReport
+                              : t.mine.sentReport}
                         </span>
                         <Button
                           ref={firstActionRef(fact.attribute)}
