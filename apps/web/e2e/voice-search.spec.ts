@@ -70,6 +70,8 @@ test("dictation fills the search field in Polish, which the visitor can still ed
   await gotoAllPlaces(page);
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
+  // The list's own (debounced) announcement would otherwise replace "Słucham…" in the one live region on a slow run.
+  await expect(page.getByRole("status").filter({ hasText: "Znaleziono 10 miejsc" })).toBeAttached();
   const mic = page.getByRole("button", { name: "Wpisz głosem" });
   const field = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
 
