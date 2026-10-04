@@ -110,12 +110,29 @@ test("a route without a routing key says so, offers the example route, and still
 
   // THEN the rest of the app works: the card is there
   await expect(page.getByRole("heading", { level: 1, name: "Kawiarnia Przykład" })).toBeVisible();
+});
 
-  // WHEN they ask for the example route instead
+test("without a routing key the example route opens from the notice, and Back returns to the located route", async ({ page }) => {
+  // GIVEN a route to a place that can't be planned without a routing key, from the shared position
+  await page.context().grantPermissions(["geolocation"]);
+  await page.context().setGeolocation({ latitude: 50.065, longitude: 19.942 });
+  await page.goto("/miejsca/kawiarnia-przyklad");
   await page.getByRole("link", { name: "Prowadź" }).click();
+  await expect(page).toHaveURL(/\/trasa\?do=kawiarnia-przyklad&z=50\.065,19\.942$/);
+
+  // WHEN the visitor asks for the example route instead
   await page.getByRole("link", { name: "Pokaż przykładową trasę" }).click();
 
   // THEN the recorded Dworzec Główny → Rynek route opens
   await expect(page).toHaveURL(/\/trasa\?z=station$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(/19 min/);
+  await expect(page.getByRole("combobox", { name: "Start" })).toHaveValue("Dworzec Główny");
+
+  // WHEN they go back
+  await page.goBack();
+
+  // THEN the route to the place starts at their position again, not at the station and not without a start
+  await expect(page).toHaveURL(/\/trasa\?do=kawiarnia-przyklad&z=50\.065,19\.942$/);
+  await expect(page.getByRole("combobox", { name: "Start" })).toHaveValue("Moja lokalizacja");
+  await expect(page.locator("main")).toContainText("Tryb demonstracyjny: bez klucza openrouteservice");
 });
