@@ -132,6 +132,21 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
   const locateRun = useRef(0);
   const startFieldId = useId();
 
+  // A navigation to this screen with another link (the example route, Back to it) keeps this component: take its start
+  // as on first load. The start written into the URL by `replaceState` below changes neither prop.
+  const link = `${to ?? ""}|${from ?? ""}`;
+  const [linked, setLinked] = useState(link);
+  if (link !== linked) {
+    setLinked(link);
+    const next = parseStart(from);
+    setStart(next);
+    setSwapped(false);
+    setOrigin(null);
+    setSelected(null);
+    setNotice(null);
+    setLocating(next.kind === "none");
+  }
+
   const place = usePlace(to ?? "", {}, { enabled: Boolean(to) });
   const placeEnd = place.data?.location.coordinates as [number, number] | undefined;
   const end = to ? placeEnd : config.routeEnd;
@@ -243,13 +258,17 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
   };
 
   // No start in the link: the route starts at the device position. If it can't be found, the screen asks for a start.
-  const autoLocated = useRef(false);
+  // A new link with a start (adopted in render above) cancels a pending locate instead: refs can't change in render.
+  const locatedFor = useRef<string | null>(null);
   useEffect(() => {
-    if (autoLocated.current || chosenStart.kind !== "none") return;
-    autoLocated.current = true;
-    void pickStart({ kind: "locate" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- once on mount
-  }, []);
+    if (locatedFor.current === link) return;
+    const first = locatedFor.current === null;
+    locatedFor.current = link;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- starts the async locate; its result arrives later
+    if (chosenStart.kind === "none") void pickStart({ kind: "locate" });
+    else if (!first) locateRun.current++;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per link
+  }, [link]);
 
   const switchKind = (next: RouteKind) => {
     setKind(next);
@@ -490,8 +509,9 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
                 <p className="text-body font-semibold">{errorText(current.error)}</p>
                 {routeReason(current.error) === "not_configured" ? (
                   <Link
-                    href={routes.route()}
-                    onClick={() => void pickStart(STATION)}
+                    href={routes.route(undefined, startParam(STATION))}
+                    // Already this link (another start picked since): the props won't change, so pick it here.
+                    onClick={!to && from === startParam(STATION) ? () => void pickStart(STATION) : undefined}
                     className={buttonVariants({ variant: "outline", size: "sm" })}
                   >
                     {t.error.showExample}
