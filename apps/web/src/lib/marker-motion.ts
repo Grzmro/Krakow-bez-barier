@@ -1,11 +1,10 @@
-import { MOTION } from "@krakow-bez-barier/ui";
+import { EASING, MOTION } from "@krakow-bez-barier/ui";
 
 /** Durations (ms) of the map markers' transitions, from the motion tokens. */
 export const MARKER_MOTION = { fly: MOTION.slow, fade: MOTION.base, reducedFade: MOTION.fast } as const;
 
-// The `--ease-out` / `--ease-in-out` tokens (styles.css): the Web Animations API can't read custom properties.
-const EASE_OUT = "cubic-bezier(0.2, 0.8, 0.2, 1)";
-const EASE_IN_OUT = "cubic-bezier(0.65, 0, 0.35, 1)";
+const EASE_OUT = EASING.out;
+const EASE_IN_OUT = EASING.inOut;
 const FROM_SCALE = 0.5;
 
 export type MarkerTransition = { keyframes: Keyframe[]; options: KeyframeAnimationOptions };

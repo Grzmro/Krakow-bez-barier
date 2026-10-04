@@ -144,8 +144,7 @@ test("with a profile on, clusters tell their verdicts in words", async ({ page, 
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText(/^\d+ miejsc/);
 
   // WHEN the visitor turns on the wheelchair profile
-  // (by keyboard: after a click the rows grow with their verdicts under the resting pointer, the hovered row gets
-  // selected and the map eases to it, away from the clusters; a phone has no hover)
+  // Keyboard, not a click: a resting mouse pointer would hover-highlight a row.
   const wheelchair = page.getByRole("radio", { name: "Wózek", exact: true });
   await wheelchair.focus();
   await page.keyboard.press("Space");

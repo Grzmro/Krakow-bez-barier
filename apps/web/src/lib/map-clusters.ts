@@ -3,7 +3,10 @@ import type { PlacePoint } from "@krakow-bez-barier/contracts";
 import type { Status } from "@krakow-bez-barier/ui";
 import { STATUS_ORDER } from "./profile/verdict-list";
 
-/** Screen pixels within which pins merge into a cluster: a pin's width plus a little, so pins never overlap. */
+/**
+ * Screen pixels within which pins merge into a cluster, at the cluster's level: a pin's width plus a little. Levels
+ * switch halfway (`clusterZoom`), so just after a split pins may overlap by a few px, like Apple Maps' do.
+ */
 export const CLUSTER_RADIUS = 40;
 /** Above this zoom (street level) every place shows as its own pin; places at the same spot are spread in a ring. */
 export const CLUSTER_MAX_ZOOM = 16;

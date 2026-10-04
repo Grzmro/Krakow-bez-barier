@@ -42,8 +42,7 @@ const VIEW_MARGIN = 0.2;
 // Most marker transitions one refresh starts; the rest change at once, so a big jump stays smooth on a phone.
 const MAX_TRANSITIONS = 60;
 
-// Rendered once per look (category and verdict, or count and breakdown) and cloned for each marker: a React
-// root per marker made each zoom step build a few hundred of them on the main thread.
+// Rendered once per look (category and verdict, or count and breakdown) and cloned for each marker.
 const templates = new Map<string, Element>();
 const MAX_TEMPLATES = 400;
 
@@ -122,15 +121,18 @@ type Markers = Map<string, MarkerEntry>;
 function markSelected(markers: Markers, selectedId: string | null) {
   const entries = [...markers.values()];
   const pin = selectedId === null ? undefined : entries.find(({ item }) => item.kind === "place" && item.place.id === selectedId);
-  const holder =
-    pin ??
-    (selectedId === null
-      ? undefined
-      : entries.find((entry) => {
-          if (entry.item.kind !== "cluster") return false;
-          entry.leaves ??= new Set(clusterPlaceIds(entry.index, entry.item.clusterId));
-          return entry.leaves.has(selectedId);
-        }));
+  let holder = pin;
+  const at = selectedId === null || pin ? undefined : entries[0]?.index.byId.get(selectedId)?.location.coordinates;
+  if (selectedId !== null && at) {
+    // Nearest clusters first: the holder is almost always the first one, so few leaves get listed.
+    const distance = ({ item }: MarkerEntry) => (item.coordinates[0] - at[0]) ** 2 + (item.coordinates[1] - at[1]) ** 2;
+    const clusters = entries.filter(({ item }) => item.kind === "cluster").sort((a, b) => distance(a) - distance(b));
+    holder = clusters.find((entry) => {
+      if (entry.item.kind !== "cluster") return false;
+      entry.leaves ??= new Set(clusterPlaceIds(entry.index, entry.item.clusterId));
+      return entry.leaves.has(selectedId);
+    });
+  }
   for (const entry of entries) entry.marker.getElement().dataset.selected = String(entry === holder);
 }
 
@@ -382,9 +384,12 @@ export function PlaceMap({
     let detach: (() => void) | null = null;
     const markers = markersRef.current;
     const leaving = leavingRef.current;
-    // New copy (a language switch) needs new labels: those markers are rebuilt at once, without a transition.
+    // New copy (a language switch) or category icons (loaded after the first pins) rebuild the markers at once.
     const labels = [t, statusWords, category];
-    if (labelsRef.current.some((value, i) => value !== labels[i])) clearMarkers(markers, leaving);
+    if (labelsRef.current.some((value, i) => value !== labels[i])) {
+      clearMarkers(markers, leaving);
+      templates.clear();
+    }
     labelsRef.current = labels;
     import("maplibre-gl").then(({ Marker }) => {
       if (cancelled) return;
@@ -464,10 +469,11 @@ export function PlaceMap({
         );
         const reduced = reducedMotion();
         const { clientWidth: width, clientHeight: height } = map.getContainer();
-        let budget = MAX_TRANSITIONS;
+        // Each side its own budget: the entering children flying out are what the eye follows.
+        const budget = { enter: MAX_TRANSITIONS, leave: MAX_TRANSITIONS / 2 };
         const animate = (body: HTMLElement, direction: "enter" | "leave", at: { x: number; y: number }, partner?: { x: number; y: number }) => {
-          if (budget <= 0 || !nearView(at, width, height)) return null;
-          budget--;
+          if (budget[direction] <= 0 || !nearView(at, width, height)) return null;
+          budget[direction]--;
           const offset: [number, number] | null = partner ? [partner.x - at.x, partner.y - at.y] : null;
           const { keyframes, options } = markerTransition(direction, offset, reduced);
           return body.animate(keyframes, options);

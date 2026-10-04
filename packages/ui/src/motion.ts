@@ -15,6 +15,12 @@ export const MOTION = {
   sheet: 500,
 } as const;
 
+/** The `--ease-out` / `--ease-in-out` curves of `styles.css`, for the Web Animations API (a test keeps them equal). */
+export const EASING = {
+  out: "cubic-bezier(0.2, 0.8, 0.2, 1)",
+  inOut: "cubic-bezier(0.65, 0, 0.35, 1)",
+} as const;
+
 /** `<html data-motion="reduce">`: the visitor turned on "Mniej animacji" (KBB-92), whatever the system says. */
 export const MOTION_ATTRIBUTE = "data-motion";
 
