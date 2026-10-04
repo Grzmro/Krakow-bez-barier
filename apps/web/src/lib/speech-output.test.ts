@@ -85,26 +85,41 @@ describe("createReader", () => {
     expect(states).toEqual(["speaking", "idle"]);
   });
 
-  it("pauses and resumes from the step being read", () => {
-    // GIVEN a reader in the middle of the second of three texts
-    const { synth, states, reader } = setup();
+  it("reports the text being read, so its step can be highlighted", () => {
+    // GIVEN a reader that reports positions
+    const synth = fakeSynth();
+    const positions: number[] = [];
+    const reader = createReader({ synth, Utterance: FakeUtterance }, () => {}, (index) => positions.push(index));
+
+    // WHEN three texts are played and the second one starts
     reader.play(["Krok 1", "Krok 2", "Krok 3"], "pl-PL");
     synth.next();
     synth.begin();
 
-    // WHEN it is paused
-    reader.pause();
+    // THEN the positions follow the reading
+    expect(positions).toEqual([0, 0, 1]);
+  });
 
-    // THEN the queue is dropped and the cancel events don't end the reading
-    expect(synth.queue).toHaveLength(0);
-    expect(states).toEqual(["speaking", "paused"]);
+  it("cancels what it was saying when a new message comes, without ending the new one", () => {
+    // GIVEN a reader in the middle of a message
+    const { synth, states, reader } = setup();
+    reader.play(["Za 50 metrów: skręć w prawo."], "pl-PL");
+    synth.begin();
 
-    // WHEN it is resumed
-    reader.resume();
+    // WHEN a new message is played (the cancel fires the old one's error event)
+    reader.play(["Teraz skręć w prawo."], "pl-PL");
 
-    // THEN it starts again from the second text
-    expect(synth.queue.map((u) => u.text)).toEqual(["Krok 2", "Krok 3"]);
-    expect(states).toEqual(["speaking", "paused", "speaking"]);
+    // THEN only the new message is queued and the reader is still speaking
+    expect(synth.queue.map((u) => u.text)).toEqual(["Teraz skręć w prawo."]);
+    expect(states).toEqual(["speaking"]);
+  });
+
+  it("has a voice when one matches the language or none are loaded yet, not when only others exist", () => {
+    // GIVEN devices with a Polish voice, only English voices, and voices still loading
+    // WHEN / THEN Polish is read only where it won't come out in an English voice
+    expect(setup([{ lang: "pl-PL" }]).reader.hasVoice("pl-PL")).toBe(true);
+    expect(setup([{ lang: "en-US" }]).reader.hasVoice("pl-PL")).toBe(false);
+    expect(setup([]).reader.hasVoice("pl-PL")).toBe(true);
   });
 
   it("stops and starts over from the first text", () => {

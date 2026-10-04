@@ -1,5 +1,6 @@
 import type { APIRequestContext, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { fakeSpeech, spoken } from "./speech";
 
 // Guidance after "Ruszamy" on the recorded Dworzec Główny → Rynek route (see route.spec.ts). The device position is
 // Playwright's emulated geolocation, moved with `context.setGeolocation`; no real GPS, no waiting on timers.
@@ -104,6 +105,91 @@ test.describe("with location access", () => {
     await expect(main).toContainText("Twoja pozycja");
     await expect(main).toContainText("Tryb demonstracyjny: bez klucza openrouteservice");
   });
+
+  test("'Czytaj na głos' is off by default and then says one short message per position, each once", async ({ page, context, request }) => {
+    // GIVEN a walker at the start of the route, with speech synthesis recorded
+    const steps = await segments(request);
+    await fakeSpeech(page);
+    await context.setGeolocation(at(steps[0].geometry.coordinates[0]));
+    await openRoute(page);
+    await page.getByRole("button", { name: "Ruszamy" }).click();
+    const main = page.locator("main");
+    await expect(main).toContainText("Prowadzimy według Twojej pozycji");
+    const count = async () => (await spoken(page)).length;
+
+    // WHEN guidance runs with the voice untouched
+    const voice = page.getByRole("switch", { name: "Czytaj na głos" });
+
+    // THEN nothing is said: a screen reader user already hears the live region
+    await expect(voice).not.toBeChecked();
+    expect(await count()).toBe(0);
+
+    // WHEN they turn the voice on (a tap, which also unlocks speech on iOS)
+    await voice.click();
+
+    // THEN the current step is said once
+    await expect.poll(count).toBe(1);
+    expect((await spoken(page))[0]).toEqual(expect.objectContaining({ lang: "pl-PL", text: expect.stringMatching(/^Krok 1 z \d+\./) }));
+
+    // WHEN they reach the end of step 1, then of step 2
+    await context.setGeolocation(at(steps[0].geometry.coordinates.at(-1)!));
+    await expect(main).toContainText("Krok 2 z");
+
+    // THEN each new position gives one short message about what to do now, with the distance in words
+    await expect.poll(count).toBe(2);
+    const lower = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
+    expect((await spoken(page))[1].text).toMatch(new RegExp(`^Teraz ${lower(steps[1].instruction)}, potem \\d+ metrów\\.`));
+
+    await context.setGeolocation(at(steps[1].geometry.coordinates.at(-1)!));
+    await expect(main).toContainText("Krok 3 z");
+    await expect.poll(count).toBe(3);
+    expect((await spoken(page))[2].text).toMatch(new RegExp(`^Teraz ${lower(steps[2].instruction)}`));
+
+    // WHEN they walk away from the route
+    const [lon, lat] = steps[2].geometry.coordinates[0];
+    await context.setGeolocation(at([lon, lat + 0.002]));
+
+    // THEN being off the route is said once, alone
+    await expect(main).toContainText("Zboczyłeś z trasy");
+    await expect.poll(count).toBe(4);
+    expect((await spoken(page))[3].text).toBe("Zboczyłeś z trasy. Wróć na trasę albo wyznacz ją od nowa.");
+  });
+});
+
+test("without location, 'Czytaj na głos' says the step the walker moves to", async ({ page }) => {
+  // GIVEN manual guidance (location refused) with speech synthesis recorded
+  await fakeSpeech(page);
+  await page.addInitScript(() => {
+    navigator.geolocation.watchPosition = (_ok, fail) => {
+      fail?.({ code: 1, PERMISSION_DENIED: 1, POSITION_UNAVAILABLE: 2, TIMEOUT: 3 } as GeolocationPositionError);
+      return 1;
+    };
+  });
+  await openRoute(page);
+  await page.getByRole("button", { name: "Ruszamy" }).click();
+  await expect(page.locator("main")).toContainText("Brak zgody na lokalizację");
+  const count = async () => (await spoken(page)).length;
+
+  // WHEN they turn the voice on
+  await page.getByRole("switch", { name: "Czytaj na głos" }).click();
+
+  // THEN step 1 is said, and nothing reads ahead by itself
+  await expect.poll(count).toBe(1);
+  expect((await spoken(page))[0].text).toMatch(/^Krok 1 z 33\. Kieruj się na południe\./);
+
+  // WHEN they press "Następny krok"
+  await page.getByRole("button", { name: "Następny krok" }).click();
+
+  // THEN step 2 alone is said
+  await expect.poll(count).toBe(2);
+  expect((await spoken(page))[1].text).toMatch(/^Krok 2 z 33\. Skręć w prawo\. Za \d+ metrów: /);
+
+  // WHEN they ask for the message again
+  await page.getByRole("button", { name: "Powtórz komunikat" }).click();
+
+  // THEN it is said with the sources of the step's data
+  await expect.poll(count).toBe(3);
+  expect((await spoken(page))[2].text).toMatch(/Źródło: OpenStreetMap[^,]*, \d{1,2} \S+ \d{4}, /);
 });
 
 test("without location access guidance runs by hand, by keyboard", async ({ page, expectAccessible, evidence }) => {

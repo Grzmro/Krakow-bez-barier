@@ -9,17 +9,25 @@ const noSubscribe = () => () => {};
 const engine = () => speechSynthesisFor(window as unknown as SpeechOutputWindow);
 const detect = () => engine() !== null;
 
-/** Reads texts aloud with the browser's speech synthesis, in the app's language; nothing leaves the device. */
-export function useReadAloud() {
+/**
+ * Reads texts aloud with the browser's speech synthesis, in the app's language; nothing leaves the device.
+ * `play` and `say` return false (and say nothing) when the device has no voice for the language.
+ * The first call must come from a tap: iOS keeps synthesis silent until then.
+ */
+export function useReadAloud(onPosition?: (index: number) => void) {
   const locale = useLocale();
   const supported = useSyncExternalStore(noSubscribe, detect, () => false);
   const [state, setState] = useState<ReaderState>("idle");
   const reader = useRef<ReturnType<typeof createReader> | null>(null);
+  const positionRef = useRef(onPosition);
+  useEffect(() => {
+    positionRef.current = onPosition;
+  });
 
   const get = useCallback(() => {
     if (!reader.current) {
       const found = engine();
-      if (found) reader.current = createReader(found, setState);
+      if (found) reader.current = createReader(found, setState, (index) => positionRef.current?.(index));
     }
     return reader.current;
   }, []);
@@ -27,10 +35,18 @@ export function useReadAloud() {
   // Stops on unmount and when the language changes mid-read.
   useEffect(() => () => reader.current?.stop(), [locale]);
 
-  const play = useCallback((texts: string[]) => get()?.play(texts, speechLang(locale)), [get, locale]);
-  const pause = useCallback(() => reader.current?.pause(), []);
-  const resume = useCallback(() => reader.current?.resume(), []);
+  const play = useCallback(
+    (texts: string[]) => {
+      const current = get();
+      const lang = speechLang(locale);
+      if (!current?.hasVoice(lang)) return false;
+      current.play(texts, lang);
+      return true;
+    },
+    [get, locale],
+  );
+  const say = useCallback((text: string) => play([text]), [play]);
   const stop = useCallback(() => reader.current?.stop(), []);
 
-  return { supported, state, play, pause, resume, stop };
+  return { supported, state, play, say, stop };
 }

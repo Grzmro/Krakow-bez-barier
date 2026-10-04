@@ -31,6 +31,7 @@ export function StepList({
   onSelect,
   stepRefs,
   current,
+  currentLabel,
   idPrefix = "odcinek",
 }: {
   route: Route;
@@ -39,6 +40,8 @@ export function StepList({
   stepRefs: RefObject<Map<number, HTMLButtonElement>>;
   /** Index of the step being walked (guidance mode). */
   current?: number;
+  /** What the current step is called to a screen reader: the step being walked, or the one being read aloud. */
+  currentLabel?: string;
   /** Keeps the step details' ids unique when several lists share a page (saved routes). */
   idPrefix?: string;
 }) {
@@ -54,7 +57,7 @@ export function StepList({
           total={total}
           detailsId={`${idPrefix}-${segment.id}`}
           open={selected === segment.id}
-          current={current === index}
+          current={current === index ? (currentLabel ?? t.nav.current) : null}
           ref={(node) => {
             if (node) stepRefs.current.set(segment.id, node);
             else stepRefs.current.delete(segment.id);
@@ -84,7 +87,7 @@ function SegmentItem({
   index: number;
   total: number;
   open: boolean;
-  current: boolean;
+  current: string | null;
   detailsId: string;
   onToggle: () => void;
   ref: Ref<HTMLButtonElement>;
@@ -115,7 +118,7 @@ function SegmentItem({
           type="button"
           aria-expanded={open}
           aria-controls={detailsId}
-          aria-label={`${t.segmentAria(index + 1, total, segment.instruction, segment.lengthMeters, label, segment.note ?? "")}${current ? ` ${t.nav.current}.` : ""}`}
+          aria-label={`${t.segmentAria(index + 1, total, segment.instruction, segment.lengthMeters, label, segment.note ?? "")}${current ? ` ${current}.` : ""}`}
           onClick={onToggle}
           className={cn(
             "flex min-h-14 w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-left transition-colors hover:bg-muted",
