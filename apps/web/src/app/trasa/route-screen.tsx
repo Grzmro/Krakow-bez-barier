@@ -606,7 +606,7 @@ function RouteDetails({
           <span
             key={segment.id}
             className={cn(
-              "h-3 rounded-full transition-[height,opacity] duration-200",
+              "h-3 rounded-full transition-[height,opacity] duration-(--duration-base)",
               BAR[segment.state],
               selected !== null && selected !== segment.id && "opacity-35",
               selected === segment.id && "h-4",

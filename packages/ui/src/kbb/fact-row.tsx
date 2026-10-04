@@ -97,7 +97,7 @@ export function FactRow({
         aria-controls={panelId}
         aria-label={ariaLabel}
         onClick={toggle}
-        className="flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted focus-visible:-outline-offset-3"
+        className="flex min-h-[60px] w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted active:bg-muted focus-visible:-outline-offset-3"
       >
         {icon ? (
           <span aria-hidden className="shrink-0 text-muted-foreground [&_svg]:size-[22px]">
@@ -125,7 +125,7 @@ export function FactRow({
         </span>
         <CaretDown
           aria-hidden
-          className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}
+          className={cn("size-4 shrink-0 text-muted-foreground transition-transform duration-(--duration-base)", open && "rotate-180")}
         />
       </button>
       {notice || actions ? (
@@ -134,41 +134,45 @@ export function FactRow({
           {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
         </div>
       ) : null}
-      <div id={panelId} hidden={!open} className="space-y-3 bg-muted px-4 pt-2 pb-4">
-        {sources.length ? (
-          <ul className="space-y-2.5">
-            {sources.map((s, i) => (
-              <li key={i} className="flex flex-col gap-0.5 text-caption text-muted-foreground">
-                <span className="font-semibold text-foreground">
-                  {labels.source}: {s.name}
-                  {s.value ? <span className="font-normal"> · {s.value}</span> : null}
-                </span>
-                <span className="tabular-nums">
-                  {labels.acquired} {s.date}
-                  {s.detail ? ` · ${s.detail}` : null}
-                </span>
-                {s.staleNote ? (
-                  <span className="flex items-center gap-1 font-semibold text-status-conflict">
-                    <ClockCounterClockwise className="size-3.5" aria-hidden />
-                    {s.staleNote}
-                  </span>
-                ) : null}
-                {s.note ? <span className="mt-0.5 text-foreground/85">{s.note}</span> : null}
-                {s.link ? (
-                  <a
-                    href={s.link.href}
-                    className="inline-flex min-h-6 items-center gap-1 self-start font-semibold text-primary underline underline-offset-2"
-                  >
-                    {s.link.label}
-                    <ArrowSquareOut weight="bold" className="size-3.5" aria-hidden />
-                  </a>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p className="text-caption text-muted-foreground">{labels.noSources}</p>
-        )}
+      <div id={panelId} hidden={!open} className="reveal bg-muted">
+        <div>
+          <div className="space-y-3 px-4 pt-2 pb-4">
+            {sources.length ? (
+              <ul className="space-y-2.5">
+                {sources.map((s, i) => (
+                  <li key={i} className="flex flex-col gap-0.5 text-caption text-muted-foreground">
+                    <span className="font-semibold text-foreground">
+                      {labels.source}: {s.name}
+                      {s.value ? <span className="font-normal"> · {s.value}</span> : null}
+                    </span>
+                    <span className="tabular-nums">
+                      {labels.acquired} {s.date}
+                      {s.detail ? ` · ${s.detail}` : null}
+                    </span>
+                    {s.staleNote ? (
+                      <span className="flex items-center gap-1 font-semibold text-status-conflict">
+                        <ClockCounterClockwise className="size-3.5" aria-hidden />
+                        {s.staleNote}
+                      </span>
+                    ) : null}
+                    {s.note ? <span className="mt-0.5 text-foreground/85">{s.note}</span> : null}
+                    {s.link ? (
+                      <a
+                        href={s.link.href}
+                        className="inline-flex min-h-6 items-center gap-1 self-start font-semibold text-primary underline underline-offset-2"
+                      >
+                        {s.link.label}
+                        <ArrowSquareOut weight="bold" className="size-3.5" aria-hidden />
+                      </a>
+                    ) : null}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-caption text-muted-foreground">{labels.noSources}</p>
+            )}
+          </div>
+        </div>
       </div>
     </li>
   );

@@ -23,7 +23,15 @@
   --text-label--line-height: 1.25rem;
   --text-caption: 0.8125rem;
   --text-caption--line-height: 1.125rem;
-  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Motion: easings here, durations in :root (--duration-*, mirrored by MOTION in motion.ts). */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  /* Vaul's own curve; the bottom panel shares it so every sheet moves alike. */
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out-soft: var(--ease-out);
+  --default-transition-duration: var(--duration-fast);
+  --default-transition-timing-function: var(--ease-out);
 }
 
 @theme inline {
@@ -93,6 +101,14 @@
 }
 
 :root {
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-camera: 400ms;
+  --duration-sheet: 500ms;
+  /* How far entering content travels; motion is off entirely when reduced (below). */
+  --motion-shift: 6px;
+
   --radius: 0.75rem;
 
   --background: #faf8f5;
@@ -241,19 +257,103 @@
 }
 
 @utility press {
-  transition: transform 150ms var(--ease-out-soft), background-color 150ms, box-shadow 200ms, color 150ms, border-color 150ms;
+  transition-property: transform, background-color, box-shadow, color, border-color;
+  transition-duration: var(--duration-fast);
+  transition-timing-function: var(--ease-out);
   &:active {
     transform: scale(0.97);
   }
 }
 
+/* An expandable region that keeps the `hidden` attribute (so assistive tech sees exactly what it did
+   before) and grows from zero height with a fade. Wrap its padded content in one plain child. */
+@utility reveal {
+  display: grid;
+  grid-template-rows: 1fr;
+  opacity: 1;
+  transition-property: grid-template-rows, opacity, display;
+  transition-duration: var(--duration-base);
+  transition-timing-function: var(--ease-out);
+  transition-behavior: allow-discrete;
+  & > * {
+    min-height: 0;
+    overflow: hidden;
+  }
+  &[hidden] {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  @starting-style {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
+@keyframes kbb-enter {
+  from {
+    opacity: 0;
+    translate: 0 var(--motion-shift);
+  }
+}
+
+@keyframes kbb-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* New content arriving (a list row, a guidance step). `--stagger: <n>` delays it by n short beats. */
+@utility motion-enter {
+  animation: kbb-enter var(--duration-slow) var(--ease-out) backwards;
+  animation-delay: calc(var(--stagger, 0) * 40ms);
+}
+
+/* Content swapped in place (a verdict that changed): a plain fade, no movement. */
+@utility motion-fade {
+  animation: kbb-fade var(--duration-base) var(--ease-out) backwards;
+}
+
+/* Reduced motion = the system setting, or "Mniej animacji" (KBB-92) writing data-motion="reduce" on <html>.
+   Tailwind's motion-safe:/motion-reduce: follow both, so a spinner stops for either. */
+@custom-variant motion-safe {
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion="reduce"]) & {
+      @slot;
+    }
+  }
+}
+
+@custom-variant motion-reduce {
+  @media (prefers-reduced-motion: reduce) {
+    @slot;
+  }
+  :root[data-motion="reduce"] & {
+    @slot;
+  }
+}
+
+/* Reduced motion: every transition and animation becomes an instant change. 1 ms, not 0, so
+   transitionend/animationend still fire for code that waits on them. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 150ms !important;
+    animation-duration: 1ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 150ms !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0s !important;
     scroll-behavior: auto !important;
   }
+}
+
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation-duration: 1ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 1ms !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
 }

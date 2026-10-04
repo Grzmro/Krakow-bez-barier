@@ -104,7 +104,7 @@ export function RouteNavigation({
               {t.arrived}
             </p>
           ) : (
-            <div className="mt-3 rounded-[20px] bg-primary-container p-4">
+            <div key={progress.step} className="motion-enter mt-3 rounded-[20px] bg-primary-container p-4">
               <p className="text-caption font-semibold text-muted-foreground">{t.stepOf(progress.step + 1, route.segments.length)}</p>
               <p className="mt-1 font-display text-h2 font-extrabold">{segment.instruction}</p>
               <p className="mt-0.5 text-body-sm">{[segment.name, t.left(progress.toStepEnd)].filter(Boolean).join(" · ")}</p>

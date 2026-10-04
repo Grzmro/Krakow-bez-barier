@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Route } from "@krakow-bez-barier/contracts";
-import { cn } from "@krakow-bez-barier/ui";
+import { cn, MOTION, motionMs } from "@krakow-bez-barier/ui";
 import type { GeoJSONSource, Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useMessages } from "@/i18n/client";
@@ -208,7 +208,7 @@ export function RouteMap({
     import("maplibre-gl").then(({ LngLatBounds }) => {
       const bounds = new LngLatBounds();
       for (const point of route.geometry.coordinates) bounds.extend(point as [number, number]);
-      map.fitBounds(bounds, { padding: { top: pad.top, bottom: pad.bottom, left: 32, right: 72 }, duration: 400 });
+      map.fitBounds(bounds, { padding: { top: pad.top, bottom: pad.bottom, left: 32, right: 72 }, duration: motionMs(MOTION.camera) });
     });
   }, [map, loaded, route, selected, padding, inset, follow]);
 
@@ -236,7 +236,7 @@ export function RouteMap({
       // Padding keeps the marker clear of the route card on top and the panel below.
       if (!follow) return;
       const pad = mapPadding(padding, inset, map.getContainer().clientHeight);
-      map.easeTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 17), offset: [0, (pad.top - pad.bottom) / 2], duration: 400 });
+      map.easeTo({ center: [lon, lat], zoom: Math.max(map.getZoom(), 17), offset: [0, (pad.top - pad.bottom) / 2], duration: motionMs(MOTION.camera) });
     });
     return () => {
       cancelled = true;
