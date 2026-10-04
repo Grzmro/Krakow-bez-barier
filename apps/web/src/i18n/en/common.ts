@@ -19,6 +19,8 @@ export const common: Messages["common"] = {
     description: "More pages and settings",
     route: "Plan a route",
     routeSub: "Main Station → Main Square, step-free",
+    plan: "Day plan",
+    planSub: "A route through several places, legs by profile",
     savedRoutes: "Saved routes",
     savedRoutesSub: "On this phone, work without internet",
     aboutData: "About the data",

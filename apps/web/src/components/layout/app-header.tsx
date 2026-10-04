@@ -11,6 +11,7 @@ import {
   Crosshair,
   Database,
   List,
+  ListNumbers,
   Path,
   PersonArmsSpread,
   ShieldCheck,
@@ -40,6 +41,7 @@ const menu = (
   t: Messages["common"],
 ): { href: string; icon: Icon; title: string; short?: string; sub: string; phoneOnly?: boolean }[] => [
   { href: routes.route(), icon: Path, title: t.menu.route, sub: t.menu.routeSub },
+  { href: routes.plan, icon: ListNumbers, title: t.menu.plan, sub: t.menu.planSub, phoneOnly: true },
   { href: routes.savedRoutes, icon: BookmarkSimple, title: t.menu.savedRoutes, sub: t.menu.savedRoutesSub, phoneOnly: true },
   { href: routes.aboutData, icon: Database, title: t.menu.aboutData, sub: t.menu.aboutDataSub },
   {

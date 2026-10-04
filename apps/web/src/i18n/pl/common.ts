@@ -21,6 +21,8 @@ export const common = {
     description: "Strony dodatkowe i ustawienia",
     route: "Zaplanuj trasę",
     routeSub: "Dworzec Główny → Rynek, bez schodów",
+    plan: "Plan dnia",
+    planSub: "Trasa przez kilka miejsc, odcinki wg profilu",
     savedRoutes: "Zapisane trasy",
     savedRoutesSub: "Na tym telefonie, działają bez internetu",
     aboutData: "O danych",

@@ -43,16 +43,24 @@ export function routeRequest(
   };
 }
 
+/** The query of one route; the day plan's legs share it, so a leg already planned on the route screen is not paid for twice. */
+export const routeQuery = (locale: string, body: RouteRequest) => ({
+  queryKey: ["route", locale, body] as const,
+  queryFn: async () => {
+    const { data, error, response } = await api.POST("/routes", { body });
+    if (data) return data;
+    throw routeFailure(response.status, error);
+  },
+  retry: false,
+  staleTime: Infinity,
+});
+
 /** `POST /routes`; routes are cached for the session, each one costs provider quota. */
 export function useRoute(body: RouteRequest | null) {
   const locale = useLocale();
   return useQuery({
     queryKey: ["route", locale, body],
-    queryFn: async () => {
-      const { data, error, response } = await api.POST("/routes", { body: body! });
-      if (data) return data;
-      throw routeFailure(response.status, error);
-    },
+    queryFn: routeQuery(locale, body!).queryFn,
     enabled: body !== null,
     retry: false,
     staleTime: Infinity,
