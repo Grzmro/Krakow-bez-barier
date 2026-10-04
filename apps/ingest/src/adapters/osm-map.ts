@@ -16,6 +16,10 @@ export type OsmElement = {
   tags?: Record<string, string>;
   /** The copy the element was read from when not the live API, e.g. `geofabrik-2026-10-02`. */
   via?: string;
+  /** A relation's members, read only for relations that name their members (`stop_area`). */
+  members?: { type: "node" | "way" | "relation"; ref: number }[];
+  /** Name of the naming relation (`stop_area`) the element belongs to, set by `prepareOsmElements`. */
+  relationName?: string;
 };
 
 const bool = (boolean: boolean): FactValue => ({ kind: "boolean", boolean });
@@ -108,7 +112,7 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
   const lon = el.lon ?? el.center?.lon;
   if (!matched || lat === undefined || lon === undefined) return { place: null, skipped };
   const { category, rule } = matched;
-  const unnamedName = rule.unnamedName ?? category.unnamedName;
+  const unnamedName = (rule.nameFromRelation ? el.relationName : undefined) ?? rule.unnamedName ?? category.unnamedName;
   if (!tags.name && !unnamedName) return { place: null, skipped: ["unnamed place"] };
 
   const ref = recordRef(el);
@@ -138,6 +142,11 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
   triState("toilets:wheelchair", "toilet_accessible");
   triState("changing_table", "changing_table");
   triState("bench", "bench");
+  // Bits of the way keep to what routes read: a kerb known only by its tactile paving stays out until a route needs it.
+  if (!category.onRoutes) {
+    triState("tactile_paving", "tactile_paving");
+    triState("shelter", "shelter");
+  }
   triState("elevator", "lift");
   triState("ramp:wheelchair", "ramp");
   // A bare `ramp=yes` may be a rail for bikes or prams only, so it says nothing about a wheelchair ramp; `ramp=no` does.
@@ -190,6 +199,7 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
   if (tags.amenity === "bench" && !has("bench")) add("bench", bool(true));
   if (tags.parking_space === "disabled" && !has("disabled_parking")) add("disabled_parking", bool(true));
   if (tags.highway === "elevator" && !has("lift")) add("lift", bool(true));
+  if (tags.amenity === "shelter" && tags.shelter_type === "public_transport" && !has("shelter")) add("shelter", bool(true));
 
   // The venue's own `level` says more than the building's height, and a café's building may be taller than the
   // café, so `building:levels` counts only for venues that fill their building. One fact per record either way.
@@ -217,3 +227,79 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
   };
   return { place, skipped };
 }
+
+type RelationTag = { key: string; value: string };
+
+/** The relation tags that name their unnamed members (`public_transport=stop_area`), from the categories' rules. */
+export function namingRelations(categories: readonly CategoryConfig[] = configuredCategories): RelationTag[] {
+  const tags = categories.flatMap((c) => c.osm.flatMap((r) => (r.nameFromRelation ? [r.nameFromRelation] : [])));
+  return tags.filter((t, i) => tags.findIndex((o) => o.key === t.key && o.value === t.value) === i);
+}
+
+export const isNamingRelation = (tags: Record<string, string> | undefined, naming: readonly RelationTag[]) =>
+  !!tags && naming.some((n) => tags[n.key] === n.value);
+
+const METRES_PER_DEGREE = 111_320;
+
+function distanceM(a: OsmElement, b: OsmElement): number {
+  const [latA, lonA] = [a.lat ?? a.center?.lat ?? NaN, a.lon ?? a.center?.lon ?? NaN];
+  const [latB, lonB] = [b.lat ?? b.center?.lat ?? NaN, b.lon ?? b.center?.lon ?? NaN];
+  const dy = (latA - latB) * METRES_PER_DEGREE;
+  const dx = (lonA - lonB) * METRES_PER_DEGREE * Math.cos((((latA + latB) / 2) * Math.PI) / 180);
+  return Math.hypot(dx, dy);
+}
+
+const TYPE_ORDER = { node: 0, way: 1, relation: 2 } as const;
+const nameOf = (el: OsmElement) => el.tags?.name ?? el.relationName;
+const tagCount = (el: OsmElement) => Object.keys(el.tags ?? {}).length;
+
+/** Named first, then the one with most tags; node before way, then the lower id, so a rerun keeps the same one. */
+const keepFirst = (a: OsmElement, b: OsmElement) =>
+  Number(!nameOf(a)) - Number(!nameOf(b)) ||
+  tagCount(b) - tagCount(a) ||
+  TYPE_ORDER[a.type] - TYPE_ORDER[b.type] ||
+  a.id - b.id;
+
+/**
+ * Turns fetched elements into the records to map. Unnamed members of a naming relation (`stop_area`) take its name and
+ * the naming relations, which are not places, are dropped. Elements of a category with `mergeWithinM` that stand for
+ * one place (closer than that, same name or one unnamed) become one: the named one with the most tags.
+ */
+export function prepareOsmElements(
+  elements: readonly OsmElement[],
+  categories: readonly CategoryConfig[] = configuredCategories,
+): OsmElement[] {
+  const naming = namingRelations(categories);
+  const names = new Map<string, string>();
+  for (const el of elements) {
+    if (el.type !== "relation" || !isNamingRelation(el.tags, naming) || !el.tags?.name) continue;
+    for (const m of el.members ?? []) if (!names.has(`${m.type}/${m.ref}`)) names.set(`${m.type}/${m.ref}`, el.tags.name);
+  }
+  const places = elements
+    .filter((el) => !(el.type === "relation" && isNamingRelation(el.tags, naming) && !categoryOf(el.tags ?? {}, categories)))
+    .map((el) => {
+      const place: OsmElement = { ...el };
+      delete place.members;
+      const relationName = el.tags?.name ? undefined : names.get(`${el.type}/${el.id}`);
+      if (relationName) place.relationName = relationName;
+      return place;
+    });
+
+  const dropped = new Set<OsmElement>();
+  for (const category of categories) {
+    if (!category.mergeWithinM) continue;
+    const within = category.mergeWithinM;
+    const candidates = places.filter((el) => categoryOf(el.tags ?? {}, categories)?.category === category).sort(keepFirst);
+    const kept: OsmElement[] = [];
+    for (const el of candidates) {
+      const same = kept.find((k) => {
+        const [a, b] = [nameOf(el), nameOf(k)];
+        return (!a || !b || a === b) && distanceM(el, k) <= within;
+      });
+      if (same) dropped.add(el);
+      else kept.push(el);
+    }
+  }
+  return places.filter((el) => !dropped.has(el));
+}
+

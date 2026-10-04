@@ -8,7 +8,7 @@ import { krakow } from "../src/cities/krakow";
 import { osm } from "../src/adapters/osm";
 import { downloadExtract, loadOsmExtract, readOsmExtract } from "../src/adapters/osm-extract";
 import { isRetryable } from "../src/errors";
-import { mapOsmElement, type OsmElement } from "../src/adapters/osm-map";
+import { mapOsmElement, prepareOsmElements, type OsmElement } from "../src/adapters/osm-map";
 import { writeOsmPbf } from "./helpers/write-osm-pbf";
 
 const demo = { ...krakow, bbox: krakow.areas!.demo };
@@ -84,6 +84,33 @@ describe("readOsmExtract", () => {
     const { elements } = await readOsmExtract(file, demo.bbox, categories.filter((c) => c.id === "museum"));
     // THEN the restaurant and the theatre are left out
     expect(elements.map((e) => `${e.type}/${e.id}`)).toEqual(["way/10"]);
+  });
+
+  it("keeps the stop areas in the box with their members, so unnamed platforms get their name", async () => {
+    // GIVEN an unnamed platform in a named stop area, and a stop area far outside the box
+    const file = path.join(dir, "stops.osm.pbf");
+    await writeFile(
+      file,
+      writeOsmPbf({
+        nodes: [
+          { id: 30, lat: 50.05, lon: 19.94, tags: { public_transport: "platform", shelter: "yes" } },
+          { id: 31, lat: 50.3, lon: 19.94, tags: { public_transport: "platform", name: "Far away" } },
+        ],
+        ways: [],
+        relations: [
+          { id: 40, members: [{ type: "node", ref: 30, role: "platform" }], tags: { public_transport: "stop_area", name: "Teatr Bagatela" } },
+          { id: 41, members: [{ type: "node", ref: 31, role: "platform" }], tags: { public_transport: "stop_area", name: "Far away" } },
+        ],
+      }),
+    );
+    // WHEN reading it for the Kraków box and preparing the elements
+    const { elements } = await readOsmExtract(file, demo.bbox, categories);
+    const prepared = prepareOsmElements(elements);
+    // THEN the stop area in the box comes with its members and names the platform, and is not a record itself
+    expect(elements.find((e) => e.type === "relation")).toMatchObject({ id: 40, members: [{ type: "node", ref: 30 }] });
+    expect(elements.some((e) => e.id === 41)).toBe(false);
+    expect(prepared).toEqual([{ type: "node", id: 30, lat: 50.05, lon: 19.94, tags: { public_transport: "platform", shelter: "yes" }, relationName: "Teatr Bagatela" }]);
+    expect(mapOsmElement(prepared[0]).place).toMatchObject({ name: "Teatr Bagatela", category: "transit_stop" });
   });
 });
 

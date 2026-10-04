@@ -1,0 +1,973 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62.11 87bfad18",
+  "osm3s": {
+    "timestamp_osm_base": "2026-10-03T23:53:06Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "elements": [
+
+{
+  "type": "node",
+  "id": 5013333771,
+  "lat": 50.0313803,
+  "lon": 19.9209716,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "departures_board": "timetable",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "name": "Grota-Roweckiego 05",
+    "network": "KMK",
+    "network:wikidata": "Q11687034",
+    "public_transport": "platform",
+    "shelter": "yes",
+    "tactile_paving": "no"
+  }
+},
+{
+  "type": "node",
+  "id": 5013333774,
+  "lat": 50.0315958,
+  "lon": 19.9210764,
+  "tags": {
+    "amenity": "shelter",
+    "bench": "yes",
+    "bin": "yes",
+    "check_date:bench": "2023-08-23",
+    "covered": "yes",
+    "lit": "yes",
+    "public_transport": "platform",
+    "shelter_type": "public_transport",
+    "tactile_paving": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 10006022265,
+  "lat": 50.0671630,
+  "lon": 19.9597164,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "covered": "no",
+    "departures_board": "timetable",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "name": "Rondo Mogilskie 06",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q11687034",
+    "operator": "Zarząd Transportu Publicznego w Krakowie",
+    "operator:wikidata": "Q110401950",
+    "passenger_information_display": "no",
+    "public_transport": "platform",
+    "ref": "802-06",
+    "shelter": "yes",
+    "tactile_paving": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 10006022286,
+  "lat": 50.0656688,
+  "lon": 19.9575899,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "covered": "no",
+    "departures_board": "timetable",
+    "highway": "bus_stop",
+    "lit": "no",
+    "name": "Rondo Mogilskie Opera 02",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q11687034",
+    "operator": "Zarząd Transportu Publicznego w Krakowie",
+    "operator:wikidata": "Q110401950",
+    "passenger_information_display": "no",
+    "public_transport": "platform",
+    "ref": "921-02",
+    "shelter": "yes",
+    "tactile_paving": "yes",
+    "website": "https://mpk.krakow.pl/",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 10041215210,
+  "lat": 50.0670696,
+  "lon": 19.9578913,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "covered": "no",
+    "departures_board": "timetable",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "name": "Rondo Mogilskie 08",
+    "name:network:kmal": "Rondo Mogilskie",
+    "network": "Komunikacja Miejska w Krakowie;Małopolskie Linie Dowozowe",
+    "network:short": "KMK;MLD",
+    "network:wikidata": "Q11687034;Q134701178",
+    "operator": "Zarząd Transportu Publicznego w Krakowie",
+    "operator:wikidata": "Q110401950",
+    "passenger_information_display": "no",
+    "public_transport": "platform",
+    "ref": "802-08",
+    "ref:kmal": "6545",
+    "shelter": "yes",
+    "tactile_paving": "yes",
+    "url:kmal": "https://kolejemalopolskie.kiedyprzyjedzie.pl/#/stops/2605198:2703811/departures",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 10042271625,
+  "lat": 50.0647369,
+  "lon": 19.9590203,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "covered": "no",
+    "departures_board": "timetable",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "name": "Rondo Mogilskie 09",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q11687034",
+    "operator": "Zarząd Transportu Publicznego w Krakowie",
+    "operator:wikidata": "Q110401950",
+    "passenger_information_display": "no",
+    "public_transport": "platform",
+    "ref": "802-09",
+    "shelter": "yes",
+    "tactile_paving": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 13987866361,
+  "lat": 50.0655321,
+  "lon": 19.9604166,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "covered": "no",
+    "departures_board": "timetable",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "name": "Rondo Mogilskie 07",
+    "name:network:kmal": "Rondo Mogilskie",
+    "network": "Komunikacja Miejska w Krakowie;Małopolskie Linie Dowozowe",
+    "network:short": "KMK;MLD",
+    "network:wikidata": "Q11687034;Q134701178",
+    "passenger_information_display": "no",
+    "public_transport": "platform",
+    "ref": "802-07",
+    "ref:kmal": "7620",
+    "shelter": "yes",
+    "tactile_paving": "no",
+    "url:kmal": "https://kolejemalopolskie.kiedyprzyjedzie.pl/#/stops/2605198:2703800/departures",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "node",
+  "id": 13987927811,
+  "lat": 50.0583053,
+  "lon": 19.9595264,
+  "tags": {
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "covered": "no",
+    "highway": "bus_stop",
+    "lit": "yes",
+    "name": "Rondo Grzegórzeckie 06",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q11687034",
+    "operator": "Zarząd Transportu Publicznego w Krakowie",
+    "operator:wikidata": "Q110401950",
+    "passenger_information_display": "no",
+    "public_transport": "platform",
+    "ref": "809-06",
+    "shelter": "yes",
+    "surface": "paving_stones",
+    "tactile_paving": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 142847129,
+  "center": {
+    "lat": 50.0422114,
+    "lon": 19.9633849
+  },
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bin": "no",
+    "bus": "yes",
+    "covered": "no",
+    "departures_board": "timetable",
+    "highway": "platform",
+    "lit": "yes",
+    "local_ref": "6",
+    "name": "Podgórze SKA 06",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:wikidata": "Q11687034",
+    "operator": "ZTP Kraków",
+    "operator:wikidata": "Q110401950",
+    "passenger_information_display": "no",
+    "public_transport": "platform",
+    "ref": "642-06-06",
+    "shelter": "no",
+    "surface": "paving_stones",
+    "tactile_paving": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 142847135,
+  "center": {
+    "lat": 50.0419619,
+    "lon": 19.9632824
+  },
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bin": "yes",
+    "departures_board": "timetable",
+    "highway": "platform",
+    "lit": "yes",
+    "local_ref": "7",
+    "name": "Podgórze SKA 06",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:wikidata": "Q11687034",
+    "operator": "ZTP Kraków",
+    "operator:wikidata": "Q110401950",
+    "public_transport": "platform",
+    "ref": "642-06-07",
+    "shelter": "no",
+    "surface": "paving_stones"
+  }
+},
+{
+  "type": "way",
+  "id": 233792846,
+  "center": {
+    "lat": 50.0315825,
+    "lon": 19.9211466
+  },
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bin": "yes",
+    "departures_board": "realtime",
+    "lit": "yes",
+    "name": "Grota-Roweckiego 02",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:wikidata": "Q1784404",
+    "operator": "MPK Kraków",
+    "operator:wikidata": "Q11780297",
+    "public_transport": "platform",
+    "railway": "platform",
+    "ref": "526-2t",
+    "shelter": "yes",
+    "tactile_paving": "yes",
+    "tram": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 234100797,
+  "center": {
+    "lat": 50.0658294,
+    "lon": 19.9597463
+  },
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "covered": "no",
+    "departures_board": "realtime;timetable",
+    "highway": "platform",
+    "lit": "yes",
+    "name": "Rondo Mogilskie 01",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q141244075",
+    "operator": "Zarząd Dróg Miasta Krakowa",
+    "operator:short": "ZDMK",
+    "operator:wikidata": "Q110401964",
+    "passenger_information_display": "yes",
+    "public_transport": "platform",
+    "railway": "platform",
+    "ref": "802-01",
+    "shelter": "separate",
+    "tactile_paving": "yes",
+    "tram": "yes",
+    "website": "https://mpk.krakow.pl/",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 234100798,
+  "center": {
+    "lat": 50.0657130,
+    "lon": 19.9598280
+  },
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "covered": "no",
+    "departures_board": "realtime;timetable",
+    "highway": "platform",
+    "lit": "yes",
+    "name": "Rondo Mogilskie 02",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q141244075",
+    "operator": "Zarząd Dróg Miasta Krakowa",
+    "operator:short": "ZDMK",
+    "operator:wikidata": "Q110401964",
+    "passenger_information_display": "yes",
+    "public_transport": "platform",
+    "railway": "platform",
+    "ref": "802-02",
+    "shelter": "yes",
+    "tactile_paving": "yes",
+    "tram": "yes",
+    "website": "https://mpk.krakow.pl/",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 234104127,
+  "center": {
+    "lat": 50.0660596,
+    "lon": 19.9587236
+  },
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bin": "yes",
+    "departures_board": "realtime;timetable",
+    "lit": "yes",
+    "name": "Rondo Mogilskie 05",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q141244075",
+    "operator": "Zarząd Dróg Miasta Krakowa",
+    "operator:short": "ZDMK",
+    "operator:wikidata": "Q110401964",
+    "public_transport": "platform",
+    "railway": "platform",
+    "ref": "802-05",
+    "shelter": "separate",
+    "tactile_paving": "yes",
+    "tram": "yes",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 234104134,
+  "center": {
+    "lat": 50.0649522,
+    "lon": 19.9594067
+  },
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "covered": "no",
+    "departures_board": "realtime;timetable",
+    "highway": "platform",
+    "lit": "yes",
+    "name": "Rondo Mogilskie 04",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q141244075",
+    "operator": "Zarząd Dróg Miasta Krakowa",
+    "operator:short": "ZDMK",
+    "operator:wikidata": "Q110401964",
+    "passenger_information_display": "yes",
+    "public_transport": "platform",
+    "railway": "platform",
+    "ref": "802-04",
+    "shelter": "separate",
+    "tactile_paving": "yes",
+    "tram": "yes",
+    "website": "https://mpk.krakow.pl/",
+    "wheelchair": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 234104135,
+  "center": {
+    "lat": 50.0649240,
+    "lon": 19.9592176
+  },
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "departures_board": "realtime;timetable",
+    "highway": "platform",
+    "lit": "yes",
+    "name": "Rondo Mogilskie 03",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q141244075",
+    "operator": "Zarząd Dróg Miasta Krakowa",
+    "operator:short": "ZDMK",
+    "operator:wikidata": "Q110401964",
+    "passenger_information_display": "yes",
+    "public_transport": "platform",
+    "railway": "platform",
+    "ref": "802-03",
+    "shelter": "separate",
+    "tactile_paving": "yes",
+    "tram": "yes",
+    "website": "https://mpk.krakow.pl/"
+  }
+},
+{
+  "type": "way",
+  "id": 299484708,
+  "center": {
+    "lat": 50.0313694,
+    "lon": 19.9209695
+  },
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "departures_board": "timetable",
+    "lit": "yes",
+    "name": "Grota-Roweckiego 05",
+    "public_transport": "platform",
+    "shelter": "yes",
+    "tactile_paving": "no"
+  }
+},
+{
+  "type": "way",
+  "id": 310856993,
+  "center": {
+    "lat": 50.1015683,
+    "lon": 19.9832461
+  },
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bus": "yes",
+    "public_transport": "platform",
+    "shelter": "yes"
+  }
+},
+{
+  "type": "way",
+  "id": 310856994,
+  "center": {
+    "lat": 50.1023498,
+    "lon": 19.9845568
+  },
+  "tags": {
+    "area": "yes",
+    "bench": "yes",
+    "bin": "yes",
+    "bus": "yes",
+    "departures_board": "timetable",
+    "public_transport": "platform",
+    "shelter": "no"
+  }
+},
+{
+  "type": "relation",
+  "id": 3554766,
+  "members": [
+    {
+      "type": "node",
+      "ref": 4987975267,
+      "role": "stop"
+    },
+    {
+      "type": "way",
+      "ref": 310856993,
+      "role": "platform"
+    },
+    {
+      "type": "way",
+      "ref": 310856994,
+      "role": "platform"
+    }
+  ],
+  "tags": {
+    "name": "Cmentarz Batowice",
+    "network": "Komunikacja Miejska w Krakowie",
+    "public_transport": "stop_area",
+    "ref": "0848",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 5402344,
+  "members": [
+    {
+      "type": "node",
+      "ref": 1995730500,
+      "role": "stop"
+    },
+    {
+      "type": "way",
+      "ref": 234100797,
+      "role": "platform"
+    },
+    {
+      "type": "node",
+      "ref": 1887812661,
+      "role": "stop"
+    },
+    {
+      "type": "way",
+      "ref": 234100798,
+      "role": "platform"
+    },
+    {
+      "type": "node",
+      "ref": 1887802513,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 10056691708,
+      "role": "stop"
+    },
+    {
+      "type": "way",
+      "ref": 234104135,
+      "role": "platform"
+    },
+    {
+      "type": "node",
+      "ref": 1887802514,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 10056691706,
+      "role": "stop"
+    },
+    {
+      "type": "way",
+      "ref": 234104134,
+      "role": "platform"
+    },
+    {
+      "type": "node",
+      "ref": 651848336,
+      "role": "stop"
+    },
+    {
+      "type": "way",
+      "ref": 234104127,
+      "role": "platform"
+    },
+    {
+      "type": "node",
+      "ref": 963335605,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 10006022265,
+      "role": "platform"
+    },
+    {
+      "type": "node",
+      "ref": 1503617812,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 13987866361,
+      "role": "platform"
+    },
+    {
+      "type": "node",
+      "ref": 5328105822,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 10041215210,
+      "role": "platform"
+    },
+    {
+      "type": "node",
+      "ref": 5328105821,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 10042271625,
+      "role": "platform"
+    },
+    {
+      "type": "node",
+      "ref": 3673556146,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 10006022286,
+      "role": "platform"
+    },
+    {
+      "type": "node",
+      "ref": 1893310383,
+      "role": ""
+    },
+    {
+      "type": "node",
+      "ref": 1893310390,
+      "role": ""
+    },
+    {
+      "type": "node",
+      "ref": 12161665351,
+      "role": ""
+    }
+  ],
+  "tags": {
+    "name": "Rondo Mogilskie",
+    "network": "Komunikacja Miejska w Krakowie",
+    "public_transport": "stop_area",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 14528127,
+  "members": [
+    {
+      "type": "node",
+      "ref": 5013333770,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 5013333771,
+      "role": "platform"
+    }
+  ],
+  "tags": {
+    "name": "Grota-Roweckiego 05",
+    "public_transport": "stop_area",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 14552428,
+  "members": [
+    {
+      "type": "node",
+      "ref": 963335605,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 10006022265,
+      "role": "platform"
+    }
+  ],
+  "tags": {
+    "name": "Rondo Mogilskie 06",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q11687034",
+    "public_transport": "stop_area",
+    "ref": "802-06",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 14552449,
+  "members": [
+    {
+      "type": "node",
+      "ref": 3673556146,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 10006022286,
+      "role": "platform"
+    }
+  ],
+  "tags": {
+    "name": "Rondo Mogilskie Opera 02",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q11687034",
+    "public_transport": "stop_area",
+    "ref": "921-02",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 14604317,
+  "members": [
+    {
+      "type": "node",
+      "ref": 5328105822,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 10041215210,
+      "role": "platform"
+    }
+  ],
+  "tags": {
+    "name": "Rondo Mogilskie 08",
+    "name:network:kmal": "Rondo Mogilskie",
+    "network": "Komunikacja Miejska w Krakowie;Małopolskie Linie Dowozowe",
+    "network:short": "KMK;MLD",
+    "network:wikidata": "Q11687034;Q134701178",
+    "public_transport": "stop_area",
+    "ref": "802-08",
+    "ref:kmal": "6545",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 14604920,
+  "members": [
+    {
+      "type": "node",
+      "ref": 5328105821,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 10042271625,
+      "role": "platform"
+    }
+  ],
+  "tags": {
+    "name": "Rondo Mogilskie 09",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q11687034",
+    "public_transport": "stop_area",
+    "ref": "802-09",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 14631005,
+  "members": [
+    {
+      "type": "node",
+      "ref": 10056691706,
+      "role": "stop"
+    },
+    {
+      "type": "way",
+      "ref": 234104134,
+      "role": "platform"
+    }
+  ],
+  "tags": {
+    "name": "Rondo Mogilskie 04",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q141244075",
+    "operator": "Zarząd Dróg Miasta Krakowa",
+    "operator:short": "ZDMK",
+    "operator:wikidata": "Q110401964",
+    "public_transport": "stop_area",
+    "ref": "802-04",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 14631008,
+  "members": [
+    {
+      "type": "node",
+      "ref": 10056691708,
+      "role": "stop"
+    },
+    {
+      "type": "way",
+      "ref": 234104135,
+      "role": "platform"
+    }
+  ],
+  "tags": {
+    "name": "Rondo Mogilskie 03",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q141244075",
+    "operator": "Zarząd Dróg Miasta Krakowa",
+    "operator:short": "ZDMK",
+    "operator:wikidata": "Q110401964",
+    "public_transport": "stop_area",
+    "ref": "802-03",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 14634135,
+  "members": [
+    {
+      "type": "node",
+      "ref": 1995730500,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 7132365778,
+      "role": "stop"
+    },
+    {
+      "type": "way",
+      "ref": 234100797,
+      "role": "platform"
+    }
+  ],
+  "tags": {
+    "name": "Rondo Mogilskie 01",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q141244075",
+    "operator": "Zarząd Dróg Miasta Krakowa",
+    "operator:short": "ZDMK",
+    "operator:wikidata": "Q110401964",
+    "public_transport": "stop_area",
+    "ref": "802-01",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 14634150,
+  "members": [
+    {
+      "type": "node",
+      "ref": 7133616260,
+      "role": "stop"
+    },
+    {
+      "type": "way",
+      "ref": 234100798,
+      "role": "platform"
+    }
+  ],
+  "tags": {
+    "name": "Rondo Mogilskie 02",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q141244075",
+    "operator": "Zarząd Dróg Miasta Krakowa",
+    "operator:short": "ZDMK",
+    "operator:wikidata": "Q110401964",
+    "public_transport": "stop_area",
+    "ref": "802-02",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 21063471,
+  "members": [
+    {
+      "type": "node",
+      "ref": 651848336,
+      "role": "stop"
+    },
+    {
+      "type": "way",
+      "ref": 234104127,
+      "role": "platform"
+    }
+  ],
+  "tags": {
+    "name": "Rondo Mogilskie 05",
+    "network": "Komunikacja Miejska w Krakowie",
+    "network:short": "KMK",
+    "network:wikidata": "Q141244075",
+    "operator": "Zarząd Dróg Miasta Krakowa",
+    "operator:short": "ZDMK",
+    "operator:wikidata": "Q110401964",
+    "public_transport": "stop_area",
+    "ref": "802-05",
+    "type": "public_transport"
+  }
+},
+{
+  "type": "relation",
+  "id": 21063472,
+  "members": [
+    {
+      "type": "node",
+      "ref": 1503617812,
+      "role": "stop"
+    },
+    {
+      "type": "node",
+      "ref": 13987866361,
+      "role": "platform"
+    }
+  ],
+  "tags": {
+    "name": "Rondo Mogilskie 07",
+    "name:network:kmal": "Rondo Mogilskie",
+    "network": "Komunikacja Miejska w Krakowie;Małopolskie Linie Dowozowe",
+    "network:short": "KMK;MLD",
+    "network:wikidata": "Q11687034;Q134701178",
+    "public_transport": "stop_area",
+    "ref": "802-07",
+    "ref:kmal": "7620",
+    "type": "public_transport"
+  }
+}
+
+  ]
+}

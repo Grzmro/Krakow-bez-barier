@@ -8,7 +8,7 @@ import type { CategoryConfig } from "@krakow-bez-barier/contracts";
 import { createOSMStream } from "osm-pbf-parser-node";
 import type { FetchContext } from "../adapter";
 import { SourceHttpError } from "../errors";
-import { matchesRule, type OsmElement } from "./osm-map";
+import { isNamingRelation, matchesRule, namingRelations, type OsmElement } from "./osm-map";
 
 type Bbox = FetchContext["city"]["bbox"];
 type Box = { south: number; west: number; north: number; east: number };
@@ -90,6 +90,7 @@ export async function readOsmExtract(
   const nodes = new Map<number, [number, number]>();
   const ways = new Map<number, Box>();
   const elements: OsmElement[] = [];
+  const naming = namingRelations(categories);
   let replicatedAt: Date | null = null;
 
   for await (const item of createOSMStream(file, { withInfo: true }) as AsyncGenerator<PbfItem>) {
@@ -115,7 +116,8 @@ export async function readOsmExtract(
       ways.set(item.id, box);
       if (touchesBbox && matchesAny(item.tags, categories)) elements.push(toElement(item, centerOf(box)));
     } else {
-      if (!matchesAny(item.tags, categories)) continue;
+      const names = isNamingRelation(item.tags, naming);
+      if (!names && !matchesAny(item.tags, categories)) continue;
       let box: Box | null = null;
       for (const m of item.members) {
         if (m.type === "way") {
@@ -126,7 +128,10 @@ export async function readOsmExtract(
           if (at) box = extend(box, at[0], at[1]);
         }
       }
-      if (box && intersects(box, bbox)) elements.push(toElement(item, centerOf(box)));
+      if (!box || !intersects(box, bbox)) continue;
+      const element = toElement(item, centerOf(box));
+      // A naming relation (`stop_area`) is kept with its members: `prepareOsmElements` names unnamed platforms from it.
+      elements.push(names ? { ...element, members: item.members.map(({ type, ref }) => ({ type, ref })) } : element);
     }
   }
   return { elements, replicatedAt };

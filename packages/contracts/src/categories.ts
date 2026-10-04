@@ -2,6 +2,7 @@ import type { components } from "./generated/schema";
 
 export type CategoryDefinition = components["schemas"]["CategoryDefinition"];
 type FeatureFilter = components["schemas"]["FeatureFilter"];
+type AccessibilityAttribute = components["schemas"]["AccessibilityAttribute"];
 
 export type OsmTagRule = {
   key: string;
@@ -10,6 +11,8 @@ export type OsmTagRule = {
   requires?: string;
   /** Name of an unnamed element matched by this rule; overrides the category's `unnamedName`. */
   unnamedName?: string;
+  /** An unnamed element takes the name of a relation with this tag it belongs to (a platform named by its `stop_area`). */
+  nameFromRelation?: { key: string; value: string };
 };
 
 export type CategoryConfig = CategoryDefinition & {
@@ -28,6 +31,16 @@ export type CategoryConfig = CategoryDefinition & {
   onRoutes?: boolean;
   /** An element whose tags give no fact is skipped: a kerb of unknown height says nothing. */
   skipWithoutFacts?: boolean;
+  /**
+   * Elements of this category closer than this many metres that share a name (or where one is unnamed) are one place,
+   * the one with the most tags kept: a stop mapped as a `bus_stop` node and as the platform's outline.
+   */
+  mergeWithinM?: number;
+  /**
+   * What the place card lists for this category, in reading order, instead of the venue set (entrance, toilet, …);
+   * list rows then name missing data only for these. A stop has a platform, not an entrance.
+   */
+  cardAttributes?: AccessibilityAttribute[];
 };
 
 /**
@@ -58,7 +71,18 @@ export const categories: readonly CategoryConfig[] = [
   },
   { id: "bench", label: "Ławki", singularLabel: "Ławka", icon: "armchair", osm: [{ key: "amenity", values: ["bench"] }], unnamedName: "Ławka", hiddenByDefault: true, feature: "bench" },
   { id: "elevator", label: "Windy", singularLabel: "Winda", icon: "elevator", osm: [{ key: "highway", values: ["elevator"] }], unnamedName: "Winda", hiddenByDefault: true, feature: "lift" },
-  { id: "transit_stop", label: "Przystanki", singularLabel: "Przystanek", icon: "bus", osm: [], hiddenByDefault: true },
+  {
+    id: "transit_stop",
+    label: "Przystanki",
+    singularLabel: "Przystanek",
+    icon: "bus",
+    // The platform carries the facts (tactile paving, shelter, bench); `stop_position` and `tram_stop` sit on the road or track.
+    osm: [{ key: "public_transport", values: ["platform"], nameFromRelation: { key: "public_transport", value: "stop_area" } }],
+    unnamedName: "Przystanek",
+    hiddenByDefault: true,
+    mergeWithinM: 30,
+    cardAttributes: ["wheelchair_overall", "tactile_paving", "kerb_height_cm", "surface", "bench", "shelter"],
+  },
   { id: "shop", label: "Handel", singularLabel: "Handel", icon: "shopping-bag", osm: [] },
   { id: "other", label: "Inne", singularLabel: "Inne", icon: "map-pin", osm: [{ key: "tourism", values: ["gallery", "attraction"] }] },
   { id: "steps", label: "Schody", singularLabel: "Schody", icon: "stairs", osm: [{ key: "highway", values: ["steps"] }], unnamedName: "Schody", onRoutes: true },
