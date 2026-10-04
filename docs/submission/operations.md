@@ -86,7 +86,7 @@ gmin) i granty (PFRON, fundusze UE) na pierwsze 12 miesięcy. Szczegóły i ceny
 ## Prawa i licencje
 
 - Dane z OSM pozostają na ODbL 1.0 z atrybucją „© OpenStreetMap contributors”.
-- Kod projektu jest na licencji **MIT** ([LICENSE](../../LICENSE), © 2026 Zespół Kraków bez barier),
+- Kod projektu jest na licencji **MIT** ([LICENSE](../../LICENSE), © 2026 Zespół Bez Progów),
   tak by po ewentualnym przeniesieniu praw majątkowych na sponsora nagrody operator mógł dalej
   legalnie hostować i rozwijać usługę (warunki przeniesienia **do potwierdzenia z Miastem**). MIT
   nie obejmuje danych: każde źródło ma własną licencję ([data-sources.md](../data-sources.md)).

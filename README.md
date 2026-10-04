@@ -13,7 +13,7 @@ accessibility of places and routes against individual needs, built on open data.
 ## Licence
 
 The **code** in this repository is licensed under the [MIT License](LICENSE)
-(© 2026 Zespół Kraków bez barier).
+(© 2026 Zespół Bez Progów).
 
 The MIT License covers our code only, **not the data**. Every data source keeps its own licence and
 terms, and the app shows them next to the data (`/o-danych`, the source of each fact):
