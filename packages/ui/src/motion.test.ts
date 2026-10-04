@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { MOTION, motionMs, reducedMotion } from "./motion";
+import { EASING, MOTION, motionMs, reducedMotion } from "./motion";
 
 const css = readFileSync(new URL("./styles.css", import.meta.url), "utf8");
 
@@ -20,6 +20,14 @@ describe("motion tokens", () => {
 
     // THEN each one matches its MOTION twin, and there is no token on one side only
     expect(durations).toEqual(MOTION);
+  });
+
+  it("CSS easing curves and EASING are the same curves", () => {
+    // GIVEN the --ease-out and --ease-in-out custom properties of styles.css
+    const curve = (name: string) => css.match(new RegExp(`--${name}:\\s*(cubic-bezier\\([^)]*\\));`))?.[1];
+
+    // THEN EASING holds the same strings, for the Web Animations API (which can't read custom properties)
+    expect(EASING).toEqual({ out: curve("ease-out"), inOut: curve("ease-in-out") });
   });
 });
 

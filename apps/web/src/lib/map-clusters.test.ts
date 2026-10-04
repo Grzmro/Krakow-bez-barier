@@ -8,7 +8,9 @@ import {
   donutSegments,
   expansionZoom,
   mapItems,
+  markerMoves,
   placeFeatures,
+  SPLIT_REACH,
   placesInView,
   spreadOffsets,
   verdictBreakdown,
@@ -195,5 +197,86 @@ describe("map clusters", () => {
 
     // THEN it holds exactly the square's places
     expect(clusterPlaceIds(index, cluster.clusterId).toSorted()).toEqual(["a", "b", "c"]);
+  });
+
+  it("shows places a street apart as their own pins at street level", () => {
+    // GIVEN two places on one street, about 60 m apart
+    const index = buildClusterIndex([place("a", 19.9373, 50.0617), place("b", 19.9381, 50.0617)]);
+
+    // WHEN the map is at street level (z16), or a bit before it
+    const street = mapItems(index, KRAKOW, 16);
+    const almost = mapItems(index, KRAKOW, 15.6);
+
+    // THEN each is its own pin: the split no longer waits for the highest zooms
+    expect(street.map((item) => item.kind)).toEqual(["place", "place"]);
+    expect(almost.map((item) => item.kind)).toEqual(["place", "place"]);
+  });
+
+  it("keys a cluster by where it is and what it holds, so new points for the same view keep its marker", () => {
+    // GIVEN the same three places on the square, indexed twice with another place loaded in between
+    const square = [place("a", 19.9373, 50.0617), place("b", 19.9378, 50.0619), place("c", 19.9369, 50.0613)];
+    const first = buildClusterIndex(square);
+    const second = buildClusterIndex([place("z", 19.95, 50.08), ...square]);
+
+    // WHEN both are drawn for the city
+    const key = (index: ReturnType<typeof buildClusterIndex>) =>
+      mapItems(index, KRAKOW, 11).find((item) => item.kind === "cluster" && item.count === 3)?.key;
+
+    // THEN the square's cluster has one key in both
+    expect(key(first)).toBeDefined();
+    expect(key(second)).toBe(key(first));
+  });
+
+  it("flies a cluster's places out of it on zoom in and back into it on zoom out", () => {
+    // GIVEN a cluster of three places and the pins it splits into, a few dozen px around it
+    const cluster = { key: "c", at: { x: 200, y: 300 }, count: 3 };
+    const pins = [
+      { key: "p:a", at: { x: 160, y: 290 }, count: 1 },
+      { key: "p:b", at: { x: 230, y: 270 }, count: 1 },
+      { key: "p:c", at: { x: 205, y: 350 }, count: 1 },
+    ];
+
+    // WHEN the map zooms in: the cluster leaves, the pins enter
+    const zoomIn = markerMoves([cluster], pins);
+
+    // THEN every pin starts at the cluster, and the cluster fades out in place
+    expect([...zoomIn.from.entries()]).toEqual(pins.map((pin) => [pin.key, cluster.at]));
+    expect(zoomIn.to.size).toBe(0);
+
+    // WHEN the map zooms back out: the pins leave, the cluster enters
+    const zoomOut = markerMoves(pins, [cluster]);
+
+    // THEN every pin ends at the cluster, and the cluster fades in in place
+    expect([...zoomOut.to.entries()]).toEqual(pins.map((pin) => [pin.key, cluster.at]));
+    expect(zoomOut.from.size).toBe(0);
+  });
+
+  it("leaves markers without a bigger partner nearby in place, as on a pan", () => {
+    // GIVEN a pin leaving one side of the view, another entering the other, and a cluster far beyond reach
+    const west = { key: "p:a", at: { x: -20, y: 300 }, count: 1 };
+    const east = { key: "p:b", at: { x: 410, y: 300 }, count: 1 };
+    const far = { key: "c", at: { x: 410, y: 300 + SPLIT_REACH + 1 }, count: 5 };
+
+    // WHEN the transitions are paired
+    const moves = markerMoves([west], [east, far]);
+
+    // THEN nothing flies anywhere
+    expect(moves.from.size).toBe(0);
+    expect(moves.to.size).toBe(0);
+  });
+
+  it("flies each child out of the nearest bigger cluster, not out of a neighbour", () => {
+    // GIVEN two clusters splitting at once, a sub-cluster and a pin near each
+    const left = { key: "c4", at: { x: 100, y: 300 }, count: 4 };
+    const right = { key: "c6", at: { x: 260, y: 300 }, count: 6 };
+    const child = { key: "c3", at: { x: 90, y: 280 }, count: 3 };
+    const pin = { key: "p:a", at: { x: 270, y: 330 }, count: 1 };
+
+    // WHEN both parents leave and the children enter
+    const moves = markerMoves([left, right], [child, pin]);
+
+    // THEN each child starts at its own parent
+    expect(moves.from.get("c3")).toEqual(left.at);
+    expect(moves.from.get("p:a")).toEqual(right.at);
   });
 });

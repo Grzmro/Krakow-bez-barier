@@ -39,7 +39,7 @@
           - 'link /Bistro Przykład ul\. Grodzka \d+, Kraków Wejście: bez stopni · Toaleta dostosowana: brak danych Dane przykładowe \d+ m od Ciebie/':
             - /url: /miejsca/bistro-przyklad
         - listitem:
-          - 'link /Hotel Przykład ul\. Sienna 5, Kraków Wejście: bez stopni · Próg: 1 cm · Szerokość drzwi: 90 cm · Winda: jest · Toaleta dostosowana: jest · Przewijak: brak danych Dane przykładowe \d+ m od Ciebie/':
+          - 'link /Hotel Przykład ul\. Sienna 5, Kraków Wejście: bez stopni · Próg: 1 cm · Szerokość drzwi: \d+ cm · Winda: jest · Toaleta dostosowana: jest · Przewijak: brak danych Dane przykładowe \d+ m od Ciebie/':
             - /url: /miejsca/hotel-przyklad
         - listitem:
           - 'link /Podziemia Rynku Rynek Główny 1, Kraków Toaleta dostosowana: jest · nieaktualne Dane przykładowe \d+ m od Ciebie/':
@@ -54,7 +54,7 @@
           - 'link /Muzeum Inżynierii i Techniki ul\. św\. Wawrzyńca \d+, Kraków Winda: jest · Toaleta dostosowana: jest Dane przykładowe \d+ m od Ciebie/':
             - /url: /miejsca/muzeum-inzynierii-i-techniki
         - listitem:
-          - 'link /Restauracja Przykład ul\. Szewska 8, Kraków Wejście: 2 stopnie · Podjazd: nie ma · Szerokość drzwi: 70 cm Dane przykładowe \d+,\d+ km od Ciebie/':
+          - 'link /Restauracja Przykład ul\. Szewska 8, Kraków Wejście: 2 stopnie · Podjazd: nie ma · Szerokość drzwi: \d+ cm Dane przykładowe \d+,\d+ km od Ciebie/':
             - /url: /miejsca/restauracja-przyklad
         - listitem:
           - 'link /Kawiarnia Przykład ul\. Floriańska \d+, Kraków Wejście: brak danych · Toaleta dostosowana: brak danych Dane przykładowe \d+,\d+ km od Ciebie/':
@@ -87,7 +87,6 @@
         - button "Parking dla OzN"
         - button "Przewijak"
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
-  - 'img /Grupa: \d+ miejsc/'
   - button "Informacje o źródłach mapy"
   - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
   - button "Pokaż moją lokalizację"

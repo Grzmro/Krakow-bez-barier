@@ -64,7 +64,7 @@ export async function verdictsOnMap(page: Page) {
 
 /**
  * Waits until the map stands still: the camera is not moving (`data-moving`, set from MapLibre's movestart/moveend)
- * and the markers sit at the same screen spots over two rendered frames (a sheet or layout transition moves them
+ * no marker is in its enter or leave transition, and the markers sit at the same screen spots over two rendered frames (a sheet or layout transition moves them
  * without moving the camera). Checked inside the page, frame by frame: under load a single CDP round trip can take
  * seconds, so sampling from the test would see a frozen map as moving, or a moving one as still.
  */
@@ -84,10 +84,21 @@ export async function markersSettled(page: Page) {
           // Input already dispatched (a touch, a click) is turned into camera moves in MapLibre's next frame.
           await frame();
           if (document.querySelector<HTMLElement>(".maplibregl-map")?.dataset.moving !== "false") return false;
+          // Markers fly out of their cluster (or fade) after a zoom: wait for those transitions to end too.
+          const animating = () =>
+            document
+              .getAnimations()
+              .some((animation) => ((animation.effect as KeyframeEffect | null)?.target as Element | null)?.closest(".maplibregl-marker"));
+          if (animating()) return false;
           const before = spots();
           await frame();
           await frame();
-          return before !== "" && before === spots() && document.querySelector<HTMLElement>(".maplibregl-map")?.dataset.moving === "false";
+          return (
+            before !== "" &&
+            before === spots() &&
+            !animating() &&
+            document.querySelector<HTMLElement>(".maplibregl-map")?.dataset.moving === "false"
+          );
         }),
       // An ease ends with the first frame after its 300–400 ms; a software-GL frame on a loaded machine can take a second.
       { message: "map keeps moving", intervals: [100], timeout: 10_000 },

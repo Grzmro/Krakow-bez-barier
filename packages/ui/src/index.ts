@@ -2,7 +2,7 @@ export { cn } from "./cn";
 export { Providers } from "./providers";
 export { LiveRegionProvider, useAnnounce } from "./live-region";
 export { STATUSES, RELIABILITIES, type Status, type Reliability } from "./types";
-export { MOTION, MOTION_ATTRIBUTE, motionMs, reducedMotion } from "./motion";
+export { EASING, MOTION, MOTION_ATTRIBUTE, motionMs, reducedMotion } from "./motion";
 
 export { Badge, badgeVariants } from "./components/badge";
 export { Button, buttonVariants } from "./components/button";
