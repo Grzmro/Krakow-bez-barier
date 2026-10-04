@@ -1,16 +1,16 @@
 # Pytania jury: gotowe odpowiedzi
 
 Odpowiedzi na pytania, które jury najpewniej zada po pokazie (z oceny „jury” z 4.10.2026). Każda
-liczba ma źródło i datę. Liczby z bazy to odczyt **lokalnej bazy demo 4.10.2026 ok. 03:20**, zasilonej
-tym samym ingestem co wdrożenie (OSM z ekstraktu Geofabrik, BIP MK, BIP Małopolska, krakow.pl). Na
+liczba ma źródło i datę. Liczby z bazy to odczyt **lokalnej bazy demo 4.10.2026 ok. 05:50**, zasilonej
+tym samym ingestem co wdrożenie (OSM z wejściami budynków, BIP MK, BIP Małopolska, krakow.pl, Rejestr Aptek). Na
 wdrożeniu mogą się nieznacznie różnić; przed pokazem sprawdź je zapytaniami z końca pliku.
 
 ## 1. „Ile miejsc w Krakowie spełnia dziś profil Wózek? Widzę same »Brak danych«.”
 
-**Odpowiedź:** „Dziś zero, i to jest pomiar problemu, a nie błąd. Profil Wózek wymaga drzwi
-szerokich na co najmniej 90 cm. W żadnym z otwartych źródeł, które czytamy, nie ma szerokości drzwi
-dla żadnego miejsca w Krakowie: w krakowskim OpenStreetMap jej nie ma, a deklaracje BIP mówią
-o windach i toaletach, nie o drzwiach. Inna aplikacja pokazałaby tu zielone »dostępne« na podstawie
+**Odpowiedź:** „Dziś zero, i to jest pomiar problemu, a nie błąd. Profil Wózek wymaga wejścia bez
+stopni i drzwi szerokich na co najmniej 90 cm. W otwartych źródłach, które czytamy, szerokość drzwi ma
+jedno miejsce na 7 773 lokale i instytucje (wejście restauracji w OpenStreetMap, ale bez danych
+o stopniach), a deklaracje BIP mówią o windach i toaletach, nie o drzwiach. Inna aplikacja pokazałaby tu zielone »dostępne« na podstawie
 jednego tagu. My mówimy wprost, czego brakuje.
 
 *(Następne dwa zdania mów tylko wtedy, gdy scena 3 pokazu się udała.)*
@@ -26,13 +26,18 @@ Dowody:
   (`apps/web/src/domain/profiles.ts`). Matcher zawsze sprawdza wejście i drzwi; bez faktu o drzwiach
   potrzeba ma stan „nie wiadomo”, więc werdykt nie może być „Spełnia” w żadnym profilu
   (`apps/web/src/domain/matcher.ts`).
-- Faktów `door_width_cm` w bazie: **0** (wszystkie źródła, odczyt 4.10.2026).
-- 7 753 miejsca w kategoriach lokali i instytucji (restauracje, sklepy, hotele, zabytki, apteki,
-  toalety, muzea, teatry, inne). 2 388 z nich ma co najmniej jeden fakt o dostępności, 1 458 ma
+- Faktów `door_width_cm` w bazie: **1** (wejście restauracji „Amber” z OSM, 153 cm; to miejsce nie ma faktu
+  o stopniach, więc zostaje „Brak danych · wejście”; odczyt 4.10.2026 ok. 05:50).
+- 7 773 miejsca w kategoriach lokali i instytucji (restauracje, sklepy, hotele, zabytki, apteki,
+  toalety, muzea, teatry, inne). 2 425 z nich ma co najmniej jeden fakt o dostępności, 1 498 ma
   ogólny tag `wheelchair` z OSM, a tylko 35 ma konkret o wejściu (stopnie, próg, podjazd albo wejście
   z poziomu gruntu) (odczyt 4.10.2026).
 - Hangar Czyżyny, `GET /api/v1/places/<id>?profile=wheelchair` (4.10.2026): wejście, winda,
-  toaleta „spełnia · niepotwierdzone”; jedyna nieznana potrzeba to „drzwi”.
+  toaleta „spełnia · niepotwierdzone”; jedyna nieznana potrzeba to „drzwi”. Wejście spełnia fakt BIP
+  „wejście z poziomu gruntu” (`entrance_level`), a nie liczba stopni — dlatego niżej wiersz „Wejście —
+  stopnie” ma „Brak danych”. Do czasu KBB-193 (w toku) karta nie ma osobnego wiersza z tym faktem.
+  Gdy juror zapyta o zieleń przy „Wejście”, odpowiedz cytatem z tej samej strony BIP
+  (https://www.bip.krakow.pl/?mmi=19180): „Wejście/wyjście jest na poziomie gruntu.”
 
 ## 2. „Czy możecie używać danych miasta komercyjnie? Skąd pewność co do licencji?”
 
