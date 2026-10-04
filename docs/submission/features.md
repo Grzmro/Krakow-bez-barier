@@ -36,7 +36,7 @@ otwartych. Uzupełnia to zgłoszenie z moderacją
   potem `npm run ingest -- --city krakow --source <id>`). Dane przykładowe z kontraktu API
   (`NEXT_PUBLIC_API_MOCK=true`) służą tylko testom e2e.
 - Cron ingest: `.github/workflows/ingest.yml`, codziennie. Wdrożenie Vercel + Neon (Postgres/PostGIS):
-  `docs/deployment.md`. Link do demo: **[DO UZUPEŁNIENIA: link do wdrożenia]**.
+  `docs/deployment.md`. Link do demo: https://krakow-bez-barier.vercel.app.
 
 ## Gotowe (scalone do `main`)
 
