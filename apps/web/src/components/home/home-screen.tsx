@@ -34,7 +34,7 @@ import { useMediaQuery } from "@/lib/use-media-query";
 import { useSessionFlag } from "@/lib/use-session-flag";
 import { PlaceMap } from "./place-map";
 import { NearbyToggle, type NearbyToggleHandle } from "./nearby-toggle";
-import { PlaceRow } from "./place-list";
+import { PlaceListSkeleton, PlaceRow } from "./place-list";
 import { QuickActionRow, QuickResult, type QuickResultState } from "./quick-actions";
 import { SEARCH_INPUT_ID, SearchBox, type SearchSuggestion } from "./search-box";
 
@@ -516,14 +516,18 @@ export function HomeScreen() {
               </Button>
             </div>
           ) : !peekQuery.data ? (
-            <p role="status" className="text-body-sm text-muted-foreground">
-              {t.list.loading}
-            </p>
+            <>
+              <p role="status" className="sr-only">
+                {t.list.loading}
+              </p>
+              <PlaceListSkeleton rows={PEEK_LIMIT} />
+            </>
           ) : peekItems.length ? (
             <ul className="space-y-2.5">
-              {peekItems.map(({ place, distance }) => (
+              {peekItems.map(({ place, distance }, index) => (
                 <PlaceRow
                   key={place.id}
+                  index={index}
                   place={place}
                   distance={distance}
                   from={peekFrom.source === "map" ? "centre" : peekFrom.source}
@@ -599,10 +603,13 @@ export function HomeScreen() {
             </>
           )}
         </div>
+      ) : total === undefined ? (
+        <PlaceListSkeleton />
       ) : (
         <ul className="space-y-2.5">
-          {rows.map(({ place, distance }) => (
+          {rows.map(({ place, distance }, index) => (
             <PlaceRow
+              index={index}
               distance={distance}
               from={origin ? (chosenPlace ? "chosen" : "user") : "centre"}
               key={place.id}

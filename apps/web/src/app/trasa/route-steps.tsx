@@ -99,7 +99,7 @@ function SegmentItem({
   return (
     <li className="relative flex gap-3" aria-current={current ? "step" : undefined}>
       <div className="flex w-9 shrink-0 flex-col items-center pt-3">
-        <span className={cn("grid size-9 place-items-center rounded-full", STEP_DOT[status], current && "ring-3 ring-primary")}>
+        <span className={cn("grid size-9 place-items-center rounded-full transition-shadow duration-(--duration-base)", STEP_DOT[status], current && "ring-3 ring-primary")}>
           <StatusIcon status={status} className="size-5" />
         </span>
         {!last ? (
@@ -127,23 +127,27 @@ function SegmentItem({
             <span className={cn("block text-body-sm", STATUS_TEXT[status])}>{line}</span>
           </span>
           <span className="font-display text-[15px] font-extrabold text-muted-foreground tabular-nums">{t.meters(segment.lengthMeters)}</span>
-          <CaretDown className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-180")} aria-hidden />
+          <CaretDown className={cn("size-4 text-muted-foreground transition-transform duration-(--duration-base)", open && "rotate-180")} aria-hidden />
         </button>
-        <div id={detailsId} hidden={!open} className="px-3 pt-1 pb-2">
-          {segment.facts.length ? (
-            <ul className="space-y-1.5">
-              {segment.facts.map((fact) => (
-                <li key={fact.id} className="text-caption">
-                  <span className="font-semibold text-foreground">{factLine(m, fact, locale)}</span>
-                  <span className="block text-muted-foreground">
-                    {t.sourceLine(fact.source.name, formatDate(fact.fetchedAt, locale))} · {m.place.level[fact.reliability]}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-caption text-muted-foreground">{t.nobody}</p>
-          )}
+        <div id={detailsId} hidden={!open} className="reveal">
+          <div>
+            <div className="px-3 pt-1 pb-2">
+              {segment.facts.length ? (
+                <ul className="space-y-1.5">
+                  {segment.facts.map((fact) => (
+                    <li key={fact.id} className="text-caption">
+                      <span className="font-semibold text-foreground">{factLine(m, fact, locale)}</span>
+                      <span className="block text-muted-foreground">
+                        {t.sourceLine(fact.source.name, formatDate(fact.fetchedAt, locale))} · {m.place.level[fact.reliability]}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-caption text-muted-foreground">{t.nobody}</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </li>

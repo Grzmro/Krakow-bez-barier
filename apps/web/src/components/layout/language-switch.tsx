@@ -29,7 +29,7 @@ export function LanguageSwitch({ className, compact }: { className?: string; com
             key={option}
             lang={option}
             className={cn(
-              "relative flex h-12 min-w-0 flex-1 cursor-pointer items-center justify-center rounded-full px-2 text-[14px] font-semibold text-muted-foreground transition-[background-color,color,box-shadow] duration-200 hover:text-foreground has-checked:bg-primary has-checked:text-primary-foreground has-checked:shadow-soft has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
+              "relative flex h-12 min-w-0 flex-1 cursor-pointer items-center justify-center rounded-full px-2 text-[14px] font-semibold text-muted-foreground transition-[background-color,color,box-shadow] duration-(--duration-base) hover:text-foreground has-checked:bg-primary has-checked:text-primary-foreground has-checked:shadow-soft has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
               compact && "h-10 flex-none px-4",
             )}
           >

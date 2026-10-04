@@ -47,7 +47,7 @@ export function ProfileSwitch({
             <label
               key={option}
               className={cn(
-                "relative flex min-w-0 cursor-pointer items-center justify-center gap-1 rounded-full px-1 @sm:px-2 font-semibold text-muted-foreground transition-[background-color,color,box-shadow] duration-200 hover:text-foreground has-checked:bg-primary has-checked:text-primary-foreground has-checked:shadow-soft has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
+                "relative flex min-w-0 cursor-pointer items-center justify-center gap-1 rounded-full px-1 @sm:px-2 font-semibold text-muted-foreground transition-[background-color,color,box-shadow] duration-(--duration-base) hover:text-foreground has-checked:bg-primary has-checked:text-primary-foreground has-checked:shadow-soft has-focus-visible:outline-3 has-focus-visible:outline-offset-2 has-focus-visible:outline-ring",
                 // Segments size to their text so "Dla każdego" is never cut on a 360 px phone.
                 options.length > 3 ? "flex-auto" : "flex-1",
                 size === "sm" ? "h-10 text-[13px]" : "h-12 text-[14px]",

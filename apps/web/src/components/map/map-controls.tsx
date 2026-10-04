@@ -1,6 +1,6 @@
 "use client";
 
-import { cn, useAnnounce } from "@krakow-bez-barier/ui";
+import { cn, MOTION, motionMs, useAnnounce } from "@krakow-bez-barier/ui";
 import {
   CircleNotch,
   Crosshair,
@@ -94,7 +94,7 @@ export function MapControls({
     map.easeTo({
       center,
       zoom: Math.max(map.getZoom(), LOCATE_ZOOM),
-      duration: 400,
+      duration: motionMs(MOTION.camera),
     });
     const { Marker } = await import("maplibre-gl");
     // One "you" marker: the home screen's own (a "W mojej okolicy" search) is already there.

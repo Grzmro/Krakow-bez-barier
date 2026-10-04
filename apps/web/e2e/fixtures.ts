@@ -15,14 +15,7 @@ export const test = base.extend<Fixtures>({
   expectAccessible: async ({ page }, use) => {
     await use(async (options) => {
       // axe reads colours as they are; mid-transition (e.g. a segment just checked) they fail contrast.
-      await page.evaluate(() =>
-        Promise.all(
-          document
-            .getAnimations()
-            .filter((a) => a instanceof CSSTransition)
-            .map((a) => a.finished.catch(() => undefined)),
-        ),
-      );
+      await settleMotion(page);
       let builder = new AxeBuilder({ page }).withTags(WCAG_TAGS);
       for (const selector of options?.exclude ?? []) builder = builder.exclude(selector);
       const { violations } = await builder.analyze();
@@ -39,7 +32,24 @@ export const test = base.extend<Fixtures>({
 
 const EVIDENCE_DIR = path.join(__dirname, "..", "test-results", "evidence");
 
+/** Waits for running CSS transitions and finite CSS animations (a row fading in) to end; loops like a spinner don't. */
+export async function settleMotion(page: Page) {
+  await page.evaluate(() =>
+    Promise.all(
+      document
+        .getAnimations()
+        .filter(
+          (a) =>
+            a instanceof CSSTransition ||
+            (a instanceof CSSAnimation && a.effect?.getComputedTiming().iterations !== Infinity),
+        )
+        .map((a) => a.finished.catch(() => undefined)),
+    ),
+  );
+}
+
 async function saveEvidence(page: Page, testInfo: TestInfo, name: string) {
+  await settleMotion(page);
   const file = path.join(EVIDENCE_DIR, `${name}.png`);
   await page.screenshot({ path: file, fullPage: true });
   await testInfo.attach(name, { path: file, contentType: "image/png" });

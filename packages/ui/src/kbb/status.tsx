@@ -11,6 +11,7 @@ import {
   type Icon,
 } from "@phosphor-icons/react";
 import { cva } from "class-variance-authority";
+import { useState } from "react";
 import { Badge } from "../components/badge";
 import { cn } from "../cn";
 import type { Reliability, Status } from "../types";
@@ -43,6 +44,17 @@ export function StatusIcon({ status, className }: { status: Status; className?: 
   );
 }
 
+/** True once `value` has differed from its first value: a status that changes fades in, one that loads doesn't. */
+export function useChanged<T>(value: T): boolean {
+  const [seen, setSeen] = useState(value);
+  const [changed, setChanged] = useState(false);
+  if (!Object.is(seen, value)) {
+    setSeen(value);
+    setChanged(true);
+  }
+  return changed;
+}
+
 export interface StatusBadgeProps {
   status: Status;
   /** The status word, e.g. "Spełnia". */
@@ -56,6 +68,7 @@ export interface StatusBadgeProps {
 }
 
 export function StatusBadge({ status, label, reason, note, size = "md", className }: StatusBadgeProps) {
+  const changed = useChanged(status);
   return (
     <Badge
       variant={status}
@@ -68,8 +81,8 @@ export function StatusBadge({ status, label, reason, note, size = "md", classNam
         className,
       )}
     >
-      <StatusIcon status={status} className="mt-px self-start" />
-      <span className="min-w-0 [overflow-wrap:break-word]">
+      <StatusIcon key={status} status={status} className={cn("mt-px self-start", changed && "motion-fade")} />
+      <span key={`${status}-label`} className={cn("min-w-0 [overflow-wrap:break-word]", changed && "motion-fade")}>
         {label}
         {reason ? <span className="font-medium"> · {reason}</span> : null}
         {note ? <span className="font-medium"> · {note}</span> : null}
@@ -99,12 +112,13 @@ export interface VerdictBlockProps {
 }
 
 export function VerdictBlock({ status, label, reason, note, sub, className }: VerdictBlockProps) {
+  const changed = useChanged(status);
   return (
-    <div data-status={status} className={cn(verdictBlock({ status }), className)}>
+    <div data-status={status} className={cn(verdictBlock({ status }), "transition-colors duration-(--duration-base)", className)}>
       <span className="grid size-12 shrink-0 place-items-center rounded-full bg-card">
-        <StatusIcon status={status} className="size-7" />
+        <StatusIcon key={status} status={status} className={cn("size-7", changed && "motion-fade")} />
       </span>
-      <div className="min-w-0">
+      <div key={status} className={cn("min-w-0", changed && "motion-fade")}>
         <p className={cn("text-title font-semibold", statusTextClass[status])}>
           {label}
           {reason ? ` · ${reason}` : null}

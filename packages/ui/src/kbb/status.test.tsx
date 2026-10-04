@@ -19,6 +19,15 @@ describe("StatusBadge", () => {
     expect(html).toContain(`data-status="${status}"`);
   });
 
+  it("doesn't fade in a status on first render, only one that changes", () => {
+    // GIVEN a status shown for the first time
+    // WHEN rendered
+    const html = renderToStaticMarkup(<StatusBadge status="met" label="Spełnia" />);
+
+    // THEN nothing animates: a page load isn't news, a changed verdict is
+    expect(html).not.toContain("motion-fade");
+  });
+
   it("draws unknown with a dashed border so it never looks like a pass", () => {
     // GIVEN the unknown status
     // WHEN rendered

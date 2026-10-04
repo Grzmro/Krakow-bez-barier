@@ -4,6 +4,7 @@ import { useEffect, useRef, type CSSProperties, type KeyboardEvent, type MouseEv
 import { CaretDown } from "@phosphor-icons/react";
 import { cn } from "../cn";
 import { Button } from "../components/button";
+import { reducedMotion } from "../motion";
 import { DRAG_SLOP, releaseVelocity, snapPanel } from "./panel-snap";
 
 type PanelState = "stowed" | "collapsed" | "expanded";
@@ -121,7 +122,7 @@ export function BottomPanel({
         style={style}
         onClickCapture={onClickCapture}
         className={cn(
-          "group/panel absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-(--radius-sheet) bg-card text-card-foreground shadow-sheet transition-[height] duration-[420ms] ease-(--ease-out-soft)",
+          "group/panel absolute inset-x-0 bottom-0 z-20 flex flex-col rounded-t-(--radius-sheet) bg-card text-card-foreground shadow-sheet transition-[height] duration-(--duration-sheet) ease-(--ease-sheet)",
           className,
         )}
       >
@@ -209,8 +210,6 @@ export function BottomPanel({
 
 /** Movement (px) of a finger on the list before it is decided whether the drag scrolls the list or resizes the panel. */
 const DECIDE_DISTANCE = DRAG_SLOP / 2;
-
-const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 type Drag = {
   startY: number;
