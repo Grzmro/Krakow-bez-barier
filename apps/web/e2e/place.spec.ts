@@ -112,14 +112,17 @@ test("Udostępnij copies the permanent link to the card", async ({ page, context
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/miejsca/palac-krzysztofory");
 
-  // WHEN the visitor shares the card
+  // WHEN the visitor opens sharing and copies the link
   await page.getByRole("button", { name: "Udostępnij" }).click();
+  await expect(page.getByRole("img", { name: "Kod QR z linkiem" })).toBeVisible();
+  await page.getByRole("button", { name: "Kopiuj link" }).click();
 
-  // THEN the stable /miejsca/{id} link is in the clipboard, the toast confirms it and it is announced
-  await expect(page.locator("[data-sonner-toast]").getByText("Link do karty skopiowany")).toBeVisible();
-  await expect(page.getByRole("status").filter({ hasText: "Link do karty skopiowany" })).toBeAttached();
-  const copied = await page.evaluate(() => navigator.clipboard.readText());
-  expect(new URL(copied).pathname).toBe("/miejsca/palac-krzysztofory");
+  // THEN the stable /miejsca/{id} link is in the clipboard (only the shared marker, nothing personal), the toast confirms it and it is announced
+  await expect(page.locator("[data-sonner-toast]").getByText("Link skopiowany")).toBeVisible();
+  await expect(page.getByRole("status").filter({ hasText: "Link skopiowany" })).toBeAttached();
+  const copied = new URL(await page.evaluate(() => navigator.clipboard.readText()));
+  expect(copied.pathname).toBe("/miejsca/palac-krzysztofory");
+  expect([...copied.searchParams.keys()]).toEqual(["share"]);
 });
 
 test("an unknown place answers 404 with its own title and a way back", async ({ page, expectAccessible, evidence }) => {
