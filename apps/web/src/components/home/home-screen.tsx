@@ -267,8 +267,8 @@ export function HomeScreen() {
   const origin = searchFrom.from;
   // A text search keeps the API's ranking (best name matches and landmarks first); everything else is nearest first.
   const items = useMemo(
-    () => (query.q ? withDistance : byDistance)(places.data?.items ?? [], origin ?? config.cityCenter),
-    [places.data, origin, query.q],
+    () => (committed.q ? withDistance : byDistance)(places.data?.items ?? [], origin ?? config.cityCenter),
+    [places.data, origin, committed.q],
   );
   const counts = useMemo(() => countByStatus(items), [items]);
   const shown = useMemo(() => filterByVerdict(items, { status: statusFilter, hideFailing }), [items, statusFilter, hideFailing]);
