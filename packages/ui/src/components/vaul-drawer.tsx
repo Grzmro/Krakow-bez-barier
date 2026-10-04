@@ -3,7 +3,7 @@
 import { useRef, type ComponentProps } from "react";
 import { Drawer as DrawerPrimitive } from "vaul";
 import { cn } from "../cn";
-import { useKeyboardInset } from "./keyboard-inset";
+import { sheetStyle, useSheetFit } from "./keyboard-inset";
 
 // For modal sheets (menu, report form, threshold editor). The base-nova `drawer.tsx` is Base UI's
 // Drawer, not Vaul. Never use snap points here — the map/list sheet is the non-modal BottomPanel.
@@ -31,7 +31,7 @@ function VaulDrawerContent({
   ...props
 }: ComponentProps<typeof DrawerPrimitive.Content>) {
   const opener = useRef<HTMLElement | null>(null);
-  const keyboard = useKeyboardInset();
+  const fit = useSheetFit();
   return (
     <DrawerPrimitive.Portal>
       {/* Black, not the ink token: ink is near-white in dark mode. */}
@@ -41,7 +41,7 @@ function VaulDrawerContent({
           "fixed inset-x-0 bottom-0 z-50 mx-auto flex max-h-[92dvh] w-full max-w-xl flex-col rounded-t-(--radius-sheet) bg-card pb-[env(safe-area-inset-bottom)] text-card-foreground shadow-sheet outline-none",
           className,
         )}
-        style={keyboard ? { bottom: keyboard, maxHeight: `calc(92dvh - ${keyboard}px)`, ...style } : style}
+        style={{ ...sheetStyle(fit), ...style }}
         onOpenAutoFocus={(e) => {
           opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
           onOpenAutoFocus?.(e);
