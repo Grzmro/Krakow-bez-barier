@@ -92,7 +92,7 @@ Demo działa na prawdziwych danych. Dane przykładowe (np. zmiana zrobiona konte
 
 Motywacja klientów: 42% klientów z potrzebami dostępności rezygnuje bez informacji, 70% wraca tam, gdzie jest dostępnie (Euan’s Guide 2025); od 28.06.2025 Polski Akt o Dostępności (EAA) obejmuje rezerwacje online noclegów i wydarzeń. Benchmarki: AccessAble (UK) ok. 150 £ za przewodnik obiektu; Wrocław sfinansował z PFRON 650 audytów obiektów (2017).
 
-Szacunek: ok. 450 tys. zł przychodu w 2. roku (Kraków + 2 miasta white-label), próg rentowności ok. 24. miesiąca, marża brutto na kliencie „Karta” ok. 80%. To wyliczenia bez listów intencyjnych; walidacja z obiektami to pierwszy krok pilotażu.
+Model na 2. rok (założenia zespołu, nie osiągnięty przychód; Kraków + 2 gminy): widżet 250 obiektów × 49 zł × 12 = 147 000 zł; weryfikacja na miejscu 150 × 590 zł = 88 500 zł; strona wydarzenia 40 × 590 zł = 23 600 zł; API dla partnerów 4 × 490 zł × 12 = 23 520 zł; wersja dla gminy 2 × (45 000 zł wdrożenie + 3 000 zł × 12) = 162 000 zł. Razem ok. 445 tys. zł. Koszty utrzymania ok. 37–78 tys. zł rocznie (hosting 0,8–2 tys. zł/mies. + 0,25–0,5 etatu moderacji), więc pokrywa je już 63–133 płacących obiektów z widżetem. 250 obiektów to ok. 8% z 3 056 hoteli, restauracji, muzeów i teatrów w naszej bazie. To wyliczenia bez listów intencyjnych; walidacja z obiektami to pierwszy krok pilotażu.
 
 Kierunki rozwoju: panel właściciela obiektu, kolejne profile (osoba z bagażem, osoby niewidome), integracje z systemami rezerwacji, kolejne miasta w Polsce i regionie V4.
 
