@@ -685,7 +685,6 @@ export function HomeScreen() {
         <ToggleGroup
           aria-label={t.categoriesLabel}
           value={[category]}
-<<<<<<< HEAD
           onValueChange={(value) => {
             if (!value[0]) return;
             setCategory(value[0]);
