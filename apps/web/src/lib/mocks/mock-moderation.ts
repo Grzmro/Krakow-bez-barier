@@ -19,10 +19,11 @@ export const MOCK_MODERATOR = "demo";
 /** Signs in as the demo account (the real API: `MODERATOR_DEMO_TOKEN`), so its notice can be shown and tested. */
 export const MOCK_DEMO_TOKEN = "konto-demo-0123456789";
 
-const session = (token: string): ModeratorSession =>
+export const mockModeratorSession = (token: string): ModeratorSession =>
   token === MOCK_DEMO_TOKEN
     ? { name: "Konto demonstracyjne", demo: true, revertsAfterMinutes: 30 }
     : { name: MOCK_MODERATOR, demo: false, revertsAfterMinutes: null };
+const session = mockModeratorSession;
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {

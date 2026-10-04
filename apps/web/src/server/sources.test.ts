@@ -79,10 +79,11 @@ describe("listSources", () => {
     // WHEN listing
     const items = await listSources(async () => rows, now, ["msip-toilets"]);
 
-    // THEN only that source is in outage, with the note and the original last success
-    expect(items[0].refreshStatus).toBe("ok");
+    // THEN only that source is in outage, labelled as simulated, with the note and the original last success
+    expect(items[0]).toMatchObject({ refreshStatus: "ok", simulatedOutage: false });
     expect(items[1]).toMatchObject({
       refreshStatus: "outage",
+      simulatedOutage: true,
       statusNote: catalogs.pl.pages.aboutData.statusNote.simulatedOutage,
       lastSuccessAt: "2026-10-03T03:00:00.000Z",
     });

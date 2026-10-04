@@ -54,6 +54,12 @@ export function SampleTag({ className }: { className?: string }) {
   return <UiSampleTag label={t.sample.tag} ariaLabel={t.sample.aria} className={className} />;
 }
 
+/** Marks a source outage switched on for a demonstration (`Source.simulatedOutage`), like `SampleTag` marks sample data. */
+export function DemoOutageTag({ className }: { className?: string }) {
+  const t = useMessages().common;
+  return <UiSampleTag label={t.demoOutage.tag} ariaLabel={t.demoOutage.aria} className={className} />;
+}
+
 type FactRowBoundProps = Omit<FactRowProps, "labels" | "status" | "reliability"> & {
   status?: Status;
   reliability: Reliability;

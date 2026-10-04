@@ -238,3 +238,78 @@ test("a moderator removes a false outage from the Awarie tab, keyboard only", as
   await expect(page.locator("[data-sonner-toast]")).toHaveCount(0, { timeout: 8_000 });
   await expectAccessible();
 });
+
+/** Opens the "Demo źródeł" tab, signing in with the one-click demo account unless this tab's session already is. */
+async function openSourceDemo(page: import("@playwright/test").Page) {
+  await page.goto("/moderator");
+  const tab = page.getByRole("tab", { name: "Demo źródeł" });
+  const demo = page.getByRole("button", { name: "Wejdź na konto demonstracyjne (dla jury)" });
+  await expect(tab.or(demo)).toBeVisible();
+  if (await demo.isVisible()) await demo.click();
+  await tab.click();
+  return page.getByRole("tabpanel", { name: "Demo źródeł" });
+}
+
+test("the demo account simulates a source outage: O danych shows it failed, labelled as a demo", async ({
+  page,
+  expectAccessible,
+  evidence,
+}) => {
+  // GIVEN the jury on the demo account, in the "Demo źródeł" tab, with no simulation running
+  const panel = await openSourceDemo(page);
+  await expect(panel).toContainText("Żadna symulacja nie trwa");
+
+  // WHEN OpenStreetMap is picked and the outage switched on from the keyboard
+  await panel.getByLabel("Źródło").selectOption({ label: "OpenStreetMap" });
+  await panel.getByRole("button", { name: "Symuluj awarię" }).focus();
+  await page.keyboard.press("Enter");
+
+  // THEN it is announced with its end time and listed with a switch-off button
+  await expect(page.getByRole("status").filter({ hasText: /^Symulacja awarii włączona: OpenStreetMap\. Wyłączy się sama o / })).toBeAttached();
+  await expect(panel).toContainText("OpenStreetMap · symulowana awaria");
+  await expect(panel).toContainText("włączył(a): Konto demonstracyjne");
+  await expect(page.locator("main")).toMatchAriaSnapshot({ name: "moderator-source-outages.aria.yml" });
+  await expectAccessible();
+  await evidence("moderator-source-outages");
+
+  // WHEN O danych is opened
+  await page.getByRole("link", { name: "Zobacz w „O danych”" }).click();
+
+  // THEN OpenStreetMap reads as failed, with its last data date and the demo label; nothing else changed
+  const osm = page.getByRole("listitem").filter({ has: page.getByRole("heading", { name: "OpenStreetMap" }) });
+  await expect(osm).toContainText(/Odświeżenie nie powiodło się — dane z /);
+  await expect(osm).toContainText("Tryb demo");
+  await expect(osm.locator("[data-refresh-status]")).toHaveAttribute("data-refresh-status", "outage");
+  await expectAccessible();
+  await evidence("about-data-simulated-outage");
+});
+
+test("a simulated outage marks the card's facts as possibly outdated and switching it off restores the card", async ({
+  page,
+}) => {
+  // GIVEN the demo account switched on the OpenStreetMap outage
+  const panel = await openSourceDemo(page);
+  await panel.getByLabel("Źródło").selectOption({ label: "OpenStreetMap" });
+  await panel.getByRole("button", { name: "Symuluj awarię" }).click();
+  await expect(panel).toContainText("OpenStreetMap · symulowana awaria");
+
+  // WHEN the palace card is opened
+  await page.goto("/miejsca/palac-krzysztofory");
+
+  // THEN the card shows OpenStreetMap failed with its data date, labelled as a demo, and its facts still listed
+  const main = page.locator("main");
+  await expect(main).toContainText("Odświeżenie nie powiodło się — dane z 3.10.2026");
+  const banner = main.locator("p").filter({ hasText: "Źródło: OpenStreetMap" });
+  await expect(banner).toContainText("Tryb demo");
+
+  // WHEN the outage is switched off in the panel
+  const again = await openSourceDemo(page);
+  await again.getByRole("button", { name: "Wyłącz symulowaną awarię: OpenStreetMap" }).click();
+  await expect(page.getByRole("status").filter({ hasText: /^Symulacja wyłączona: OpenStreetMap/ })).toBeAttached();
+  await expect(again).toContainText("Żadna symulacja nie trwa");
+
+  // THEN the card is back to its own state
+  await page.goto("/miejsca/palac-krzysztofory");
+  await expect(page.getByRole("heading", { level: 1, name: "Pałac Krzysztofory" })).toBeVisible();
+  await expect(page.locator("main")).not.toContainText("Odświeżenie nie powiodło się — dane z 3.10.2026");
+});

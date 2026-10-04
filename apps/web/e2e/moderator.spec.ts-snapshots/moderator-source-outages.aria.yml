@@ -1,0 +1,30 @@
+- main:
+  - link "Wróć na stronę główną":
+    - /url: /
+  - heading "Panel moderatora" [level=1]
+  - text: Dane przykładowe
+  - button "Wyloguj"
+  - complementary "Konto demonstracyjne":
+    - heading "Konto demonstracyjne" [level=2]
+    - paragraph: "/To konto do wypróbowania panelu\\. Decyzje działają naprawdę: zatwierdzone zgłoszenie od razu zmienia kartę miejsca, ze źródłem „Konto demonstracyjne moderatora \\(zmiana tymczasowa\\)”\\. Po \\d+ min każdą decyzję tego konta cofamy automatycznie, więc dane miejsc nie zmieniają się na stałe\\./"
+  - tablist "Sekcje panelu moderatora":
+    - tab "Zgłoszenia (2)"
+    - tab "Awarie (2)"
+    - tab "Demo źródeł" [selected]
+  - tabpanel "Demo źródeł":
+    - heading "Symuluj awarię źródła" [level=2]
+    - text: "Tryb demonstracyjny: awaria symulowana, nie prawdziwa"
+    - paragraph: "/Tryb demonstracyjny: pokaż, co się dzieje, gdy źródło danych przestaje działać\\. „O danych” i karty miejsc pokażą „Odświeżenie nie powiodło się”, fakty z tego źródła zostaną, oznaczone jako możliwie nieaktualne\\. Awaria wyłączy się sama po \\d+ min\\./"
+    - text: Źródło
+    - combobox "Źródło":
+      - option "OpenStreetMap" [selected]
+      - 'option "MSIP: Toalety publiczne"'
+    - button "Symuluj awarię"
+    - heading "Trwające symulacje" [level=3]
+    - list:
+      - listitem:
+        - paragraph: OpenStreetMap · symulowana awaria
+        - paragraph: "/Do \\d+\\.\\d+\\.\\d+, \\d+:\\d+ · włączył\\(a\\): Konto demonstracyjne/"
+        - 'button "Wyłącz symulowaną awarię: OpenStreetMap"'
+        - link "Zobacz w „O danych”":
+          - /url: /o-danych
