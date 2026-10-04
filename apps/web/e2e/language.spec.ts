@@ -45,7 +45,7 @@ test("the language switch turns the demo path into English, remembers it and set
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 places");
   await expect(page.getByRole("combobox", { name: "Search for a place" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Step-free" })).toBeVisible();
-  await expect(list.getByRole("link", { name: /Sukiennice/ })).toContainText("Step-free entrance · Lift");
+  await expect(list.getByRole("link", { name: /Sukiennice/ })).toContainText("Entrance: no steps · Lift: yes");
 
   // AND it is remembered on the next visit, rendered by the server in English
   await page.reload();

@@ -9,9 +9,12 @@ import type {
 } from "@krakow-bez-barier/contracts";
 import { categories } from "@krakow-bez-barier/contracts";
 import type { FactSource, Reliability } from "@krakow-bez-barier/ui";
+import { factValueText, joinValue } from "@/i18n/fact-value";
 import { intlLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
 import { sourceTextLang } from "@/lib/source-text";
+
+export { joinValue };
 
 type FactValue = components["schemas"]["FactValue"];
 
@@ -61,7 +64,6 @@ export interface FactView {
 }
 
 const dateFormats = new Map<string, Intl.DateTimeFormat>();
-const numberFormats = new Map<Locale, Intl.NumberFormat>();
 
 /** A date as the UI shows it (`3.10.2026`); `month: "long"` for speech (`3 października 2026`). */
 export function formatDate(iso: string, locale: Locale, month: "numeric" | "long" = "numeric"): string {
@@ -79,38 +81,13 @@ export function formatDate(iso: string, locale: Locale, month: "numeric" | "long
   return format.format(new Date(iso));
 }
 
-function formatNumber(n: number, locale: Locale): string {
-  let format = numberFormats.get(locale);
-  if (!format) {
-    format = new Intl.NumberFormat(intlLocale[locale], { maximumFractionDigits: 2, useGrouping: false });
-    numberFormats.set(locale, format);
-  }
-  return format.format(n);
-}
-
 /** Formats one typed value; the unit is split off so the UI can style it. */
 export function formatValue(
   attribute: AccessibilityAttribute,
   value: FactValue,
   locale: Locale,
 ): { value: string; unit?: string } {
-  const t = messagesFor(locale).place;
-  switch (value.kind) {
-    case "boolean":
-      return { value: value.boolean ? t.value.yes : t.value.no };
-    case "number":
-      if (attribute === "step_count") {
-        return { value: value.number === 0 ? t.value.noSteps : t.value.steps(value.number) };
-      }
-      return { value: formatNumber(value.number, locale), unit: value.unit ? t.unit[value.unit] || undefined : undefined };
-    case "text":
-      if (attribute === "wheelchair_overall") return { value: t.overall[value.text] ?? value.text };
-      return { value: t.surface[value.text] ?? value.text };
-  }
-}
-
-export function joinValue(v: { value: string; unit?: string }) {
-  return v.unit ? `${v.value} ${v.unit}` : v.value;
+  return factValueText(attribute, value, messagesFor(locale).place, locale);
 }
 
 function factSource(fact: AccessibilityFact, withValue: boolean, locale: Locale): FactSource {
