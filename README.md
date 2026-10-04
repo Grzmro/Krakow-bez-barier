@@ -24,7 +24,7 @@ terms, and the app shows them next to the data (`/o-danych`, the source of each 
   liability disclaimer);
 - BIP Małopolska: the open data act, checked per publisher;
 - krakow.pl "Kraków bez barier": non-commercial use, commercial use to be confirmed with the city;
-- openrouteservice, OpenFreeMap and the layers still waiting for a licence (MSIP, ZDMK, ZTP): see
-  [docs/data-sources.md](docs/data-sources.md).
+- openrouteservice, OpenFreeMap, the layers still waiting for a licence (ZDMK, ZTP) and the
+  withheld MSIP toilets layer (not open data): see [docs/data-sources.md](docs/data-sources.md).
 
 Third-party npm dependencies keep their own licences (`package.json` files).

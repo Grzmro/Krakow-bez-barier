@@ -27,7 +27,7 @@ Te same dane trafiają do partnerów: hotel osadza kartę dostępności na swoje
 
 **Co nas wyróżnia** (wszystko poniżej jest w kodzie, wykaz z numerami PR: `docs/submission/features.md`):
 - **Dane miasta z cytatem, nie tylko OSM.** Fakty z deklaracji „Dostępność architektoniczna” w BIP Miasta Krakowa (23 miejsca instytucji kultury), z deklaracji dostępności w BIP Małopolska (7 wydawców, 11 budynków) i z listy toalet miasta na krakow.pl (24 z 65 toalet przypiętych do toalet z OSM). Przy każdym fakcie jest zdanie, z którego go odczytaliśmy, i link do strony.
-- **Licencje pilnowane w kodzie.** Źródło bez potwierdzonej licencji nie trafia do bazy ani do API. Warstwę toalet MSIP wyłączyliśmy, bo nie jest w katalogu OPEN DATA; adaptery ZTP i ZDMK są gotowe i czekają na licencję.
+- **Licencje pilnowane w kodzie.** Źródło bez potwierdzonej licencji nie jest ładowane ani podawane przez API. Warstwę toalet MSIP wyłączyliśmy, bo nie jest w katalogu OPEN DATA; adaptery ZTP i ZDMK są gotowe i czekają na licencję.
 - **Konflikty i awarie pokazane, nie ukryte.** Sprzeczne źródła stoją obok siebie; gdy źródło nie odpowiada, zostaje ostatnia dobra kopia z datą, a OSM ma zapasowy kanał (ekstrakt Geofabrik).
 - **Cały Kraków na mapie:** 36 928 obiektów z OSM i źródeł miejskich, w tym 14 072 ławki, 3 128 przystanków, 161 wind, z 41 868 faktami o dostępności (4.10.2026).
 - **Trzy kanały B2B już działają:** widżet dla hotelu, strona wydarzenia, publiczne API.
@@ -37,7 +37,7 @@ Te same dane trafiają do partnerów: hotel osadza kartę dostępności na swoje
 ## Problem
 
 - Etykieta „dostępne” nie pozwala ocenić, czy konkretna osoba wjedzie, wejdzie i skorzysta z toalety.
-- Danych szczegółowych prawie nie ma. W naszej bazie dla całego Krakowa (4.10.2026) jest 7 753 lokali i instytucji. Ogólny tag `wheelchair` z OpenStreetMap ma 1 461 z nich (18,8%), a konkretną informację o wejściu (stopnie, próg, podjazd albo wejście z poziomu gruntu) tylko 35. **Żadne** nie ma szerokości drzwi. Dlatego dziś żadne miejsce nie spełnia profilu „Wózek” na samych danych otwartych, i mówimy to wprost, zamiast pokazywać zielone „dostępne”. Łączymy OSM z danymi miasta i moderowanymi zgłoszeniami, żeby te luki zamykać.
+- Danych szczegółowych prawie nie ma. W naszej bazie dla całego Krakowa (4.10.2026) są 7 753 lokale i instytucje. Ogólny tag `wheelchair` z OpenStreetMap ma 1 458 z nich (18,8%), a konkretną informację o wejściu (stopnie, próg, podjazd albo wejście z poziomu gruntu) tylko 35. **Żadne** nie ma szerokości drzwi. Dlatego dziś żadne miejsce nie spełnia profilu „Wózek” na samych danych otwartych, i mówimy to wprost, zamiast pokazywać zielone „dostępne”. Łączymy OSM z danymi miasta i moderowanymi zgłoszeniami, żeby te luki zamykać.
 - 42% osób z potrzebami dostępności rezygnuje z miejsca, jeśli nie znajdzie informacji, a tylko 13% czuje się pewnie, idąc w nowe miejsce (Euan’s Guide Access Survey 2025, UK).
 - Dane, które istnieją, są rozproszone (OSM, BIP-y, krakow.pl, warstwy ZTP i ZDMK), mają różną świeżość, różne licencje i czasem sobie przeczą. Miasto nie chce utrzymywać własnej bazy ręcznie.
 
@@ -51,7 +51,7 @@ Dostępność cyfrowa (cel WCAG 2.2 AA): automatyczny audyt axe i snapshoty ARIA
 
 ## Źródła danych oraz ocena świeżości i wiarygodności
 
-Używamy wyłącznie otwartych danych, bez dostępu do systemów UMK/MJO i bez bazy utrzymywanej przez miasto. Pełny rejestr: `docs/data-sources.md` (sprawdzony 3–4.10.2026).
+Używamy danych publicznych z jawnymi warunkami ponownego wykorzystania (licencję każdego źródła pokazujemy przy danych), bez dostępu do systemów UMK/MJO i bez bazy utrzymywanej przez miasto. Pełny rejestr: `docs/data-sources.md` (sprawdzony 3–4.10.2026).
 
 | Źródło | Co daje | Licencja / warunki | Odświeżanie | Gdy niedostępne |
 |---|---|---|---|---|
@@ -62,7 +62,8 @@ Używamy wyłącznie otwartych danych, bez dostępu do systemów UMK/MJO i bez b
 | GUS Bank Danych Lokalnych | liczby dla panelu miasta (osoby z niepełnosprawnością, wiek poprodukcyjny, muzea przystosowane) | dane publiczne GUS | odczyt 3.10.2026 | — |
 | openrouteservice (HeiGIT, dane OSM) — tylko trasy, nie zapisujemy | geometria trasy, nawierzchnia, schody, nachylenie | warunki HeiGIT, atrybucja przy trasie; użycie komercyjne **do potwierdzenia** | na żądanie, po stronie serwera | komunikat, że trasa jest niedostępna; dane miejsc działają dalej |
 | Zgłoszenia użytkowników (moderowane) | uzupełnienia, korekty, potwierdzenia, awarie wind i podjazdów | regulamin usługi | na bieżąco | — |
-| Czekają na licencję (adaptery gotowe, dane **nie są** ładowane): MSIP toalety (`WT_WC_2023`, nie w OPEN DATA — wyłączone), ZDMK miejsca postojowe OZN, ZTP przystanki i GTFS-RT | — | **do potwierdzenia z miastem** | — | — |
+| Czekają na licencję (adaptery gotowe, dane **nie są** ładowane): ZDMK miejsca postojowe OZN, ZTP przystanki i GTFS-RT | — | **do potwierdzenia z miastem** | — | — |
+| Wyłączone: MSIP toalety publiczne (`WT_WC_2023`) | — | warstwy nie ma w katalogu OPEN DATA MSIP, więc nie jest danymi otwartymi; „O danych” podaje powód | — | — |
 
 **Model wiarygodności.** Każdy fakt ma źródło, datę pozyskania, datę stanu, licencję i poziom zaufania: *Potwierdzone* (publikacja miasta, zatwierdzone zgłoszenie, dwa niezależne potwierdzenia) → *Społeczność* (OSM) → *Odczytane automatycznie* (BIP, z cytatem) → *Zgłoszenie* (niezweryfikowane). Kolejność decyduje tylko o tym, który fakt pokazujemy pierwszy; rozbieżności między aktualnymi faktami nie rozstrzygamy wiarygodnością, tylko pokazujemy jako „Sprzeczne”. Modyfikatory: *Może być nieaktualne* (fakt starszy niż 12 miesięcy; ustępuje świeżemu), *Sprzeczne* (dwa aktualne źródła się nie zgadzają: pokazujemy obie wartości, nie uśredniamy, nigdy „Spełnia”), *Brak danych* (nigdy „dostępne”). Zgłoszenie nigdy nie nadpisuje danych innego źródła.
 
@@ -98,11 +99,11 @@ Kierunki rozwoju: panel właściciela obiektu, kolejne profile (osoba z bagażem
 - **Właściciel i operator:** spółka z o.o. non-profit albo przedsiębiorstwo społeczne prowadzone przez zespół, z radą programową z udziałem organizacji osób z niepełnosprawnościami.
 - **Hosting:** chmura komercyjna w UE po stronie operatora; szacunek 800–2 000 zł/mies. w 1. roku. Miasto nic nie hostuje.
 - **Aktualizacje danych:** automatyczny ingest (cron) z dziennikiem uruchomień i statusem źródeł; poprawki faktów obiektywnych wracają do OpenStreetMap (link „Edytuj w OpenStreetMap” przy faktach z OSM).
-- **Bezpieczeństwo:** operator odpowiada za HTTPS, aktualizacje zależności i pentest raz w roku. Już w prototypie: limity zgłoszeń na klienta, walidacja zakresów, pułapka na boty, usuwanie e-maili i telefonów z komentarzy, logowanie moderatora z blokadą po 5 nieudanych próbach. Nie zbieramy informacji o niepełnosprawności; profil zostaje w przeglądarce, dokładna pozycja na urządzeniu.
+- **Bezpieczeństwo:** operator odpowiada za HTTPS, aktualizacje zależności i pentest raz w roku. Już w prototypie: limity zgłoszeń na klienta, walidacja zakresów, pułapka na boty, usuwanie e-maili i telefonów z komentarzy, logowanie moderatora z blokadą po 5 nieudanych próbach. Nie zbieramy informacji o niepełnosprawności; profil zostaje w przeglądarce, a dokładna pozycja na urządzeniu (poza wyznaczaniem trasy z własnej pozycji, gdy trafia na serwer i do openrouteservice tylko w tym celu).
 - **Obsługa zgłoszeń:** moderator operatora (0,25–0,5 etatu w 1. roku, szacunek) w panelu `/moderator` (kolejka, decyzje, historia); docelowo także właściciele obiektów.
 - **Koszty:** abonamenty B2B (karta, API), umowy B2G (white-label) i granty (PFRON, UE) na pierwsze 12 miesięcy.
 - **Rola miasta:** publikuje otwarte dane (najbardziej pomoże otwarta licencja dla warstw ZTP, ZDMK i MSIP) i promuje usługę; 0 zł za utrzymanie bazy.
-- **Prawa autorskie:** kod na licencji MIT (plik `LICENSE`, © 2026 Zespół Kraków bez barier), więc po przeniesieniu praw majątkowych na Miasto operator i kolejne miasta mogą dalej legalnie hostować i rozwijać usługę. Dane mają własne licencje (ODbL, zasady BIP, krakow.pl tylko niekomercyjnie) i nie są objęte MIT.
+- **Prawa autorskie:** kod na licencji MIT (plik `LICENSE`, © 2026 Zespół Kraków bez barier), tak by po przeniesieniu praw majątkowych na sponsora nagrody operator i kolejne miasta mogli dalej legalnie hostować i rozwijać usługę (warunki przeniesienia i moment publikacji kodu na tej licencji do potwierdzenia z Miastem; repozytorium jest dziś prywatne). Dane mają własne licencje (ODbL, zasady BIP, krakow.pl tylko niekomercyjnie) i nie są objęte MIT.
 - **Roadmapa:** 0 mies. prototyp → 3 mies. MVP, widżet v1, audyt WCAG, pilotaż z 30 obiektami na Starym Mieście → 12 mies. API v1, 300+ zweryfikowanych obiektów, pierwsze miasto white-label → 24 mies. 3–5 miast, integracje z systemami rezerwacji.
 - **Kolejne miasto:** plik konfiguracyjny (obszar OSM, lokalne źródła z potwierdzoną licencją, kategorie) — działa już w kodzie, przykład Wrocław; partner lokalny (NGO albo uczelnia), finansowanie audytów pierwszych ~100 obiektów; cel 2–4 tygodnie wdrożenia (szacunek).
 
@@ -142,4 +143,5 @@ nie wpisujemy do repozytorium — serwer wydaje sesję demo po kliknięciu. Tras
 - `[DO UZUPEŁNIENIA: link do PDF]`
 - `[DO UZUPEŁNIENIA: czy i jak udostępniamy repozytorium jury]`
 - `[DO UZUPEŁNIENIA: imiona i nazwiska członków zespołu]`
+- Decyzja zespołu: czy w `LICENSE` zostaje „Zespół Kraków bez barier”, czy wpisujemy imiona i nazwiska autorów (nazwa zespołu nie jest osobą prawną)
 - Na Vercelu: `MODERATOR_DEMO_TOKEN` i `ORS_API_KEY` ustawione (bez nich przycisk konta demo i trasy nie działają)

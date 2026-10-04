@@ -1,8 +1,8 @@
 # Wykaz funkcji: co działa, a co wymaga dalszych prac
 
 Materiał do oceny („Wykaz funkcji już dostępnych i elementów wymagających dalszych prac”,
-[requirements.md](../requirements.md)). Stan gałęzi `main` na **4.10.2026, ok. 03:20** (ostatni
-scalony PR: #165). Każdy wiersz „Gotowe” ma scalony PR w repozytorium; numery US-x.y odnoszą się do
+[requirements.md](../requirements.md)). Stan gałęzi `main` na **4.10.2026, ok. 03:45** (ostatni
+scalony PR w chwili pisania: #167). Każdy wiersz „Gotowe” ma scalony PR w repozytorium; numery US-x.y odnoszą się do
 [requirements.md](../requirements.md), R1–R8 do [challenge.md](../challenge.md).
 
 Liczby danych to odczyt **lokalnej bazy demo z 4.10.2026, ok. 03:20**, zasilonej tym samym ingestem co
@@ -47,7 +47,7 @@ Wniosek z ostatniego wiersza: profile wymagają szerokości drzwi, więc dziś �
 | Szybkie akcje: najbliższa toaleta, winda, ławka, apteka; toalety „może być nieaktualne” też widoczne | US-1.2 | #111, #162 |
 | Mapa całego Krakowa: ingest całego miasta, lekki endpoint punktów, klastry z rozkładem werdyktów, ikony kategorii | US-6.1 | #80, #136, #74, #92 |
 | Lista równoważna mapie: podąża za widokiem mapy, ten sam status co pinezka, ładowana stronami | US-6.1, US-6.2 | #148, #100, #85 |
-| „W mojej okolicy”: serwer dostaje tylko kratkę ok. 1 km; „Szukaj w tym obszarze”, poszerzanie do 5 km i całego miasta | US-6.6 | #23, #47, #155 |
+| „W mojej okolicy”: serwer dostaje tylko kratkę ok. 1 km; „Szukaj w tym obszarze”, poszerzanie do 5 km i całego miasta | US-6.6 | #47, #71, #155 |
 | Przycisk „Moja pozycja” na mapie, różne komunikaty błędów lokalizacji, ręczny wybór dzielnicy | US-6.6 | #139, #78 |
 | Panel listy przesuwany (pasek / pół / pełny), mapa na pełny ekran na telefonie, układ desktop | US-6.1 | #70, #76, #99, #56, #72 |
 | „Wstecz” zachowuje wyszukiwanie (także na Androidzie) | US-6.1 | #93, #160 |
@@ -73,8 +73,8 @@ Wniosek z ostatniego wiersza: profile wymagają szerokości drzwi, więc dziś �
 | „Niezweryfikowane” i „niepotwierdzone” jako tekst | US-3.2 | #16, #35 |
 | „Sprzeczne”: obie wartości ze źródłem i datą, nigdy „Spełnia”; „Może być nieaktualne” po 12 miesiącach | US-3.3, US-3.5 | #21, #36 |
 | Brak danych nigdy jako dostępność (testy jednostkowe), także na trasie | US-3.4 | #21, #103 |
-| Status źródeł, awaria źródła z ostatnią kopią i datą, przełącznik operatora `SIMULATE_SOURCE_OUTAGE` | US-3.6, US-5.4 | #37, #49 |
-| Oznaczenie „PRZYKŁAD” przy każdym przykładowym miejscu i fakcie (stały baner usunięty, bo demo działa na prawdziwych danych) | US-3.7 | #31, #110 |
+| Status źródeł, awaria źródła z ostatnią kopią i datą, przełącznik operatora `SIMULATE_SOURCE_OUTAGE` | US-3.6, US-5.4 | #37 |
+| Oznaczenie „PRZYKŁAD” przy każdym przykładowym miejscu i fakcie (stały baner usunięty, bo demo działa na prawdziwych danych) | US-3.7 | #9, #110 |
 | Strona „O danych”: źródła, licencje i ich stan po polsku, atrybucja, powód wyłączenia MSIP | US-3.8 | #17, #89, #128 |
 
 ### Zgłoszenia, potwierdzenia, moderacja (E4)
@@ -100,7 +100,7 @@ Wniosek z ostatniego wiersza: profile wymagają szerokości drzwi, więc dziś �
 | BIP Miasta Krakowa: „Dostępność architektoniczna” jednostek miejskich, fakty z cytatem | US-5.2 | #123 |
 | BIP Małopolska: deklaracje dostępności 7 wydawców, licencja sprawdzona dla każdego | US-5.2 | #140 |
 | krakow.pl „Toalety ogólnodostępne” (licencja niekomercyjna, oznaczona); MSIP wyłączone jako nieotwarte | US-5.2 | #128 |
-| Bramka licencyjna w ingest i API: źródło „do potwierdzenia” nie trafia na żaden ekran | US-5.2 | #41, #53, #128 |
+| Bramka licencyjna w ingest i API: źródło „do potwierdzenia” nie trafia na żaden ekran | US-5.2 | #41, #128 |
 | GUS BDL na panelu miasta (osoby z niepełnosprawnością, wiek poprodukcyjny, muzea przystosowane) | US-5.2 | #114 |
 | Miasto i kategoria jako konfiguracja (Wrocław na samym OSM) | US-10.1, US-10.2 | #39 |
 
@@ -132,7 +132,7 @@ Wniosek z ostatniego wiersza: profile wymagają szerokości drzwi, więc dziś �
 |---|---|---|
 | Klawiatura, widoczny fokus, „Przejdź do treści”, ogłaszanie zmian, ruch ograniczony przy `prefers-reduced-motion` | US-8.1, US-8.2 | #9, #20, #147 |
 | Audyt axe (WCAG 2.2 A/AA) i snapshot ARIA w e2e każdego ekranu, telefon i desktop (e2e uruchamiane lokalnie przed scaleniem, nie w CI) | US-8.1–8.3 | #10, #118 |
-| Deklaracja dostępności, strona „Prywatność” | US-8.5 | #17, #45, #65 |
+| Deklaracja dostępności, strona „Prywatność” | US-8.5 | #17, #65 |
 | Wersja angielska (przełącznik PL/EN); teksty ze źródeł oznaczone `lang="pl"` | US-8.6 | #52, #165 |
 
 ## W toku (4.10.2026, ok. 03:20)
@@ -140,6 +140,7 @@ Wniosek z ostatniego wiersza: profile wymagają szerokości drzwi, więc dziś �
 | Element | Zadanie |
 |---|---|
 | Wyszukiwanie po nazwie w całym mieście (dziś przeszukuje tylko widok mapy) | KBB-178 |
+| Kolejność wyników wyszukiwania (np. „Wawel” przed hotelami) | KBB-174 (PR #166) |
 | Przełącznik „Symuluj awarię źródła” w panelu moderatora (awaria widoczna na produkcji) | KBB-179 |
 | Mniej tekstu na kluczowych ekranach | KBB-177 |
 | Prawdziwe 404 i tytuły stron; fakty na liście jako „cecha: wartość” | KBB-176 (PR #164), KBB-173 (PR #163) |

@@ -9,11 +9,15 @@ wdrożeniu mogą się nieznacznie różnić; przed pokazem sprawdź je zapytania
 
 **Odpowiedź:** „Dziś zero, i to jest pomiar problemu, a nie błąd. Profil Wózek wymaga drzwi
 szerokich na co najmniej 90 cm. W żadnym z otwartych źródeł, które czytamy, nie ma szerokości drzwi
-dla żadnego miejsca w Krakowie: OpenStreetMap jej nie podaje, a deklaracje BIP mówią o windach i
-toaletach, nie o drzwiach. Inna aplikacja pokazałaby tu zielone »dostępne« na podstawie jednego
-tagu. My mówimy wprost, czego brakuje. Pokazaliśmy na żywo, jak to się zmienia: Hangar Czyżyny ma
-z BIP wejście z poziomu gruntu, windę i toaletę, brakowało tylko drzwi. Ktoś je zmierzył, moderator
-zatwierdził i miejsce spełnia profil.” (Zdanie tylko wtedy, gdy scena 3 pokazu się udała.) „Drogi uzupełniania są trzy: zgłoszenie odwiedzającego
+dla żadnego miejsca w Krakowie: w krakowskim OpenStreetMap jej nie ma, a deklaracje BIP mówią
+o windach i toaletach, nie o drzwiach. Inna aplikacja pokazałaby tu zielone »dostępne« na podstawie
+jednego tagu. My mówimy wprost, czego brakuje.
+
+*(Następne dwa zdania mów tylko wtedy, gdy scena 3 pokazu się udała.)*
+„Pokazaliśmy na żywo, jak to się zmienia: Hangar Czyżyny ma z BIP wejście z poziomu gruntu, windę
+i toaletę, brakowało tylko drzwi. Ktoś je zmierzył, moderator zatwierdził i miejsce spełnia profil.”
+
+„Drogi uzupełniania są trzy: zgłoszenie odwiedzającego
 z moderacją, weryfikacja przez obiekt (nasz płatny produkt) i odczyt deklaracji BIP z cytatem.
 Panel dla miasta (`/miasto`) pokazuje, gdzie braków jest najwięcej.”
 
@@ -24,7 +28,7 @@ Dowody:
   (`apps/web/src/domain/matcher.ts`).
 - Faktów `door_width_cm` w bazie: **0** (wszystkie źródła, odczyt 4.10.2026).
 - 7 753 miejsca w kategoriach lokali i instytucji (restauracje, sklepy, hotele, zabytki, apteki,
-  toalety, muzea, teatry, inne). 2 388 z nich ma co najmniej jeden fakt o dostępności, 1 461 ma
+  toalety, muzea, teatry, inne). 2 388 z nich ma co najmniej jeden fakt o dostępności, 1 458 ma
   ogólny tag `wheelchair` z OSM, a tylko 35 ma konkret o wejściu (stopnie, próg, podjazd albo wejście
   z poziomu gruntu) (odczyt 4.10.2026).
 - Hangar Czyżyny, `GET /api/v1/places/<id>?profile=wheelchair` (4.10.2026): wejście, winda,
@@ -32,7 +36,7 @@ Dowody:
 
 ## 2. „Czy możecie używać danych miasta komercyjnie? Skąd pewność co do licencji?”
 
-**Odpowiedź:** „Źródło bez potwierdzonej licencji nie trafia do bazy ani do API. To reguła w kodzie,
+**Odpowiedź:** „Źródło bez potwierdzonej licencji nie jest ładowane ani podawane przez API. To reguła w kodzie,
 nie w regulaminie. BIP Miasta Krakowa: zasady ponownego wykorzystywania, pkt III, pozwalają też na
 użycie komercyjne. BIP Małopolska: ustawa o otwartych danych, sprawdzona osobno dla każdego z 7
 wydawców; teatrów i opery nie czytamy, bo ustawa ich nie obejmuje. krakow.pl, czyli lista toalet
@@ -45,16 +49,18 @@ Dowody: `docs/data-sources.md` (rejestr, licencje sprawdzone 3–4.10.2026); bra
 `licenseConfirmed` w ingest, `isWithheld` w `apps/web/src/server/sources.ts` (KBB-133);
 `WITHHELD_SOURCES=krakow-pl-toilets` wyłącza listę miasta.
 
-## 3. „Na jakiej licencji jest kod i co z prawami, które przechodzą na Miasto?”
+## 3. „Na jakiej licencji jest kod i co z prawami, które przechodzą na sponsora nagrody?”
 
-**Odpowiedź:** „Kod jest na licencji MIT (plik `LICENSE`, »© 2026 Zespół Kraków bez barier«). Po
-przekazaniu nagrody prawa majątkowe przechodzą na Miasto, ale udzielona już licencja MIT zostaje: operator i kolejne
-miasta mogą legalnie hostować i rozwijać usługę. MIT obejmuje tylko kod. Dane mają własne licencje:
+**Odpowiedź:** „Kod jest na licencji MIT (plik `LICENSE`, »© 2026 Zespół Kraków bez barier«).
+Wybraliśmy ją po to, żeby po przeniesieniu praw majątkowych na sponsora nagrody operator i kolejne
+miasta mogli dalej legalnie hostować i rozwijać usługę. Repozytorium jest dziś prywatne, więc kiedy
+i jak kod zostanie opublikowany na tej licencji, chcemy ustalić z Miastem. MIT obejmuje tylko kod. Dane mają własne licencje:
 OpenStreetMap ODbL z atrybucją, BIP według zasad ponownego wykorzystania, krakow.pl tylko do użytku
 niekomercyjnego. Aplikacja pokazuje licencję przy każdym źródle.”
 
-Do potwierdzenia: audyt licencji zależności npm (`docs/deployment.md` → Licences) i warunki
-przeniesienia praw z Miastem.
+Do potwierdzenia: audyt licencji zależności npm (`docs/deployment.md` → Licences), warunki
+przeniesienia praw i moment publikacji kodu (challenge.md → IP: prawa majątkowe przechodzą na
+sponsora nagrody).
 
 ## 4. „Kto to utrzyma po hackathonie i za co?”
 
@@ -95,18 +101,22 @@ Dowody: `apps/ingest/src/cities/` (konfiguracja Krakowa i Wrocławia), `docs/dep
 
 **Odpowiedź:** „Gdy dwa aktualne źródła się nie zgadzają, pokazujemy »Sprzeczne« z obiema
 wartościami, źródłami i datami. Nigdy nie uśredniamy i nigdy nie dajemy wtedy »Spełnia«. Fakt
-starszy niż 12 miesięcy ustępuje świeżemu i jest oznaczony »Może być nieaktualne«. Dlatego toaleta
-w Sukiennicach (lista miasta z 15.09.2025 kontra OSM) pokazuje oba źródła, ale bez etykiety
-»Sprzeczne«. Pokazaliśmy też awarię źródła: dane zostają, z datą, a »O danych« mówi, że odświeżenie
-się nie powiodło.”
+starszy niż 12 miesięcy ustępuje świeżemu i jest oznaczony »Może być nieaktualne«. W samych danych
+otwartych toaleta w Sukiennicach to właśnie taki przypadek: lista miasta z 15.09.2025 jest starsza
+niż rok, więc stoi obok OSM jako możliwie nieaktualna. »Sprzeczne« pojawia się, gdy zatwierdzone
+zgłoszenie przeczy świeżemu faktowi z OSM, i to pokazaliśmy. Pokazaliśmy też awarię źródła: dane
+zostają, z datą, a »O danych« mówi, że źródło jest niedostępne.”
 
 Dowody: `apps/web/src/domain/resolver.ts` (rozbieżność świeżych faktów = konflikt; stare liczą się
-tylko bez świeżych); w bazie z 4.10.2026 jedyne rozbieżności między źródłami to 3 toalety (krakow.pl
-z 15.09.2025 kontra OSM), wszystkie rozstrzygnięte regułą 12 miesięcy.
+tylko bez świeżych); w bazie z 4.10.2026 jedyne rozbieżności między źródłami otwartymi to 3 toalety
+(krakow.pl z 15.09.2025 kontra OSM), wszystkie rozstrzygnięte regułą 12 miesięcy. Zatwierdzone
+zgłoszenie jest osobnym, świeżym faktem (`server/reports/drizzle-store.ts`), więc rozbieżność z OSM
+daje „Sprzeczne”.
 
 ## Sprawdzenie liczb przed pokazem
 
-Zapytania tylko do odczytu na bazie, na której działa demo:
+Zapytania tylko do odczytu na bazie, na której działa demo. Liczby się zmienią po każdym nowym
+ingeście (np. dodatkowe apteki z innego źródła); wtedy podaj nowe, z datą odczytu.
 
 ```sql
 -- fakty o szerokości drzwi (pyt. 1)
