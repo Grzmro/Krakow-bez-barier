@@ -16,7 +16,7 @@ import {
 } from "@phosphor-icons/react";
 import type { Place, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { Button, LogoMark, buttonVariants, cn } from "@krakow-bez-barier/ui";
-import { ReliabilityBadge, SampleTag, UnknownFactsItem } from "@/components/kbb";
+import { ReliabilityBadge, SampleTag, SourceText, UnknownFactsItem } from "@/components/kbb";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { EventDetails } from "@/lib/event-link";
 import {
@@ -204,11 +204,18 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
           <ul className="mt-2 space-y-1.5">
             {sources.map((source) => (
               <li key={source.id} className="text-body-sm">
-                <span className="font-semibold">{source.name}</span>
+                <span className="font-semibold">
+                  <SourceText>{source.name}</SourceText>
+                </span>
                 {source.isSample ? <SampleTag className="ml-2 align-middle" /> : null}
                 <span className="text-muted-foreground">
                   {` · ${t.lastSuccess(source.lastSuccessAt ? formatDate(source.lastSuccessAt, locale) : undefined)}`}
-                  {source.attribution ? ` · ${source.attribution}` : null}
+                  {source.attribution ? (
+                    <>
+                      {" · "}
+                      <SourceText>{source.attribution}</SourceText>
+                    </>
+                  ) : null}
                 </span>
                 {failed.has(source.id) ? (
                   <span className="font-semibold text-status-conflict">{` · ${source.statusNote ?? t.sourceOutage}`}</span>

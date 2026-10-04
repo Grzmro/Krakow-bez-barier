@@ -1,7 +1,7 @@
 import type { TransitDepartures } from "@krakow-bez-barier/contracts";
 import { defaultLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
-import { simulatedOutageIds } from "@/server/sources";
+import { localizeLicense, simulatedOutageIds } from "@/server/sources";
 import { nearbyDepartures } from "./departures";
 import { ZTP_FEEDS, ZTP_SOURCE, type FeedConfig, type FeedData, type TransitFeedProvider } from "./feed";
 import { KRAKOW_FLEET, type FleetEntry } from "./fleet";
@@ -97,7 +97,7 @@ export function createTransitService({
         id,
         name,
         kind,
-        license,
+        license: localizeLicense({ kind, license }, locale),
         attribution,
         url,
         refreshInterval,

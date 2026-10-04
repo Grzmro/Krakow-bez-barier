@@ -16,7 +16,7 @@ test("the place card lists the nearest departures with each vehicle's accessibil
   // THEN the section says the data is a recording, not live, and names its source and time
   await expect(transit).toContainText("Nagranie danych przewoźnika z 3.10.2026, 20:16 — to nie są odjazdy na żywo.");
   await expect(transit).toContainText("Źródło: ZTP Kraków: GTFS i GTFS-Realtime · dane z 3.10.2026, 20:16");
-  await expect(transit).toContainText("licencja: Do sprawdzenia");
+  await expect(transit).toContainText("licencja: do potwierdzenia z urzędem");
 
   // AND the nearest stops list departures; trams read "Niezweryfikowane", never "dostępny"
   await expect(transit.getByRole("heading", { level: 3 }).first()).toBeVisible();

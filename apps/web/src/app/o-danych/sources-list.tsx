@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowSquareOut, CheckCircle, ClockCountdown, CloudSlash, Question, type Icon } from "@phosphor-icons/react";
 import type { Source } from "@krakow-bez-barier/contracts";
 import { Button, cn, useAnnounce } from "@krakow-bez-barier/ui";
-import { SampleTag } from "@/components/kbb";
+import { SampleTag, SourceText } from "@/components/kbb";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { Messages } from "@/i18n/messages";
 import { api, isMockApi } from "@/lib/api";
@@ -99,7 +99,7 @@ export function SourcesList() {
           <li key={source.id} className="rounded-[20px] bg-surface-raised p-4 shadow-soft ring-1 ring-border/70">
             <div className="flex items-start justify-between gap-3">
               <h3 className="text-body-sm font-semibold">
-                {source.name}
+                <SourceText>{source.name}</SourceText>
                 {source.isSample ? <SampleTag className="ml-1.5 align-middle" /> : null}
               </h3>
               <RefreshStatusChip status={source.refreshStatus} />
@@ -107,11 +107,11 @@ export function SourcesList() {
             {source.statusNote ? <p className="mt-2 text-caption text-foreground/85">{source.statusNote}</p> : null}
             <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-caption">
               <dt className="text-muted-foreground">{t.license}</dt>
-              <dd>{source.license}</dd>
+              <dd><SourceText license>{source.license}</SourceText></dd>
               {source.attribution ? (
                 <>
                   <dt className="text-muted-foreground">{t.attribution}</dt>
-                  <dd>{source.attribution}</dd>
+                  <dd><SourceText>{source.attribution}</SourceText></dd>
                 </>
               ) : null}
               <dt className="text-muted-foreground">{t.refresh}</dt>
@@ -132,7 +132,7 @@ export function SourcesList() {
                 href={source.url}
                 className="mt-2 inline-flex min-h-6 items-center gap-1 text-caption font-semibold text-primary underline underline-offset-2"
               >
-                {t.website(source.name)}
+                {t.websiteLabel} <SourceText>{source.name}</SourceText>
                 <ArrowSquareOut weight="bold" className="size-3.5" aria-hidden />
               </a>
             ) : null}

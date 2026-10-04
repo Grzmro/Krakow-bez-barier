@@ -11,6 +11,7 @@ import { categories } from "@krakow-bez-barier/contracts";
 import type { FactSource, Reliability } from "@krakow-bez-barier/ui";
 import { intlLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
+import { sourceTextLang } from "@/lib/source-text";
 
 type FactValue = components["schemas"]["FactValue"];
 
@@ -128,14 +129,17 @@ function factSource(fact: AccessibilityFact, withValue: boolean, locale: Locale)
     .filter(Boolean)
     .join(" · ");
   const asOf = fact.confirmedAt ?? fact.observedAt ?? fact.fetchedAt;
+  // A visitor's report comment is moderation material, not a statement of the source.
+  const note = fact.source.kind === "user_report" ? undefined : (fact.evidence?.comment ?? undefined);
   return {
     name: fact.source.name,
+    nameLang: sourceTextLang(fact.source.name, locale),
+    note,
+    noteLang: note ? sourceTextLang(note, locale) : undefined,
     date: formatDate(fact.fetchedAt, locale),
     value: withValue ? joinValue(formatValue(fact.attribute, fact.value, locale)) : undefined,
     detail,
     staleNote: fact.stale ? m.common.fact.maybeOutdated(formatDate(asOf, locale)) : undefined,
-    // A visitor's report comment is moderation material, not a statement of the source.
-    note: fact.source.kind === "user_report" ? undefined : (fact.evidence?.comment ?? undefined),
     link: fact.evidence?.url ? { href: fact.evidence.url, label: t.sourcePage } : undefined,
   };
 }

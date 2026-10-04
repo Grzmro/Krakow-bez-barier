@@ -54,9 +54,9 @@ export const transit = {
   vehicleNumber: (label: string) => `pojazd nr ${label}`,
   unverifiedHint:
     "„Niezweryfikowane”: przewoźnik oznacza każdy tramwaj jako dostępny dla wózka, także wysokopodłogowe, więc nie traktujemy tego jako potwierdzenia. „Brak danych”: dane na żywo nic nie mówią o pojeździe — to nie znaczy, że jest dostępny.",
-  source: (name: string) => `Źródło: ${name}`,
+  sourceLabel: "Źródło:",
   fetchedAt: (time: string) => `dane z ${time}`,
-  license: (license: string) => `licencja: ${license}`,
+  licenseLabel: "licencja:",
   recorded: (time: string) => `Nagranie danych przewoźnika z ${time} — to nie są odjazdy na żywo.`,
   outage: (time: string) => `Dane przewoźnika są teraz niedostępne. Pokazujemy ostatnie pobrane, z ${time}.`,
   stale: (time: string) => `Dane przewoźnika nie odświeżają się od ${time} — odjazdy mogą być nieaktualne.`,

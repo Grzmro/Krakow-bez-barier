@@ -35,7 +35,7 @@ describe("transit departures service", () => {
     // THEN stops come with upcoming departures, the source and the data's time
     expect(validateResponse("listTransitDepartures", 200, result)).toEqual([]);
     expect(result.mode).toBe("recorded");
-    expect(result.source).toMatchObject({ id: "ztp-gtfs-rt", refreshStatus: "ok", license: "Do sprawdzenia" });
+    expect(result.source).toMatchObject({ id: "ztp-gtfs-rt", refreshStatus: "ok", license: "do potwierdzenia z urzędem" });
     expect(result.fetchedAt).toMatch(/^2026-10-03T/);
     expect(result.stops.length).toBeGreaterThan(0);
     const departures = result.stops.flatMap((s) => s.departures);
@@ -159,6 +159,8 @@ describe("transit departures service", () => {
     // THEN the answer says why, with no data
     expect(result).toMatchObject({ mode: "disabled", fetchedAt: null, stops: [] });
     expect(result.source).toMatchObject({ refreshStatus: "never", statusNote: expect.stringContaining("licence") });
+    // AND the licence status is our own wording, translated — not the Polish placeholder
+    expect(result.source.license).toBe("to be confirmed with the city");
     expect(validateResponse("listTransitDepartures", 200, result)).toEqual([]);
   });
 });

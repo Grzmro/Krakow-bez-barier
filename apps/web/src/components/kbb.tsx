@@ -17,10 +17,21 @@ import {
   type VerdictBlockProps,
 } from "@krakow-bez-barier/ui";
 import type { VehicleAccessibility } from "@krakow-bez-barier/contracts";
-import { useMessages } from "@/i18n/client";
+import { useLocale, useMessages } from "@/i18n/client";
+import { licenseLang, sourceTextLang } from "@/lib/source-text";
 import { VEHICLE_STATUS } from "@/lib/transit";
 
 type Unconfirmed = { unconfirmed?: boolean };
+
+/**
+ * Text a source provided — its name, licence, attribution — shown untranslated, with its language marked where it
+ * differs from the page (WCAG 3.1.2). `license` set: our own translated licence wording is not marked.
+ */
+export function SourceText({ children, license }: { children: string; license?: boolean }) {
+  const locale = useLocale();
+  const lang = license ? licenseLang(children, locale) : sourceTextLang(children, locale);
+  return lang ? <span lang={lang}>{children}</span> : <>{children}</>;
+}
 
 export function StatusBadge({ unconfirmed, ...props }: Omit<StatusBadgeProps, "label" | "note"> & Unconfirmed) {
   const t = useMessages().common;

@@ -28,6 +28,11 @@
       - paragraph: Rozwiń cechę, by zobaczyć źródło i datę.
       - list:
         - listitem:
+          - 'button "Ogólna dostępność: Brak danych. Wiarygodność: Brak danych."': Ogólna dostępność Brak danych Brak danych
+          - button "Uzupełnij":
+            - img
+            - text: ""
+        - listitem:
           - 'button "Wejście — stopnie: Bez stopni. Wiarygodność: Potwierdzone."': Wejście — stopnie Bez stopni Potwierdzone
           - button "To się nie zgadza":
             - img
@@ -48,6 +53,9 @@
         - listitem:
           - 'button "Winda: Brak danych. Wiarygodność: Brak danych."': Winda Brak danych Brak danych
           - button "Uzupełnij":
+            - img
+            - text: ""
+          - button "Zgłoś awarię windy":
             - img
             - text: ""
         - listitem:
@@ -127,7 +135,7 @@
               - paragraph: /odjazd \d+:\d+ · stanowisko \d+ · pojazd nr \d+/
               - text: Niezweryfikowane
       - paragraph: "„Niezweryfikowane”: przewoźnik oznacza każdy tramwaj jako dostępny dla wózka, także wysokopodłogowe, więc nie traktujemy tego jako potwierdzenia. „Brak danych”: dane na żywo nic nie mówią o pojeździe — to nie znaczy, że jest dostępny."
-      - paragraph: "/Źródło: ZTP Kraków: GTFS i GTFS-Realtime · dane z \\d+\\.\\d+\\.\\d+, \\d+:\\d+ · licencja: Do sprawdzenia · Zarząd Transportu Publicznego w Krakowie/"
+      - paragraph: "/Źródło: ZTP Kraków: GTFS i GTFS-Realtime · dane z \\d+\\.\\d+\\.\\d+, \\d+:\\d+ · licencja: do potwierdzenia z urzędem · Zarząd Transportu Publicznego w Krakowie/"
     - region "Skąd wiemy?":
       - heading "Skąd wiemy?" [level=2]
       - paragraph: Źródła danych o tym miejscu, ich licencje i stan odświeżenia.

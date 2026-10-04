@@ -42,7 +42,8 @@ export const ZTP_SOURCE = {
   name: "ZTP Kraków: GTFS i GTFS-Realtime",
   kind: "official_open_data",
   // No licence or terms are published next to the feeds (gtfs.ztp.krakow.pl, checked 2026-10-03).
-  license: "Do sprawdzenia",
+  // Internal wording (see server/sources.ts): the API answers with "do potwierdzenia z urzędem" in the reader's language.
+  license: "to be confirmed",
   licenseConfirmed: false,
   attribution: "Zarząd Transportu Publicznego w Krakowie",
   url: "https://gtfs.ztp.krakow.pl",

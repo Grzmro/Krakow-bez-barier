@@ -23,7 +23,7 @@ export const pages: Messages["pages"] = {
     lastOk: "Last successful update",
     lastAttempt: "Last attempt",
     never: "never yet",
-    website: (name: string) => `Source website: ${name}`,
+    websiteLabel: "Source website:",
     status: {
       ok: "Working",
       stale: "Delayed",
