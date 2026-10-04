@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createApiClient, createMockFetch, type Place } from "@krakow-bez-barier/contracts";
-import { bool, fact, text } from "@/domain/fixtures";
+import { bool, fact, num, text } from "@/domain/fixtures";
 import { matchProfile } from "@/domain/matcher";
 import { PROFILE_PRESETS } from "@/domain/profiles";
 import { resolveAttributes } from "@/domain/resolver";
@@ -146,6 +146,37 @@ describe("factViews", () => {
     expect(source?.link).toBeUndefined();
   });
 
+  it("names the entrance a fact describes before its reliability, and the matcher reads its door width", () => {
+    // GIVEN a door width and an automatic door from a café's main entrance node in OSM
+    const entrance = {
+      source: { id: "osm", name: "OpenStreetMap", kind: "community", recordRef: "osm:node/3090820032@v2" },
+      entrance: "main",
+      observedAt: null,
+    } as const;
+    const attributes = resolveAttributes([fact("door_width_cm", num(153), entrance), fact("automatic_door", bool(true), entrance)]);
+    const place = { category: "restaurant", attributes } as unknown as Place;
+
+    // WHEN it is turned into card rows
+    const rows = factViews(place, "pl");
+    const door = rows.find((r) => r.attribute === "door_width_cm");
+
+    // THEN the source says which entrance it is, and the automatic door gets its row right after the door width
+    expect(door).toMatchObject({ value: "153", unit: "cm", unknown: false });
+    expect(door?.sources[0]).toMatchObject({ name: "OpenStreetMap", detail: "wejście główne · społeczność" });
+    expect(factViews(place, "en").find((r) => r.attribute === "door_width_cm")?.sources[0].detail).toBe("main entrance · community");
+    const order = rows.map((r) => r.attribute);
+    expect(order.indexOf("automatic_door")).toBe(order.indexOf("door_width_cm") + 1);
+    expect(rows.find((r) => r.attribute === "automatic_door")).toMatchObject({ label: "Drzwi automatyczne", value: "Jest" });
+    // AND the wheelchair profile's door need is met by the entrance's width
+    expect(matchProfile(place, PROFILE_PRESETS.wheelchair, "pl").needs.find((n) => n.need === "door")).toMatchObject({ state: "met" });
+  });
+
+  it("leaves the automatic door row out when no source says anything about it", () => {
+    // GIVEN a place without any fact WHEN listing its rows THEN there is no automatic door row
+    const place = { category: "restaurant", attributes: [] } as unknown as Place;
+    expect(factViews(place, "pl").map((r) => r.attribute)).not.toContain("automatic_door");
+  });
+
   it("names the city's MSIP, not OSM, when MSIP is the only source of the overall tag", () => {
     // GIVEN a public toilet whose overall tag comes only from MSIP
     const msip = fact("wheelchair_overall", text("limited"), {
@@ -254,5 +285,19 @@ describe("OSM edit link", () => {
     // WHEN building the edit link
     // THEN it points at that node on the OSM source's site
     expect(osmEditUrl(place)).toBe("https://www.openstreetmap.org/edit?node=979972831");
+  });
+
+  it("links to the place, not to the entrance node whose facts it took", async () => {
+    // GIVEN a place whose first OSM fact comes from its entrance node
+    const place = structuredClone(await demoPlace("palac-krzysztofory"));
+    const osmFacts = place.attributes.flatMap((a) => a.facts).filter((f) => f.source.recordRef?.includes("node/"));
+    if (osmFacts.length === 0) throw new Error("demo place has no OSM fact");
+    const entranceFact = { ...osmFacts[0], entrance: "main" as const, source: { ...osmFacts[0].source, recordRef: "osm:node/42@v1" } };
+    place.attributes.unshift({ attribute: "automatic_door", state: "known", status: "unverified", value: entranceFact.value, facts: [entranceFact] });
+
+    // WHEN building the edit link
+    // THEN it skips the entrance and points at the place's own node
+    expect(osmEditUrl(place)).not.toContain("node=42");
+    expect(osmEditUrl(place)).toBeDefined();
   });
 });

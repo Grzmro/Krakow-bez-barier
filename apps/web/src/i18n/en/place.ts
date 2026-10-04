@@ -166,6 +166,13 @@ export const place: Messages["place"] = {
   communityConfirmed: "confirmed by the community",
   sourceAsOf: (date: string) => `as of ${date} per the source`,
   sourcePage: "Source page",
+  entrance: {
+    main: "main entrance",
+    secondary: "side entrance",
+    service: "service entrance",
+    shop: "shop entrance",
+    unspecified: "one of the entrances",
+  },
   category: {
     restaurant: "Restaurant",
     museum: "Museum",

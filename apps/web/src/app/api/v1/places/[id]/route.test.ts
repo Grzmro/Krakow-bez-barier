@@ -107,9 +107,9 @@ describe("GET /api/v1/places/{id}", () => {
     // WHEN the place is read
     const { status, body } = await get(palac.id);
 
-    // THEN all 19 attributes are listed, the toilet is a conflict with both facts, the rest is explicit "no data"
+    // THEN all 20 attributes are listed, the toilet is a conflict with both facts, the rest is explicit "no data"
     expect(status).toBe(200);
-    expect(body.attributes).toHaveLength(19);
+    expect(body.attributes).toHaveLength(20);
     const toilet = attribute(body, "toilet_accessible");
     expect(toilet).toMatchObject({ state: "conflict", status: "conflict", value: null });
     expect(toilet?.facts.map((f) => f.source.id).sort()).toEqual(["msip", "osm"]);

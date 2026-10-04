@@ -245,4 +245,29 @@ describe.skipIf(!url)("drizzleStore (needs TEST_DATABASE_URL with migrations app
     const [s] = await db.select().from(sources).where(eq(sources.id, meta.id));
     expect(s).toMatchObject({ refreshStatus: "outage", lastSuccessAt: at(3) });
   });
+
+  it("stores an entrance fact under its entrance and supersedes it only when entrances were read", async () => {
+    // GIVEN the place with a main entrance's door width beside its own fact
+    const door = {
+      attribute: "door_width_cm" as const,
+      value: { kind: "number" as const, number: 90, unit: "cm" as const },
+      recordRef: "store-test:node/77@v1",
+      observedAt: null,
+      evidence: null,
+      entrance: "main" as const,
+    };
+    const withDoor = place("yes", "store-test:node/1@v3", { entrancesChecked: true });
+    withDoor.facts.push(door);
+    // WHEN applying it
+    await store.applyPlace(meta, withDoor, at(6));
+    // THEN the door fact is stored with the entrance subject
+    const stored = (await activeFacts()).find((f) => f.attribute === "door_width_cm");
+    expect(stored).toMatchObject({ subject: "entrance:main", sourceRecordRef: "store-test:node/77@v1" });
+    // WHEN a run could not read entrances THEN the door fact stays
+    await store.applyPlace(meta, place("yes", "store-test:node/1@v3"), at(7));
+    expect((await activeFacts()).some((f) => f.attribute === "door_width_cm")).toBe(true);
+    // WHEN a run read entrances and the place no longer takes one THEN the door fact is superseded
+    await store.applyPlace(meta, place("yes", "store-test:node/1@v3", { entrancesChecked: true }), at(8));
+    expect((await activeFacts()).some((f) => f.attribute === "door_width_cm")).toBe(false);
+  });
 });

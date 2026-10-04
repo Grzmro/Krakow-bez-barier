@@ -1,6 +1,7 @@
 import type {
   AccessibilityAttribute,
   Category,
+  FactEntrance,
   FactValue,
   Reliability,
   SourceKind,
@@ -29,6 +30,8 @@ export type MappedFact = {
   recordRef: string;
   observedAt: Date | null;
   evidence: FactEvidence | null;
+  /** Set when the fact describes one entrance of the place (`recordRef` is then the entrance's record). */
+  entrance?: FactEntrance;
 };
 
 export type MappedPlace = {
@@ -41,6 +44,11 @@ export type MappedPlace = {
   /** External ref of a place from another source that this record describes (e.g. `osm:way/1`); its facts attach there when it exists. */
   sameAs?: string;
   facts: MappedFact[];
+  /**
+   * The source's entrances were read for this place: an entrance fact it no longer carries is superseded. False or
+   * absent when they could not be read, so a failed entrance fetch keeps the last entrance facts.
+   */
+  entrancesChecked?: boolean;
 };
 
 export type MapResult = {

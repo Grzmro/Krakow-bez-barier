@@ -1,4 +1,4 @@
-import type { OutageEquipment, Reliability, components } from "@krakow-bez-barier/contracts";
+import type { FactEntrance, OutageEquipment, Reliability, components } from "@krakow-bez-barier/contracts";
 
 type SourceKind = components["schemas"]["SourceKind"];
 type SourceRefreshStatus = components["schemas"]["SourceRefreshStatus"];
@@ -179,6 +179,14 @@ export const place = {
   communityConfirmed: "potwierdzone przez społeczność",
   sourceAsOf: (date: string) => `stan na ${date} wg źródła`,
   sourcePage: "Strona źródła",
+  // Which entrance a source's fact describes (OSM `entrance=*`), shown before its reliability.
+  entrance: {
+    main: "wejście główne",
+    secondary: "wejście boczne",
+    service: "wejście służbowe",
+    shop: "wejście do lokalu",
+    unspecified: "jedno z wejść",
+  } satisfies Record<FactEntrance, string>,
   // Fallback only: labels come from GET /categories.
   category: {
     restaurant: "Restauracja",

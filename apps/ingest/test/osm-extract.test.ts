@@ -8,6 +8,7 @@ import { krakow } from "../src/cities/krakow";
 import { osm } from "../src/adapters/osm";
 import { downloadExtract, loadOsmExtract, readOsmExtract } from "../src/adapters/osm-extract";
 import { isRetryable } from "../src/errors";
+import { attachEntrances } from "../src/adapters/osm-entrances";
 import { mapOsmElement, prepareOsmElements, type OsmElement } from "../src/adapters/osm-map";
 import { writeOsmPbf } from "./helpers/write-osm-pbf";
 
@@ -111,6 +112,37 @@ describe("readOsmExtract", () => {
     expect(elements.some((e) => e.id === 41)).toBe(false);
     expect(prepared).toEqual([{ type: "node", id: 30, lat: 50.05, lon: 19.94, tags: { public_transport: "platform", shelter: "yes" }, relationName: "Teatr Bagatela" }]);
     expect(mapOsmElement(prepared[0]).place).toMatchObject({ name: "Teatr Bagatela", category: "transit_stop" });
+  });
+
+  it("reads tagged entrances with the ways and multipolygons they lie on, so a venue inside takes its entrance", async () => {
+    // GIVEN a café node inside a building multipolygon whose closed outer way carries a tagged main entrance,
+    // and an untagged entrance elsewhere on the way
+    const file = path.join(dir, "entrances.osm.pbf");
+    await writeFile(
+      file,
+      writeOsmPbf({
+        nodes: [
+          { id: 50, lat: 50.05, lon: 19.94, version: 2, tags: { entrance: "main", wheelchair: "yes", step_count: "0" } },
+          { id: 51, lat: 50.05, lon: 19.941 },
+          { id: 52, lat: 50.051, lon: 19.941, tags: { entrance: "service" } },
+          { id: 53, lat: 50.051, lon: 19.94 },
+          { id: 54, lat: 50.0505, lon: 19.9405, tags: { amenity: "cafe", name: "Kawiarnia w środku" } },
+        ],
+        ways: [{ id: 60, refs: [50, 51, 52, 53, 50] }],
+        relations: [{ id: 70, members: [{ type: "way", ref: 60, role: "outer" }], tags: { type: "multipolygon", building: "yes" } }],
+      }),
+    );
+    // WHEN reading it and attaching the entrances
+    const { elements, entrances } = await readOsmExtract(file, demo.bbox, categories);
+    const { places } = attachEntrances(prepareOsmElements(elements), entrances);
+    // THEN only the tagged entrance is read, the relation lies on it, and the café takes its facts
+    expect(entrances.entrances.map((e) => e.id)).toEqual([50]);
+    expect(entrances.outlines.map((o) => `${o.type}/${o.id}`)).toEqual(["way/60", "relation/70"]);
+    expect(places[0].entrance?.id).toBe(50);
+    expect(mapOsmElement(places[0]).place?.facts).toMatchObject([
+      { attribute: "wheelchair_overall", recordRef: "osm:node/50@v2", entrance: "main" },
+      { attribute: "step_count", value: { kind: "number", number: 0, unit: "count" }, entrance: "main" },
+    ]);
   });
 });
 

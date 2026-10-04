@@ -1,5 +1,7 @@
 import { and, eq, sql } from "drizzle-orm";
 import {
+  entranceOfSubject,
+  factSubject,
   facts,
   ingestionRuns,
   places,
@@ -94,6 +96,7 @@ export function drizzleStore(db: Db): IngestStore {
     mapped: MappedFact[],
     refs: Set<string>,
     fetchedAt: Date,
+    entrancesChecked: boolean,
   ): Promise<number> {
     const active = await tx
       .select()
@@ -101,10 +104,11 @@ export function drizzleStore(db: Db): IngestStore {
       .where(and(eq(facts.placeId, placeId), eq(facts.sourceId, meta.id), eq(facts.status, "active")));
     let changed = 0;
 
+    const sameFact = (a: (typeof active)[number], f: MappedFact) =>
+      baseRef(a.sourceRecordRef) === baseRef(f.recordRef) && a.subject === factSubject(f.entrance) && a.attribute === f.attribute;
+
     for (const f of mapped) {
-      const existing = active.find(
-        (a) => baseRef(a.sourceRecordRef) === baseRef(f.recordRef) && a.subject === "place" && a.attribute === f.attribute,
-      );
+      const existing = active.find((a) => sameFact(a, f));
       if (existing && sameValue(existing.value, f.value)) {
         await tx
           .update(facts)
@@ -126,6 +130,7 @@ export function drizzleStore(db: Db): IngestStore {
       }
       await tx.insert(facts).values({
         placeId,
+        subject: factSubject(f.entrance),
         attribute: f.attribute,
         value: f.value,
         sourceId: meta.id,
@@ -138,10 +143,11 @@ export function drizzleStore(db: Db): IngestStore {
       changed += 1;
     }
 
-    // A tag that disappeared from the record: the fact is superseded, never deleted.
+    // A tag that disappeared from the record, or an entrance the place no longer takes: the fact is superseded, never deleted.
     for (const a of active) {
-      const stillThere = mapped.some((f) => f.attribute === a.attribute && baseRef(f.recordRef) === baseRef(a.sourceRecordRef));
-      if (!stillThere && refs.has(baseRef(a.sourceRecordRef))) {
+      const stillThere = mapped.some((f) => sameFact(a, f));
+      const entrance = entranceOfSubject(a.subject) !== null;
+      if (!stillThere && (entrance ? entrancesChecked : refs.has(baseRef(a.sourceRecordRef)))) {
         await tx.update(facts).set({ status: "superseded", supersededAt: fetchedAt }).where(eq(facts.id, a.id));
         changed += 1;
       }
@@ -228,7 +234,7 @@ export function drizzleStore(db: Db): IngestStore {
             .where(eq(places.id, placeId));
         }
         const refs = new Set([baseRef(place.externalRef)]);
-        return applyFacts(tx, meta, placeId, place.facts, refs, fetchedAt);
+        return applyFacts(tx, meta, placeId, place.facts, refs, fetchedAt, place.entrancesChecked === true);
       });
     },
 

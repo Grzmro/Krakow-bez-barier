@@ -22,6 +22,7 @@ export const CARD_ATTRIBUTES = [
   "step_height_cm",
   "threshold_cm",
   "door_width_cm",
+  "automatic_door",
   "ramp",
   "lift",
   "levels",
@@ -117,6 +118,7 @@ function factSource(fact: AccessibilityFact, withValue: boolean, locale: Locale)
   const t = m.place;
   const confirmations = fact.evidence?.confirmations ?? 0;
   const detail = [
+    fact.entrance ? t.entrance[fact.entrance] : null,
     t.level[fact.reliability],
     fact.confirmedAt ? t.lastConfirmed(formatDate(fact.confirmedAt, locale)) : null,
     fact.observedAt && !fact.confirmedAt ? t.sourceAsOf(formatDate(fact.observedAt, locale)) : null,
@@ -144,12 +146,16 @@ function factSource(fact: AccessibilityFact, withValue: boolean, locale: Locale)
   };
 }
 
+/** Rows the card lists only when a source says something: few sources know them, so "Brak danych" there is noise. */
+const ONLY_WITH_FACTS: readonly AccessibilityAttribute[] = ["automatic_door"];
+
 /** The attributes the place card lists for this place, in order — shared by the card and the widget API. */
 export function cardRows(place: Pick<Place, "category" | "attributes">): AccessibilityAttribute[] {
   const byAttribute = new Map(place.attributes.map((a) => [a.attribute, a]));
   const steps = byAttribute.get("step_count");
   const stepsKnownZero = steps?.state === "known" && steps.value?.kind === "number" && steps.value.number === 0;
   return cardAttributes(place.category).filter((attribute) => {
+    if (ONLY_WITH_FACTS.includes(attribute)) return (byAttribute.get(attribute)?.facts.length ?? 0) > 0;
     // With a known step-free entrance, step height and ramp are moot unless a source says something.
     if (!stepsKnownZero) return true;
     if (attribute !== "ramp" && attribute !== "step_height_cm") return true;
@@ -223,9 +229,9 @@ export function parseOsmRecordRef(recordRef: string): OsmRecord | undefined {
   return match ? { type: match[1] as OsmRecord["type"], id: match[2] } : undefined;
 }
 
-/** "Edytuj w OpenStreetMap" link for the place's OSM object, built from the OSM source's own URL. */
+/** "Edytuj w OpenStreetMap" link for the place's OSM object, built from the OSM source's own URL — never its entrance's. */
 export function osmEditUrl(place: Place): string | undefined {
-  for (const fact of place.attributes.flatMap((a) => a.facts)) {
+  for (const fact of place.attributes.flatMap((a) => a.facts).filter((f) => !f.entrance)) {
     const record =
       fact.source.kind === "community" && fact.source.recordRef ? parseOsmRecordRef(fact.source.recordRef) : undefined;
     const base = record ? place.sources.find((s) => s.id === fact.source.id)?.url : undefined;

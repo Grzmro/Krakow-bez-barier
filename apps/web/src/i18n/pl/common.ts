@@ -65,6 +65,7 @@ export const common = {
     stairs: "Schody na trasie",
     tactile_paving: "Oznaczenia dotykowe",
     shelter: "Wiata",
+    automatic_door: "Drzwi automatyczne",
   } satisfies Record<AccessibilityAttribute, string>,
   unconfirmed: "niepotwierdzone",
   reliability: {

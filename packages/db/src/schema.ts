@@ -1,6 +1,7 @@
 import type {
   AccessibilityAttribute,
   Category,
+  FactEntrance,
   FactStatus,
   FactValue,
   OutageEquipment,
@@ -51,6 +52,15 @@ export type FactEvidence = {
   /** Number of anonymous "still true" confirmations. */
   confirmations?: number;
 };
+
+const ENTRANCE_SUBJECT = "entrance:";
+
+/** `facts.subject` of a fact: `place`, or `entrance:<kind>` for a fact about one entrance of the place. */
+export const factSubject = (entrance?: FactEntrance | null): string => (entrance ? `${ENTRANCE_SUBJECT}${entrance}` : "place");
+
+/** The entrance a `facts.subject` names; null for the place as a whole. */
+export const entranceOfSubject = (subject: string): FactEntrance | null =>
+  subject.startsWith(ENTRANCE_SUBJECT) ? (subject.slice(ENTRANCE_SUBJECT.length) as FactEntrance) : null;
 
 export const sources = pgTable("sources", {
   id: text("id").primaryKey(),
