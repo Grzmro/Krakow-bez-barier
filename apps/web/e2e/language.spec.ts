@@ -67,7 +67,7 @@ test("the language switch turns the demo path into English, remembers it and set
 
   // AND the place card is English too, while the place name and sources stay as they are
   await page.goto("/miejsca/hotel-przyklad");
-  await expect(page).toHaveTitle("Place card · Kraków bez barier");
+  await expect(page).toHaveTitle("Hotel Przykład · Kraków bez barier");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Hotel Przykład");
   await expect(page.getByRole("heading", { name: "Facts" })).toBeVisible();
   await expect(page.getByRole("button", { name: "This isn't right" }).first()).toBeVisible();
@@ -80,7 +80,7 @@ test("the language switch turns the demo path into English, remembers it and set
   await chooseLanguage(page, "Menu", "Polski");
   await expect(page.locator("html")).toHaveAttribute("lang", "pl");
   await expect(page.getByRole("heading", { name: "Fakty" })).toBeVisible();
-  await expect(page).toHaveTitle("Karta miejsca · Kraków bez barier");
+  await expect(page).toHaveTitle("Hotel Przykład · Kraków bez barier");
 });
 
 test("an info page renders in English on the server", async ({ page, expectAccessible }) => {

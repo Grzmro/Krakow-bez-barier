@@ -122,13 +122,33 @@ test("Udostępnij copies the permanent link to the card", async ({ page, context
   expect(new URL(copied).pathname).toBe("/miejsca/palac-krzysztofory");
 });
 
-test("an unknown place shows a not-found message", async ({ page }) => {
+test("an unknown place answers 404 with its own title and a way back", async ({ page, expectAccessible }) => {
   // GIVEN a link to a place that doesn't exist
-  await page.goto("/miejsca/nie-ma-takiego");
+  const response = await page.goto("/miejsca/nie-ma-takiego");
 
-  // THEN the visitor is told so and can go back to search
+  // THEN it is a real 404, the tab says what happened, and the visitor can go back to search
+  expect(response?.status()).toBe(404);
+  await expect(page).toHaveTitle("Nie znaleźliśmy tego miejsca · Kraków bez barier");
   await expect(page.getByRole("heading", { level: 1, name: "Nie znaleźliśmy tego miejsca" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Wróć do wyszukiwania" })).toBeVisible();
+  await expectAccessible();
+});
+
+test("a place card's title names the place", async ({ page }) => {
+  // GIVEN a link to an existing place
+  await page.goto("/miejsca/sukiennice");
+
+  // THEN the browser tab and history carry the place's name, not a generic one
+  await expect(page).toHaveTitle("Sukiennice · Kraków bez barier");
+});
+
+test("an unknown address answers 404 with a page title", async ({ page }) => {
+  // GIVEN an address no page has
+  const response = await page.goto("/nie-ma-takiej-strony");
+
+  // THEN the tab title says the page doesn't exist
+  expect(response?.status()).toBe(404);
+  await expect(page).toHaveTitle("Nie ma takiej strony · Kraków bez barier");
 });
 
 test("a long source URL wraps inside its card, so the page and the report form keep the phone's width", async ({ page, evidence }) => {

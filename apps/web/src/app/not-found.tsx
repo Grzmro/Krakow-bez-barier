@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getMessages } from "@/i18n/server";
 import { routes } from "@/lib/routes";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await getMessages();
+  return { title: `${m.pages.notFound.title} · ${m.common.app.name}` };
+}
 
 export default async function NotFound() {
   const m = await getMessages();

@@ -56,6 +56,7 @@ import { routes } from "@/lib/routes";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { OutageBanners } from "./outage-banners";
 import { OutageConfirmDrawer } from "./outage-confirm-drawer";
+import { PlaceNotFound } from "./place-not-found";
 import { ReportDrawer, type ReportMode, type ReportSubmission } from "./report-drawer";
 import { TransitSection } from "./transit-section";
 
@@ -105,17 +106,7 @@ export function PlaceScreen({ id }: { id: string }) {
       </div>
     );
   }
-  if (!query.data) {
-    return (
-      <div className="space-y-3 py-10">
-        <h1 className="font-display text-h1 font-bold">{t.notFound}</h1>
-        <p className="text-body text-muted-foreground">{t.notFoundHint}</p>
-        <Link href={routes.home} className={buttonVariants({ variant: "outline" })}>
-          {t.goHome}
-        </Link>
-      </div>
-    );
-  }
+  if (!query.data) return <PlaceNotFound t={t} />;
   return <PlaceCard place={query.data} profile={settings.profile} />;
 }
 
