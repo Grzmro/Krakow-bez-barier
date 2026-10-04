@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { homeView, isSearching, searchOrigin } from "./home-start";
+import { escapeStep, homeView, isSearching, panelAfterAsk, searchOrigin } from "./home-start";
 
 const start = { q: "", category: null, features: [], nearby: null };
 const rynek: [number, number] = [19.9372, 50.0617];
@@ -77,6 +77,44 @@ describe("homeView", () => {
     const cleared = homeView({ ...start, q: "" }, origin);
     // THEN the start view is back
     expect(cleared).toMatchObject({ pins: false, panel: "peek" });
+  });
+});
+
+describe("panelAfterAsk", () => {
+  const pulledUp = { expanded: true, stowed: true, selectedId: "p1" };
+
+  it("collapses the sheet and drops the selection when the search is cleared", () => {
+    // GIVEN results with a place selected and the sheet pulled up
+    // WHEN the search is cleared (searching goes true -> false)
+    const next = panelAfterAsk(true, false, pulledUp);
+    // THEN the start state is back: sheet down, slid out, nothing selected
+    expect(next).toEqual({ expanded: false, stowed: false, selectedId: null });
+  });
+
+  it("starts the results slid out and unselected when something is asked", () => {
+    // GIVEN the peek the user had hidden
+    // WHEN a category is picked (false -> true)
+    const next = panelAfterAsk(false, true, { ...pulledUp, selectedId: null });
+    // THEN the results panel is not hidden
+    expect(next).toEqual({ expanded: false, stowed: false, selectedId: null });
+  });
+
+  it("keeps the user's own sheet state while the search stays the same", () => {
+    // GIVEN a selection inside results
+    // WHEN another keystroke leaves searching true
+    // THEN nothing is reset
+    expect(panelAfterAsk(true, true, pulledUp)).toBe(pulledUp);
+  });
+});
+
+describe("escapeStep", () => {
+  it("drops the selected place first, then collapses the sheet, then does nothing", () => {
+    // GIVEN a selected place and a pulled-up sheet
+    // WHEN Escape is pressed repeatedly
+    // THEN each press undoes one layer
+    expect(escapeStep({ expanded: true, selectedId: "p1" })).toBe("deselect");
+    expect(escapeStep({ expanded: true, selectedId: null })).toBe("collapse");
+    expect(escapeStep({ expanded: false, selectedId: null })).toBeNull();
   });
 });
 

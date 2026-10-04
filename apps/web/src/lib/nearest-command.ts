@@ -97,8 +97,29 @@ export function parseNearestCommand(text: string, categories: readonly CommandCa
     if (words.some((word) => matches(word, stem))) return { kind: "nearest", command: withQuick({ feature }) };
   }
   for (const category of categories) {
-    const stems = [...(CATEGORY_STEMS[category.id] ?? []), ...labelStems(category)];
-    if (words.some((word) => stems.some((stem) => matches(word, stem)))) return { kind: "nearest", command: withQuick({ category: category.id }) };
+    if (words.some((word) => stemsOf(category).some((stem) => matches(word, stem)))) return { kind: "nearest", command: withQuick({ category: category.id }) };
   }
   return { kind: "unknown" };
+}
+
+const stemsOf = (category: CommandCategory) => [...(CATEGORY_STEMS[category.id] ?? []), ...labelStems(category)];
+
+// Shortest typed word that already suggests a category ("res" → restaurants).
+const MIN_SUGGEST = 3;
+
+/**
+ * The categories a typed text names: "restauracja", "restauracje", "restaurant" or "kawiarnia" all give the
+ * restaurant category (synonyms and inflections via the same stems as the nearest command). `exact` is a whole
+ * word that names the category, so Enter can pick it; `suggestions` also include a word still being typed
+ * ("resta"). Every word must name the category, so a place name such as "Restauracja Wierzynek" stays a plain search.
+ */
+export function matchCategories(text: string, categories: readonly CommandCategory[]): { exact: CommandCategory | null; suggestions: CommandCategory[] } {
+  const words = tokens(text);
+  if (!words.length || words.some((word) => word.length < MIN_SUGGEST && !EXACT.has(word))) return { exact: null, suggestions: [] };
+  const named = (category: CommandCategory, word: string) => stemsOf(category).some((stem) => matches(word, stem));
+  const typing = (category: CommandCategory, word: string) =>
+    word.length >= MIN_SUGGEST && stemsOf(category).some((stem) => !EXACT.has(stem) && stem.startsWith(word));
+  const exact = categories.filter((category) => words.every((word) => named(category, word)));
+  const suggestions = categories.filter((category) => words.every((word) => named(category, word) || typing(category, word)));
+  return { exact: exact[0] ?? null, suggestions };
 }

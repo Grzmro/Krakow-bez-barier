@@ -1,6 +1,6 @@
 import { categories } from "@krakow-bez-barier/contracts";
 import { describe, expect, it } from "vitest";
-import { type NearestParse, parseNearestCommand } from "./nearest-command";
+import { matchCategories, type NearestParse, parseNearestCommand } from "./nearest-command";
 
 const list = categories.map(({ id, label, singularLabel }) => ({ id, label, singularLabel }));
 const parse = (text: string) => parseNearestCommand(text, list);
@@ -66,5 +66,47 @@ describe("parseNearestCommand", () => {
     expect(parse("najbliższy smok")).toEqual({ kind: "unknown" });
     expect(parse("najbliższe miejsce")).toEqual({ kind: "unknown" });
     expect(parse("najbliższy przewijak")).toEqual({ kind: "unknown" });
+  });
+});
+
+describe("matchCategories", () => {
+  it.each([
+    ["restauracja", "restaurant"],
+    ["restauracje", "restaurant"],
+    ["Restaurant", "restaurant"],
+    ["kawiarnia", "restaurant"],
+    ["muzeum", "museum"],
+    ["muzea", "museum"],
+    ["apteka", "pharmacy"],
+    ["toaleta", "toilet"],
+    ["wc", "toilet"],
+  ])("reads %j as the %s category, exactly", (text, id) => {
+    // GIVEN a typed word naming a category, in Polish or English, in any inflection
+    // WHEN it is matched against the category list
+    const { exact, suggestions } = matchCategories(text, list);
+
+    // THEN it is an exact hit and the only suggestion
+    expect(exact?.id).toBe(id);
+    expect(suggestions.map((c) => c.id)).toEqual([id]);
+  });
+
+  it("suggests a category while the word is still being typed, without picking it on Enter", () => {
+    // GIVEN half a word
+    // WHEN it is matched
+    const { exact, suggestions } = matchCategories("resta", list);
+
+    // THEN the category is suggested but not an exact hit
+    expect(suggestions.map((c) => c.id)).toContain("restaurant");
+    expect(exact).toBeNull();
+  });
+
+  it.each(["Restauracja Wierzynek", "Wawel", "", "re", "xyzzy"])("leaves %j to the place-name search", (text) => {
+    // GIVEN a place name, nothing, or something that is no category
+    // WHEN it is matched
+    const { exact, suggestions } = matchCategories(text, list);
+
+    // THEN no category is offered
+    expect(exact).toBeNull();
+    expect(suggestions).toEqual([]);
   });
 });

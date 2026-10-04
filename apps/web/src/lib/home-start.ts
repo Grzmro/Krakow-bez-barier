@@ -40,6 +40,23 @@ export function homeView(ask: HomeAsk, origin: Pick<SearchOrigin, "source">) {
   };
 }
 
+/** The sheet's own state: how far it is pulled up, whether the user hid it, and the highlighted place. */
+export type PanelUi = { expanded: boolean; stowed: boolean; selectedId: string | null };
+
+/**
+ * Entering or leaving the search starts the panel over: results and the start peek each come back slid out,
+ * not pulled up, with nothing selected. Without it a place picked in the results keeps the sheet tall and
+ * highlighted after the search was cleared.
+ */
+export function panelAfterAsk(wasSearching: boolean, searching: boolean, ui: PanelUi): PanelUi {
+  return wasSearching === searching ? ui : { expanded: false, stowed: false, selectedId: null };
+}
+
+/** Escape (outside a dialog or popup): first drop the selected place, then pull the sheet back down. */
+export function escapeStep({ expanded, selectedId }: Pick<PanelUi, "expanded" | "selectedId">): "deselect" | "collapse" | null {
+  return selectedId ? "deselect" : expanded ? "collapse" : null;
+}
+
 /** Where a search is centred: the device, a point the user chose, or the map's centre (never called "near you"). */
 export type SearchSource = "user" | "chosen" | "map";
 
