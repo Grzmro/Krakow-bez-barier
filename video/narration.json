@@ -1,0 +1,128 @@
+[
+  {
+    "id": "hook",
+    "kind": "card",
+    "sentences": [
+      "W Krakowie mieszka ponad sto jedenaście tysięcy osób z niepełnosprawnością.",
+      "I ponad sto osiemdziesiąt trzy tysiące osób w wieku emerytalnym.",
+      "Dla wielu z nich jeden schodek przy wejściu przekreśla cały wieczór."
+    ]
+  },
+  {
+    "id": "persona",
+    "kind": "card",
+    "sentences": [
+      "Poznaj Annę. Jeździ na wózku.",
+      "Dziś chce zjeść kolację w restauracji, a potem zajrzeć do muzeum."
+    ]
+  },
+  {
+    "id": "start",
+    "kind": "phone",
+    "sentences": [
+      "Otwiera Kraków bez barier. Na start: czysta mapa i najbliższe miejsca.",
+      "Jednym dotknięciem wybiera profil Wózek. Bez konta, profil zostaje w jej telefonie."
+    ]
+  },
+  {
+    "id": "search",
+    "kind": "phone",
+    "sentences": [
+      "Wpisuje: restauracja.",
+      "Aplikacja od razu podpowiada kategorię i mówi, ile miejsc znalazła.",
+      "Przy każdym miejscu jest słowo, nie kolor. Jeśli czegoś nie wiemy, mówimy to wprost."
+    ]
+  },
+  {
+    "id": "toilet",
+    "kind": "phone",
+    "sentences": [
+      "W drodze przyda się toaleta.",
+      "Jedno dotknięcie: najbliższa dostosowana, sto metrów dalej.",
+      "Lista miasta ma ponad rok, więc aplikacja uprzedza, że coś mogło się zmienić."
+    ]
+  },
+  {
+    "id": "card",
+    "kind": "phone",
+    "sentences": [
+      "Na karcie Anna sprawdza, skąd to wiemy.",
+      "Przy każdej cesze: źródło, data i wiarygodność.",
+      "Czego nikt nie opisał, ma etykietę „brak danych”. Nigdy „dostępne”."
+    ]
+  },
+  {
+    "id": "report",
+    "kind": "phone",
+    "sentences": [
+      "Winda działa, więc Anna potwierdza: nadal aktualne.",
+      "A gdy coś się nie zgadza, zgłasza to w kilka sekund. Bez konta i bez e-maila."
+    ]
+  },
+  {
+    "id": "museum",
+    "kind": "phone",
+    "sentences": [
+      "Po kolacji muzeum: Hangar Czyżyny.",
+      "Winda i toaleta pochodzą z deklaracji dostępności miasta, z cytatem i datą.",
+      "Szerokości drzwi nikt nie podał, więc aplikacja jej nie zgaduje."
+    ]
+  },
+  {
+    "id": "share",
+    "kind": "phone",
+    "sentences": [
+      "Anna wysyła kartę bratu: link albo kod QR.",
+      "Jej profil potrzeb zostaje u niej."
+    ]
+  },
+  {
+    "id": "route",
+    "kind": "desktop",
+    "sentences": [
+      "Na komputerze Anna planuje dojazd z dworca.",
+      "Trasa dla wózka: czas, długość i każdy odcinek.",
+      "Najkrótszy wariant ma schody, więc jest wyraźnie oznaczony."
+    ]
+  },
+  {
+    "id": "go",
+    "kind": "desktop",
+    "sentences": [
+      "Ruszamy. Prowadzenie krok po kroku, także tekstem i głosem."
+    ]
+  },
+  {
+    "id": "trust",
+    "kind": "desktop",
+    "sentences": [
+      "Skąd to wszystko? Każde źródło ma licencję i datę aktualizacji.",
+      "Raport jakości pokazuje wprost, gdzie brakuje informacji."
+    ]
+  },
+  {
+    "id": "business",
+    "kind": "desktop",
+    "sentences": [
+      "Hotel osadza swoją kartę na stronie jednym kodem, a systemy rezerwacji biorą to samo przez API.",
+      "Płacą obiekty i partnerzy. Mieszkańcy i turyści korzystają za darmo.",
+      "Kolejne miasto to tylko konfiguracja."
+    ]
+  },
+  {
+    "id": "keyboard",
+    "kind": "desktop",
+    "sentences": [
+      "Całość obsłużysz samą klawiaturą, a lista to pełna wersja mapy.",
+      "Co jeszcze poprawiamy, opisuje deklaracja dostępności."
+    ]
+  },
+  {
+    "id": "close",
+    "kind": "card",
+    "sentences": [
+      "Kraków bez barier.",
+      "Zanim wyjdziesz z domu, wiesz, gdzie wjedziesz."
+    ]
+  }
+]
