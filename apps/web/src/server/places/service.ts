@@ -14,6 +14,7 @@ import type {
   SummaryChip,
 } from "@krakow-bez-barier/contracts";
 import { categories, hiddenCategoryIds } from "@krakow-bez-barier/contracts";
+import { entranceOfSubject } from "@krakow-bez-barier/db";
 import { openapiDocument } from "@krakow-bez-barier/contracts/openapi";
 import { defaultLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
@@ -70,10 +71,12 @@ const iso = (date: Date | null) => (date ? date.toISOString() : null);
 
 export function toFact(record: FactRecord, now: Date): AccessibilityFact {
   const { evidence } = record;
+  const entrance = entranceOfSubject(record.subject);
   const fact: AccessibilityFact = {
     id: record.id,
     attribute: record.attribute,
     value: record.value,
+    ...(entrance ? { entrance } : {}),
     unit: record.unit,
     source: {
       id: record.source.id,

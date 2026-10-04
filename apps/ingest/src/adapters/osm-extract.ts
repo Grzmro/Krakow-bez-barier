@@ -8,7 +8,8 @@ import type { CategoryConfig } from "@krakow-bez-barier/contracts";
 import { createOSMStream } from "osm-pbf-parser-node";
 import type { FetchContext } from "../adapter";
 import { SourceHttpError } from "../errors";
-import { isNamingRelation, matchesRule, namingRelations, type OsmElement } from "./osm-map";
+import type { OsmEntrances, OsmOutline } from "./osm-entrances";
+import { ENTRANCE_TAGS, isNamingRelation, matchesRule, namingRelations, type OsmElement } from "./osm-map";
 
 type Bbox = FetchContext["city"]["bbox"];
 type Box = { south: number; west: number; north: number; east: number };
@@ -20,7 +21,7 @@ type PbfWay = { type: "way"; id: number; refs: number[]; tags?: Record<string, s
 type PbfRelation = {
   type: "relation";
   id: number;
-  members: { type: "node" | "way" | "relation"; ref: number }[];
+  members: { type: "node" | "way" | "relation"; ref: number; role?: string }[];
   tags?: Record<string, string>;
   info?: PbfInfo;
 };
@@ -28,6 +29,8 @@ type PbfItem = PbfHeader | PbfNode | PbfWay | PbfRelation;
 
 export type OsmExtract = {
   elements: OsmElement[];
+  /** Entrance nodes with an accessibility tag and the outlines they lie on, as `buildEntranceQuery` reads them. */
+  entrances: OsmEntrances;
   /** When the extract's data was current: the replication timestamp in the PBF header, else the download's Last-Modified. */
   extractedAt: Date | null;
 };
@@ -63,6 +66,12 @@ function extend(box: Box | null, lat: number, lon: number): Box {
 
 const union = (a: Box | null, b: Box): Box => extend(extend(a, b.south, b.west), b.north, b.east);
 
+const isTaggedEntrance = (tags: Record<string, string> | undefined) =>
+  tags?.entrance !== undefined && ENTRANCE_TAGS.some((t) => tags[t] !== undefined);
+
+const isClosed = (line: [number, number][]) =>
+  line.length > 3 && line[0][0] === line[line.length - 1][0] && line[0][1] === line[line.length - 1][1];
+
 const toElement = (item: PbfNode | PbfWay | PbfRelation, center?: { lat: number; lon: number }): OsmElement => ({
   type: item.type,
   id: item.id,
@@ -80,7 +89,7 @@ export async function readOsmExtract(
   file: string,
   bbox: Bbox,
   categories: readonly CategoryConfig[],
-): Promise<{ elements: OsmElement[]; replicatedAt: Date | null }> {
+): Promise<{ elements: OsmElement[]; entrances: OsmEntrances; replicatedAt: Date | null }> {
   const around: Box = {
     south: bbox.south - NODE_MARGIN_DEG,
     north: bbox.north + NODE_MARGIN_DEG,
@@ -90,6 +99,10 @@ export async function readOsmExtract(
   const nodes = new Map<number, [number, number]>();
   const ways = new Map<number, Box>();
   const elements: OsmElement[] = [];
+  const entranceNodes: OsmElement[] = [];
+  const entranceIds = new Set<number>();
+  const entranceWays = new Map<number, OsmOutline>();
+  const outlines: OsmOutline[] = [];
   const naming = namingRelations(categories);
   let replicatedAt: Date | null = null;
 
@@ -103,6 +116,10 @@ export async function readOsmExtract(
       if (!inside(item.lat, item.lon, around)) continue;
       nodes.set(item.id, [item.lat, item.lon]);
       if (inside(item.lat, item.lon, bbox) && matchesAny(item.tags, categories)) elements.push(toElement(item));
+      if (inside(item.lat, item.lon, bbox) && isTaggedEntrance(item.tags)) {
+        entranceNodes.push(toElement(item));
+        entranceIds.add(item.id);
+      }
     } else if (item.type === "way") {
       let box: Box | null = null;
       let touchesBbox = false;
@@ -114,8 +131,30 @@ export async function readOsmExtract(
       }
       if (!box) continue;
       ways.set(item.id, box);
+      if (item.refs.some((ref) => entranceIds.has(ref))) {
+        const line = item.refs.flatMap((ref) => {
+          const at = nodes.get(ref);
+          return at ? [[at[1], at[0]] as [number, number]] : [];
+        });
+        const outline: OsmOutline = { type: "way", id: item.id, tags: item.tags ?? {}, nodes: item.refs, lines: [line] };
+        entranceWays.set(item.id, outline);
+        outlines.push(outline);
+      }
       if (touchesBbox && matchesAny(item.tags, categories)) elements.push(toElement(item, centerOf(box)));
     } else {
+      const onEntrance = item.members.filter((m) => m.type === "way" && entranceWays.has(m.ref));
+      if (item.tags?.type === "multipolygon" && onEntrance.length > 0) {
+        // Only the member ways an entrance lies on are kept, so a ring split over several ways can't be closed: the
+        // inside test reads closed rings only, and an entrance on such a building falls back to the nearby place.
+        const members = onEntrance.map((m) => entranceWays.get(m.ref)!);
+        outlines.push({
+          type: "relation",
+          id: item.id,
+          tags: item.tags ?? {},
+          nodes: members.flatMap((w) => w.nodes),
+          lines: members.flatMap((w) => w.lines).filter(isClosed),
+        });
+      }
       const names = isNamingRelation(item.tags, naming);
       if (!names && !matchesAny(item.tags, categories)) continue;
       let box: Box | null = null;
@@ -134,7 +173,7 @@ export async function readOsmExtract(
       elements.push(names ? { ...element, members: item.members.map(({ type, ref }) => ({ type, ref })) } : element);
     }
   }
-  return { elements, replicatedAt };
+  return { elements, entrances: { entrances: entranceNodes, outlines }, replicatedAt };
 }
 
 type DownloadMeta = { url: string; lastModified: string | null; checkedAt: number };
@@ -223,8 +262,8 @@ export async function loadOsmExtract(
   try {
     const { file, lastModified } = await downloadExtract(url, dir, ctx.userAgent, ctx.log);
     try {
-      const { elements, replicatedAt } = await readOsmExtract(file, ctx.city.bbox, categories);
-      return { elements, extractedAt: replicatedAt ?? lastModified };
+      const { elements, entrances, replicatedAt } = await readOsmExtract(file, ctx.city.bbox, categories);
+      return { elements, entrances, extractedAt: replicatedAt ?? lastModified };
     } catch (e) {
       // A broken copy would otherwise be revalidated (304) and fail on every run.
       await rm(file, { force: true });

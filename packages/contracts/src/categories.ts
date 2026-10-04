@@ -41,6 +41,11 @@ export type CategoryConfig = CategoryDefinition & {
    * list rows then name missing data only for these. A stop has a platform, not an entrance.
    */
   cardAttributes?: AccessibilityAttribute[];
+  /**
+   * Places of this category have no door of their own (a statue, a plaque on a façade), so OSM `entrance=*` nodes are
+   * never attached to them. Hidden and on-route categories never take entrances either.
+   */
+  withoutEntrances?: boolean;
 };
 
 /**
@@ -53,7 +58,7 @@ export const categories: readonly CategoryConfig[] = [
   { id: "museum", label: "Muzea", singularLabel: "Muzeum", icon: "bank", osm: [{ key: "tourism", values: ["museum"] }] },
   { id: "toilet", label: "Toalety", singularLabel: "Toaleta", icon: "toilet", osm: [{ key: "amenity", values: ["toilets"] }], unnamedName: "Toaleta publiczna" },
   { id: "hotel", label: "Hotele", singularLabel: "Hotel", icon: "bed", osm: [{ key: "tourism", values: ["hotel", "hostel", "guest_house"] }] },
-  { id: "monument", label: "Zabytki", singularLabel: "Zabytek", icon: "church", osm: [{ key: "historic", values: ["monument", "memorial"] }] },
+  { id: "monument", label: "Zabytki", singularLabel: "Zabytek", icon: "church", osm: [{ key: "historic", values: ["monument", "memorial"] }], withoutEntrances: true },
   { id: "theatre", label: "Teatry i kina", singularLabel: "Teatr lub kino", icon: "mask-happy", osm: [{ key: "amenity", values: ["theatre", "cinema"] }] },
   { id: "pharmacy", label: "Apteki", singularLabel: "Apteka", icon: "pill", osm: [{ key: "amenity", values: ["pharmacy"] }, { key: "healthcare", values: ["pharmacy"] }] },
   {

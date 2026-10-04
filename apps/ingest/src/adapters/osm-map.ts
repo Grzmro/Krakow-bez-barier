@@ -1,6 +1,7 @@
 import {
   categories as configuredCategories,
   type CategoryConfig,
+  type FactEntrance,
   type FactValue,
   type OsmTagRule,
 } from "@krakow-bez-barier/contracts";
@@ -20,7 +21,34 @@ export type OsmElement = {
   members?: { type: "node" | "way" | "relation"; ref: number }[];
   /** Name of the naming relation (`stop_area`) the element belongs to, set by `prepareOsmElements`. */
   relationName?: string;
+  /** The place's `entrance=*` node whose facts it takes, set by `attachEntrances`. */
+  entrance?: OsmElement;
+  /** Entrances were read for this run (see `MappedPlace.entrancesChecked`). */
+  entrancesChecked?: boolean;
 };
+
+/**
+ * OSM `entrance=*` values we attach to a place, and the kind each one is. Exits, garages, stairwells and staff-only
+ * service doors are left out: they say nothing about how a visitor gets in.
+ */
+export const ENTRANCE_KINDS: Readonly<Record<string, FactEntrance>> = {
+  main: "main",
+  secondary: "secondary",
+  shop: "shop",
+  yes: "unspecified",
+};
+
+/** Tags of an entrance node that can give a fact; an entrance without any of them is not read. */
+export const ENTRANCE_TAGS = [
+  "wheelchair",
+  "door:width",
+  "entrance:width",
+  "width",
+  "step_count",
+  "ramp",
+  "ramp:wheelchair",
+  "automatic_door",
+] as const;
 
 const bool = (boolean: boolean): FactValue => ({ kind: "boolean", boolean });
 const num = (number: number, unit: "cm" | "count" | "pct"): FactValue => ({ kind: "number", number, unit });
@@ -100,6 +128,74 @@ export function categoryOf(tags: Record<string, string>, categories: readonly Ca
   return null;
 }
 
+type AddFact = (attribute: MappedFact["attribute"], value: FactValue, comment?: string) => void;
+
+function wheelchairFact(tags: Record<string, string>, add: AddFact, skipped: string[]) {
+  if (tags.wheelchair === undefined) return;
+  if (["yes", "limited", "no"].includes(tags.wheelchair)) {
+    add("wheelchair_overall", { kind: "text", text: tags.wheelchair }, tags["wheelchair:description"]);
+  } else skipped.push(`wheelchair=${tags.wheelchair}`);
+}
+
+function rampFact(tags: Record<string, string>, add: AddFact, skipped: string[]) {
+  const v = tags["ramp:wheelchair"];
+  if (v === "yes" || v === "no") add("ramp", bool(v === "yes"));
+  else if (v !== undefined) skipped.push(`ramp:wheelchair=${v}`);
+  // A bare `ramp=yes` may be a rail for bikes or prams only, so it says nothing about a wheelchair ramp; `ramp=no` does.
+  if (v === undefined && tags.ramp !== undefined) {
+    if (tags.ramp === "no") add("ramp", bool(false));
+    else skipped.push(`ramp=${tags.ramp}`);
+  }
+}
+
+function stepCountFact(tags: Record<string, string>, add: AddFact, skipped: string[]) {
+  if (tags.step_count === undefined) return;
+  if (COUNT.test(tags.step_count)) add("step_count", num(Number(tags.step_count), "count"));
+  else skipped.push(`step_count=${tags.step_count}`);
+}
+
+/** The first readable width among `keys`, in the range of a door. */
+function doorWidthFact(tags: Record<string, string>, keys: readonly string[], add: AddFact, skipped: string[]) {
+  let added = false;
+  for (const tag of keys) {
+    if (tags[tag] === undefined) continue;
+    const cm = parseCentimetres(tags[tag]);
+    if (cm === null || !inRange(cm, 30, 300)) skipped.push(`${tag}=${tags[tag]}`);
+    else if (!added) {
+      add("door_width_cm", num(cm, "cm"));
+      added = true;
+    }
+  }
+}
+
+/** `automatic_door=yes|motion|button|continuous|…` opens by itself; `no` does not. */
+const AUTOMATIC_DOORS = new Set(["yes", "motion", "button", "continuous", "slowdown_button", "floor"]);
+
+/**
+ * Facts of one `entrance=*` node, marked with its kind and carrying its own record ref and check date. An entrance of a
+ * kind we don't attach gives none.
+ */
+export function entranceFacts(entrance: OsmElement, skipped: string[]): MappedFact[] {
+  const tags = entrance.tags ?? {};
+  const kind = ENTRANCE_KINDS[tags.entrance ?? ""];
+  if (!kind) return [];
+  const ref = recordRef(entrance);
+  const observedAt = parseDate(tags.check_date);
+  const facts: MappedFact[] = [];
+  const add: AddFact = (attribute, value, comment) =>
+    facts.push({ attribute, value, recordRef: ref, observedAt, evidence: comment ? { comment } : null, entrance: kind });
+  wheelchairFact(tags, add, skipped);
+  rampFact(tags, add, skipped);
+  stepCountFact(tags, add, skipped);
+  doorWidthFact(tags, ["door:width", "entrance:width", "width"], add, skipped);
+  if (tags.automatic_door !== undefined) {
+    if (tags.automatic_door === "no") add("automatic_door", bool(false));
+    else if (AUTOMATIC_DOORS.has(tags.automatic_door)) add("automatic_door", bool(true));
+    else skipped.push(`automatic_door=${tags.automatic_door}`);
+  }
+  return facts;
+}
+
 /**
  * Maps one OSM element to a place with facts. A missing tag yields no fact; a tag whose value
  * does not fit the vocabulary is skipped and reported, never guessed.
@@ -118,7 +214,7 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
   const ref = recordRef(el);
   const observedAt = parseDate(tags.check_date);
   const facts: MappedFact[] = [];
-  const add = (attribute: MappedFact["attribute"], value: FactValue, comment?: string) =>
+  const add: AddFact = (attribute, value, comment) =>
     facts.push({
       attribute,
       value,
@@ -134,11 +230,7 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
     else skipped.push(`${tag}=${v}`);
   };
 
-  if (tags.wheelchair !== undefined) {
-    if (["yes", "limited", "no"].includes(tags.wheelchair)) {
-      add("wheelchair_overall", { kind: "text", text: tags.wheelchair }, tags["wheelchair:description"]);
-    } else skipped.push(`wheelchair=${tags.wheelchair}`);
-  }
+  wheelchairFact(tags, add, skipped);
   triState("toilets:wheelchair", "toilet_accessible");
   triState("changing_table", "changing_table");
   triState("bench", "bench");
@@ -148,24 +240,9 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
     triState("shelter", "shelter");
   }
   triState("elevator", "lift");
-  triState("ramp:wheelchair", "ramp");
-  // A bare `ramp=yes` may be a rail for bikes or prams only, so it says nothing about a wheelchair ramp; `ramp=no` does.
-  if (tags["ramp:wheelchair"] === undefined && tags.ramp !== undefined) {
-    if (tags.ramp === "no") add("ramp", bool(false));
-    else skipped.push(`ramp=${tags.ramp}`);
-  }
-
-  if (tags.step_count !== undefined) {
-    if (COUNT.test(tags.step_count)) add("step_count", num(Number(tags.step_count), "count"));
-    else skipped.push(`step_count=${tags.step_count}`);
-  }
-
-  for (const tag of ["door:width", "entrance:width"]) {
-    if (tags[tag] === undefined) continue;
-    const cm = parseCentimetres(tags[tag]);
-    if (cm === null || !inRange(cm, 30, 300)) skipped.push(`${tag}=${tags[tag]}`);
-    else if (!facts.some((f) => f.attribute === "door_width_cm")) add("door_width_cm", num(cm, "cm"));
-  }
+  rampFact(tags, add, skipped);
+  stepCountFact(tags, add, skipped);
+  doorWidthFact(tags, ["door:width", "entrance:width"], add, skipped);
 
   if (tags["kerb:height"] !== undefined) {
     const cm = parseCentimetres(tags["kerb:height"]);
@@ -215,6 +292,7 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
   }
 
   if (category.skipWithoutFacts && facts.length === 0) return { place: null, skipped };
+  if (el.entrance) facts.push(...entranceFacts(el.entrance, skipped));
 
   const place: MappedPlace = {
     externalRef: `osm:${el.type}/${el.id}`,
@@ -224,6 +302,7 @@ export function mapOsmElement(el: OsmElement, categories: readonly CategoryConfi
     street: tags["addr:street"] ?? null,
     houseNumber: tags["addr:housenumber"] ?? null,
     facts,
+    ...(el.entrancesChecked ? { entrancesChecked: true } : {}),
   };
   return { place, skipped };
 }
@@ -241,7 +320,7 @@ export const isNamingRelation = (tags: Record<string, string> | undefined, namin
 
 const METRES_PER_DEGREE = 111_320;
 
-function distanceM(a: OsmElement, b: OsmElement): number {
+export function distanceM(a: OsmElement, b: OsmElement): number {
   const [latA, lonA] = [a.lat ?? a.center?.lat ?? NaN, a.lon ?? a.center?.lon ?? NaN];
   const [latB, lonB] = [b.lat ?? b.center?.lat ?? NaN, b.lon ?? b.center?.lon ?? NaN];
   const dy = (latA - latB) * METRES_PER_DEGREE;

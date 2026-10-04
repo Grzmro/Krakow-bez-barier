@@ -63,6 +63,7 @@ export const common: Messages["common"] = {
     stairs: "Stairs on the route",
     tactile_paving: "Tactile paving",
     shelter: "Shelter",
+    automatic_door: "Automatic door",
   },
   unconfirmed: "unconfirmed",
   reliability: {

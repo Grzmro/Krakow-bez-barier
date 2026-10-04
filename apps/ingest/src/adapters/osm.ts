@@ -2,6 +2,14 @@ import { createHash } from "node:crypto";
 import type { FetchContext, FetchedRecords, SourceAdapter } from "../adapter";
 import { withDownloadCache } from "../cache";
 import { retryAfterMs, SourceHttpError } from "../errors";
+import {
+  attachEntrances,
+  buildEntranceQuery,
+  describeEntranceStats,
+  entrancesFromOverpass,
+  type OsmEntrances,
+  type OverpassEntranceElement,
+} from "./osm-entrances";
 import { loadOsmExtract } from "./osm-extract";
 import { mapOsmElement, namingRelations, prepareOsmElements, type OsmElement } from "./osm-map";
 import { categories as configuredCategories, type CategoryConfig } from "@krakow-bez-barier/contracts";
@@ -27,11 +35,10 @@ export function cityCategories(city: FetchContext["city"]): readonly CategoryCon
 
 const message = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
-function fetchOverpass(endpoint: string, { city, userAgent }: FetchContext): Promise<OsmElement[]> {
-  const query = buildQuery(city.bbox, cityCategories(city));
+function runOverpass<T>(endpoint: string, query: string, name: string, { city, userAgent }: FetchContext): Promise<T[]> {
   // Keyed by the query too, so a cached answer to an older category list is never reused.
   const key = createHash("sha256").update(query).digest("hex").slice(0, 12);
-  return withDownloadCache(`osm-${city.id}-${key}`, async () => {
+  return withDownloadCache(`${name}-${city.id}-${key}`, async () => {
     const response = await fetch(endpoint, {
       method: "POST",
       headers: { "User-Agent": userAgent, "Content-Type": "application/x-www-form-urlencoded" },
@@ -49,9 +56,38 @@ function fetchOverpass(endpoint: string, { city, userAgent }: FetchContext): Pro
     if (!Array.isArray(body.elements)) {
       throw new Error(`Overpass returned no elements${body.remark ? `: ${body.remark}` : ""}`);
     }
-    return body.elements as OsmElement[];
+    return body.elements as T[];
   });
 }
+
+const fetchOverpass = (endpoint: string, ctx: FetchContext) =>
+  runOverpass<OsmElement>(endpoint, buildQuery(ctx.city.bbox, cityCategories(ctx.city)), "osm", ctx);
+
+/**
+ * Places with the entrances they take. When the entrances can't be read the places go without them, unmarked, so
+ * the entrance facts of the last run stay.
+ */
+async function withEntrances(
+  places: OsmElement[],
+  load: () => Promise<OsmEntrances>,
+  ctx: FetchContext,
+): Promise<OsmElement[]> {
+  let entrances: OsmEntrances;
+  try {
+    entrances = await load();
+  } catch (e) {
+    ctx.log?.(`entrances not read (${message(e)}), keeping the last entrance facts`);
+    return places;
+  }
+  const attached = attachEntrances(places, entrances, cityCategories(ctx.city));
+  ctx.log?.(describeEntranceStats(attached.stats));
+  return attached.places;
+}
+
+const fetchOverpassEntrances = async (endpoint: string, ctx: FetchContext) =>
+  entrancesFromOverpass(
+    await runOverpass<OverpassEntranceElement>(endpoint, buildEntranceQuery(ctx.city.bbox), "osm-entrances", ctx),
+  );
 
 /** One error for both failures, retryable only when the extract's own error is (see `isRetryable`). */
 function bothFailed(overpassError: unknown, extractError: unknown): Error {
@@ -74,9 +110,11 @@ export function extractProvenance(extractedAt: Date | null): { note: string; via
 }
 
 async function fetchExtract(url: string, ctx: FetchContext): Promise<FetchedRecords<OsmElement>> {
-  const { elements, extractedAt } = await loadOsmExtract(url, ctx, cityCategories(ctx.city));
+  const { elements, entrances, extractedAt } = await loadOsmExtract(url, ctx, cityCategories(ctx.city));
   const { note, via } = extractProvenance(extractedAt);
-  return { records: prepareOsmElements(elements, cityCategories(ctx.city)).map((el) => ({ ...el, via })), note };
+  const places = prepareOsmElements(elements, cityCategories(ctx.city)).map((el) => ({ ...el, via }));
+  const withVia = { ...entrances, entrances: entrances.entrances.map((e) => ({ ...e, via })) };
+  return { records: await withEntrances(places, async () => withVia, ctx), note };
 }
 
 export const osm: SourceAdapter<OsmElement> = {
@@ -100,7 +138,8 @@ export const osm: SourceAdapter<OsmElement> = {
     if (!endpoint) throw new Error(`No Overpass endpoint configured for city ${city.id}`);
 
     try {
-      return prepareOsmElements(await fetchOverpass(endpoint, ctx), cityCategories(city));
+      const places = prepareOsmElements(await fetchOverpass(endpoint, ctx), cityCategories(city));
+      return await withEntrances(places, () => fetchOverpassEntrances(endpoint, ctx), ctx);
     } catch (overpassError) {
       if (!extractUrl) throw overpassError;
       ctx.log?.(`Overpass failed (${message(overpassError)}), falling back to the extract ${extractUrl}`);

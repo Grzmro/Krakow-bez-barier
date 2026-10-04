@@ -21,6 +21,7 @@ export type Reliability = Schemas["Reliability"];
 export type ReliabilityStatus = Schemas["ReliabilityStatus"];
 export type FactValue = Schemas["FactValue"];
 export type FactStatus = Schemas["FactStatus"];
+export type FactEntrance = Schemas["FactEntrance"];
 export type SourceKind = Schemas["SourceKind"];
 export type SourceRefreshStatus = Schemas["SourceRefreshStatus"];
 export type ReportStatus = Schemas["ReportStatus"];

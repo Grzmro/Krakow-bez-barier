@@ -2335,7 +2335,8 @@ components:
         the place spans, counting the entrance storey (1 = everything on one floor). `stairs` (boolean: the way has
         steps) describes a route segment, never a place; places use `step_count`. `tactile_paving` (boolean) and
         `shelter` (boolean) describe a public transport stop: a tactile warning strip along the platform edge, a
-        roofed shelter at the stop.'
+        roofed shelter at the stop. `automatic_door` (boolean) is a door that opens by itself (motion sensor or
+        push button).'
       enum:
       - step_count
       - step_height_cm
@@ -2357,6 +2358,16 @@ components:
       - stairs
       - tactile_paving
       - shelter
+      - automatic_door
+    FactEntrance:
+      type: string
+      description: 'The entrance of a place a fact describes (OSM `entrance=*`): `main` (główne), `secondary`
+        (boczne), `shop` (wejście do lokalu), `unspecified` (an entrance of unknown kind).'
+      enum:
+      - main
+      - secondary
+      - shop
+      - unspecified
     FeatureFilter:
       type: string
       description: Quick filter shown on the home screen; each maps to one or more attributes.
@@ -2615,6 +2626,12 @@ components:
           $ref: '#/components/schemas/AccessibilityAttribute'
         value:
           $ref: '#/components/schemas/FactValue'
+        entrance:
+          description: The entrance this fact describes (its record is the entrance, e.g. `osm:node/1@v2`); null or
+            absent when the fact is about the place as a whole.
+          oneOf:
+          - $ref: '#/components/schemas/FactEntrance'
+          - type: 'null'
         unit:
           type:
           - string
