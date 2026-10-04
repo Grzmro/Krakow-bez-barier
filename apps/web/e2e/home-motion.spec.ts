@@ -1,5 +1,6 @@
 import type { Locator, Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { showResults } from "./map";
 
 // Motion is read from computed styles, never timed: a test that waits for an animation to look a
 // certain way mid-flight is a flaky test.
@@ -11,6 +12,7 @@ async function restaurantsForWheelchair(page: Page) {
   await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await page.getByRole("button", { name: "Restauracje" }).click();
+  await showResults(page);
   await list.getByRole("radio", { name: "Wózek", exact: true }).click();
   const rows = list.locator("#lista > ul > li");
   await expect(rows.first()).toBeVisible();

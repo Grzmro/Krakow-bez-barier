@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { searchFor, showResults } from "./map";
 
 test("a narrowed map has a back button and the logo, both returning to the whole map", async ({
   page,
@@ -19,6 +20,7 @@ test("a narrowed map has a back button and the logo, both returning to the whole
     };
   });
   await page.getByRole("button", { name: "Muzea" }).click();
+  await showResults(page);
 
   // THEN a back button appears next to the search field
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("4 miejsca");
@@ -38,7 +40,7 @@ test("a narrowed map has a back button and the logo, both returning to the whole
   await expect(page.getByRole("combobox", { name: "Wyszukaj miejsce" })).toBeFocused();
 
   // WHEN they narrow the map again with a search and press the logo
-  await page.getByRole("combobox", { name: "Wyszukaj miejsce" }).fill("Sukiennice");
+  await searchFor(page, "Sukiennice");
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
   await page.getByRole("link", { name: "Kraków bez barier — strona główna" }).click();
 

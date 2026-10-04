@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { escapeStep, homeView, isSearching, panelAfterAsk, searchOrigin } from "./home-start";
+import { choose, clearQuery, commitChange, confirmAction, draftAsk, escapeStep, homeView, isSearching, panelAfterAsk, runAsk, searchOrigin, showResults, START_SELECTION } from "./home-start";
 
 const start = { q: "", category: null, features: [], nearby: null };
 const rynek: [number, number] = [19.9372, 50.0617];
@@ -145,5 +145,125 @@ describe("searchOrigin", () => {
     const origin = searchOrigin(null, rynek);
     // THEN the map centre is used, with no area box and no user-relative distances
     expect(origin).toEqual({ source: "map", centre: rynek, from: null });
+  });
+});
+
+describe("draft vs committed selection", () => {
+  it("keeps results unchanged while options are picked", () => {
+    // GIVEN the start state
+    // WHEN a category and a feature are picked
+    const picked = choose(choose(START_SELECTION, { category: "toilet" }), { features: ["lift"] });
+    // THEN only the draft changed: no query, so no list and no pins
+    expect(picked.draft).toMatchObject({ category: "toilet", features: ["lift"] });
+    expect(homeView(picked.committed, searchOrigin(null, rynek)).searching).toBe(false);
+  });
+
+  it("loads the results once the draft is shown", () => {
+    // GIVEN a draft with a category
+    const picked = choose(START_SELECTION, { category: "toilet" });
+    // WHEN the results are shown with typed text
+    const shown = showResults(picked, " winda ");
+    // THEN the query holds the draft and the trimmed text
+    expect(shown.committed).toMatchObject({ q: "winda", category: "toilet" });
+    expect(homeView(shown.committed, searchOrigin(null, rynek)).panel).toBe("results");
+  });
+
+  it("leaves the shown results alone when the draft changes afterwards", () => {
+    // GIVEN shown results for a category
+    const shown = showResults(choose(START_SELECTION, { category: "toilet" }), "");
+    // WHEN another category is picked
+    const next = choose(shown, { category: "pharmacy" });
+    // THEN the query still holds the first one
+    expect(next.committed.category).toBe("toilet");
+  });
+
+  it("drops 'show places without data' with the last feature", () => {
+    // GIVEN a feature with unknown places shown
+    const on = choose(START_SELECTION, { features: ["lift"], showUnknown: true });
+    // WHEN the feature is unpicked
+    // THEN the switch goes with it
+    expect(choose(on, { features: [] }).draft.showUnknown).toBe(false);
+  });
+
+  it("asks at once for a command and replaces the choices", () => {
+    // GIVEN a draft with a feature and a position
+    const before = choose(choose(START_SELECTION, { features: ["bench"] }), { nearby: { position: here } });
+    // WHEN a quick action runs
+    const asked = runAsk(before, { category: "toilet", features: ["toilet_accessible"] });
+    // THEN draft and query are equal, the position is kept, and nothing is left to confirm
+    expect(asked.committed).toEqual({ q: "", category: "toilet", features: ["toilet_accessible"], showUnknown: false, nearby: { position: here } });
+    expect(asked.draft).toEqual({ category: "toilet", features: ["toilet_accessible"], showUnknown: false, nearby: { position: here } });
+    expect(confirmAction(asked, "")).toBe("hidden");
+  });
+
+  it("adds a position that arrives for a command to both", () => {
+    // GIVEN a command that waits for the position
+    const asked = runAsk(START_SELECTION, { category: "toilet" });
+    // WHEN it arrives
+    const located = commitChange(asked, { nearby: { position: here } });
+    // THEN the query has it
+    expect(located.committed.nearby).toEqual({ position: here });
+    expect(located.draft.nearby).toEqual({ position: here });
+  });
+
+  it("returns to the clean map when the only query text is cleared", () => {
+    // GIVEN results for typed text
+    const shown = showResults(START_SELECTION, "sukiennice");
+    // WHEN the search field is cleared
+    const cleared = clearQuery(shown);
+    // THEN the query is empty and so are the results
+    expect(isSearching(cleared.committed)).toBe(false);
+  });
+
+  it("keeps the other choices when the typed text is cleared", () => {
+    // GIVEN results for text and a category
+    const shown = showResults(choose(START_SELECTION, { category: "toilet" }), "x");
+    // WHEN the text is cleared
+    // THEN the category stays
+    expect(clearQuery(shown).committed).toMatchObject({ q: "", category: "toilet" });
+  });
+
+  it("returns to the clean map with the start selection", () => {
+    // GIVEN shown results
+    const shown = showResults(choose(START_SELECTION, { category: "toilet" }), "x");
+    expect(isSearching(shown.committed)).toBe(true);
+    // WHEN the selection is reset
+    // THEN nothing is asked and nothing is left to confirm
+    expect(isSearching(START_SELECTION.committed)).toBe(false);
+    expect(confirmAction(START_SELECTION, "")).toBe("hidden");
+  });
+});
+
+describe("confirmAction", () => {
+  it("offers the results once an option is picked", () => {
+    // GIVEN a picked category
+    // THEN the button shows results
+    expect(confirmAction(choose(START_SELECTION, { category: "toilet" }), "")).toBe("show");
+  });
+
+  it("offers the results for typed text not yet searched", () => {
+    expect(confirmAction(START_SELECTION, "kawa")).toBe("show");
+  });
+
+  it("is hidden once the draft is the query", () => {
+    // GIVEN the draft shown
+    const shown = showResults(choose(START_SELECTION, { category: "toilet" }), "");
+    // THEN nothing is left to confirm
+    expect(confirmAction(shown, "")).toBe("hidden");
+  });
+
+  it("offers a way back when everything was unpicked while results are up", () => {
+    // GIVEN shown results whose draft was emptied
+    const shown = showResults(choose(START_SELECTION, { category: "toilet" }), "");
+    const emptied = choose(shown, { category: null });
+    // THEN the button clears instead of showing everything
+    expect(confirmAction(emptied, "")).toBe("clear");
+    expect(draftAsk(emptied, "")).toBeNull();
+  });
+
+  it("gives the count request the draft", () => {
+    // GIVEN a picked category and typed text
+    // THEN the count filters hold both
+    expect(draftAsk(choose(START_SELECTION, { category: "toilet" }), " a ")).toMatchObject({ q: "a", category: "toilet" });
   });
 });

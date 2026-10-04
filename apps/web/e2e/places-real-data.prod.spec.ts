@@ -4,7 +4,7 @@ import { pl } from "../src/i18n/pl";
 import { config } from "../src/lib/config";
 import { CARD_ATTRIBUTES, formatDate } from "../src/lib/place-facts";
 import { expect, test } from "./fixtures";
-import { clusters, markersSettled, pins } from "./map";
+import { clusters, markersSettled, pins, searchFor } from "./map";
 
 // Runs against `next start` of the real-API build (project chromium-prod, E2E_PROD=1) and the database in
 // DATABASE_URL (`npm run db:setup` seeds it; playwright.config.ts loads the root .env). It skips itself only when
@@ -48,7 +48,7 @@ test("list, map and card show seeded places from the real API with their sources
   await evidence("real-data-home");
 
   // WHEN they search for the place by its full name (no suggestions are offered for an exact match)
-  await page.getByRole("combobox", { name: "Wyszukaj miejsce" }).fill(target.name);
+  await searchFor(page, target.name);
 
   // THEN it is listed and pinned on the map
   const row = list.getByRole("listitem").filter({ has: page.getByRole("link", { name }) }).first();
@@ -204,7 +204,7 @@ test("a place tagged only as not wheelchair accessible says so on the list and o
 
   // WHEN the visitor finds it on the list
   await page.goto("/");
-  await page.getByRole("combobox", { name: "Wyszukaj miejsce" }).fill(target!.name);
+  await searchFor(page, target!.name);
   const list = page.getByRole("region", { name: "Lista miejsc" });
   const row = list.getByRole("listitem").filter({ has: page.getByRole("link", { name }) }).first();
 

@@ -1,4 +1,5 @@
 import { expect, test } from "./fixtures";
+import { showResults } from "./map";
 
 const NEAR_PLANTY = { latitude: 50.0648, longitude: 19.9402, accuracy: 20 };
 const BY_KRZYSZTOFORY = { latitude: 50.0626, longitude: 19.9384, accuracy: 20 };
@@ -69,6 +70,7 @@ test.describe("next to a museum whose lift nobody described", () => {
     await expect(result).toContainText("Sukiennice");
     await expect(result.getByRole("listitem")).toContainText(/Winda.*Źródło: OpenStreetMap.*Pozyskano \d+\.\d+\.\d{4}/);
     await list.getByRole("switch", { name: "Pokaż też miejsca bez danych" }).click();
+    await showResults(page);
 
     // THEN the nearer place without data is listed first as "Brak danych", but the result still names Sukiennice
     const rows = page.locator("#lista > ul > li");

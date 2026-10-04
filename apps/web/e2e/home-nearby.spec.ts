@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { gotoAllPlaces } from "./map";
+import { gotoAllPlaces, showResults } from "./map";
 
 const WAWEL = { latitude: 50.0541, longitude: 19.9354, accuracy: 20 };
 const NOWA_HUTA = { latitude: 50.0722, longitude: 20.0375, accuracy: 20 };
@@ -34,6 +34,7 @@ test.describe("with location access granted", () => {
     // THEN the list is sorted nearest first with distances from the user, announced, the map shows "Ty"
     await expect(nearby).toHaveAttribute("aria-pressed", "true");
     await expect(nearby).toBeFocused();
+    await showResults(page);
     const rows = list.getByRole("listitem");
     await expect(rows.first()).toContainText("od Ciebie");
     await expect(list).not.toContainText("od Rynku");
@@ -46,10 +47,12 @@ test.describe("with location access granted", () => {
     await evidence("home-nearby");
 
     // WHEN they turn it off again
+    await nearby.focus();
     await page.keyboard.press("Enter");
+    await expect(nearby).toHaveAttribute("aria-pressed", "false");
+    await showResults(page);
 
     // THEN the list is back to distances from Rynek and "Ty" is gone
-    await expect(nearby).toHaveAttribute("aria-pressed", "false");
     await expect(rows.first()).toContainText("od Rynku");
     await expect(page.locator("[data-you]")).toHaveCount(0);
   });
@@ -66,6 +69,7 @@ test.describe("far from every listed place", () => {
 
     // WHEN the user in Nowa Huta turns on "W mojej okolicy"
     await list.getByRole("button", { name: "W mojej okolicy" }).click();
+    await showResults(page);
 
     // THEN only their area is searched: the heading and the list agree, and the empty state names the area
     await expect(list.getByRole("heading", { level: 2 })).toHaveText("0 miejsc");
@@ -144,6 +148,7 @@ test("'W mojej okolicy' on the list explains a refusal, retries and lets the use
   await expect(nearby).toHaveAttribute("aria-pressed", "true");
   await expect(nearby).toBeFocused();
   await expect(list.getByText("Od najbliższych, odległość od: Stare Miasto")).toBeVisible();
+  await showResults(page);
   await expect(problem).toHaveCount(0);
   const rows = list.getByRole("listitem");
   await expect(rows.first()).toContainText("od wybranego punktu");
@@ -153,10 +158,12 @@ test("'W mojej okolicy' on the list explains a refusal, retries and lets the use
   await evidence("home-nearby-district");
 
   // WHEN they turn it off
+  await nearby.focus();
   await page.keyboard.press("Enter");
+  await expect(nearby).toHaveAttribute("aria-pressed", "false");
+  await showResults(page);
 
   // THEN distances are from Rynek again
-  await expect(nearby).toHaveAttribute("aria-pressed", "false");
   await expect(rows.first()).toContainText("od Rynku");
 });
 

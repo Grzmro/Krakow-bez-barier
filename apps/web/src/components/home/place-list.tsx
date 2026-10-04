@@ -30,7 +30,7 @@ export interface PlaceRowProps {
   /** The distance is from the user's position ("od Ciebie"), not from Rynek. */
   /** What the distance is measured from. */
   from?: DistanceFrom;
-  features: FeatureFilter[];
+  features: readonly FeatureFilter[];
   selected: boolean;
   onHighlight: (id: string) => void;
   /** Position in the list: rows of a new page enter one short beat after another. */

@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { gotoAllPlaces } from "./map";
+import { gotoAllPlaces, searchFor } from "./map";
 
 // US-8.6: a tourist switches the app to English in the menu; the choice is remembered and `lang` follows it.
 
@@ -54,7 +54,7 @@ test("the language switch turns the demo path into English, remembers it and set
   await expect(page.getByRole("link", { name: "Skip to content" })).toBeAttached();
 
   // AND the profile verdicts and reasons are English (the reload went back to the clean start, so search again)
-  await page.getByRole("combobox", { name: "Search for a place" }).fill("r");
+  await searchFor(page, "r");
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 places");
   await page.getByRole("radio", { name: "Wheelchair", exact: true }).check();
   const restaurant = list.getByRole("listitem").filter({ has: page.getByRole("link", { name: /Restauracja Przykład/ }) });

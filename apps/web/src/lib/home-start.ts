@@ -1,3 +1,4 @@
+import type { FeatureFilter } from "@krakow-bez-barier/contracts";
 import type { NearbyOrigin } from "@/lib/nearby";
 import { searchArea, searchCentre, toLonLat } from "@/lib/nearby";
 
@@ -17,6 +18,79 @@ export type HomeAsk = {
  */
 export function isSearching({ q, category, features, nearby }: HomeAsk): boolean {
   return Boolean(q.trim() || category || features.length || nearby);
+}
+
+/** The feature filters, in the order their chips are shown. */
+export const FEATURE_FILTERS: readonly FeatureFilter[] = ["step_free", "lift", "toilet_accessible", "bench", "disabled_parking", "changing_table"];
+
+/** What the options at the bottom (and the top chips) pick: a draft until "Pokaż wyniki" commits it. */
+export type HomeChoices = {
+  /** `null` = all categories. */
+  category: string | null;
+  features: readonly FeatureFilter[];
+  showUnknown: boolean;
+  nearby: NearbyOrigin | null;
+};
+
+/** The query results are loaded for. */
+export type HomeCommitted = HomeChoices & { q: string };
+
+/** Picked options (`draft`) kept apart from the query the list and pins show (`committed`). */
+export type HomeSelection = { committed: HomeCommitted; draft: HomeChoices };
+
+export const NO_CHOICES: HomeChoices = { category: null, features: [], showUnknown: false, nearby: null };
+export const START_SELECTION: HomeSelection = { committed: { q: "", ...NO_CHOICES }, draft: NO_CHOICES };
+
+/** Picking an option changes the draft only: results and pins stay as they were. */
+export function choose(selection: HomeSelection, change: Partial<HomeChoices>): HomeSelection {
+  const draft = { ...selection.draft, ...change };
+  return { ...selection, draft: draft.features.length ? draft : { ...draft, showUnknown: false } };
+}
+
+/** "Pokaż wyniki" or Enter: the draft and the typed text become the query. */
+export function showResults(selection: HomeSelection, q: string): HomeSelection {
+  return { ...selection, committed: { q: q.trim(), ...selection.draft } };
+}
+
+/** The search field's clear button: the typed text leaves the query; picked options and the other choices stay. */
+export function clearQuery(selection: HomeSelection): HomeSelection {
+  return { ...selection, committed: { ...selection.committed, q: "" } };
+}
+
+/** An explicit command (quick action, a category named in a suggestion or command): asks at once, replacing the choices. */
+export function runAsk(selection: HomeSelection, ask: Partial<HomeChoices> & { q?: string }): HomeSelection {
+  const { q = "", ...choices } = ask;
+  const draft = { ...NO_CHOICES, nearby: selection.draft.nearby, ...choices };
+  return { committed: { q, ...draft }, draft };
+}
+
+/** A change that belongs to a command already asked (the position that arrives for it, "show places without data") applies to the query at once. */
+export function commitChange(selection: HomeSelection, change: Partial<HomeChoices>): HomeSelection {
+  return { committed: { ...selection.committed, ...change }, draft: { ...selection.draft, ...change } };
+}
+
+const sameNearby = (a: NearbyOrigin | null, b: NearbyOrigin | null) =>
+  a === b || Boolean(a && b && a.place === b.place && a.position.latitude === b.position.latitude && a.position.longitude === b.position.longitude);
+
+const sameChoices = (a: HomeChoices, b: HomeChoices) =>
+  a.category === b.category &&
+  a.showUnknown === b.showUnknown &&
+  a.features.length === b.features.length &&
+  a.features.every((feature) => b.features.includes(feature)) &&
+  sameNearby(a.nearby, b.nearby);
+
+/**
+ * What the confirm button does for the text typed so far: nothing while the draft equals the query; "show" loads
+ * the results of the draft; "clear" (everything unpicked, results still up) returns to the clean map.
+ */
+export function confirmAction({ committed, draft }: HomeSelection, q: string): "hidden" | "show" | "clear" {
+  if (q.trim() === committed.q && sameChoices(draft, committed)) return "hidden";
+  return isSearching({ q, ...draft }) ? "show" : "clear";
+}
+
+/** The chosen options and typed text as the filters a count request needs; `null` when nothing is chosen. */
+export function draftAsk({ draft }: HomeSelection, q: string): (HomeChoices & { q: string }) | null {
+  return isSearching({ q, ...draft }) ? { q: q.trim(), ...draft } : null;
 }
 
 /** How many of the nearest places the start peek lists. */

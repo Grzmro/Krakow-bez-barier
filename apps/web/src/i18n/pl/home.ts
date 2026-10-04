@@ -54,6 +54,15 @@ export const home = {
     changing_table: "Przewijak",
   } satisfies Record<FeatureFilter, string>,
   showUnknown: "Pokaż też miejsca bez danych",
+  confirm: {
+    label: "Zatwierdzenie wyborów",
+    summary: (choices: string) => `Wybrano: ${choices}`,
+    nearby: "w mojej okolicy",
+    show: "Pokaż wyniki",
+    showCount: (n: number) => `Pokaż wyniki (${n})`,
+    clear: "Wyczyść wybór i wróć do mapy",
+    countAnnounce: (n: number) => (n === 0 ? "Żadne miejsce nie pasuje do wyborów" : `Do wyborów pasuje ${n} ${placesWord(n)}`),
+  },
   map: {
     label: "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca.",
     zoomIn: "Przybliż",
@@ -92,7 +101,7 @@ export const home = {
   },
   list: {
     label: "Lista miejsc",
-    start: { summary: "Najbliższe miejsca", hint: "Mapa jest czysta. Wpisz nazwę, wybierz kategorię albo szybką akcję, a pokażemy wyniki na liście i na mapie.", nearYou: "Najbliżej Ciebie", nearChosen: "Najbliżej wybranego punktu", nearCentre: "Najbliżej Rynku (bez lokalizacji)", empty: "Brak miejsc w okolicy." },
+    start: { summary: "Najbliższe miejsca", hint: "Mapa jest czysta. Wpisz nazwę i naciśnij Enter, wybierz szybką akcję albo zaznacz kategorię i cechy, a potem „Pokaż wyniki”. Wtedy pojawią się lista i pinezki.", nearYou: "Najbliżej Ciebie", nearChosen: "Najbliżej wybranego punktu", nearCentre: "Najbliżej Rynku (bez lokalizacji)", empty: "Brak miejsc w okolicy." },
     stow: { hide: "Schowaj listę", show: "Pokaż listę" },
     results: (n: number) => `${n} ${placesWord(n)}`,
     firstOf: (shown: number, total: number) => `Lista: pierwsze ${shown} z ${total} ${placesWord(total)}`,

@@ -1,5 +1,5 @@
 import { expect, test } from "./fixtures";
-import { placesOnMap, gotoAllPlaces } from "./map";
+import { placesOnMap, gotoAllPlaces, searchFor, showResults } from "./map";
 
 test("the start is a clean map with a peek of the nearest places that a search replaces with results and pins", async ({
   page,
@@ -34,7 +34,11 @@ test("the start is a clean map with a peek of the nearest places that a search r
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
   await search.fill("Sukiennice");
 
-  // THEN the results are listed and pinned, and a row opens the place
+  // THEN nothing is listed until Enter (typing only suggests)
+  await expect(page.locator("[data-place-id]")).toHaveCount(0);
+  await search.press("Enter");
+
+  // AND the results are listed and pinned, and a row opens the place
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
   await expect(page.locator("[data-place-id]")).toHaveCount(1);
 
@@ -61,7 +65,7 @@ test("search for Sukiennice shows it on the list and the map and opens its card"
   await evidence("home-screen");
 
   // WHEN the visitor types "Sukiennice"
-  await page.getByRole("combobox", { name: "Wyszukaj miejsce" }).fill("Sukiennice");
+  await searchFor(page, "Sukiennice");
 
   // THEN one result is listed, announced, and pinned on the map
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
@@ -93,6 +97,7 @@ test("feature filter hides places without data until the switch shows them as Br
 
   // WHEN the visitor turns on the "Winda" filter (no profile)
   await page.getByRole("button", { name: "Winda", exact: true }).click();
+  await showResults(page);
 
   // THEN only places with a known lift remain and none is marked as missing data
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("3 miejsca");
@@ -101,6 +106,7 @@ test("feature filter hides places without data until the switch shows them as Br
 
   // WHEN they switch on "Pokaż też miejsca bez danych"
   await page.getByRole("switch", { name: "Pokaż też miejsca bez danych" }).click();
+  await showResults(page);
 
   // THEN places without lift data come back, labeled "Brak danych"
   const palace = list.getByRole("link", { name: /Pałac Krzysztofory/ });
@@ -117,7 +123,7 @@ test("no results offers a wider search", async ({ page, evidence }) => {
   await page.goto("/");
 
   // WHEN the search matches nothing
-  await page.getByRole("combobox", { name: "Wyszukaj miejsce" }).fill("Zzzz");
+  await searchFor(page, "Zzzz");
 
   // THEN the empty state explains it and the wider search clears the search
   const list = page.getByRole("region", { name: "Lista miejsc" });
@@ -189,6 +195,7 @@ test("the whole flow works with the keyboard alone", async ({ page }) => {
   await page.keyboard.press("ArrowRight");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("button", { name: "Muzea" })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: /^Pokaż wyniki/ }).press("Enter");
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("4 miejsca");
 
   // AND the map zooms with its buttons and the list rows are reachable by Tab
@@ -214,12 +221,13 @@ test("category chips are rendered from the categories API response, including on
 test("a feature filter nobody described here says it is missing data, not the facility", async ({ page, evidence }) => {
   // GIVEN the home screen searched down to one place
   await page.goto("/");
-  await page.getByRole("combobox", { name: "Wyszukaj miejsce" }).fill("Sukiennice");
+  await searchFor(page, "Sukiennice");
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
 
   // WHEN a feature filter no listed place has in its data is turned on
   await page.getByRole("button", { name: "Parking dla niepełnosprawnych", exact: true }).click();
+  await showResults(page);
 
   // THEN the empty state says the data is missing and offers to show the places without it
   await expect(list.getByText("Brak miejsc dla tego wyszukiwania.")).toBeVisible();

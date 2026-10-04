@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
-import { verdictsOnMap, gotoAllPlaces } from "./map";
+import { verdictsOnMap, gotoAllPlaces, showResults } from "./map";
 
 const liveRegion = (page: Page) => page.locator('div[role="status"][aria-atomic="true"]');
 const list = (page: Page) => page.getByRole("region", { name: "Lista miejsc" });
@@ -12,6 +12,7 @@ async function searchFor(page: Page, text: string) {
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
   await search.fill(text);
   await expect(page.getByRole("listbox")).toBeVisible();
+  await search.press("Enter");
   await search.press("Escape");
   await expect(search).toHaveValue(text);
 }
@@ -29,6 +30,7 @@ test("wheelchair profile on the home screen shows verdicts on the list and map, 
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("5 miejsc");
   await page.getByRole("button", { name: "Toaleta dostosowana", exact: true }).click();
   await page.getByRole("switch", { name: "Pokaż też miejsca bez danych" }).click();
+  await showResults(page);
   await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("5 miejsc");
   await expect(page.locator("[data-place-id][data-status]")).toHaveCount(0);
 

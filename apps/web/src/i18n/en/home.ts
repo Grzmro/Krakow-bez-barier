@@ -52,6 +52,15 @@ export const home: Messages["home"] = {
     changing_table: "Changing table",
   },
   showUnknown: "Also show places with no data",
+  confirm: {
+    label: "Confirm your choices",
+    summary: (choices: string) => `Chosen: ${choices}`,
+    nearby: "near me",
+    show: "Show results",
+    showCount: (n: number) => `Show results (${n})`,
+    clear: "Clear choices and return to the map",
+    countAnnounce: (n: number) => (n === 0 ? "No place matches your choices" : `${n} ${placesWord(n)} match your choices`),
+  },
   map: {
     label: "Map of places. Arrow keys move the view, plus and minus change the zoom. The list has the same places.",
     zoomIn: "Zoom in",
@@ -90,7 +99,7 @@ export const home: Messages["home"] = {
   },
   list: {
     label: "List of places",
-    start: { summary: "Nearest places", hint: "The map is clear. Type a name, pick a category or a quick action and we show the results in the list and on the map.", nearYou: "Nearest to you", nearChosen: "Nearest to the point you chose", nearCentre: "Nearest to the Main Square (no location)", empty: "No places nearby." },
+    start: { summary: "Nearest places", hint: "The map is clear. Type a name and press Enter, pick a quick action, or tick a category and features and then “Show results”. The list and pins appear then.", nearYou: "Nearest to you", nearChosen: "Nearest to the point you chose", nearCentre: "Nearest to the Main Square (no location)", empty: "No places nearby." },
     stow: { hide: "Hide the list", show: "Show the list" },
     results: (n: number) => `${n} ${placesWord(n)}`,
     firstOf: (shown: number, total: number) => `List: first ${shown} of ${total} ${placesWord(total)}`,
