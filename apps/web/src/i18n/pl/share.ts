@@ -1,0 +1,25 @@
+// Sharing a place or a route with a caregiver (KBB-192): Web Share, copy link, QR code, and the landing note.
+export const share = {
+  button: "Udostępnij",
+  panelLabel: "Udostępnianie",
+  place: { title: (name: string) => `${name} — Kraków bez barier`, text: "Sprawdź dostępność tego miejsca." },
+  route: { title: "Trasa — Kraków bez barier", text: "Sprawdź dostępność tej trasy." },
+  send: "Wyślij…",
+  copy: "Kopiuj link",
+  copied: "Link skopiowany",
+  copyFailed: "Nie udało się skopiować linku",
+  linkLabel: "Link do udostępnienia",
+  qrLabel: "Kod QR z linkiem",
+  qrHint: "Odbiorca zeskanuje kod aparatem telefonu.",
+  privacy: "W linku nie ma Twojego profilu potrzeb ani Twojego konta.",
+  includeStart: "Dołącz mój start",
+  includeStartHint: "Dodamy Twoją pozycję zaokrągloną do ok. 100 m. Bez tego odbiorca wybiera start sam.",
+  noPositionYet: "Bez startu w linku odbiorca zacznie od swojej pozycji albo wybierze start.",
+  notice: {
+    title: "Ktoś udostępnił Ci ten plan",
+    place: "Karta miejsca jest taka sama dla wszystkich, ale ocena dostępności liczy się z Twojego profilu potrzeb.",
+    route: "Trasę liczymy od nowa z Twojego profilu potrzeb, więc może wyglądać inaczej niż u nadawcy.",
+    withProfile: (profileName: string) => `Twój profil: ${profileName}. Profil zostaje w Twojej przeglądarce.`,
+    noProfile: "Nie masz jeszcze profilu, więc sprawdzamy domyślnie schody i nawierzchnię. Wybierz profil, żeby ocena pasowała do Ciebie.",
+  },
+} as const;

@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import Link from "next/link";
 import { ArrowsDownUp, CaretRight, CircleNotch, CloudSlash, MapPin, NavigationArrow, WarningCircle, X } from "@phosphor-icons/react";
 import type { Route } from "@krakow-bez-barier/contracts";
-import { Button, buttonVariants, cn, StatusIcon, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
+import { Button, buttonVariants, Checkbox, cn, StatusIcon, Toggle, ToggleGroup, useAnnounce, type Status } from "@krakow-bez-barier/ui";
 import { BottomPanel, StatusBadge } from "@/components/kbb";
 import { BackButton } from "@/components/layout/back-button";
 import { CONTROLS_ABOVE_PANEL, STOWED_HEIGHT, usePanelInset } from "@/components/map/use-panel-inset";
@@ -14,6 +14,8 @@ import { ReadAloud } from "@/components/route/read-aloud";
 import { RouteMap } from "@/components/route/route-map";
 import { SaveRoute } from "@/components/route/save-route";
 import { StartPicker, type StartOption, type StartPick } from "@/components/route/start-picker";
+import { ShareControls } from "@/components/share/share-controls";
+import { SharedNotice } from "@/components/share/shared-notice";
 import { useMessages } from "@/i18n/client";
 import type { Messages } from "@/i18n/messages";
 import { config } from "@/lib/config";
@@ -28,6 +30,7 @@ import { barrierList, cleanHeadline, gaps, routeStatus } from "@/lib/route-summa
 import { routes } from "@/lib/routes";
 import type { SavedRouteInput } from "@/lib/saved-routes";
 import { scrollIntoViewWithin } from "@/lib/scroll-within";
+import { isPersonalStart, routeShareLink } from "@/lib/share-link";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { useGuidance } from "@/lib/use-guidance";
 import { useSessionFlag } from "@/lib/use-session-flag";
@@ -103,7 +106,7 @@ function routeErrorText(t: Messages["route"], error: unknown): string {
   return reason === "no_route" ? t.error.noRoute : reason === "not_configured" ? t.error.notConfigured : t.error.unavailable;
 }
 
-export function RouteScreen({ to, from }: { to?: string; from?: string }) {
+export function RouteScreen({ to, from, shared = false }: { to?: string; from?: string; shared?: boolean }) {
   const messages = useMessages();
   const t = messages.route;
   const errorText = (error: unknown) => routeErrorText(t, error);
@@ -112,6 +115,7 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
   const profile = settings.profile;
   const [kind, setKind] = useState<RouteKind>("avoid_stairs");
   const [swapped, setSwapped] = useState(false);
+  const [includeStart, setIncludeStart] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
   const [expanded, setExpanded] = useState(false);
   // Start of a route planned again from the walker's position while guiding.
@@ -495,8 +499,30 @@ export function RouteScreen({ to, from }: { to?: string; from?: string }) {
               )}
             </div>
           ) : null}
+          {shared ? <SharedNotice kind="route" className="mt-3" /> : null}
           <ProfileSwitch value={profile} onChange={setProfile} className="mt-3" />
           <p className="mt-1.5 text-caption text-muted-foreground">{profile ? t.profileOn(profile) : t.profileOff}</p>
+          {/* The link has no way to say "reversed", so a swapped route isn't offered for sharing. */}
+          {swapped ? null : (
+            <div className="mt-3 flex flex-wrap gap-2">
+              <ShareControls
+                buildLink={() => routeShareLink(window.location.origin, { to, start, includeStart })}
+                title={messages.share.route.title}
+                text={messages.share.route.text}
+              >
+                {isPersonalStart(start) ? (
+                  <Checkbox
+                    label={messages.share.includeStart}
+                    hint={messages.share.includeStartHint}
+                    checked={includeStart}
+                    onCheckedChange={setIncludeStart}
+                  />
+                ) : noStart ? (
+                  <p className="text-body-sm">{messages.share.noPositionYet}</p>
+                ) : null}
+              </ShareControls>
+            </div>
+          )}
 
           {to && place.isError ? (
             <p className="mt-4 text-body font-semibold">{t.error.noPlace}</p>

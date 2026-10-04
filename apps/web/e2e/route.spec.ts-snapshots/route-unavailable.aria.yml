@@ -25,6 +25,9 @@
         - radio "Senior"
         - text: Senior
       - paragraph: Sprawdzamy schody i nawierzchnię. Profil doda krawężniki i nachylenie.
+      - button "Udostępnij":
+        - img
+        - text: ""
       - paragraph: "Tryb demonstracyjny: bez klucza openrouteservice działa tylko przykładowa trasa Dworzec Główny → Rynek Główny, z domyślnymi progami profilu."
       - link "Pokaż przykładową trasę":
         - /url: /trasa?z=station

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { getMessages } from "@/i18n/server";
+import { isSharedLink, SHARED_PARAM } from "@/lib/share-link";
 import { RouteScreen } from "./route-screen";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -12,6 +13,6 @@ const param = (value: string | string[] | undefined) => (typeof value === "strin
 // From the start in `?z=` (`station`, a place id or `lat,lon`), else from the device position; with neither, no route is
 // planned until a start is chosen. To Rynek Główny, or to the place in `?do=<id>` (the "Prowadź" button on its card).
 export default async function RoutePage({ searchParams }: PageProps<"/trasa">) {
-  const { do: to, z: from } = await searchParams;
-  return <RouteScreen to={param(to)} from={param(from)} />;
+  const { do: to, z: from, [SHARED_PARAM]: shared } = await searchParams;
+  return <RouteScreen to={param(to)} from={param(from)} shared={isSharedLink(shared)} />;
 }

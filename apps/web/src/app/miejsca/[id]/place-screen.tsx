@@ -27,7 +27,6 @@ import {
   PencilSimple,
   Phone,
   Plus,
-  ShareNetwork,
   Stairs,
   Toilet,
   TrendUp,
@@ -38,13 +37,13 @@ import {
   type Icon,
 } from "@phosphor-icons/react";
 import type { AccessibilityAttribute, Outage, OutageEquipment, OutageVote, Place, PlaceSummary, Profile, Verdict } from "@krakow-bez-barier/contracts";
-import { Button, buttonVariants, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
+import { Button, buttonVariants, cn } from "@krakow-bez-barier/ui";
 import { PlaceMap } from "@/components/home/place-map";
 import { DemoOutageTag, FactRow, ReliabilityBadge, SampleTag, SourceText, VerdictBlock } from "@/components/kbb";
 import { NeedGroups } from "@/components/profile/need-groups";
+import { ShareControls } from "@/components/share/share-controls";
 import { canReportOutage, isActiveOutage, isOutageEquipment } from "@/domain/outages";
 import { useLocale, useMessages } from "@/i18n/client";
-import { copyText } from "@/lib/copy-text";
 import { usePlace } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
@@ -54,6 +53,7 @@ import { pendingEntries, withPending, type PendingEntry } from "@/lib/reports";
 import { usePlaceOutages } from "@/lib/use-place-outages";
 import { usePlaceReports } from "@/lib/use-place-reports";
 import { routes } from "@/lib/routes";
+import { placeShareLink } from "@/lib/share-link";
 import { useMediaQuery } from "@/lib/use-media-query";
 import { hasReportableBarrier } from "@/lib/city-report";
 import { CityReportSection } from "./city-report-section";
@@ -121,7 +121,6 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
   const [contactOpen, setContactOpen] = useState(false);
   const focusContact = useRef(false);
   const contactRef = useRef<HTMLDivElement>(null);
-  const announce = useAnnounce();
   const reports = usePlaceReports(place.id);
   // The row's first action button: "To się nie zgadza" / "Uzupełnij", or "Zmień" once this device sent something.
   const firstActions = useRef(new Map<AccessibilityAttribute, HTMLButtonElement>());
@@ -245,13 +244,6 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
     else factsHeadingRef.current?.focus();
   };
 
-  const share = async () => {
-    const url = new URL(routes.place(place.id), window.location.origin).toString();
-    const message = (await copyText(url)) ? t.shared : t.shareFailed;
-    toast(message, { description: url });
-    announce(message);
-  };
-
   return (
     <article aria-labelledby="place-name" className="lg:grid lg:grid-cols-[minmax(0,1fr)_24rem] lg:items-start lg:gap-x-8">
       <div className="lg:col-span-2 lg:flex lg:items-start lg:gap-6">
@@ -286,10 +278,11 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
               <NavigationArrow weight="fill" />
               {t.route}
             </Link>
-            <Button variant="outline" size="sm" onClick={share}>
-              <ShareNetwork weight="bold" />
-              {t.share}
-            </Button>
+            <ShareControls
+              buildLink={() => placeShareLink(window.location.origin, place.id)}
+              title={m.share.place.title(place.name)}
+              text={m.share.place.text}
+            />
             {hasContact ? (
               <Button
                 variant="outline"
