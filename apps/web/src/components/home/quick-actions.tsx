@@ -1,21 +1,29 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useMemo } from "react";
 import Link from "next/link";
 import { NavigationArrow } from "@phosphor-icons/react";
-import type { PlaceSummary } from "@krakow-bez-barier/contracts";
+import type { ListPlacesQuery, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { buttonVariants, cn, Toggle } from "@krakow-bez-barier/ui";
-import { FactRow, SampleTag, StatusBadge } from "@/components/kbb";
+import { FactRow, ReliabilityBadge, SampleTag, StatusBadge } from "@/components/kbb";
 import { FEATURE_ATTRIBUTES } from "@/domain/features";
 import { useLocale, useMessages } from "@/i18n/client";
 import { categoryIcon } from "@/lib/categories";
-import type { DistanceFrom } from "@/lib/nearby";
+import { byDistance, type DistanceFrom } from "@/lib/nearby";
 import { factViews } from "@/lib/place-facts";
 import { summaryLine } from "@/lib/place-features";
-import { usePlace } from "@/lib/places";
+import { usePlace, usePlaces } from "@/lib/places";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
-import { QUICK_ACTIONS, type QuickAction, type QuickActionId } from "@/lib/quick-actions";
+import {
+  nearestMatch,
+  nearestStaleMatch,
+  QUICK_ACTIONS,
+  staleLabel,
+  type QuickAction,
+  type QuickActionId,
+  type QuickResultState,
+} from "@/lib/quick-actions";
 import { routes } from "@/lib/routes";
 import { chipFallback } from "./place-list";
 
@@ -51,11 +59,46 @@ export function QuickActionRow({
   );
 }
 
-export type QuickResultState =
-  | { kind: "needLocation" }
-  | { kind: "searching" }
-  | { kind: "none" }
-  | { kind: "found"; place: PlaceSummary; distance: number; from: DistanceFrom };
+/**
+ * What a quick action found. The list (`items`, nearest first, already filtered on known data) answers first; when it
+ * has no match, a second request with `includeUnknown` looks for the nearest place that has the feature by outdated
+ * data only, so "brak w okolicy" is said only when not even outdated data says so (outdated ≠ missing).
+ */
+export function useQuickResult({
+  quick,
+  origin,
+  listPending,
+  listError,
+  items,
+  from,
+  listQuery,
+}: {
+  quick: QuickAction | null;
+  origin: [number, number] | null | undefined;
+  listPending: boolean;
+  listError: boolean;
+  items: readonly { place: PlaceSummary; distance: number }[];
+  from: DistanceFrom;
+  listQuery: ListPlacesQuery;
+}): QuickResultState | null {
+  const listReady = Boolean(quick && origin && !listPending && !listError);
+  const strict = useMemo(() => (quick && listReady ? nearestMatch(items, quick.features) : null), [quick, listReady, items]);
+  const askStale = Boolean(quick?.features.length && listReady && !strict);
+  const staleQuery = usePlaces({ ...listQuery, includeUnknown: true, limit: STALE_LOOKUP_LIMIT }, { enabled: askStale });
+  return useMemo((): QuickResultState | null => {
+    if (!quick) return null;
+    if (!origin) return { kind: "needLocation" };
+    if (!listReady) return { kind: "searching" };
+    if (strict) return { kind: "found", ...strict, from };
+    if (!askStale) return { kind: "none" };
+    if (staleQuery.isPending || staleQuery.isPlaceholderData) return { kind: "searching" };
+    const found = staleQuery.data ? nearestStaleMatch(byDistance(staleQuery.data.items, origin), quick.features) : null;
+    return found ? { kind: "found", ...found.item, from, stale: { asOf: found.asOf } } : { kind: "none" };
+  }, [quick, origin, listReady, strict, from, askStale, staleQuery.isPending, staleQuery.isPlaceholderData, staleQuery.data]);
+}
+
+// The API's page maximum: places without data come too, so the nearest outdated match may sit behind a few of them.
+const STALE_LOOKUP_LIMIT = 100;
 
 /** What a quick action found: the nearest place meeting its filters by known data, with the facts behind it. */
 export function QuickResult({ action, state }: { action: QuickAction; state: QuickResultState }) {
@@ -73,7 +116,7 @@ export function QuickResult({ action, state }: { action: QuickAction; state: Qui
         {title}
       </h2>
       {state.kind === "found" ? (
-        <FoundPlace action={action} place={state.place} distance={state.distance} from={state.from} />
+        <FoundPlace action={action} place={state.place} distance={state.distance} from={state.from} stale={state.stale} />
       ) : state.kind === "none" ? (
         <div className="mt-1 space-y-1 text-body-sm">
           <p className="font-semibold">{t.none(title)}</p>
@@ -86,7 +129,19 @@ export function QuickResult({ action, state }: { action: QuickAction; state: Qui
   );
 }
 
-function FoundPlace({ action, place, distance, from }: { action: QuickAction; place: PlaceSummary; distance: number; from: DistanceFrom }) {
+function FoundPlace({
+  action,
+  place,
+  distance,
+  from,
+  stale,
+}: {
+  action: QuickAction;
+  place: PlaceSummary;
+  distance: number;
+  from: DistanceFrom;
+  stale?: { asOf: string | null };
+}) {
   const m = useMessages();
   const t = m.home.quick;
   const locale = useLocale();
@@ -112,9 +167,11 @@ function FoundPlace({ action, place, distance, from }: { action: QuickAction; pl
           ) : null}
           <p className="text-[17px] leading-6 font-semibold">{place.name}</p>
           <p className="text-caption font-medium text-muted-foreground tabular-nums">{m.home.list.distance(distance, from)}</p>
+          {stale ? <ReliabilityBadge value="outdated" label={staleLabel(m, locale, stale.asOf)} className="mt-1 whitespace-normal" /> : null}
         </div>
         {place.isSample ? <SampleTag /> : null}
       </div>
+      {stale ? <p className="text-body-sm text-muted-foreground">{t.staleHint}</p> : null}
       {detail.isPending ? (
         <p className="text-caption text-muted-foreground">{t.loadingFacts}</p>
       ) : detail.data === null ? (

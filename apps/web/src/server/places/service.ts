@@ -17,7 +17,7 @@ import { categories, hiddenCategoryIds } from "@krakow-bez-barier/contracts";
 import { openapiDocument } from "@krakow-bez-barier/contracts/openapi";
 import { defaultLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
-import { FEATURE_ATTRIBUTES, featureState } from "@/domain/features";
+import { FEATURE_ATTRIBUTES, featureMatch } from "@/domain/features";
 import { matchProfile } from "@/domain/matcher";
 import { thresholdsFor } from "@/domain/profiles";
 import { isStale, resolveAttribute } from "@/domain/resolver";
@@ -265,7 +265,7 @@ async function matchingPlaces(query: SearchQuery, deps: PlacesDeps) {
     .map((place) => {
       const records = factsByPlace.get(place.id) ?? [];
       const attributes = resolvePlace(records, now);
-      const matches = features.map((feature) => ({ feature, state: featureState(attributes, feature) }));
+      const matches = features.map((feature) => featureMatch(attributes, feature, now));
       return { place, records, attributes, matches };
     })
     .filter(({ matches }) =>

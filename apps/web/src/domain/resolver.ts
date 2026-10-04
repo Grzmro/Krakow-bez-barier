@@ -21,7 +21,8 @@ export function valuesEqual(a: FactValue, b: FactValue): boolean {
   }
 }
 
-function effectiveDate(fact: AccessibilityFact, now: Date): Date {
+/** When a fact was last true: its latest confirmation or observation (never in the future), else when it was fetched. */
+export function effectiveDate(fact: AccessibilityFact, now: Date): Date {
   const dates = [fact.confirmedAt, fact.observedAt].filter((d): d is string => Boolean(d));
   if (dates.length === 0) return new Date(fact.fetchedAt);
   const latest = Math.max(...dates.map((d) => new Date(d).getTime()));

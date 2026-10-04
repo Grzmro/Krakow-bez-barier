@@ -135,7 +135,8 @@ paths:
       summary: Search places
       description: 'Full-text and filtered search. Feature filters keep only places whose attribute is *known* to be met;
 
-        set `includeUnknown=true` to also return places with no data for the filter (they are marked unknown in `summary`).
+        set `includeUnknown=true` to also return places with no data for the filter (they are marked unknown in `summary`)
+        and places whose only data for it is outdated (`features[].state` `stale`, with its date in `asOf`).
 
         '
       tags:
@@ -2701,12 +2702,19 @@ components:
           $ref: '#/components/schemas/FeatureFilter'
         state:
           type: string
-          description: '`met`: known to be there; `absent`: known not to be; `unknown` (no or stale data) and `conflict`: we can''t say — never shown as accessible.'
+          description: '`met`: known to be there by fresh data; `absent`: known not to be; `stale`: there by outdated
+            data only (shown with its date as "may be outdated", passes a filter only with `includeUnknown`); `unknown`
+            (no data) and `conflict`: we can''t say. Only `met` is ever shown as accessible.'
           enum:
           - met
           - absent
+          - stale
           - unknown
           - conflict
+        asOf:
+          type: string
+          format: date-time
+          description: For `stale`, when the newest outdated fact behind it was last true (confirmed, observed or fetched).
     Place:
       type: object
       required:

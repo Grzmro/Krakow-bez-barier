@@ -10,7 +10,7 @@ import { BottomPanel } from "@/components/kbb";
 import { CONTROLS_ABOVE_PANEL, STOWED_HEIGHT, usePanelInset } from "@/components/map/use-panel-inset";
 import { ProfileSwitch } from "@/components/profile/profile-switch";
 import { ThresholdsDrawer } from "@/components/profile/thresholds-drawer";
-import { useMessages } from "@/i18n/client";
+import { useLocale, useMessages } from "@/i18n/client";
 import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
 import { routes } from "@/lib/routes";
@@ -42,7 +42,7 @@ import { onHomeReset, registerBackHandler } from "@/lib/back-navigation";
 import { LIST_PAGE, nextWindow, windowFor } from "@/lib/list-window";
 import { nextPointsArea, type Bbox } from "@/lib/map-points";
 import { useInfinitePlaces, usePlacePoints, usePlaces } from "@/lib/places";
-import { nearestMatch, QUICK_ACTIONS, quickFilters, quickStillApplies, type QuickAction, type QuickActionId } from "@/lib/quick-actions";
+import { QUICK_ACTIONS, quickAnnouncement, quickFilters, quickStillApplies, type QuickAction, type QuickActionId } from "@/lib/quick-actions";
 import { profileQuery } from "@/lib/profile/thresholds";
 import { useProfile } from "@/lib/profile/use-profile";
 import { countByStatus, filterByVerdict, filterPointsByVerdict, missingNeeds, STATUS_ORDER } from "@/lib/profile/verdict-list";
@@ -56,7 +56,7 @@ import { useSessionFlag } from "@/lib/use-session-flag";
 import { PlaceMap } from "./place-map";
 import { NearbyToggle, type NearbyToggleHandle } from "./nearby-toggle";
 import { PlaceListSkeleton, PlaceRow } from "./place-list";
-import { QuickActionRow, QuickResult, type QuickResultState } from "./quick-actions";
+import { QuickActionRow, QuickResult, useQuickResult } from "./quick-actions";
 import { SEARCH_INPUT_ID, SearchBox, type SearchSuggestion } from "./search-box";
 
 const ALL = "all";
@@ -94,6 +94,7 @@ const COUNTER_PRESSED: Record<Status, string> = {
 
 export function HomeScreen() {
   const m = useMessages();
+  const locale = useLocale();
   const t = m.home;
   const tp = m.profile;
   const tn = m.nearby.home;
@@ -271,6 +272,17 @@ export function HomeScreen() {
         action.id === quickId &&
         quickStillApplies(action, { category: category === ALL ? null : category, features }),
     ) ?? null;
+  const pending = places.isPlaceholderData || total === undefined;
+  const quickState = useQuickResult({
+    quick,
+    origin,
+    listPending: pending,
+    listError: places.isError,
+    items,
+    from: chosenPlace ? "chosen" : "user",
+    listQuery: { ...filters, bbox: listArea(area, listView), near: searchFrom.centre },
+  });
+  const quickSays = quickAnnouncement(m, locale, quick, quickState);
   const partial = isPartial(places.data?.items.length ?? 0, total);
   const pinsCut = pointsCut(searching && !points.isError ? points.data : undefined);
   const verdicts = Boolean(profile && items.some(({ place }) => place.verdict));
@@ -357,21 +369,6 @@ export function HomeScreen() {
   const rows = useMemo(() => shown.slice(0, rendered), [shown, rendered]);
   const growWindow = (size: (current: number) => number) =>
     setListWindow((current) => ({ key: windowKey, rendered: size(current.key === windowKey ? current.rendered : LIST_PAGE) }));
-  const pending = places.isPlaceholderData || total === undefined;
-  const quickState = useMemo((): QuickResultState | null => {
-    if (!quick) return null;
-    if (!origin) return { kind: "needLocation" };
-    if (pending || places.isError) return { kind: "searching" };
-    const nearest = nearestMatch(items, quick.features);
-    return nearest ? { kind: "found", ...nearest, from: chosenPlace ? "chosen" : "user" } : { kind: "none" };
-  }, [quick, origin, pending, places.isError, items, chosenPlace]);
-  const quickAnnouncement = quick
-    ? quickState?.kind === "found"
-      ? t.quick.found(t.quick.actions[quick.id].result, quickState.place.name, t.list.distance(quickState.distance, quickState.from))
-      : quickState?.kind === "none"
-        ? t.quick.none(t.quick.actions[quick.id].result)
-        : null
-    : null;
   const listAnnouncement =
     total === undefined
       ? null
@@ -383,7 +380,7 @@ export function HomeScreen() {
   const announcement =
     listAnnouncement &&
     [
-      quickAnnouncement,
+      quickSays,
       origin ? (chosenPlace ? tn.announceChosen(chosenPlace) : tn.announce) : null,
       origin && scope.kind !== "near" ? tn.announceScope[scope.kind] : null,
       listAnnouncement, pinsCut ? t.map.pinsCut(pinsCut.shown, pinsCut.total) : null,

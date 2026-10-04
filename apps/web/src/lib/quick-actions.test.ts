@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { FeatureMatch } from "@krakow-bez-barier/contracts";
-import { nearestMatch, QUICK_ACTIONS, quickFilters, quickStillApplies, type QuickAction } from "./quick-actions";
+import { nearestMatch, nearestStaleMatch, QUICK_ACTIONS, quickAnnouncement, quickFilters, quickStillApplies, type QuickAction } from "./quick-actions";
 import { ICON_KEYS } from "./categories";
+import { pl } from "@/i18n/pl";
 
 const toilet = QUICK_ACTIONS.find((a) => a.id === "toilet") as QuickAction;
 const rest = QUICK_ACTIONS.find((a) => a.id === "rest") as QuickAction;
@@ -68,6 +69,13 @@ describe("nearestMatch", () => {
     expect(nearest?.id).toBe("c");
   });
 
+  it("never takes outdated data as a match", () => {
+    // GIVEN only a place whose accessible toilet is known from outdated data
+    // WHEN the nearest match is picked
+    // THEN there is none: stale is not met
+    expect(nearestMatch([row("a", "stale")], ["toilet_accessible"])).toBeNull();
+  });
+
   it("finds nothing when no place meets the filter by known data", () => {
     // GIVEN only places without an answer
     const items = [row("a"), row("b", "unknown")];
@@ -75,5 +83,51 @@ describe("nearestMatch", () => {
     // THEN there is none: unknown is never accessible
     expect(nearestMatch(items, ["toilet_accessible"])).toBeNull();
     expect(nearestMatch([], ["toilet_accessible"])).toBeNull();
+  });
+});
+
+describe("quickAnnouncement", () => {
+  const place = { id: "t", name: "Toaleta publiczna", category: "toilet", location: { type: "Point" as const, coordinates: [19.94, 50.06] }, summary: [], isSample: false };
+
+  it("says an outdated result is outdated, with its date", () => {
+    // GIVEN the toilet action found a toilet only by data from 15.09.2025
+    const state = { kind: "found" as const, place, distance: 600, from: "user" as const, stale: { asOf: "2025-09-15T00:00:00Z" } };
+    // WHEN it is announced in Polish
+    const said = quickAnnouncement(pl, "pl", toilet, state);
+    // THEN the sentence names the place, the distance and that it may be outdated, with the date
+    expect(said).toBe("Najbliższa toaleta dostosowana: Toaleta publiczna, 600 m od Ciebie. Może być nieaktualne · 15.09.2025");
+  });
+
+  it("joins into the live region without a doubled full stop when nothing is nearby", () => {
+    // GIVEN no result at all
+    // WHEN the announcement is joined with the list's like the home screen does
+    const said = [quickAnnouncement(pl, "pl", toilet, { kind: "none" }), "Nie znaleziono miejsc"].join(". ");
+    // THEN there is a single full stop between them
+    expect(said).not.toContain("..");
+  });
+});
+
+describe("nearestStaleMatch", () => {
+  const dated = (id: string, asOf?: string) => ({
+    id,
+    place: { features: [{ feature: "toilet_accessible" as const, state: "stale" as const, ...(asOf ? { asOf } : {}) }] },
+  });
+
+  it("picks the nearest place known to have the feature only from outdated data, with its date", () => {
+    // GIVEN nearest first: no data, absent, then two outdated "yes" (krakow.pl toilets dated 15.09.2025)
+    const items = [row("a", "unknown"), row("b", "absent"), dated("c", "2025-09-15T00:00:00Z"), dated("d")];
+    // WHEN the nearest outdated match is picked
+    const found = nearestStaleMatch(items, ["toilet_accessible"]);
+    // THEN it is the first outdated "yes", dated
+    expect(found?.item.id).toBe("c");
+    expect(found?.asOf).toBe("2025-09-15T00:00:00Z");
+  });
+
+  it("finds nothing among places without data, and nothing for an action without a filter", () => {
+    // GIVEN places without data and a met place (the strict match answers that one)
+    // WHEN the nearest outdated match is picked
+    // THEN there is none, and an action without features never looks
+    expect(nearestStaleMatch([row("a"), row("b", "unknown"), row("c", "met")], ["toilet_accessible"])).toBeNull();
+    expect(nearestStaleMatch([dated("a")], [])).toBeNull();
   });
 });
