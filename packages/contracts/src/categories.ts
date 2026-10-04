@@ -46,6 +46,8 @@ export type CategoryConfig = CategoryDefinition & {
    * never attached to them. Hidden and on-route categories never take entrances either.
    */
   withoutEntrances?: boolean;
+  /** A destination a visitor searches for by name (museum, monument, attraction): ranked above services that share the word. */
+  landmark?: boolean;
 };
 
 /**
@@ -55,10 +57,10 @@ export type CategoryConfig = CategoryDefinition & {
  */
 export const categories: readonly CategoryConfig[] = [
   { id: "restaurant", label: "Restauracje", singularLabel: "Restauracja", icon: "fork-knife", osm: [{ key: "amenity", values: ["restaurant", "cafe", "fast_food", "bar", "pub"] }] },
-  { id: "museum", label: "Muzea", singularLabel: "Muzeum", icon: "bank", osm: [{ key: "tourism", values: ["museum"] }] },
+  { id: "museum", label: "Muzea", singularLabel: "Muzeum", icon: "bank", osm: [{ key: "tourism", values: ["museum"] }], landmark: true },
   { id: "toilet", label: "Toalety", singularLabel: "Toaleta", icon: "toilet", osm: [{ key: "amenity", values: ["toilets"] }], unnamedName: "Toaleta publiczna" },
   { id: "hotel", label: "Hotele", singularLabel: "Hotel", icon: "bed", osm: [{ key: "tourism", values: ["hotel", "hostel", "guest_house"] }] },
-  { id: "monument", label: "Zabytki", singularLabel: "Zabytek", icon: "church", osm: [{ key: "historic", values: ["monument", "memorial"] }], withoutEntrances: true },
+  { id: "monument", label: "Zabytki", singularLabel: "Zabytek", icon: "church", osm: [{ key: "historic", values: ["monument", "memorial"] }], withoutEntrances: true, landmark: true },
   { id: "theatre", label: "Teatry i kina", singularLabel: "Teatr lub kino", icon: "mask-happy", osm: [{ key: "amenity", values: ["theatre", "cinema"] }] },
   { id: "pharmacy", label: "Apteki", singularLabel: "Apteka", icon: "pill", osm: [{ key: "amenity", values: ["pharmacy"] }, { key: "healthcare", values: ["pharmacy"] }] },
   {
@@ -89,7 +91,7 @@ export const categories: readonly CategoryConfig[] = [
     cardAttributes: ["wheelchair_overall", "tactile_paving", "kerb_height_cm", "surface", "bench", "shelter"],
   },
   { id: "shop", label: "Handel", singularLabel: "Handel", icon: "shopping-bag", osm: [{ key: "shop", values: ["supermarket", "mall", "convenience", "department_store", "clothes", "shoes", "bakery", "kiosk", "books", "electronics", "variety_store", "greengrocer", "butcher", "chemist", "florist", "gift", "jewelry", "optician", "sports", "toys", "hardware", "stationery"] }] },
-  { id: "other", label: "Inne", singularLabel: "Inne", icon: "map-pin", osm: [{ key: "tourism", values: ["gallery", "attraction"] }] },
+  { id: "other", label: "Inne", singularLabel: "Inne", icon: "map-pin", osm: [{ key: "tourism", values: ["gallery", "attraction"] }], landmark: true },
   { id: "steps", label: "Schody", singularLabel: "Schody", icon: "stairs", osm: [{ key: "highway", values: ["steps"] }], unnamedName: "Schody", onRoutes: true },
   {
     id: "kerb",

@@ -15,7 +15,7 @@ import { useCategories } from "@/lib/categories";
 import { config } from "@/lib/config";
 import { routes } from "@/lib/routes";
 import { routeTarget } from "@/lib/route-intent";
-import { byDistance, type NearbyOrigin } from "@/lib/nearby";
+import { byDistance, withDistance, type NearbyOrigin } from "@/lib/nearby";
 import {
   choose,
   clearQuery,
@@ -265,7 +265,11 @@ export function HomeScreen() {
     setMapView((current) => nextTaggedView(current, roundView(view), moved, settledSearch.current));
   }, []);
   const origin = searchFrom.from;
-  const items = useMemo(() => byDistance(places.data?.items ?? [], origin ?? config.cityCenter), [places.data, origin]);
+  // A text search keeps the API's ranking (best name matches and landmarks first); everything else is nearest first.
+  const items = useMemo(
+    () => (query.q ? withDistance : byDistance)(places.data?.items ?? [], origin ?? config.cityCenter),
+    [places.data, origin, query.q],
+  );
   const counts = useMemo(() => countByStatus(items), [items]);
   const shown = useMemo(() => filterByVerdict(items, { status: statusFilter, hideFailing }), [items, statusFilter, hideFailing]);
   const mapPlaces = useMemo(() => shown.map(({ place }) => place), [shown]);

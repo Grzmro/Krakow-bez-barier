@@ -14,6 +14,7 @@ import {
 import { FEATURE_ATTRIBUTES, featureMatch } from "@/domain/features";
 import { matchProfile } from "@/domain/matcher";
 import { thresholdsFor } from "@/domain/profiles";
+import { searchRank } from "@/domain/search-rank";
 import { defaultLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
 import { byDistance } from "@/lib/nearby";
@@ -125,7 +126,10 @@ export function mockListPlaces(query: ListPlacesQuery = {}, locale: Locale = def
       verdict: thresholds ? matchProfile(factsOf(s), thresholds, locale) : null,
     }));
   const [lon, lat] = query.near ?? [];
-  const ordered = lon === undefined || lat === undefined ? items : byDistance(items, [lon, lat]).map(({ place }) => place);
+  const nearest = lon === undefined || lat === undefined ? items : byDistance(items, [lon, lat]).map(({ place }) => place);
+  // Like the API: with `q`, the best name matches first, the distance order kept within a rank (the sort is stable).
+  const q = query.q ? normalize(query.q.trim()) : "";
+  const ordered = q ? nearest.toSorted((a, b) => searchRank(normalize(a.name), a.category, q) - searchRank(normalize(b.name), b.category, q)) : nearest;
   return { items: ordered, nextCursor: null, total: ordered.length };
 }
 

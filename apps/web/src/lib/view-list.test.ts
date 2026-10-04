@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { FIT_TOP, fitTargets, followedView, isPartial, listArea, nextTaggedView, pointsCut, roundView } from "./view-list";
+import { FIT_TOP } from "./search-fit";
+import { fitTargets, followedView, isPartial, listArea, nextTaggedView, pointsCut, roundView } from "./view-list";
 
 describe("listArea", () => {
   it("follows the map view when there is no fixed search area", () => {
@@ -48,8 +49,9 @@ describe("listArea", () => {
 });
 
 describe("fitTargets", () => {
+  const named = (name: string, lon = 19.94) => ({ name, location: { coordinates: [lon, 50.06] } });
   const places = ["Muzeum Narodowe", "Muzeum Inżynierii i Techniki", "Muzeum Krakowa", "Muzeum Sztuki", "Muzeum Lotnictwa", "Muzeum Fotografii"].map(
-    (name) => ({ name }),
+    (name) => named(name),
   );
 
   it("fits every listed place while browsing", () => {
@@ -70,23 +72,25 @@ describe("fitTargets", () => {
     // GIVEN "muzeum inzynierii" typed without Polish letters
     // WHEN choosing what the map fits
     // THEN only that museum
-    expect(fitTargets("muzeum inzynierii", places)).toEqual([{ name: "Muzeum Inżynierii i Techniki" }]);
+    expect(fitTargets("muzeum inzynierii", places)).toEqual([named("Muzeum Inżynierii i Techniki")]);
   });
 
   it("prefers the one exact name over several that start with the text", () => {
     // GIVEN "Qubus" and "Qubus Hotel Kraków" both found
-    const hits = [{ name: "Qubus Hotel Kraków" }, { name: "Qubus" }];
+    const hits = [named("Qubus Hotel Kraków"), named("Qubus")];
 
     // WHEN choosing what the map fits
     // THEN the exact one
-    expect(fitTargets("qubus", hits)).toEqual([{ name: "Qubus" }]);
+    expect(fitTargets("qubus", hits)).toEqual([named("Qubus")]);
   });
 
-  it("fits the first few results when no place stands out", () => {
-    // GIVEN "muzeum" matching six museums
+  it("fits the best ranked matches near each other when no place stands out", () => {
+    // GIVEN "muzeum" matching six museums close together, ranked by the API, and one far across town ranked second
+    const ranked = [places[0], named("Muzeum Lotnictwa (oddział)", 20.05), ...places.slice(1)];
+
     // WHEN choosing what the map fits
-    // THEN the first five in list order
-    expect(fitTargets("muzeum", places)).toEqual(places.slice(0, FIT_TOP));
+    // THEN the best match and the next few near it, without the far one
+    expect(fitTargets("muzeum", ranked)).toEqual(places.slice(0, FIT_TOP - 1));
   });
 });
 

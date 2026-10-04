@@ -150,7 +150,7 @@ export interface PlaceMapProps {
    * the places change, which would pull the map back after every pan. `null` = not yet (still loading).
    */
   fitKey?: string | null;
-  /** The places to fit when they differ from `places`, e.g. the one place a name search clearly found. */
+  /** The places the map fits instead of all `places`: the one a name search clearly found, or its best matches. */
   fitTo?: readonly PlaceSummary[];
   /** What the pins and clusters show, e.g. every place in the viewport; `places` themselves when left out. */
   points?: PlacePoint[];
@@ -370,12 +370,12 @@ export function PlaceMap({
         fittedRef.current = null;
         return;
       }
-      const targets = fitTo ?? places;
-      const key = fitKey === undefined ? places.map((place) => place.id).toSorted().join(",") : fitKey;
-      if (!targets.length || key === null || key === fittedRef.current) return;
+      const fitted = fitTo ?? places;
+      const key = fitKey === undefined ? fitted.map((place) => place.id).toSorted().join(",") : fitKey;
+      if (!fitted.length || key === null || key === fittedRef.current) return;
       fittedRef.current = key;
       const bounds = new LngLatBounds();
-      for (const place of targets) bounds.extend(place.location.coordinates as [number, number]);
+      for (const place of fitted) bounds.extend(place.location.coordinates as [number, number]);
       // New results replace whatever the camera was doing, so the fit always sees the current padding.
       map.stop();
       applyPadding(map, paddingFor(map));

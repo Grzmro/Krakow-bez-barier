@@ -144,7 +144,7 @@ paths:
       parameters:
       - name: q
         in: query
-        description: Free text matched against name and address.
+        description: "Free text matched against name and address. Results are ranked by how well the name answers it: the whole name, then a landmark (museum, monument, attraction) whose name words start with the query, then whole name words, then word starts, then the rest; distance (with `near`) or name orders within a rank, and `cursor` pages through that order."
         schema:
           type: string
           maxLength: 200

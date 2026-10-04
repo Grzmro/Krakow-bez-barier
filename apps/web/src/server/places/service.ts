@@ -22,12 +22,14 @@ import { FEATURE_ATTRIBUTES, featureMatch } from "@/domain/features";
 import { matchProfile } from "@/domain/matcher";
 import { thresholdsFor } from "@/domain/profiles";
 import { isStale, resolveAttribute } from "@/domain/resolver";
+import { MAX_SEARCH_RANK as MAX_RANK, searchRank } from "@/domain/search-rank";
 import { activeOutagesByPlace } from "@/server/outages/service";
 import { pendingReportsByAttribute, type ReportsStore } from "@/server/reports";
 import { currentSimulatedOutageIds } from "@/server/source-outages/service";
 import { localizeSourceText, withSimulatedOutage } from "@/server/sources";
 import {
   createDbPlaceRepository,
+  normalizeText,
   type FactRecord,
   type PlaceHit,
   type PlaceRecord,
@@ -163,20 +165,32 @@ function summaryChips(
     }));
 }
 
-type NameCursor = { name: string; id: string };
+// `rank` is the text-search rank (`searchRank`), 0 without `q`; it orders before the name or the distance.
+type NameCursor = { rank: number; name: string; id: string };
 type Near = [number, number];
-type NearCursor = { near: Near; distance: number; id: string };
+type DistanceKey = { rank: number; distance: number; id: string };
+type NearCursor = DistanceKey & { near: Near };
 
 const collator = new Intl.Collator("pl", { sensitivity: "base" });
 const byId = (a: { id: string }, b: { id: string }) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
-const byNameThenId = (a: NameCursor, b: NameCursor) => collator.compare(a.name, b.name) || byId(a, b);
-const byDistanceThenId = (a: { distance: number; id: string }, b: { distance: number; id: string }) =>
-  a.distance - b.distance || byId(a, b);
-const distanceOf = (place: PlaceHit) => ({ id: place.id, distance: place.distance ?? Number.POSITIVE_INFINITY });
+const byNameThenId = (a: NameCursor, b: NameCursor) => a.rank - b.rank || collator.compare(a.name, b.name) || byId(a, b);
+const byDistanceThenId = (a: DistanceKey, b: DistanceKey) => a.rank - b.rank || a.distance - b.distance || byId(a, b);
 
 const encode = (parts: unknown[]) => Buffer.from(JSON.stringify(parts)).toString("base64url");
-const encodeNameCursor = ({ name, id }: NameCursor) => encode([name, id]);
-const encodeNearCursor = ({ near, distance, id }: NearCursor) => encode(["near", near[0], near[1], distance, id]);
+// The rank is appended only when set, so a list without `q` keeps its cursors.
+const withRank = (parts: unknown[], rank: number) => (rank ? [...parts, rank] : parts);
+const encodeNameCursor = ({ rank, name, id }: NameCursor) => encode(withRank([name, id], rank));
+const encodeNearCursor = ({ near, rank, distance, id }: NearCursor) =>
+  encode(withRank(["near", near[0], near[1], distance, id], rank));
+
+/** An optional trailing rank: nothing, or one small non-negative integer. */
+function readRank(rest: unknown[]): number | undefined {
+  if (rest.length === 0) return 0;
+  const [rank] = rest;
+  return rest.length === 1 && Number.isInteger(rank) && (rank as number) >= 0 && (rank as number) <= MAX_RANK
+    ? (rank as number)
+    : undefined;
+}
 
 const notACursor = () => new InvalidQueryError("query.cursor", "is not a cursor returned in nextCursor for this query");
 
@@ -193,13 +207,15 @@ function parseCursor(cursor: string): unknown[] {
 /** A name-order cursor; one issued for a `near` list is refused. */
 function decodeNameCursor(cursor: string): NameCursor {
   const [name, id, ...rest] = parseCursor(cursor);
-  if (typeof name === "string" && typeof id === "string" && rest.length === 0) return { name, id };
+  const rank = readRank(rest);
+  if (typeof name === "string" && typeof id === "string" && rank !== undefined) return { rank, name, id };
   throw notACursor();
 }
 
 /** A distance-order cursor for exactly this `near` point; a name-order cursor, or one for another point, is refused. */
 function decodeNearCursor(cursor: string, near: Near): NearCursor {
   const [kind, lon, lat, distance, id, ...rest] = parseCursor(cursor);
+  const rank = readRank(rest);
   if (
     kind === "near" &&
     lon === near[0] &&
@@ -208,9 +224,9 @@ function decodeNearCursor(cursor: string, near: Near): NearCursor {
     Number.isFinite(distance) &&
     distance >= 0 &&
     typeof id === "string" &&
-    rest.length === 0
+    rank !== undefined
   ) {
-    return { near, distance, id };
+    return { near, rank, distance, id };
   }
   throw notACursor();
 }
@@ -259,10 +275,12 @@ async function matchingPlaces(query: SearchQuery, deps: PlacesDeps) {
   const hiddenByDefault = hiddenCategoryIds(features);
   const search = (text?: string) =>
     repository.searchPlaces({ text, categories: query.category, excludeCategories: hiddenByDefault, bbox, near });
-  let candidates = await search(attempts[0]);
+  let text = attempts[0];
+  let candidates = await search(text);
   // Typed or dictated Polish rarely matches verbatim: retry without the lead-in, then de-inflected.
-  for (const text of attempts.slice(1)) {
+  for (const next of attempts.slice(1)) {
     if (candidates.length) break;
+    text = next;
     candidates = await search(text);
   }
   const facts = withOutages(await repository.activeFacts(candidates.map((p) => p.id)), now, simulated, locale);
@@ -278,7 +296,7 @@ async function matchingPlaces(query: SearchQuery, deps: PlacesDeps) {
     .filter(({ matches }) =>
       query.includeUnknown ? matches.every((m) => m.state !== "absent") : matches.every((m) => m.state === "met"),
     );
-  return { matching, near, features, repository, now, locale };
+  return { matching, near, features, text, repository, now, locale };
 }
 
 /** Most points `GET /places/points` returns; `truncated` says when more matched. Mirrors the spec's `maxItems`. */
@@ -317,20 +335,30 @@ export async function listPlacePoints(query: ListPlacePointsQuery, deps: PlacesD
  */
 export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}): Promise<PlaceList> {
   const found = await matchingPlaces(query, deps);
-  const { near, features, repository, now, locale } = found;
+  const { near, features, text, repository, now, locale } = found;
   const thresholds = thresholdsFor(query);
   const limit = query.limit ?? 25;
+  // With `q`, the best name matches (and landmarks) come first; the distance or the name orders within a rank.
+  const ranks = new Map(
+    found.matching.map(({ place }) => [place.id, text ? searchRank(normalizeText(place.name), place.category, text) : 0]),
+  );
+  const nameKey = (place: PlaceHit): NameCursor => ({ rank: ranks.get(place.id) ?? 0, name: place.name, id: place.id });
+  const distanceKey = (place: PlaceHit): DistanceKey => ({
+    rank: ranks.get(place.id) ?? 0,
+    distance: place.distance ?? Number.POSITIVE_INFINITY,
+    id: place.id,
+  });
   const matching = found.matching.sort((a, b) =>
-    near ? byDistanceThenId(distanceOf(a.place), distanceOf(b.place)) : byNameThenId(a.place, b.place),
+    near ? byDistanceThenId(distanceKey(a.place), distanceKey(b.place)) : byNameThenId(nameKey(a.place), nameKey(b.place)),
   );
 
   let remaining = matching;
   if (query.cursor && near) {
     const after = decodeNearCursor(query.cursor, near);
-    remaining = matching.filter(({ place }) => byDistanceThenId(distanceOf(place), after) > 0);
+    remaining = matching.filter(({ place }) => byDistanceThenId(distanceKey(place), after) > 0);
   } else if (query.cursor) {
     const after = decodeNameCursor(query.cursor);
-    remaining = matching.filter(({ place }) => byNameThenId(place, after) > 0);
+    remaining = matching.filter(({ place }) => byNameThenId(nameKey(place), after) > 0);
   }
   const page = remaining.slice(0, limit);
   const outages = thresholds ? await outagesOf(repository, page.map(({ place }) => place.id), now) : new Map<string, Outage[]>();
@@ -355,8 +383,8 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
     nextCursor:
       remaining.length > page.length && last
         ? near
-          ? encodeNearCursor({ near, ...distanceOf(last.place) })
-          : encodeNameCursor(last.place)
+          ? encodeNearCursor({ near, ...distanceKey(last.place) })
+          : encodeNameCursor(nameKey(last.place))
         : null,
     total: matching.length,
   };
