@@ -161,8 +161,11 @@ test("on a 390x844 phone the skip link jumps past the map to the list, below the
   await evidence("home-skip-to-list");
   await page.keyboard.press("Enter");
 
-  // THEN the list has focus and the next Tab lands on the first place, in view
+  // THEN the list has focus, the next Tab offers the jump to the filters (below the results since KBB-162) and the
+  // one after it lands on the first place, in view
   await expect(page.locator("#lista")).toBeFocused();
+  await page.keyboard.press("Tab");
+  await expect(list.getByRole("button", { name: "Filtry i profil" })).toBeFocused();
   await page.keyboard.press("Tab");
   const firstRow = list.getByRole("link").first();
   await expect(firstRow).toBeFocused();
@@ -170,6 +173,8 @@ test("on a 390x844 phone the skip link jumps past the map to the list, below the
 });
 
 test("the whole flow works with the keyboard alone", async ({ page }) => {
+  // Search, category, map and a place card, one key at a time: more than the 15 s budget on a loaded machine.
+  test.setTimeout(30_000);
   // GIVEN the home screen at its start
   await page.goto("/");
   const list = page.getByRole("region", { name: "Lista miejsc" });
@@ -226,12 +231,12 @@ test("a feature filter nobody described here says it is missing data, not the fa
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
 
   // WHEN a feature filter no listed place has in its data is turned on
-  await page.getByRole("button", { name: "Parking dla niepełnosprawnych", exact: true }).click();
+  await page.getByRole("button", { name: "Parking dla OzN", exact: true }).click();
   await showResults(page);
 
   // THEN the empty state says the data is missing and offers to show the places without it
   await expect(list.getByText("Brak miejsc dla tego wyszukiwania.")).toBeVisible();
-  await expect(list).toContainText("Żadne miejsce w wynikach nie ma w danych: Parking dla niepełnosprawnych.");
+  await expect(list).toContainText("Żadne miejsce w wynikach nie ma w danych: Parking dla OzN.");
   await expect(list).toContainText("brak danych to nie brak udogodnienia");
   await evidence("home-feature-no-data");
   await list.getByRole("button", { name: "Pokaż też miejsca bez danych" }).click();

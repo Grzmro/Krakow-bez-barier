@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isPartial, listArea, pointsCut, roundView } from "./view-list";
+import { followedView, isPartial, listArea, nextTaggedView, pointsCut, roundView } from "./view-list";
 
 describe("listArea", () => {
   it("follows the map view when there is no fixed search area", () => {
@@ -67,5 +67,42 @@ describe("pointsCut", () => {
     // THEN no note
     expect(pointsCut({ items: [], total: 0, truncated: false })).toBeNull();
     expect(pointsCut(undefined)).toBeNull();
+  });
+});
+
+describe("followedView", () => {
+  const hotelView: [number, number, number, number] = [19.93, 50.05, 19.94, 50.06];
+  const fitView: [number, number, number, number] = [19.9, 50.0, 20.0, 50.1];
+
+  it("does not limit a new search to the view the previous one left", () => {
+    // GIVEN the map zoomed in on the hotel the previous search found
+    const tagged = nextTaggedView(null, hotelView, true, "hotel");
+
+    // WHEN the user picks the museums category
+    // THEN its list is the whole search area, not the museums inside the hotel's view (none)
+    expect(followedView(tagged, "museums")).toBeNull();
+  });
+
+  it("follows the view the camera moved to after the search's results arrived", () => {
+    // GIVEN the museums' results arrived and the map fitted them
+    const before = nextTaggedView(null, hotelView, true, "hotel");
+    const tagged = nextTaggedView(before, fitView, true, "museums");
+
+    // WHEN the list picks its box
+    // THEN it is the fitted view, and later pans keep following
+    expect(followedView(tagged, "museums")).toEqual(fitView);
+    expect(followedView(nextTaggedView(tagged, hotelView, true, "museums"), "museums")).toEqual(hotelView);
+  });
+
+  it("keeps the tag when the map only redrew its pins", () => {
+    // GIVEN a view followed for the museums
+    const tagged = nextTaggedView(null, fitView, true, "museums");
+
+    // WHEN new pins are drawn without a camera move, before or after a new search settled
+    const redrawn = nextTaggedView(tagged, fitView, false, "toilets");
+
+    // THEN nothing changes: the same object, still the museums' view
+    expect(redrawn).toBe(tagged);
+    expect(followedView(redrawn, "toilets")).toBeNull();
   });
 });

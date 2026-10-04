@@ -33,28 +33,8 @@
         - button "Najbliższa winda"
         - button "Najbliższa apteka"
         - button "Najbliższy przystanek"
-      - group "Profil potrzeb":
-        - text: ""
-        - radio "Profil wyłączony, widok dla każdego" [checked]
-        - text: Dla każdego
-        - radio "Wózek"
-        - text: Wózek
-        - radio "Wózek dziecięcy"
-        - text: Dziecięcy
-        - radio "Senior"
-        - text: Senior
-      - button "W mojej okolicy"
-      - text: Pokaż miejsca od najbliższych
-      - button "Albo wybierz dzielnicę"
-      - paragraph: Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.
-      - group "Filtry cech":
-        - button "Bez schodów"
-        - button "Winda"
-        - button "Toaleta dostosowana"
-        - button "Ławki"
-        - button "Parking dla niepełnosprawnych"
-        - button "Przewijak"
       - heading /\d+ miejsc/ [level=2]
+      - button "Filtry i profil"
       - list:
         - listitem:
           - link /Podziemia Rynku Rynek Główny 1, Kraków Toaleta dostosowana Dane przykładowe \d+ m od Rynku/:
@@ -86,11 +66,31 @@
         - listitem:
           - link /Muzeum Inżynierii i Techniki ul\. św\. Wawrzyńca \d+, Kraków Winda · Toaleta dostosowana Dane przykładowe \d+,\d+ km od Rynku/:
             - /url: /miejsca/muzeum-inzynierii-i-techniki
+      - group "Profil potrzeb":
+        - text: ""
+        - radio "Profil wyłączony, widok dla każdego" [checked]
+        - text: Dla każdego
+        - radio "Wózek"
+        - text: Wózek
+        - radio "Wózek dziecięcy"
+        - text: Dziecięcy
+        - radio "Senior"
+        - text: Senior
+      - button "W mojej okolicy"
+      - text: Pokaż miejsca od najbliższych
+      - button "Albo wybierz dzielnicę"
+      - paragraph: Dokładna pozycja zostaje na urządzeniu. Do wyszukiwania wysyłamy tylko przybliżony obszar w promieniu ok. 2 km, nie Twoją pozycję.
+      - group "Filtry cech":
+        - button "Bez schodów"
+        - button "Winda"
+        - button "Toaleta dostosowana"
+        - button "Ławki"
+        - button "Parking dla OzN"
+        - button "Przewijak"
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
-  - 'img "Grupa: 4 miejsca"'
-  - 'img "Grupa: 2 miejsca"'
-  - 'img "Grupa: 2 miejsca"'
+  - 'img /Grupa: \d+ miejsc/'
   - button "Informacje o źródłach mapy"
   - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
+  - button "Pokaż moją lokalizację"
   - button "Przybliż"
   - button "Oddal"

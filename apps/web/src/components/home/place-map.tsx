@@ -152,8 +152,11 @@ export interface PlaceMapProps {
   fitKey?: string | null;
   /** What the pins and clusters show, e.g. every place in the viewport; `places` themselves when left out. */
   points?: PlacePoint[];
-  /** The whole map's view (`[west, south, east, north]`) after each move, to load the points for it. */
-  onViewChange?: (view: Bbox) => void;
+  /**
+   * The whole map's view (`[west, south, east, north]`) after each camera move (`moved`), and whenever the pins are
+   * redrawn without one, to load the points for it.
+   */
+  onViewChange?: (view: Bbox, moved: boolean) => void;
   selectedId: string | null;
   onSelect: (id: string) => void;
   /** Space covered by overlays (search on top, map controls at the bottom), in px. */
@@ -288,14 +291,14 @@ export function PlaceMap({
   useEffect(() => {
     if (!map) return;
     let cancelled = false;
-    let update: (() => void) | null = null;
+    let moved: (() => void) | null = null;
     const markers = markersRef.current;
     import("maplibre-gl").then(({ Marker }) => {
       if (cancelled) return;
       removeMarkers(markers);
-      update = () => {
+      const update = (cameraMoved: boolean) => {
         const bounds = map.getBounds();
-        onViewChangeRef.current?.([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]);
+        onViewChangeRef.current?.([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()], cameraMoved);
         const padLon = bounds.getEast() - bounds.getWest();
         const padLat = bounds.getNorth() - bounds.getSouth();
         // One viewport of margin on each side: a pan reveals pins that are already there.
@@ -345,12 +348,13 @@ export function PlaceMap({
         }
         markSelected(markers, selectedIdRef.current);
       };
-      update();
-      map.on("moveend", update);
+      update(false);
+      moved = () => update(true);
+      map.on("moveend", moved);
     });
     return () => {
       cancelled = true;
-      if (update) map.off("moveend", update);
+      if (moved) map.off("moveend", moved);
     };
   }, [map, index, announce, t, statusWords, category]);
 

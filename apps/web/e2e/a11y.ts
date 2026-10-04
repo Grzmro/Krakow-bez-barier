@@ -11,10 +11,13 @@ export const SCREENS: { name: string; url: string; heading: RegExp }[] = [
   { name: "accessibility-statement", url: "/deklaracja-dostepnosci", heading: /Deklaracja dostępności/ },
 ];
 
-/** Presses Tab until `target` has focus — the way a keyboard user gets there — and fails if it never does. */
-export async function tabTo(page: Page, target: Locator, maxTabs = 40) {
+/**
+ * Presses Tab (Shift+Tab with `back`) until `target` has focus — the way a keyboard user gets there — and fails if it
+ * never does.
+ */
+export async function tabTo(page: Page, target: Locator, maxTabs = 40, { back = false } = {}) {
   for (let i = 0; i < maxTabs && !(await target.evaluate((el) => el === document.activeElement)); i++) {
-    await page.keyboard.press("Tab");
+    await page.keyboard.press(back ? "Shift+Tab" : "Tab");
   }
   await expect(target).toBeFocused();
 }

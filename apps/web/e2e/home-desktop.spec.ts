@@ -99,7 +99,7 @@ test("the skip link jumps to the list on desktop", async ({ page }) => {
   await expect(page.locator("#lista")).toBeFocused();
 });
 
-test("the document order, which tab order follows, is search, categories, filters, list, then the map", async ({ page }) => {
+test("the document order, which tab order follows, is search, categories, results, filters, then the map", async ({ page }) => {
   // GIVEN the home screen at 1440 px
   await page.setViewportSize({ width: 1440, height: 900 });
   await gotoAllPlaces(page);
@@ -117,9 +117,10 @@ test("the document order, which tab order follows, is search, categories, filter
     };
   });
 
-  // THEN tab order follows it: search before categories before filters before the list before the map controls
+  // THEN tab order follows it: search before categories before the results list before the filters (results first
+  // after a search, KBB-162) before the map controls
   expect(Object.values(order).every((n) => n >= 0)).toBe(true);
-  expect([order.search, order.categories, order.filters, order.list, order.zoom]).toEqual(
-    [order.search, order.categories, order.filters, order.list, order.zoom].toSorted((a, b) => a - b),
+  expect([order.search, order.categories, order.list, order.filters, order.zoom]).toEqual(
+    [order.search, order.categories, order.list, order.filters, order.zoom].toSorted((a, b) => a - b),
   );
 });

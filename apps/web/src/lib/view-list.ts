@@ -15,6 +15,28 @@ export function listArea(area: Bbox | undefined, view: Bbox | null): Bbox | unde
   return area ?? view ?? undefined;
 }
 
+/** A map view, tagged with the search whose results were on screen when the camera last moved. */
+export type TaggedView = { view: Bbox; search: string | null };
+
+/**
+ * The view to keep after the map reported one. A camera move (`moved`) tags it with the search whose results had
+ * arrived by then (`settledSearch`); a report without a move (new pins drawn) keeps the old tag.
+ */
+export function nextTaggedView(current: TaggedView | null, view: Bbox, moved: boolean, settledSearch: string | null): TaggedView {
+  const search = moved ? settledSearch : (current?.search ?? null);
+  if (current && current.search === search && current.view.every((value, i) => value === view[i])) return current;
+  return { view, search };
+}
+
+/**
+ * The view the list of `search` follows: only one the camera moved to after that search's results arrived (the fit to
+ * them, or the user's own pan). Before that the list is the search's own area, so a new search is never limited to
+ * whatever the previous one left on screen (and never empty because of it).
+ */
+export function followedView(tagged: TaggedView | null, search: string): Bbox | null {
+  return tagged?.search === search ? tagged.view : null;
+}
+
 /** Whether the pages fetched so far (`loaded` rows) hold fewer places than the area has (`total`). */
 export function isPartial(loaded: number, total: number | undefined): boolean {
   return total !== undefined && loaded < total;

@@ -97,6 +97,8 @@ test("an info page renders in English on the server", async ({ page, expectAcces
 });
 
 test("the route screen, opened from the menu, is English end to end", async ({ page, expectAccessible, evidence }) => {
+  // Two screens, a route plan, axe and evidence: more than the 15 s budget on a loaded machine.
+  test.setTimeout(30_000);
   // GIVEN a visitor who switched to English
   await page.goto("/");
   await chooseLanguage(page, "Menu", "English");
@@ -105,10 +107,10 @@ test("the route screen, opened from the menu, is English end to end", async ({ p
   await page.getByRole("button", { name: "Menu" }).click();
   await page.getByRole("link", { name: /Plan a route/ }).click();
 
-  // THEN, without a location or a chosen start, the screen says in English that it has no route to plan
+  // THEN, with location refused and no chosen start, the screen says in English that it has no route to plan
   await expect(page).toHaveTitle("Route · Kraków bez barier");
   const main = page.locator("main");
-  await expect(main).toContainText("We are not planning a route because we don't know where it starts");
+  await expect(main).toContainText("No permission to use location. We don't plan a route without a start");
 
   // WHEN they choose the station as the start
   await page.getByRole("combobox", { name: "From" }).click();

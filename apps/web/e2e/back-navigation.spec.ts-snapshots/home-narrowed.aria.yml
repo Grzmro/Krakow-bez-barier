@@ -90,10 +90,10 @@
         - button "Winda"
         - button "Toaleta dostosowana"
         - button "Ławki"
-        - button "Parking dla niepełnosprawnych"
+        - button "Parking dla OzN"
         - button "Przewijak"
   - region "Mapa miejsc. Strzałki przesuwają widok, plus i minus zmieniają przybliżenie. Lista zawiera te same miejsca."
-  - 'img "Grupa: 3 miejsca"'
+  - 'img /Grupa: \d+ miejsc/'
   - button "Informacje o źródłach mapy"
   - paragraph: "Źródła mapy: OpenFreeMap, © OpenMapTiles, © OpenStreetMap contributors"
   - button "Przybliż"

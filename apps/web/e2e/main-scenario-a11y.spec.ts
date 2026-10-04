@@ -15,9 +15,9 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
   evidence,
 }) => {
   test.setTimeout(60_000);
-  // GIVEN the home screen
-  await gotoAllPlaces(page);
-  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
+  // GIVEN the home screen at its start: a clean map and a peek of the places nearest the Rynek
+  await page.goto("/");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("Najbliżej Rynku (bez lokalizacji)");
 
   // WHEN a keyboard user searches for the hotel and picks the suggestion
   const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
@@ -42,7 +42,8 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
 
   // AND opens the profile thresholds and closes them with Escape
   const thresholds = page.getByRole("button", { name: "Progi profilu" });
-  await tabTo(page, thresholds);
+  // The verdict counters and thresholds sit above the list, before the profile switch (KBB-162): tab back to them.
+  await tabTo(page, thresholds, 40, { back: true });
   await page.keyboard.press("Enter");
   const thresholdsDrawer = page.getByRole("dialog", { name: "Progi profilu" });
   await expect(thresholdsDrawer).toBeVisible();
@@ -83,17 +84,19 @@ test("the demo scenario works from the keyboard alone, with axe passing on every
   await expect(reportButton).toBeFocused();
 
   // WHEN they reopen it, type the real width and send it with the keyboard
+  // (a number field doesn't take focus by itself, so no phone keyboard pops up over the sheet: they tab to it)
   await page.keyboard.press("Enter");
+  await expect(drawer).toBeVisible();
   const width = drawer.getByRole("spinbutton", { name: /Jak jest naprawdę/ });
-  await expect(width).toBeFocused();
+  await tabTo(page, width);
   await page.keyboard.type("90");
   await tabTo(page, drawer.getByRole("button", { name: "Wyślij" }));
   await page.keyboard.press("Enter");
 
-  // THEN the report is listed under the fact and focus is back on the opener
+  // THEN the report is listed under the fact and focus stays in the row, on "Zmień" (the opener gives way to it)
   await expect(drawer).toBeHidden();
   await expect(doorRow).toContainText("Twoje zgłoszenie:90 cm");
-  await expect(reportButton).toBeFocused();
+  await expect(doorRow.getByRole("button", { name: "Zmień", exact: true })).toBeFocused();
   await evidence("a11y-keyboard-pass");
 });
 
@@ -118,18 +121,28 @@ test("everything pinned on the map is also on the text list", async ({ page }) =
   await expect.poll(() => placesOnMap(page)).toBe(10);
   await expect.poll(() => verdictsOnMap(page)).toEqual(rows);
 
-  // AND once zoomed in, each pin has a row with its verdict
+  // AND once zoomed in, each pin on the map (markers are also kept just outside it, ready for a pan) has a row with its
+  // verdict, once the list has followed the new view
   await expandClusters(page);
-  const pinned = await page.locator("[data-place-id]").evaluateAll((els) =>
-    els.map((el) => `${el.getAttribute("data-place-id")}:${el.getAttribute("data-status")}`),
-  );
-  const listed = await list(page)
-    .getByRole("listitem")
-    .evaluateAll((items) =>
-      items.map((li) => `${li.querySelector("a")?.getAttribute("href")?.split("/").pop()}:${li.querySelector("[data-verdict]")?.getAttribute("data-verdict")}`),
-    );
+  const pinned = await page.locator("[data-place-id]").evaluateAll((els) => {
+    const map = document.querySelector(".maplibregl-map")!.getBoundingClientRect();
+    return els
+      .filter((el) => {
+        const r = el.getBoundingClientRect();
+        const x = r.x + r.width / 2;
+        const y = r.y + r.height / 2;
+        return x >= map.left && x <= map.right && y >= map.top && y <= map.bottom;
+      })
+      .map((el) => `${el.getAttribute("data-place-id")}:${el.getAttribute("data-status")}`);
+  });
+  const listed = () =>
+    list(page)
+      .getByRole("listitem")
+      .evaluateAll((items) =>
+        items.map((li) => `${li.querySelector("a")?.getAttribute("href")?.split("/").pop()}:${li.querySelector("[data-verdict]")?.getAttribute("data-verdict")}`),
+      );
   expect(pinned.length).toBeGreaterThan(0);
-  expect(listed).toEqual(expect.arrayContaining(pinned));
+  await expect.poll(listed).toEqual(expect.arrayContaining(pinned));
 });
 
 for (const zoom of [
@@ -152,7 +165,9 @@ for (const zoom of [
         // THEN the content fits the width — nothing needs sideways scrolling
         expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
 
-        // AND it has no WCAG 2.2 AA violations axe can detect
+        // AND it has no WCAG 2.2 AA violations axe can detect (read once the list has faded in, not mid-transition)
+        if (screen.name === "home") await expect(page.locator("#lista li").first()).toBeVisible();
+        await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished)));
         await expectAccessible();
         if (screen.name === "home" || screen.name === "place-conflict") {
           await evidence(`a11y-${zoom.viewport.width}-${screen.name}`);

@@ -81,8 +81,9 @@ test.describe("far from every listed place", () => {
     // WHEN they search the whole city instead
     await list.getByRole("button", { name: "Szukaj w całym Krakowie" }).click();
 
-    // THEN "W mojej okolicy" is off and all places are back
+    // THEN "W mojej okolicy" is off and the same search runs over the whole city
     await expect(list.getByRole("button", { name: "W mojej okolicy" })).toHaveAttribute("aria-pressed", "false");
+    await expect(page.getByRole("combobox", { name: "Wyszukaj miejsce" })).toHaveValue("r");
     await expect(list.getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
   });
 });
@@ -92,8 +93,8 @@ test("'W mojej okolicy' on the list explains a refusal, retries and lets the use
   expectAccessible,
   evidence,
 }) => {
-  // GIVEN an Android browser that refuses location access
-  await page.goto("/");
+  // GIVEN an Android browser that refuses location access, on a search listing all places
+  await gotoAllPlaces(page);
   await page.evaluate(() => {
     const calls = { count: 0 };
     Object.assign(window, { geolocationCalls: calls });

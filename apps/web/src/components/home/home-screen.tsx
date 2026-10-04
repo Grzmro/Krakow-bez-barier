@@ -48,7 +48,7 @@ import { useProfile } from "@/lib/profile/use-profile";
 import { countByStatus, filterByVerdict, filterPointsByVerdict, missingNeeds, STATUS_ORDER } from "@/lib/profile/verdict-list";
 import { scrollIntoViewWithin, scrollParent } from "@/lib/scroll-within";
 import { useDebounced, useDebouncedValue } from "@/lib/use-debounced";
-import { isPartial, listArea, pointsCut, roundView } from "@/lib/view-list";
+import { followedView, isPartial, listArea, nextTaggedView, pointsCut, roundView, type TaggedView } from "@/lib/view-list";
 import { NEAR_SCOPE, POOR_RESULTS, type SearchScope, scopeArea, viewLeavesArea, viewScope, widerScope } from "@/lib/search-scope";
 import { useGrantedPosition } from "@/lib/use-granted-position";
 import { useMediaQuery } from "@/lib/use-media-query";
@@ -146,8 +146,11 @@ export function HomeScreen() {
   const searching = view.searching;
   // A user's own "hide" is kept only within one state: the peek and the results each come back slid out.
   const wasSearching = useRef(searching);
+  // Set while a search restored from the URL lands: that is not a new ask, so the panel keeps this session's state
+  // (e.g. stowed). Cleared once the restored search is on screen.
+  const restoring = useRef(false);
   useEffect(() => {
-    if (wasSearching.current !== searching) {
+    if (wasSearching.current !== searching && !restoring.current) {
       // Clearing the search (or the last filter) is a full return to the start; asking starts the results fresh.
       const next = panelAfterAsk(wasSearching.current, searching, { expanded, stowed: stowedFlag, selectedId });
       setExpanded(next.expanded);
@@ -160,6 +163,7 @@ export function HomeScreen() {
       }
     }
     wasSearching.current = searching;
+    if (searching) restoring.current = false;
   }, [searching, expanded, stowedFlag, selectedId, setStowed]);
   // The query lives in the URL (`?q=…&category=…`), so Back from a place card shows the same results. A position
   // never goes there. Declared before the restore below: its first run (nothing restored yet) must not write.
@@ -178,6 +182,7 @@ export function HomeScreen() {
     const restored = searchToCommitted(window.location.search);
     const wantsNear = searchWantsNear(window.location.search);
     if (isSearching(restored) || wantsNear) {
+      restoring.current = isSearching(restored);
       // The URL is only readable after hydration (reading it in the initial state would mismatch the server HTML).
       /* eslint-disable react-hooks/set-state-in-effect */
       setSelection({ committed: restored, draft: restored });
@@ -219,10 +224,14 @@ export function HomeScreen() {
     includeUnknown: features.length ? showUnknown : undefined,
     ...profileQuery(settings),
   };
+  const queryKey = JSON.stringify(query);
   // The list holds the places of the map's view (the "W mojej okolicy" area when set), nearest first, a page at a
-  // time; the map's pins come from the same filters, so everything on the map is also in the list (R6).
-  const [mapView, setMapView] = useState<Bbox | null>(null);
-  const listView = useDebounced(mapView, POINTS_DEBOUNCE_MS);
+  // time; the map's pins come from the same filters, so everything on the map is also in the list (R6). A new search
+  // first lists its own area (the map fits those results); the view counts once the camera moved after they arrived.
+  const settledSearch = useRef<string | null>(null);
+  const [listedSearch, setListedSearch] = useState<string | null>(null);
+  const [mapView, setMapView] = useState<TaggedView | null>(null);
+  const listView = followedView(useDebounced(mapView, POINTS_DEBOUNCE_MS), queryKey);
   const placesQuery = useInfinitePlaces(
     { ...filters, bbox: listArea(area, listView), near: searchFrom.centre, limit: 100 },
     { enabled: searching },
@@ -247,10 +256,9 @@ export function HomeScreen() {
   const [loadedArea, setLoadedArea] = useState<Bbox | null>(null);
   const pointsBbox = useDebounced(area ?? loadedArea, POINTS_DEBOUNCE_MS);
   const points = usePlacePoints(searching && pointsBbox ? { ...filters, bbox: pointsBbox } : null);
-  const followView = useCallback((view: Bbox) => {
+  const followView = useCallback((view: Bbox, moved: boolean) => {
     setLoadedArea((loaded) => nextPointsArea(loaded, view));
-    const rounded = roundView(view);
-    setMapView((current) => (current && current.every((value, i) => value === rounded[i]) ? current : rounded));
+    setMapView((current) => nextTaggedView(current, roundView(view), moved, settledSearch.current));
   }, []);
   const origin = searchFrom.from;
   const items = useMemo(() => byDistance(places.data?.items ?? [], origin ?? config.cityCenter), [places.data, origin]);
@@ -288,7 +296,8 @@ export function HomeScreen() {
   const verdicts = Boolean(profile && items.some(({ place }) => place.verdict));
   const verdictCount = items.filter(({ place }) => place.verdict).length;
   const missing = useMemo(() => (verdicts && counts.met === 0 ? missingNeeds(items).slice(0, 3) : []), [verdicts, counts.met, items]);
-  const settled = !places.isPlaceholderData;
+  // Rows kept while only the list's box changes (the fit, a pan) still belong to this search, so the route prompt stays.
+  const settled = !places.isPlaceholderData || listedSearch === queryKey;
   const routeTo = useMemo(
     () =>
       settled && !places.isError ? routeTarget(committed.q, shown.map(({ place }) => place)) : null,
@@ -361,7 +370,6 @@ export function HomeScreen() {
       : partial && shown.length === items.length
         ? t.list.firstOf(items.length, total!)
         : t.list.results(listedCount(places.data!, shown.length));
-  const queryKey = JSON.stringify(query);
   // The list renders a window of rows that grows by a page; a new search or verdict filter starts it over.
   const windowKey = `${queryKey}|${statusFilter}|${hideFailing}`;
   const [listWindow, setListWindow] = useState({ key: windowKey, rendered: LIST_PAGE });
@@ -369,6 +377,13 @@ export function HomeScreen() {
   const rows = useMemo(() => shown.slice(0, rendered), [shown, rendered]);
   const growWindow = (size: (current: number) => number) =>
     setListWindow((current) => ({ key: windowKey, rendered: size(current.key === windowKey ? current.rendered : LIST_PAGE) }));
+  // Back at the start nothing is settled: a pan there must not count for the next search, even the same one again.
+  const listed = searching && !pending ? queryKey : searching ? listedSearch : null;
+  useEffect(() => {
+    if (!searching) settledSearch.current = null;
+    else if (!pending) settledSearch.current = queryKey;
+  }, [searching, pending, queryKey]);
+  if (listedSearch !== listed) setListedSearch(listed);
   const listAnnouncement =
     total === undefined
       ? null
@@ -517,9 +532,17 @@ export function HomeScreen() {
   }
   const wider = nearby ? widerScope(scope) : null;
   // The map was moved or zoomed out past the searched area: offer to search where it is now.
-  const searchHere = Boolean(searching && nearby && !pending && !places.isError && viewLeavesArea(area, mapView));
+  const searchHere = Boolean(searching && nearby && !pending && !places.isError && viewLeavesArea(area, mapView?.view ?? null));
 
+  // With "W mojej okolicy" on, the area is what narrowed the search: drop only it, so the same search runs over the
+  // whole city. Otherwise drop everything (the empty state's hint), which is the start state.
   function searchWider() {
+    if (!nearby) return clearAll();
+    setUnknownCommand(false);
+    setSelection((current) => commitChange(current, { nearby: null }));
+  }
+
+  function clearAll() {
     setQuickId(null);
     setUnknownCommand(false);
     nearbyForCommand.current = false;
@@ -533,7 +556,7 @@ export function HomeScreen() {
   const narrowed = Boolean(q || isSearching(committed) || isSearching({ q: "", ...draft }) || statusFilter || hideFailing);
 
   function resetView() {
-    searchWider();
+    clearAll();
     setSelectedId(null);
     setExpanded(false);
   }
@@ -816,7 +839,7 @@ export function HomeScreen() {
                   </Link>
                 </p>
               ) : null}
-              <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>
+              {origin ? null : <p className="text-body-sm text-muted-foreground">{t.list.emptyHint}</p>}
               <div className="flex flex-wrap justify-center gap-2">
                 {wider ? (
                   <Button onClick={() => changeScope(wider)}>{tn.widen[wider.kind as "wide" | "city"]}</Button>
@@ -980,7 +1003,7 @@ export function HomeScreen() {
       <div className="absolute inset-0 lg:relative lg:inset-auto lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:min-h-0">
         <PlaceMap
           places={mapPlaces}
-          fitKey={searching && !pending ? windowKey : null}
+          fitKey={searching && !pending ? queryKey : null}
           points={mapPoints ?? (places.isPlaceholderData ? [] : undefined)}
           onViewChange={followView}
           selectedId={selectedId}
@@ -997,7 +1020,7 @@ export function HomeScreen() {
             <Button
               variant="outline"
               className="pointer-events-auto shadow-float"
-              onClick={() => mapView && changeScope(viewScope(mapView))}
+              onClick={() => mapView && changeScope(viewScope(mapView.view))}
             >
               {tn.searchHere}
             </Button>

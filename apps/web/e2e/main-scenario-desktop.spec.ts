@@ -21,7 +21,9 @@ for (const screen of DESKTOP_SCREENS) {
     // THEN nothing needs sideways scrolling
     expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
 
-    // AND it has no WCAG 2.2 AA violations axe can detect
+    // AND it has no WCAG 2.2 AA violations axe can detect (read once the list has faded in, not mid-transition)
+    if (screen.name === "home") await expect(page.locator("#lista li").first()).toBeVisible();
+    await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished)));
     await expectAccessible();
     await evidence(`desktop-${screen.name}`);
   });
@@ -33,9 +35,9 @@ test("on a laptop the scenario works from the keyboard alone and focus returns f
   evidence,
 }) => {
   test.setTimeout(30_000);
-  // GIVEN the home screen on a laptop
-  await gotoAllPlaces(page);
-  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("10 miejsc");
+  // GIVEN the home screen on a laptop, at its start
+  await page.goto("/");
+  await expect(list(page).getByRole("heading", { level: 2 })).toHaveText("Najbliżej Rynku (bez lokalizacji)");
 
   // WHEN a keyboard user searches for the hotel, picks the suggestion and turns on the wheelchair profile
   await tabTo(page, page.getByRole("combobox", { name: "Wyszukaj miejsce" }));
@@ -51,7 +53,8 @@ test("on a laptop the scenario works from the keyboard alone and focus returns f
 
   // AND opens the profile thresholds and closes them with Escape
   const thresholds = page.getByRole("button", { name: "Progi profilu" });
-  await tabTo(page, thresholds);
+  // The verdict counters and thresholds sit above the list, before the profile switch (KBB-162): tab back to them.
+  await tabTo(page, thresholds, 40, { back: true });
   await page.keyboard.press("Enter");
   const thresholdsDrawer = page.getByRole("dialog", { name: "Progi profilu" });
   await expect(thresholdsDrawer).toBeVisible();
@@ -112,7 +115,9 @@ for (const zoom of [
         // THEN the content fits the width — nothing needs sideways scrolling
         expect(await horizontalOverflow(page)).toBeLessThanOrEqual(0);
 
-        // AND it has no WCAG 2.2 AA violations axe can detect
+        // AND it has no WCAG 2.2 AA violations axe can detect (read once the list has faded in, not mid-transition)
+        if (screen.name === "home") await expect(page.locator("#lista li").first()).toBeVisible();
+        await page.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished)));
         await expectAccessible();
         if (screen.name === "home" || screen.name === "place-conflict") {
           await evidence(`desktop-zoom-${zoom.deviceScaleFactor * 100}-${screen.name}`);
