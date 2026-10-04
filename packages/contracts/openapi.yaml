@@ -144,7 +144,7 @@ paths:
       parameters:
       - name: q
         in: query
-        description: Free text matched against name and address.
+        description: "Free text matched against name and address. Results are ranked by how well the name answers it: the whole name, then a landmark (museum, monument, attraction or another public place; not a hotel, restaurant or shop) whose name words start with the query, then whole name words, then word starts, then the rest; distance (with `near`) or name orders within a rank, and `cursor` pages through that order."
         schema:
           type: string
           maxLength: 200
@@ -182,7 +182,7 @@ paths:
         explode: false
       - name: near
         in: query
-        description: 'Orders the list by distance from this point, `lon,lat` (WGS84), nearest first, instead of by name; `cursor`
+        description: 'Orders the list by distance from this point, `lon,lat` (WGS84), nearest first, instead of by name (with `q`, within its rank); `cursor`
           then pages through that order. Pair it with `bbox` to bound the search. Send a coarse point (snapped to a grid), never the exact device position: the server
           does not need it and the client computes the distances it shows. A `cursor` from the name order, or from another
           `near`, is a 400.

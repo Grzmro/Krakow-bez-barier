@@ -60,12 +60,18 @@ export function toLonLat({ latitude, longitude }: Pick<DevicePosition, "latitude
   return [longitude, latitude];
 }
 
+/** Places with their distance from `origin` (`[lon, lat]`), in the given order (e.g. a text search's ranking). */
+export function withDistance<T extends { location: { coordinates: number[] } }>(
+  places: T[],
+  origin: [number, number],
+): { place: T; distance: number }[] {
+  return places.map((place) => ({ place, distance: distanceMeters(origin, place.location.coordinates) }));
+}
+
 /** Places with their distance from `origin` (`[lon, lat]`), nearest first. */
 export function byDistance<T extends { location: { coordinates: number[] } }>(
   places: T[],
   origin: [number, number],
 ): { place: T; distance: number }[] {
-  return places
-    .map((place) => ({ place, distance: distanceMeters(origin, place.location.coordinates) }))
-    .sort((a, b) => a.distance - b.distance);
+  return withDistance(places, origin).sort((a, b) => a.distance - b.distance);
 }
