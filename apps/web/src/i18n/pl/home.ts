@@ -103,6 +103,7 @@ export const home = {
     label: "Lista miejsc",
     start: { summary: "Najbliższe miejsca", hint: "Mapa jest czysta. Wpisz nazwę i naciśnij Enter, wybierz szybką akcję albo zaznacz kategorię i cechy, a potem „Pokaż wyniki”. Wtedy pojawią się lista i pinezki.", nearYou: "Najbliżej Ciebie", nearChosen: "Najbliżej wybranego punktu", nearCentre: "Najbliżej Rynku (bez lokalizacji)", empty: "Brak miejsc w okolicy." },
     stow: { hide: "Schowaj listę", show: "Pokaż listę" },
+    filtersJump: "Filtry i profil",
     results: (n: number) => `${n} ${placesWord(n)}`,
     firstOf: (shown: number, total: number) => `Lista: pierwsze ${shown} z ${total} ${placesWord(total)}`,
     announcePartial: (shown: number, total: number) =>
