@@ -57,7 +57,42 @@
           - paragraph: Nikt jeszcze nie sprawdził.
     - region "Przystanki w pobliżu":
       - heading "Przystanki w pobliżu" [level=2]
-      - paragraph: Brak danych o dostępności przystanków w pobliżu — dane ZTP czekają na potwierdzenie licencji.
+      - paragraph: /Do 3 najbliższych przystanków w promieniu \d+ m, z faktami o ich peronach\. Źródło i data są przy każdym fakcie\./
+      - list:
+        - listitem:
+          - heading /Plac Wszystkich Świętych \d+ \d+ m od miejsca Dane przykładowe/ [level=3]:
+            - link /Plac Wszystkich Świętych \d+/:
+              - /url: /miejsca/przystanek-plac-wszystkich-swietych-01
+            - text: ""
+          - list /Dostępność przystanku Plac Wszystkich Świętych \d+/:
+            - listitem:
+              - paragraph: "Ogólna dostępność: Brak danych"
+              - text: Brak danych
+              - paragraph: Nikt jeszcze nie sprawdził.
+            - listitem:
+              - paragraph: "Oznaczenia dotykowe: Nie ma"
+              - text: Niezweryfikowane
+              - list:
+                - listitem: /OpenStreetMap · \d+\.\d+\.\d+/
+            - listitem:
+              - paragraph: "Wysokość krawężnika: Brak danych"
+              - text: Brak danych
+              - paragraph: Nikt jeszcze nie sprawdził.
+            - listitem:
+              - paragraph: "Nawierzchnia dojścia: płyty chodnikowe"
+              - text: Niezweryfikowane
+              - list:
+                - listitem: /OpenStreetMap · \d+\.\d+\.\d+/
+            - listitem:
+              - paragraph: "Miejsca odpoczynku: Jest"
+              - text: Niezweryfikowane
+              - list:
+                - listitem: /OpenStreetMap · \d+\.\d+\.\d+/
+            - listitem:
+              - paragraph: "Wiata: Jest"
+              - text: Niezweryfikowane
+              - list:
+                - listitem: /OpenStreetMap · \d+\.\d+\.\d+/
     - region "Źródła danych":
       - heading "Źródła danych" [level=2]
       - list:

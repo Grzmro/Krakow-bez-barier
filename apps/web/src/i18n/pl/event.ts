@@ -21,7 +21,15 @@ export const event = {
   },
   transit: {
     title: "Przystanki w pobliżu",
-    noData: "Brak danych o dostępności przystanków w pobliżu — dane ZTP czekają na potwierdzenie licencji.",
+    hint: (limit: number, radius: number) =>
+      `Do ${limit} najbliższych przystanków w promieniu ${radius} m, z faktami o ich peronach. Źródło i data są przy każdym fakcie.`,
+    gone: "Tego przystanku nie ma już w danych.",
+    noData: (radius: number) =>
+      `Brak danych o przystankach w promieniu ${radius} m od miejsca. To nie znaczy, że w pobliżu nie ma przystanku.`,
+    loading: "Szukam przystanków…",
+    error: "Nie udało się pobrać przystanków w pobliżu.",
+    distance: (m: number) => `${m} m od miejsca`,
+    facts: (name: string) => `Dostępność przystanku ${name}`,
   },
   noSource: "Nikt jeszcze nie sprawdził.",
   sourceLine: (source: string, date: string, value?: string) => (value ? `${value} — ${source} · ${date}` : `${source} · ${date}`),

@@ -1,6 +1,45 @@
-import type { AccessibilityAttribute, Place } from "@krakow-bez-barier/contracts";
+import type { AccessibilityAttribute, ListPlacesQuery, Place, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { intlLocale, type Locale } from "@/i18n/locale";
+import { byDistance } from "@/lib/nearby";
 import { factViews, type FactView } from "@/lib/place-facts";
+
+/** Stops a participant can walk from: within this many metres of the venue, at most `EVENT_STOP_LIMIT`. */
+export const EVENT_STOP_RADIUS_M = 400;
+export const EVENT_STOP_LIMIT = 3;
+
+const METRES_PER_DEGREE = 111_320;
+const round6 = (n: number) => Math.round(n * 1e6) / 1e6;
+
+/**
+ * `GET /places` for the stops nearest the venue, nearest first, within a box a little wider than the walking radius
+ * (so the server reads only the stops around, not the whole city). One more than shown, in case the venue is a stop.
+ */
+export function nearbyStopsQuery(place: Pick<Place, "location">): ListPlacesQuery {
+  const [lon, lat] = place.location.coordinates;
+  const dLat = (EVENT_STOP_RADIUS_M + 100) / METRES_PER_DEGREE;
+  const dLon = dLat / Math.cos((lat * Math.PI) / 180);
+  return {
+    category: ["transit_stop"],
+    near: [lon, lat],
+    bbox: [round6(lon - dLon), round6(lat - dLat), round6(lon + dLon), round6(lat + dLat)],
+    limit: EVENT_STOP_LIMIT + 1,
+  };
+}
+
+/** The listed stops within walking distance of the venue (never the venue itself), nearest first, in whole metres. */
+export function nearbyStops(
+  stops: readonly PlaceSummary[],
+  place: Pick<Place, "id" | "location">,
+): { stop: PlaceSummary; distance: number }[] {
+  const [lon, lat] = place.location.coordinates;
+  return byDistance(
+    stops.filter((stop) => stop.id !== place.id),
+    [lon, lat],
+  )
+    .filter(({ distance }) => distance <= EVENT_STOP_RADIUS_M)
+    .slice(0, EVENT_STOP_LIMIT)
+    .map(({ place: stop, distance }) => ({ stop, distance: Math.round(distance) }));
+}
 
 /** "sobota, 10 października 2026" — the date is a calendar day, so it's formatted without a time zone shift. */
 export function formatEventDate(date: string, locale: Locale): string {

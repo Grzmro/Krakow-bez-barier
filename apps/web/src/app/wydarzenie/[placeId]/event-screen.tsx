@@ -3,14 +3,22 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowRight, Bus, Car, CalendarBlank, DoorOpen, MapPin, Printer, Toilet, type Icon } from "@phosphor-icons/react";
-import type { Place } from "@krakow-bez-barier/contracts";
+import type { Place, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { Button, LogoMark, buttonVariants, cn } from "@krakow-bez-barier/ui";
 import { ReliabilityBadge, SampleTag } from "@/components/kbb";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { EventDetails } from "@/lib/event-link";
-import { eventSections, formatEventDate, type EventSectionId } from "@/lib/event-page";
-import { failedSources, formatDate, latestSourceDate, type FactView } from "@/lib/place-facts";
-import { usePlace } from "@/lib/places";
+import {
+  EVENT_STOP_LIMIT,
+  EVENT_STOP_RADIUS_M,
+  eventSections,
+  formatEventDate,
+  nearbyStops,
+  nearbyStopsQuery,
+  type EventSectionId,
+} from "@/lib/event-page";
+import { factViews, failedSources, formatDate, latestSourceDate, type FactView } from "@/lib/place-facts";
+import { usePlace, usePlaces, usePlacesById } from "@/lib/places";
 import { routes } from "@/lib/routes";
 import { useOrigin } from "@/lib/use-origin";
 
@@ -101,8 +109,15 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
   const locale = useLocale();
   const origin = useOrigin();
   const sections = eventSections(place, locale);
+  const stopsState = useNearbyStops(place);
+  // The stops' facts have their own sources (OpenStreetMap): they are attributed here like the venue's.
+  const sources = [place, ...stopsState.details.flatMap((d) => (d.data ? [d.data] : []))]
+    .flatMap((p) => p.sources)
+    .filter((source, i, all) => all.findIndex((s) => s.id === source.id) === i);
   const latest = latestSourceDate(place);
-  const failed = new Set(failedSources(place).map((s) => s.id));
+  const failed = new Set(
+    [place, ...stopsState.details.flatMap((d) => (d.data ? [d.data] : []))].flatMap((p) => failedSources(p)).map((s) => s.id),
+  );
   const address = [[place.address?.street, place.address?.houseNumber].filter(Boolean).join(" "), place.address?.city]
     .filter(Boolean)
     .join(", ");
@@ -165,9 +180,8 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
           </Card>
         ))}
 
-        {/* TODO(KBB-60): list the nearest ZTP stops with their accessibility facts once the ZTP licence is confirmed. */}
         <Card id="event-transit" title={t.transit.title} icon={Bus}>
-          <p className="mt-2 text-body-sm text-muted-foreground">{t.transit.noData}</p>
+          <NearbyStops state={stopsState} />
         </Card>
       </div>
 
@@ -175,9 +189,9 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
         <h2 id="event-sources" className="text-caption font-semibold tracking-[0.06em] text-muted-foreground uppercase">
           {t.sourcesTitle}
         </h2>
-        {place.sources.length ? (
+        {sources.length ? (
           <ul className="mt-2 space-y-1.5">
-            {place.sources.map((source) => (
+            {sources.map((source) => (
               <li key={source.id} className="text-body-sm">
                 <span className="font-semibold">{source.name}</span>
                 {source.isSample ? <SampleTag className="ml-2 align-middle" /> : null}
@@ -218,6 +232,79 @@ function EventSheet({ place, details }: { place: Place; details: EventDetails })
         </p>
       </footer>
     </article>
+  );
+}
+
+type StopsState = {
+  list: ReturnType<typeof usePlaces>;
+  stops: { stop: PlaceSummary; distance: number }[];
+  details: ReturnType<typeof usePlacesById>;
+};
+
+/** The stops nearest the venue and their cards (facts and sources). */
+function useNearbyStops(place: Place): StopsState {
+  const list = usePlaces(nearbyStopsQuery(place));
+  const stops = list.data ? nearbyStops(list.data.items, place) : [];
+  const details = usePlacesById(
+    stops.map(({ stop }) => stop.id),
+    {},
+  );
+  return { list, stops, details };
+}
+
+/** The stops nearest the venue, each with its platform facts; none in reach (or no data) says so, never "no stops". */
+function NearbyStops({ state: { list, stops, details } }: { state: StopsState }) {
+  const t = useMessages().event.transit;
+  return (
+    <>
+      <p className="mt-1 text-caption text-muted-foreground">{t.hint(EVENT_STOP_LIMIT, EVENT_STOP_RADIUS_M)}</p>
+      {list.isPending ? (
+        <p role="status" className="mt-2 text-body-sm text-muted-foreground">
+          {t.loading}
+        </p>
+      ) : list.isError ? (
+        <p className="mt-2 text-body-sm text-muted-foreground">{t.error}</p>
+      ) : stops.length === 0 ? (
+        <p className="mt-2 text-body-sm text-muted-foreground">{t.noData(EVENT_STOP_RADIUS_M)}</p>
+      ) : (
+        <ul className="mt-1 divide-y divide-border">
+          {stops.map(({ stop, distance }, i) => (
+            <NearbyStop key={stop.id} stop={stop} distance={distance} detail={details[i]} />
+          ))}
+        </ul>
+      )}
+    </>
+  );
+}
+
+function NearbyStop({
+  stop,
+  distance,
+  detail,
+}: {
+  stop: PlaceSummary;
+  distance: number;
+  detail: StopsState["details"][number] | undefined;
+}) {
+  const t = useMessages().event.transit;
+  const locale = useLocale();
+  return (
+    <li className="py-2 break-inside-avoid">
+      <h3 className="flex flex-wrap items-baseline gap-x-2 text-body font-semibold">
+        <Link href={routes.place(stop.id)} className="underline-offset-2 hover:underline">
+          {stop.name}
+        </Link>
+        <span className="text-caption font-medium text-muted-foreground tabular-nums">{t.distance(distance)}</span>
+        {stop.isSample ? <SampleTag className="self-center" /> : null}
+      </h3>
+      {detail?.data ? (
+        <FactList facts={factViews(detail.data, locale)} label={t.facts(stop.name)} />
+      ) : !detail || detail.isPending ? (
+        <p className="mt-1 text-caption text-muted-foreground">{t.loading}</p>
+      ) : (
+        <p className="mt-1 text-caption text-muted-foreground">{detail.data === null ? t.gone : t.error}</p>
+      )}
+    </li>
   );
 }
 

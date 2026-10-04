@@ -22,7 +22,14 @@ export const event: Messages["event"] = {
   },
   transit: {
     title: "Stops nearby",
-    noData: "No accessibility data for nearby stops — the ZTP data is awaiting licence confirmation.",
+    hint: (limit: number, radius: number) =>
+      `Up to ${limit} nearest stops within ${radius} m, with facts about their platforms. Each fact names its source and date.`,
+    gone: "This stop is no longer in the data.",
+    noData: (radius: number) => `No stop data within ${radius} m of the venue. That doesn't mean there is no stop nearby.`,
+    loading: "Looking for stops…",
+    error: "Couldn't load the nearby stops.",
+    distance: (m: number) => `${m} m from the venue`,
+    facts: (name: string) => `Accessibility of the stop ${name}`,
   },
   noSource: "Nobody has checked yet.",
   sourceLine: (source: string, date: string, value?: string) => (value ? `${value} — ${source} · ${date}` : `${source} · ${date}`),
