@@ -21,13 +21,17 @@ export function listArea(area: Bbox | undefined, view: Bbox | null, q = ""): Bbo
 /** How many of the first results a name search fits the map to when no single place stands out. */
 export const FIT_TOP = 5;
 
+/** The shortest text that can name a place; anything shorter fits every result, as while browsing. */
+const MIN_NAME = 2;
+
 /**
  * The places the map fits after a search: for a typed name the one place it clearly names (the only hit, or the only
- * name equal to or starting with the text), else the first few rows in list order (nearest first, not by relevance); while browsing, every place listed.
+ * name equal to or starting with the text), else the first few rows in list order (nearest first, not by relevance); while browsing,
+ * or for a single letter (it names no place), every place listed.
  */
 export function fitTargets<T extends { name: string }>(q: string, places: readonly T[]): readonly T[] {
   const wanted = fold(q);
-  if (!wanted || places.length <= 1) return places;
+  if (wanted.length < MIN_NAME || places.length <= 1) return places;
   const exact = places.filter((place) => fold(place.name) === wanted);
   if (exact.length === 1) return exact;
   const prefix = places.filter((place) => fold(place.name).startsWith(wanted));

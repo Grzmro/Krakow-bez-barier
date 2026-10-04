@@ -59,6 +59,13 @@ describe("fitTargets", () => {
     expect(fitTargets("", places)).toBe(places);
   });
 
+  it("fits every listed place for a single letter, which names no place", () => {
+    // GIVEN "m" typed, the start of every museum's name
+    // WHEN choosing what the map fits
+    // THEN all of them, as while browsing
+    expect(fitTargets("m", places)).toBe(places);
+  });
+
   it("flies to the one place whose name the text starts", () => {
     // GIVEN "muzeum inzynierii" typed without Polish letters
     // WHEN choosing what the map fits
