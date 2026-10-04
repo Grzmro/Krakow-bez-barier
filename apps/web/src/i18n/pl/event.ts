@@ -21,7 +21,9 @@ export const event = {
   },
   transit: {
     title: "Przystanki w pobliżu",
-    hint: (radius: number) => `Do 3 najbliższych przystanków w promieniu ${radius} m, z tym, co o ich peronach mówi OpenStreetMap.`,
+    hint: (limit: number, radius: number) =>
+      `Do ${limit} najbliższych przystanków w promieniu ${radius} m, z faktami o ich peronach. Źródło i data są przy każdym fakcie.`,
+    gone: "Tego przystanku nie ma już w danych.",
     noData: (radius: number) =>
       `Brak danych o przystankach w promieniu ${radius} m od miejsca. To nie znaczy, że w pobliżu nie ma przystanku.`,
     loading: "Szukam przystanków…",

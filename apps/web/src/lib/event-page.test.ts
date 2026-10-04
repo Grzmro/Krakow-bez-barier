@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createApiClient, createMockFetch } from "@krakow-bez-barier/contracts";
+import { createApiClient, createMockFetch, type PlaceSummary } from "@krakow-bez-barier/contracts";
 import { withPlacesMocks } from "./mocks/mock-fetch";
-import type { PlaceSummary } from "@krakow-bez-barier/contracts";
 import { EVENT_STOP_RADIUS_M, eventSections, formatEventDate, nearbyStops, nearbyStopsQuery } from "./event-page";
 
 const api = createApiClient({ baseUrl: "http://localhost/api/v1", fetch: withPlacesMocks(createMockFetch()) });
@@ -55,7 +54,7 @@ describe("eventSections", () => {
 });
 
 describe("nearbyStops", () => {
-  const venue = { location: { type: "Point" as const, coordinates: [19.9381, 50.0623] } };
+  const venue = { id: "palac-krzysztofory", location: { type: "Point" as const, coordinates: [19.9381, 50.0623] } };
   const stop = (id: string, lon: number, lat: number) =>
     ({ id, name: id, category: "transit_stop", location: { type: "Point", coordinates: [lon, lat] }, summary: [], verdict: null, isSample: false }) as unknown as PlaceSummary;
 
@@ -84,8 +83,26 @@ describe("nearbyStops", () => {
     expect(nearbyStops([stop("rondo-mogilskie-07", 19.9604166, 50.0655321)], venue)).toEqual([]);
   });
 
-  it("asks the API for stops nearest the venue", () => {
-    // GIVEN the venue WHEN the query is built THEN it names the stop category and the venue point
-    expect(nearbyStopsQuery(venue)).toEqual({ category: ["transit_stop"], near: [19.9381, 50.0623], limit: 3 });
+  it("never lists the venue itself when the venue is a stop", () => {
+    // GIVEN the event venue is a stop, with another stop 350 m away
+    const venueStop = { id: "here", location: { type: "Point" as const, coordinates: [19.9381, 50.0623] } };
+    // WHEN the stops are picked
+    const picked = nearbyStops([stop("here", 19.9381, 50.0623), stop("wszystkich-swietych-01", 19.9383564, 50.0591657)], venueStop);
+    // THEN only the other one is shown
+    expect(picked.map((p) => p.stop.id)).toEqual(["wszystkich-swietych-01"]);
+  });
+
+  it("asks the API only for stops in a box around the venue, nearest first", () => {
+    // GIVEN the venue WHEN the query is built
+    const query = nearbyStopsQuery(venue);
+    // THEN it names the stop category and the venue point, and the box covers the walking radius but not the city
+    expect(query).toMatchObject({ category: ["transit_stop"], near: [19.9381, 50.0623], limit: 4 });
+    const [minLon, minLat, maxLon, maxLat] = query.bbox!;
+    expect(minLat).toBeLessThan(50.0623 - EVENT_STOP_RADIUS_M / 111_320);
+    expect(maxLat - minLat).toBeLessThan(0.01);
+    expect(maxLon - minLon).toBeLessThan(0.015);
+    expect(nearbyStops([stop("wszystkich-swietych-01", 19.9383564, 50.0591657)], venue)).toHaveLength(1);
+    expect(19.9383564).toBeGreaterThan(minLon);
+    expect(50.0591657).toBeGreaterThan(minLat);
   });
 });

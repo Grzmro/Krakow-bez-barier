@@ -7,16 +7,35 @@ import { factViews, type FactView } from "@/lib/place-facts";
 export const EVENT_STOP_RADIUS_M = 400;
 export const EVENT_STOP_LIMIT = 3;
 
-/** `GET /places` for the stops nearest the venue, nearest first. */
+const METRES_PER_DEGREE = 111_320;
+const round6 = (n: number) => Math.round(n * 1e6) / 1e6;
+
+/**
+ * `GET /places` for the stops nearest the venue, nearest first, within a box a little wider than the walking radius
+ * (so the server reads only the stops around, not the whole city). One more than shown, in case the venue is a stop.
+ */
 export function nearbyStopsQuery(place: Pick<Place, "location">): ListPlacesQuery {
   const [lon, lat] = place.location.coordinates;
-  return { category: ["transit_stop"], near: [lon, lat], limit: EVENT_STOP_LIMIT };
+  const dLat = (EVENT_STOP_RADIUS_M + 100) / METRES_PER_DEGREE;
+  const dLon = dLat / Math.cos((lat * Math.PI) / 180);
+  return {
+    category: ["transit_stop"],
+    near: [lon, lat],
+    bbox: [round6(lon - dLon), round6(lat - dLat), round6(lon + dLon), round6(lat + dLat)],
+    limit: EVENT_STOP_LIMIT + 1,
+  };
 }
 
-/** The listed stops within walking distance of the venue, nearest first, with their distance in whole metres. */
-export function nearbyStops(stops: readonly PlaceSummary[], place: Pick<Place, "location">): { stop: PlaceSummary; distance: number }[] {
+/** The listed stops within walking distance of the venue (never the venue itself), nearest first, in whole metres. */
+export function nearbyStops(
+  stops: readonly PlaceSummary[],
+  place: Pick<Place, "id" | "location">,
+): { stop: PlaceSummary; distance: number }[] {
   const [lon, lat] = place.location.coordinates;
-  return byDistance([...stops], [lon, lat])
+  return byDistance(
+    stops.filter((stop) => stop.id !== place.id),
+    [lon, lat],
+  )
     .filter(({ distance }) => distance <= EVENT_STOP_RADIUS_M)
     .slice(0, EVENT_STOP_LIMIT)
     .map(({ place: stop, distance }) => ({ stop, distance: Math.round(distance) }));

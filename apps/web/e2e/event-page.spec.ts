@@ -114,6 +114,16 @@ test("the event page lists the stop within walking distance with its platform fa
   await evidence("event-page-stops");
 });
 
+test("with no stop data in reach the event page says so, without inventing a stop", async ({ page }) => {
+  // GIVEN the event page of a venue in Kazimierz, over 1 km from both example stops
+  await page.goto("/wydarzenie/muzeum-inzynierii-i-techniki");
+  const stops = page.getByRole("region", { name: "Przystanki w pobliżu" });
+
+  // THEN the card says there is no stop data within 400 m, and that this is not "no stop"
+  await expect(stops).toContainText("Brak danych o przystankach w promieniu 400 m od miejsca. To nie znaczy, że w pobliżu nie ma przystanku.");
+  await expect(stops.getByRole("heading", { level: 3 })).toHaveCount(0);
+});
+
 test("an event link to an unknown place says so", async ({ page }) => {
   // GIVEN a broken event link
   await page.goto("/wydarzenie/nie-ma-takiego?nazwa=Koncert");

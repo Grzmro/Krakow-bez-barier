@@ -22,7 +22,9 @@ export const event: Messages["event"] = {
   },
   transit: {
     title: "Stops nearby",
-    hint: (radius: number) => `Up to 3 nearest stops within ${radius} m, with what OpenStreetMap says about their platforms.`,
+    hint: (limit: number, radius: number) =>
+      `Up to ${limit} nearest stops within ${radius} m, with facts about their platforms. Each fact names its source and date.`,
+    gone: "This stop is no longer in the data.",
     noData: (radius: number) => `No stop data within ${radius} m of the venue. That doesn't mean there is no stop nearby.`,
     loading: "Looking for stops…",
     error: "Couldn't load the nearby stops.",

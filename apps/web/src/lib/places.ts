@@ -1,6 +1,6 @@
 "use client";
 
-import { keepPreviousData, useInfiniteQuery, useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useInfiniteQuery, useQueries, useQuery } from "@tanstack/react-query";
 import type { GetPlaceQuery, ListPlacePointsQuery, ListPlacesQuery } from "@krakow-bez-barier/contracts";
 import { useLocale } from "@/i18n/client";
 import { api } from "./api";
@@ -67,7 +67,17 @@ export function usePlacePoints(query: ListPlacePointsQuery | null) {
  */
 export function usePlace(id: string, query: GetPlaceQuery, { enabled = true }: { enabled?: boolean } = {}) {
   const locale = useLocale();
-  return useQuery({
+  return useQuery({ ...placeQuery(id, query, locale), enabled });
+}
+
+/** `GET /places/{id}` for several places at once, sharing `usePlace`'s cache; one result per id, in order. */
+export function usePlacesById(ids: readonly string[], query: GetPlaceQuery) {
+  const locale = useLocale();
+  return useQueries({ queries: ids.map((id) => placeQuery(id, query, locale)) });
+}
+
+function placeQuery(id: string, query: GetPlaceQuery, locale: string) {
+  return {
     queryKey: ["place", locale, id, query],
     queryFn: async () => {
       const { data, error, response } = await api.GET("/places/{id}", {
@@ -77,6 +87,5 @@ export function usePlace(id: string, query: GetPlaceQuery, { enabled = true }: {
       if (error) throw error;
       return data;
     },
-    enabled,
-  });
+  };
 }

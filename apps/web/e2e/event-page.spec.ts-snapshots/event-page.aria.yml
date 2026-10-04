@@ -57,7 +57,7 @@
           - paragraph: Nikt jeszcze nie sprawdził.
     - region "Przystanki w pobliżu":
       - heading "Przystanki w pobliżu" [level=2]
-      - paragraph: /Do 3 najbliższych przystanków w promieniu \d+ m, z tym, co o ich peronach mówi OpenStreetMap\./
+      - paragraph: /Do 3 najbliższych przystanków w promieniu \d+ m, z faktami o ich peronach\. Źródło i data są przy każdym fakcie\./
       - list:
         - listitem:
           - heading /Plac Wszystkich Świętych \d+ \d+ m od miejsca Dane przykładowe/ [level=3]:
