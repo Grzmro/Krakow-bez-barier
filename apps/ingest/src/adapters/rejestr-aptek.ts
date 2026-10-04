@@ -98,8 +98,10 @@ export function parseRegisterCsv(text: string): RegisterPharmacy[] {
   const missing = Object.entries(index).filter(([, i]) => i < 0).map(([key]) => COLUMNS[key as keyof RegisterPharmacy]);
   if (missing.length > 0) throw new Error(`Rejestr Aptek export has no column(s) ${missing.join(", ")} (format changed?)`);
 
-  return lines.slice(1).map((line) => {
+  return lines.slice(1).map((line, i) => {
     const fields = splitLine(line);
+    // A line break inside a quoted field would shift the address columns: fail rather than misplace pharmacies.
+    if (fields.length !== header.length) throw new Error(`Rejestr Aptek export line ${i + 2} has ${fields.length} of ${header.length} fields`);
     return Object.fromEntries(Object.entries(index).map(([key, i]) => [key, (fields[i] ?? "").trim()])) as RegisterPharmacy;
   });
 }
@@ -189,7 +191,12 @@ export function indexOsm(elements: OsmElement[], cityName: string): OsmIndex {
 export function resolvePharmacy(p: RegisterPharmacy, osm: OsmIndex): Resolution {
   if (!streetKey(p.street) || !numberKey(p.houseNumber)) return { kind: "none" };
   const key = addressKey(p.street, p.houseNumber);
-  const sameAddress = osm.pharmacies.find((o) => o.street && o.houseNumber && addressKey(o.street, o.houseNumber) === key);
+  const own = brand(p.name);
+  const atAddress = osm.pharmacies.filter((o) => o.street && o.houseNumber && addressKey(o.street, o.houseNumber) === key);
+  // A shopping centre has several pharmacies under one address: the same name wins, a differently named one is not taken.
+  const sameAddress =
+    atAddress.find((o) => own && brand(o.name) && namesMatch(brand(o.name), own)) ??
+    atAddress.find((o) => !own || !brand(o.name));
   if (sameAddress) return { kind: "osm", ref: sameAddress.ref, location: sameAddress.location, by: "address" };
 
   const point = geocode(p, osm.addresses);
@@ -199,7 +206,6 @@ export function resolvePharmacy(p: RegisterPharmacy, osm: OsmIndex): Resolution 
     .map((o) => ({ o, d: distanceM(o.location, point) }))
     .filter(({ d }) => d <= NAME_MATCH_METRES)
     .sort((a, b) => a.d - b.d);
-  const own = brand(p.name);
   const named = own ? nearby.find(({ o }) => brand(o.name) && namesMatch(brand(o.name), own)) : undefined;
   if (named) return { kind: "osm", ref: named.o.ref, location: named.o.location, by: "name" };
   // Two different names this close can be two pharmacies (a shopping centre): only a nameless one is taken.

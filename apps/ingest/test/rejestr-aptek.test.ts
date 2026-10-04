@@ -123,6 +123,22 @@ describe("resolvePharmacy", () => {
     expect(resolvePharmacy(pharmacy("1075679"), osm)).toEqual({ kind: "none" });
   });
 
+  it("picks the same-named pharmacy among several at one address, and takes none of the others", () => {
+    // GIVEN a shopping centre address with two OSM pharmacies, Ziko and Gemini
+    const centre = indexOsm(
+      [
+        { type: "node", id: 1, lat: 50.067, lon: 19.945, tags: { amenity: "pharmacy", name: "Ziko Apteka", "addr:street": "Pawia", "addr:housenumber": "5" } },
+        { type: "node", id: 2, lat: 50.0672, lon: 19.9452, tags: { amenity: "pharmacy", name: "Gemini", "addr:street": "Pawia", "addr:housenumber": "5" } },
+      ],
+      "Kraków",
+    );
+    const at = (name: string): RegisterPharmacy => ({ ...pharmacy("1034656"), name, street: "Pawia", houseNumber: "5" });
+    // WHEN resolving a Gemini and a Dr. Max at that address
+    // THEN Gemini is the Gemini node, and Dr. Max (not in OSM) is not merged into either: the address point is the building's
+    expect(resolvePharmacy(at("APTEKA GEMINI"), centre)).toMatchObject({ kind: "osm", ref: "osm:node/2", by: "address" });
+    expect(resolvePharmacy(at("DR. MAX"), centre)).toEqual({ kind: "address", location: { x: 19.945, y: 50.067 } });
+  });
+
   it("does not guess between two streets that share a last word", () => {
     // GIVEN "Krakowska 1" in the register and only "Nowa Krakowska 1" / "Stara Krakowska 1" far apart in OSM
     const p: RegisterPharmacy = { ...pharmacy("1034656"), street: "Wielka Krakowska", houseNumber: "1" };
