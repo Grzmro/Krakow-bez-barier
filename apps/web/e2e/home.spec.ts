@@ -137,7 +137,9 @@ test("the wider search keeps the typed name and drops the category", async ({ pa
   // GIVEN "Sukiennice" searched among hotels: nothing found
   await page.goto("/");
   await page.getByRole("button", { name: "Hotele", exact: true }).click();
+  // (a suggestion equal to the typed name is not offered, so no popup covers the list)
   await searchFor(page, "Sukiennice");
+  const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
   const list = page.getByRole("region", { name: "Lista miejsc" });
   await expect(list.getByText("Brak miejsc dla tego wyszukiwania.")).toBeVisible();
 
@@ -145,7 +147,7 @@ test("the wider search keeps the typed name and drops the category", async ({ pa
   await list.getByRole("button", { name: "Szukaj w całym Krakowie" }).click();
 
   // THEN the name stays and finds Sukiennice
-  await expect(page.getByRole("combobox", { name: "Wyszukaj miejsce" })).toHaveValue("Sukiennice");
+  await expect(search).toHaveValue("Sukiennice");
   await expect(list.getByRole("heading", { level: 2 })).toHaveText("1 miejsce");
   await expect(page.getByRole("button", { name: "Hotele", exact: true })).toHaveAttribute("aria-pressed", "false");
 });
@@ -160,8 +162,11 @@ test("a name searched from the Rynek view finds a place outside the view and mov
   await page.getByRole("button", { name: "Przybliż" }).click();
   await expect(map).toHaveAttribute("data-moving", "false");
 
-  // WHEN the visitor searches for it by name
-  await searchFor(page, "Muzeum Inżynierii");
+  // WHEN the visitor types its name and picks the suggestion
+  const search = page.getByRole("combobox", { name: "Wyszukaj miejsce" });
+  await search.fill("Muzeum Inżynierii");
+  await page.getByRole("option", { name: "Muzeum Inżynierii i Techniki" }).click();
+  await expect(search).toHaveAttribute("aria-expanded", "false");
 
   // THEN it is listed and the map flies to it, its pin in view
   const list = page.getByRole("region", { name: "Lista miejsc" });
