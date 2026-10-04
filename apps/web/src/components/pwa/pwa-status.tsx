@@ -6,7 +6,7 @@ import { CloudSlash, DeviceMobile, X } from "@phosphor-icons/react";
 import { Button, useAnnounce } from "@krakow-bez-barier/ui";
 import { useLocale, useMessages } from "@/i18n/client";
 import { appPlatform } from "@/lib/native/platform";
-import { installOffer } from "@/lib/pwa/install-offer";
+import { installOffer, isEmbeddedRoute } from "@/lib/pwa/install-offer";
 import { offlineMessage } from "@/lib/pwa/offline-message";
 
 const SW_URL = `/sw.js?build=${process.env.NEXT_PUBLIC_SW_BUILD}`;
@@ -136,6 +136,15 @@ function isStandalone() {
   );
 }
 
+function isFramed() {
+  try {
+    return window.self !== window.top;
+  } catch {
+    // A cross-origin parent blocks reading `top`: that is a frame too.
+    return true;
+  }
+}
+
 function readDismissed() {
   try {
     return localStorage.getItem(INSTALL_DISMISSED_KEY) === "1";
@@ -154,6 +163,9 @@ function InstallPrompt() {
   const standalone = useSyncExternalStore(noSubscribe, isStandalone, () => true);
   const ios = useSyncExternalStore(noSubscribe, isIos, () => false);
   const dismissedBefore = useSyncExternalStore(noSubscribe, readDismissed, () => true);
+  const framed = useSyncExternalStore(noSubscribe, isFramed, () => true);
+  const pathname = usePathname();
+  const embedded = framed || isEmbeddedRoute(pathname);
 
   useEffect(() => {
     const onPrompt = (event: Event) => {
@@ -169,7 +181,7 @@ function InstallPrompt() {
     };
   }, []);
 
-  const offer = installOffer({ native, standalone, ios, canPrompt: deferred !== null });
+  const offer = installOffer({ native, standalone, ios, canPrompt: deferred !== null, embedded });
   if (dismissedBefore || dismissedNow || !offer) return null;
 
   const dismiss = () => {

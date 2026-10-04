@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { installOffer, type InstallContext } from "./install-offer";
+import { installOffer, isEmbeddedRoute, type InstallContext } from "./install-offer";
 
-const BROWSER: InstallContext = { native: false, standalone: false, ios: false, canPrompt: false };
+const BROWSER: InstallContext = { native: false, standalone: false, ios: false, canPrompt: false, embedded: false };
 
 describe("installOffer", () => {
   it.each([
@@ -9,6 +9,8 @@ describe("installOffer", () => {
     ["the native Android app with a prompt event", { native: true, canPrompt: true }],
     ["an installed PWA on iOS", { standalone: true, ios: true }],
     ["an installed PWA with a prompt event", { standalone: true, canPrompt: true }],
+    ["the widget or event page on iOS", { embedded: true, ios: true }],
+    ["an embedded page with a prompt event", { embedded: true, canPrompt: true }],
   ])("offers nothing in %s", (_, overrides) => {
     // GIVEN the app already runs installed
     // WHEN deciding what the install banner shows
@@ -36,5 +38,19 @@ describe("installOffer", () => {
     // GIVEN a browser that can't install the app
     // WHEN / THEN there is no banner
     expect(installOffer(BROWSER)).toBeNull();
+  });
+});
+
+describe("isEmbeddedRoute", () => {
+  it.each([
+    ["/widget/hotel-przyklad", true],
+    ["/wydarzenie/hotel-przyklad", true],
+    ["/", false],
+    ["/miejsca/hotel-przyklad", false],
+    ["/dla-firm", false],
+  ])("treats %s as embedded: %s", (pathname, expected) => {
+    // GIVEN a page path WHEN asking whether it belongs to someone else's site or link
+    // THEN only the widget and the event page are
+    expect(isEmbeddedRoute(pathname)).toBe(expected);
   });
 });

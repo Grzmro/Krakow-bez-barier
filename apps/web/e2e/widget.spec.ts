@@ -33,9 +33,11 @@ test("the widget works embedded on a venue's own website, without an account", a
   await expect(facts.getByRole("listitem").filter({ hasText: "Winda" })).toContainText(
     /Jest.*Niezweryfikowane.*OpenStreetMap/,
   );
-  const changing = facts.getByRole("listitem").filter({ hasText: "Przewijak" });
-  await expect(changing).toContainText(/Brak danych.*Nikt jeszcze nie sprawdził\./);
-  await expect(changing.locator("[data-reliability]")).toHaveAttribute("data-reliability", "unknown");
+  // AND the facts without data come last, named together in one row, never as accessible
+  const missing = facts.getByRole("listitem").last();
+  await expect(missing).toContainText(/Brak danych:.*Przewijak/);
+  await expect(missing).toContainText(pl.common.fact.unknownGroupHint);
+  await expect(facts.getByRole("listitem").filter({ hasText: "Brak danych" })).toHaveCount(1);
 
   // AND it carries the OSM attribution, a link to the full card in a new tab, and no app navigation
   await expect(widget.getByText("© OpenStreetMap contributors")).toBeVisible();

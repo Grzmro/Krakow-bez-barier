@@ -138,21 +138,25 @@ function factSource(fact: AccessibilityFact, withValue: boolean, locale: Locale)
   };
 }
 
-/** One card row per attribute; attributes the API didn't return are named as missing, never hidden. */
-export function factViews(place: Place, locale: Locale): FactView[] {
-  const m = messagesFor(locale);
-  const byAttribute = new Map<AccessibilityAttribute, ResolvedAttribute>(place.attributes.map((a) => [a.attribute, a]));
-  const stepsKnownZero = (() => {
-    const steps = byAttribute.get("step_count");
-    return steps?.state === "known" && steps.value?.kind === "number" && steps.value.number === 0;
-  })();
-
+/** The attributes the place card lists for this place, in order — shared by the card and the widget API. */
+export function cardRows(place: Pick<Place, "category" | "attributes">): AccessibilityAttribute[] {
+  const byAttribute = new Map(place.attributes.map((a) => [a.attribute, a]));
+  const steps = byAttribute.get("step_count");
+  const stepsKnownZero = steps?.state === "known" && steps.value?.kind === "number" && steps.value.number === 0;
   return cardAttributes(place.category).filter((attribute) => {
     // With a known step-free entrance, step height and ramp are moot unless a source says something.
     if (!stepsKnownZero) return true;
     if (attribute !== "ramp" && attribute !== "step_height_cm") return true;
     return (byAttribute.get(attribute)?.facts.length ?? 0) > 0;
-  }).map((attribute) => {
+  });
+}
+
+/** One card row per attribute; attributes the API didn't return are named as missing, never hidden. */
+export function factViews(place: Place, locale: Locale): FactView[] {
+  const m = messagesFor(locale);
+  const byAttribute = new Map<AccessibilityAttribute, ResolvedAttribute>(place.attributes.map((a) => [a.attribute, a]));
+
+  return cardRows(place).map((attribute) => {
     const resolved = byAttribute.get(attribute);
     const label = m.common.attribute[attribute];
     if (!resolved || resolved.state === "unknown" || resolved.facts.length === 0) {
@@ -179,6 +183,14 @@ export function factViews(place: Place, locale: Locale): FactView[] {
       confirmFactId: shownFact.id,
     };
   });
+}
+
+/**
+ * Rows with something to show (a value or a conflict) in their order, and the rows without data apart, so a list can
+ * lead with what is known and name the missing ones together — still named, never hidden, never counted as accessible.
+ */
+export function splitUnknown<T extends { unknown: boolean }>(facts: readonly T[]): { known: T[]; unknown: T[] } {
+  return { known: facts.filter((f) => !f.unknown), unknown: facts.filter((f) => f.unknown) };
 }
 
 /** Sources whose last refresh failed — their facts are last known data. */

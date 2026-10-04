@@ -52,10 +52,10 @@ export function formatEventDate(date: string, locale: Locale): string {
   }).format(new Date(`${date}T00:00:00Z`));
 }
 
-export type EventSectionId = "entrance" | "toilet" | "parking";
+export type EventSectionId = "general" | "entrance" | "toilet" | "parking";
 
 /** What a visitor needs to get in: the entrance first, then the toilet and parking. */
-export const EVENT_SECTIONS: { id: EventSectionId; attributes: readonly AccessibilityAttribute[] }[] = [
+export const EVENT_SECTIONS: { id: Exclude<EventSectionId, "general">; attributes: readonly AccessibilityAttribute[] }[] = [
   {
     id: "entrance",
     attributes: ["step_count", "step_height_cm", "threshold_cm", "ramp", "door_width_cm", "lift", "surface"],
@@ -64,11 +64,20 @@ export const EVENT_SECTIONS: { id: EventSectionId; attributes: readonly Accessib
   { id: "parking", attributes: ["disabled_parking"] },
 ];
 
-/** The place card's fact rows grouped for the event page; missing data stays a "Brak danych" row. */
+/**
+ * The place card's fact rows grouped for the event page; missing data stays a "Brak danych" row. Known card facts
+ * outside the entrance, toilet and parking (the overall wheelchair tag, storeys, benches) open the page as "general",
+ * so the page never shows less than the card; that section exists only when one of them is known.
+ */
 export function eventSections(place: Place, locale: Locale): { id: EventSectionId; facts: FactView[] }[] {
   const facts = factViews(place, locale);
-  return EVENT_SECTIONS.map(({ id, attributes }) => ({
-    id,
-    facts: attributes.flatMap((attribute) => facts.filter((f) => f.attribute === attribute)),
-  }));
+  const grouped = new Set(EVENT_SECTIONS.flatMap((s) => s.attributes));
+  const general = facts.filter((f) => !grouped.has(f.attribute) && !f.unknown);
+  return [
+    ...(general.length ? [{ id: "general" as const, facts: general }] : []),
+    ...EVENT_SECTIONS.map(({ id, attributes }) => ({
+      id,
+      facts: attributes.flatMap((attribute) => facts.filter((f) => f.attribute === attribute)),
+    })),
+  ];
 }

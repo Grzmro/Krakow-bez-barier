@@ -83,6 +83,8 @@ export const common = {
     acquired: "Pozyskano",
     noValue: "Brak danych",
     noSources: "Nikt jeszcze nie sprawdził.",
+    unknownGroup: "Brak danych:",
+    unknownGroupHint: "Nikt jeszcze tego nie sprawdził — to nie znaczy, że jest dostępne.",
     maybeOutdated: (date: string) => `Może być nieaktualne · ${date}`,
     aria: (label: string, value: string, reliability: string, status?: string) =>
       `${label}: ${value}. ${status ? `${status}. ` : ""}Wiarygodność: ${reliability}.`,

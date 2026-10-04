@@ -22,9 +22,8 @@
         - text: Potwierdzone
         - paragraph: /Dane obiektu · \d+\.\d+\.\d+/
       - listitem:
-        - paragraph: "Przewijak: Brak danych"
-        - text: Brak danych
-        - paragraph: Nikt jeszcze nie sprawdził.
+        - paragraph: "Brak danych: Przewijak"
+        - paragraph: Nikt jeszcze tego nie sprawdził — to nie znaczy, że jest dostępne.
     - link "Pełna karta (otwiera się w nowej karcie)":
       - /url: /miejsca/hotel-przyklad
     - paragraph: Kraków bez barier

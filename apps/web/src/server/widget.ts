@@ -1,5 +1,6 @@
 import type { components } from "@krakow-bez-barier/contracts";
 import { isStale } from "@/domain/resolver";
+import { cardRows } from "@/lib/place-facts";
 import { getPlace, type PlacesDeps } from "./places/service";
 
 type WidgetCard = components["schemas"]["WidgetCard"];
@@ -18,7 +19,11 @@ export async function getWidgetCard(
   if (!place) return null;
   const now = deps.now ?? new Date();
 
-  const facts: WidgetFact[] = place.attributes.map((attribute) => {
+  // The place card's rows, in its order, so the widget never contradicts the card a guest opens from it (and a hotel
+  // doesn't read "no data" on a kerb height or incline, which belong to a street).
+  const attributes = cardRows(place).flatMap((name) => place.attributes.filter((a) => a.attribute === name));
+
+  const facts: WidgetFact[] = attributes.map((attribute) => {
     // The fact the value comes from: the first fresh one (facts are sorted best first and may include
     // stale ones), or the first fact when everything is stale. A conflict has no single source or date.
     const best =

@@ -16,6 +16,7 @@ export const event: Messages["event"] = {
   sampleNote: "Data marked SAMPLE is sample data — don't plan your visit based on it.",
   entranceHint: "How to get in",
   sections: {
+    general: "Overall",
     entrance: "Entrance",
     toilet: "Toilet",
     parking: "Parking",

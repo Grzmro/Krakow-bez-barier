@@ -20,21 +20,8 @@
           - list:
             - listitem: /OpenStreetMap · \d+\.\d+\.\d+/
         - listitem:
-          - paragraph: "Próg: Brak danych"
-          - text: Brak danych
-          - paragraph: Nikt jeszcze nie sprawdził.
-        - listitem:
-          - paragraph: "Szerokość drzwi: Brak danych"
-          - text: Brak danych
-          - paragraph: Nikt jeszcze nie sprawdził.
-        - listitem:
-          - paragraph: "Winda: Brak danych"
-          - text: Brak danych
-          - paragraph: Nikt jeszcze nie sprawdził.
-        - listitem:
-          - paragraph: "Nawierzchnia dojścia: Brak danych"
-          - text: Brak danych
-          - paragraph: Nikt jeszcze nie sprawdził.
+          - paragraph: "Brak danych: Próg, Szerokość drzwi, Winda, Nawierzchnia dojścia"
+          - paragraph: Nikt jeszcze tego nie sprawdził — to nie znaczy, że jest dostępne.
     - region "Toaleta":
       - heading "Toaleta" [level=2]
       - list "Toaleta":
@@ -45,16 +32,14 @@
             - listitem: "/Jest — MSIP: Toalety publiczne · \\d+\\.\\d+\\.\\d+ · Może być nieaktualne · \\d+\\.\\d+\\.\\d+/"
             - listitem: /Nie ma — OpenStreetMap · \d+\.\d+\.\d+/
         - listitem:
-          - paragraph: "Przewijak: Brak danych"
-          - text: Brak danych
-          - paragraph: Nikt jeszcze nie sprawdził.
+          - paragraph: "Brak danych: Przewijak"
+          - paragraph: Nikt jeszcze tego nie sprawdził — to nie znaczy, że jest dostępne.
     - region "Parking":
       - heading "Parking" [level=2]
       - list "Parking":
         - listitem:
-          - paragraph: "Parking dla osób z niepełnosprawnościami: Brak danych"
-          - text: Brak danych
-          - paragraph: Nikt jeszcze nie sprawdził.
+          - paragraph: "Brak danych: Parking dla osób z niepełnosprawnościami"
+          - paragraph: Nikt jeszcze tego nie sprawdził — to nie znaczy, że jest dostępne.
     - region "Przystanki w pobliżu":
       - heading "Przystanki w pobliżu" [level=2]
       - paragraph: /Do 3 najbliższych przystanków w promieniu \d+ m, z faktami o ich peronach\. Źródło i data są przy każdym fakcie\./
@@ -66,18 +51,10 @@
             - text: ""
           - list /Dostępność przystanku Plac Wszystkich Świętych \d+/:
             - listitem:
-              - paragraph: "Ogólna dostępność: Brak danych"
-              - text: Brak danych
-              - paragraph: Nikt jeszcze nie sprawdził.
-            - listitem:
               - paragraph: "Oznaczenia dotykowe: Nie ma"
               - text: Niezweryfikowane
               - list:
                 - listitem: /OpenStreetMap · \d+\.\d+\.\d+/
-            - listitem:
-              - paragraph: "Wysokość krawężnika: Brak danych"
-              - text: Brak danych
-              - paragraph: Nikt jeszcze nie sprawdził.
             - listitem:
               - paragraph: "Nawierzchnia dojścia: płyty chodnikowe"
               - text: Niezweryfikowane
@@ -93,6 +70,9 @@
               - text: Niezweryfikowane
               - list:
                 - listitem: /OpenStreetMap · \d+\.\d+\.\d+/
+            - listitem:
+              - paragraph: "Brak danych: Ogólna dostępność, Wysokość krawężnika"
+              - paragraph: Nikt jeszcze tego nie sprawdził — to nie znaczy, że jest dostępne.
     - region "Źródła danych":
       - heading "Źródła danych" [level=2]
       - list:

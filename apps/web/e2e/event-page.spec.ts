@@ -47,7 +47,7 @@ test("an organizer generates an event link and it opens the event page without a
   await expect(toilet.getByRole("listitem").filter({ hasText: "Toaleta dostosowana" }).first()).toContainText(
     /Jest — .*Nie ma — /,
   );
-  await expect(main.getByRole("list", { name: "Parking" })).toContainText(/Brak danych.*Nikt jeszcze nie sprawdził\./);
+  await expect(main.getByRole("list", { name: "Parking" })).toContainText(/Brak danych:.*Nikt jeszcze tego nie sprawdził/);
   await expect(main.getByRole("heading", { name: "Źródła danych" })).toBeVisible();
   // AND a source that is down says so next to its last fetch, and the free-text name is attributed
   await expect(main.getByRole("region", { name: "Źródła danych" })).toContainText(/MSIP: Toalety publiczne · .* · Źródło niedostępne/);
@@ -108,9 +108,10 @@ test("the event page lists the stop within walking distance with its platform fa
     /Nie ma.*OpenStreetMap · 4\.10\.2026/,
   );
   await expect(facts.getByRole("listitem").filter({ hasText: "Wiata" }).first()).toContainText("Jest");
-  await expect(facts.getByRole("listitem").filter({ hasText: "Ogólna dostępność" }).first()).toContainText(
-    /Brak danych.*Nikt jeszcze nie sprawdził\./,
+  await expect(facts.getByRole("listitem").filter({ hasText: "Ogólna dostępność" })).toContainText(
+    /Brak danych:.*Ogólna dostępność.*Nikt jeszcze tego nie sprawdził/,
   );
+  await expect(facts.getByRole("listitem").last()).toContainText("Brak danych:");
   await evidence("event-page-stops");
 });
 
