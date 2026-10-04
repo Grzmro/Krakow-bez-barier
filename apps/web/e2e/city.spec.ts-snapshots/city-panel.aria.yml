@@ -5,13 +5,13 @@
   - text: Dane przykładowe
   - paragraph: /Stan na \d+\.\d+\.\d+, \d+:\d+/
   - button "Wyloguj"
-  - paragraph: Tylko dane zbiorcze, bez danych osobowych. Brak danych nigdy nie liczy się jako „dostępne”. Liczymy wszystkie miejsca oprócz kategorii ukrytych domyślnie na mapie (miejsca postojowe, przystanki) — potrzeby z profilu „Wózek” ich nie dotyczą.
+  - paragraph: Tylko dane zbiorcze, bez danych osobowych. Brak danych nigdy nie liczy się jako „dostępne”. Liczymy wszystkie miejsca oprócz kategorii ukrytych domyślnie na mapie (miejsca postojowe, ławki, windy, przystanki, schody, krawężnik) — potrzeby z profilu „Wózek” ich nie dotyczą.
   - paragraph: "Tryb przykładowy: statystyki policzone z przykładowych miejsc, nie z danych Krakowa."
   - heading "W skrócie" [level=2]
   - term: Miejsca w bazie
-  - definition: "7"
+  - definition: "8"
   - term: Z danymi o dostępności
-  - definition: "6"
+  - definition: "7"
   - definition: /\d+% miejsc/
   - term: Bez żadnych danych
   - definition: "1"
@@ -61,35 +61,35 @@
             - columnheader "Brak danych"
             - columnheader "Spełnia"
         - rowgroup:
-          - row "Wejście 1 0 5 1":
+          - row "Wejście 1 0 6 1":
             - rowheader "Wejście"
             - cell "1"
             - cell "0"
-            - cell "5"
+            - cell "6"
             - cell "1"
-          - row "Drzwi 1 0 5 1":
+          - row "Drzwi 1 0 6 1":
             - rowheader "Drzwi"
             - cell "1"
             - cell "0"
-            - cell "5"
+            - cell "6"
             - cell "1"
-          - row "Winda 0 0 5 2":
+          - row "Winda 0 0 5 3":
             - rowheader "Winda"
             - cell "0"
             - cell "0"
             - cell "5"
-            - cell "2"
-          - row "Toaleta dostosowana 0 1 5 1":
+            - cell "3"
+          - row "Toaleta dostosowana 0 1 5 2":
             - rowheader "Toaleta dostosowana"
             - cell "0"
             - cell "1"
             - cell "5"
-            - cell "1"
-          - row "Nawierzchnia 0 0 7 0":
+            - cell "2"
+          - row "Nawierzchnia 0 0 8 0":
             - rowheader "Nawierzchnia"
             - cell "0"
             - cell "0"
-            - cell "7"
+            - cell "8"
             - cell "0"
   - region "Zgłoszenia mieszkańców":
     - heading "Zgłoszenia mieszkańców" [level=2]
@@ -126,8 +126,8 @@
       - listitem: /\+1 pkt gdy o jakimś atrybucie mamy tylko nieaktualne dane \(starsze niż \d+ mies\. lub źródło nie odświeża się\)/
     - paragraph: Nie mamy danych o liczbie odwiedzin, dlatego ruch przybliża kategoria miejsca. Wagi są jawne i łatwe do zmiany.
     - region "Tabela priorytetów (przewijana poziomo)":
-      - table "Pierwsze 7 z 7 miejsc z co najmniej jednym powodem":
-        - caption: Pierwsze 7 z 7 miejsc z co najmniej jednym powodem
+      - table "Pierwsze 8 z 8 miejsc z co najmniej jednym powodem":
+        - caption: Pierwsze 8 z 8 miejsc z co najmniej jednym powodem
         - rowgroup:
           - row "Nr Miejsce Kategoria Punkty Działanie Powody":
             - columnheader "Nr"
@@ -182,8 +182,17 @@
             - cell "3"
             - cell "Uzupełnienie danych"
             - cell "1 zgłoszenie do decyzji (+3)"
-          - row "6 Sukiennice Muzeum 3 Uzupełnienie danych miejsce o dużym ruchu (+2), brak danych o wejściu (+1)":
+          - row "6 Muzeum Inżynierii i Techniki Muzeum 3 Uzupełnienie danych miejsce o dużym ruchu (+2), brak danych o wejściu (+1)":
             - cell "6"
+            - rowheader "Muzeum Inżynierii i Techniki":
+              - link "Muzeum Inżynierii i Techniki":
+                - /url: /miejsca/muzeum-inzynierii-i-techniki
+            - cell "Muzeum"
+            - cell "3"
+            - cell "Uzupełnienie danych"
+            - cell "miejsce o dużym ruchu (+2), brak danych o wejściu (+1)"
+          - row "7 Sukiennice Muzeum 3 Uzupełnienie danych miejsce o dużym ruchu (+2), brak danych o wejściu (+1)":
+            - cell "7"
             - rowheader "Sukiennice":
               - link "Sukiennice":
                 - /url: /miejsca/sukiennice
@@ -191,8 +200,8 @@
             - cell "3"
             - cell "Uzupełnienie danych"
             - cell "miejsce o dużym ruchu (+2), brak danych o wejściu (+1)"
-          - row "7 Kawiarnia Przykład Restauracja 1 Uzupełnienie danych brak danych o wejściu (+1)":
-            - cell "7"
+          - row "8 Kawiarnia Przykład Restauracja 1 Uzupełnienie danych brak danych o wejściu (+1)":
+            - cell "8"
             - rowheader "Kawiarnia Przykład":
               - link "Kawiarnia Przykład":
                 - /url: /miejsca/kawiarnia-przyklad

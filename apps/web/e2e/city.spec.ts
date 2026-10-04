@@ -28,7 +28,7 @@ test("the city panel shows statistics and the priority ranking, keyboard-reachab
   await expect(main).toContainText("Tryb przykładowy: statystyki policzone z przykładowych miejsc");
   // AND in sample mode it doesn't claim the numbers come from real sources, and it says which categories are left out
   await expect(main).not.toContainText("dane z OpenStreetMap");
-  await expect(main).toContainText("oprócz kategorii ukrytych domyślnie na mapie (miejsca postojowe, przystanki)");
+  await expect(main).toContainText(/oprócz kategorii ukrytych domyślnie na mapie \(miejsca postojowe, [^)]*przystanki[^)]*\)/);
   const needs = page.getByRole("table", { name: "Liczba miejsc według wyniku dla każdej potrzeby" });
   await expect(needs.getByRole("rowheader")).toHaveText(["Wejście", "Drzwi", "Winda", "Toaleta dostosowana", "Nawierzchnia"]);
   const reports = page.getByRole("table", { name: "Liczba zgłoszeń według statusu" });
