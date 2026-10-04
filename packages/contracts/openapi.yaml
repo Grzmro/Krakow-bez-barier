@@ -1250,6 +1250,151 @@ paths:
           $ref: '#/components/responses/TooManyRequests'
         '500':
           $ref: '#/components/responses/ServerError'
+  /moderation/source-outages:
+    get:
+      operationId: listSimulatedSourceOutages
+      summary: List simulated source outages (demo mode)
+      description: 'The demo switch "Symuluj awarię źródła": source outages a moderator is simulating right now, so the
+        jury can see on the live app what happens when a source fails. A simulated outage behaves like a real one
+        (`GET /sources` and `Place.sources` report the source in `outage` with `simulatedOutage: true`, its facts are
+        marked stale, nothing is removed) and ends by itself at `endsAt`. Requires a moderator bearer token (lockout as
+        for the moderation queue).
+
+        '
+      tags:
+      - moderation
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: Active simulated outages and how long a new one lasts.
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                - items
+                - durationMinutes
+                - moderator
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SimulatedSourceOutage'
+                  durationMinutes:
+                    type: integer
+                    minimum: 1
+                    description: How long a simulated outage lasts after it is switched on (or switched on again).
+                  moderator:
+                    $ref: '#/components/schemas/ModeratorSession'
+              examples:
+                active:
+                  value:
+                    items:
+                    - sourceId: osm
+                      sourceName: OpenStreetMap
+                      startedBy: Konto demonstracyjne
+                      startedAt: '2026-10-04T09:00:00Z'
+                      endsAt: '2026-10-04T09:15:00Z'
+                      stoppedAt: null
+                    durationMinutes: 15
+                    moderator:
+                      name: Konto demonstracyjne
+                      demo: true
+                      revertsAfterMinutes: 30
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /moderation/source-outages/{sourceId}:
+    parameters:
+    - name: sourceId
+      in: path
+      required: true
+      description: Source identifier from `listSources`.
+      schema:
+        type: string
+        maxLength: 100
+    put:
+      operationId: startSimulatedSourceOutage
+      summary: Switch on a simulated outage of a source (demo mode)
+      description: 'Starts a simulated outage of the source for `durationMinutes`, or restarts the clock when one is
+        already running. Each switch is kept with who started and stopped it and when (the audit); nothing about the
+        source or its facts is changed. Requires a moderator bearer token; limited to 20 switches per client per minute.
+
+        '
+      tags:
+      - moderation
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: The running simulated outage.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulatedSourceOutage'
+              examples:
+                started:
+                  value:
+                    sourceId: osm
+                    sourceName: OpenStreetMap
+                    startedBy: Konto demonstracyjne
+                    startedAt: '2026-10-04T09:00:00Z'
+                    endsAt: '2026-10-04T09:15:00Z'
+                    stoppedAt: null
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      operationId: stopSimulatedSourceOutage
+      summary: Switch off a simulated outage of a source (demo mode)
+      description: 'Ends the running simulated outage of the source now; the source shows its real status again. `404`
+        when none is running (it may have ended by itself). Requires a moderator bearer token; limited to 20 switches
+        per client per minute.
+
+        '
+      tags:
+      - moderation
+      security:
+      - bearerAuth: []
+      responses:
+        '200':
+          description: The simulated outage, now stopped.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SimulatedSourceOutage'
+              examples:
+                stopped:
+                  value:
+                    sourceId: osm
+                    sourceName: OpenStreetMap
+                    startedBy: Konto demonstracyjne
+                    startedAt: '2026-10-04T09:00:00Z'
+                    endsAt: '2026-10-04T09:15:00Z'
+                    stoppedAt: '2026-10-04T09:05:00Z'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /moderation/demo-session:
     post:
       operationId: createDemoModeratorSession
@@ -2418,6 +2563,41 @@ components:
         isSample:
           type: boolean
           default: false
+        simulatedOutage:
+          type: boolean
+          description: Demo mode — `true` when the `outage` is simulated (a moderator's switch or the operator's
+            `SIMULATE_SOURCE_OUTAGE`), not a real failure; label it as a demonstration. Absent means `false`.
+    SimulatedSourceOutage:
+      type: object
+      description: One switch of the demo "Symuluj awarię źródła", kept as the audit of who simulated what and when.
+      required:
+      - sourceId
+      - sourceName
+      - startedBy
+      - startedAt
+      - endsAt
+      - stoppedAt
+      properties:
+        sourceId:
+          type: string
+        sourceName:
+          type: string
+        startedBy:
+          type: string
+          description: Moderator name from the server's configuration.
+        startedAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: string
+          format: date-time
+          description: When the simulated outage ends by itself.
+        stoppedAt:
+          type:
+          - string
+          - 'null'
+          format: date-time
+          description: When a moderator switched it off early; `null` while it runs or after it ended by itself.
     AccessibilityFact:
       type: object
       required:

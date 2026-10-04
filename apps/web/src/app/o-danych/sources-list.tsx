@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowSquareOut, CheckCircle, ClockCountdown, CloudSlash, Question, type Icon } from "@phosphor-icons/react";
 import type { Source } from "@krakow-bez-barier/contracts";
 import { Button, cn, useAnnounce } from "@krakow-bez-barier/ui";
-import { SampleTag, SourceText } from "@/components/kbb";
+import { DemoOutageTag, SampleTag, SourceText } from "@/components/kbb";
 import { useLocale, useMessages } from "@/i18n/client";
 import type { Messages } from "@/i18n/messages";
 import { api, isMockApi } from "@/lib/api";
@@ -104,6 +104,12 @@ export function SourcesList() {
               </h3>
               <RefreshStatusChip status={source.refreshStatus} />
             </div>
+            {source.refreshStatus === "outage" ? (
+              <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-body-sm font-semibold text-status-conflict">
+                {source.lastSuccessAt ? t.refreshFailed(formatDate(source.lastSuccessAt, t)) : t.refreshFailedNoData}
+                {source.simulatedOutage ? <DemoOutageTag /> : null}
+              </p>
+            ) : null}
             {source.statusNote ? <p className="mt-2 text-caption text-foreground/85">{source.statusNote}</p> : null}
             <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-caption">
               <dt className="text-muted-foreground">{t.license}</dt>

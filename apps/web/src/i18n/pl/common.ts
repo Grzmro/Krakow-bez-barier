@@ -78,6 +78,11 @@ export const common = {
     tag: "Przykład",
     aria: "Dane przykładowe",
   },
+  // A source outage switched on for a demonstration (`Source.simulatedOutage`), not a real failure.
+  demoOutage: {
+    tag: "Tryb demo",
+    aria: "Tryb demonstracyjny: awaria symulowana, nie prawdziwa",
+  },
   fact: {
     source: "Źródło",
     acquired: "Pozyskano",

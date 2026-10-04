@@ -15,6 +15,7 @@ import { changePreview, formatDateTime, isOpen, moderationHistory, retryMinutes 
 import { formatDate } from "@/lib/place-facts";
 import { routes } from "@/lib/routes";
 import { OutagesTab, useModerationOutages } from "./outages-tab";
+import { SourceOutagesTab } from "./source-outages-tab";
 
 const PAGE_SIZE = 100;
 
@@ -185,6 +186,7 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
         <TabsList aria-label={t.tabs.label}>
           <TabsTrigger value="reports">{t.tabs.reports(open.length)}</TabsTrigger>
           <TabsTrigger value="outages">{t.tabs.outages(outages.data?.length ?? null)}</TabsTrigger>
+          <TabsTrigger value="source-outages">{t.tabs.sourceOutages}</TabsTrigger>
         </TabsList>
         <TabsContent value="reports">
           <section>
@@ -359,6 +361,9 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
         </TabsContent>
         <TabsContent value="outages">
           <OutagesTab token={token} query={outages} session={session} onSignOut={onSignOut} />
+        </TabsContent>
+        <TabsContent value="source-outages">
+          <SourceOutagesTab token={token} onSignOut={onSignOut} />
         </TabsContent>
       </Tabs>
     </>

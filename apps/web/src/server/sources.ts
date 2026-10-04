@@ -124,6 +124,7 @@ export function toSource(row: SourceRow, now: Date, simulated: readonly string[]
     lastAttemptAt: overlaid.lastAttemptAt?.toISOString() ?? null,
     statusNote,
     isSample: row.isSample,
+    simulatedOutage: simulated.includes(row.id),
   };
   return localizeSourceText(source, locale);
 }

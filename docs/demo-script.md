@@ -35,6 +35,10 @@ E2E_BASE_URL=https://<deploy> DEMO_OUTAGE_BASE_URL=https://<deploy z awarią> np
   przełącznikiem i tylko scena „Źródło niedostępne” oraz „O danych” idą przez niego. Dla wdrożenia
   podaj jego adres w `DEMO_OUTAGE_BASE_URL` (np. wdrożenie podglądowe z przełącznikiem, patrz
   [deployment.md](deployment.md) pkt 7); bez niego nagranie pomija tę scenę z ostrzeżeniem.
+- **Awaria źródła na żywo (KBB-179)**: na produkcji bez zmiennych serwera — `/moderator` → „Wejdź na konto
+  demonstracyjne” → zakładka „Demo źródeł” → wybierz źródło → „Symuluj awarię”. „O danych” i karty miejsc
+  pokazują „Odświeżenie nie powiodło się — dane z …” z etykietą „Tryb demo”; wyłącza się przyciskiem „Wyłącz”
+  albo sama po 15 min. Wymaga migracji `0007_source_outage_simulations` (`npm run db:migrate`).
 - **Scena 5 wysyła prawdziwe zgłoszenie** („Ogólna dostępność: Dostępne dla wózków”) do bazy, na której działa aplikacja.
   Czeka na moderację i nie zmienia danych. Nagrywaj na bazie demo, nie produkcyjnej.
 - **Przed każdym kolejnym nagraniem odrzuć zgłoszenia z poprzedniego** w `/moderator` (albo postaw

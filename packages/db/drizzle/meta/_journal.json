@@ -50,6 +50,13 @@
       "when": 1791071615674,
       "tag": "0006_contributor_token",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791076741533,
+      "tag": "0007_source_outage_simulations",
+      "breakpoints": true
     }
   ]
 }

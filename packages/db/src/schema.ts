@@ -224,6 +224,25 @@ export const outages = pgTable(
   (t) => [index("outages_place_idx").on(t.placeId, t.equipment, t.createdAt)],
 );
 
+// The demo switch "Symuluj awarię źródła": while a row runs (`stopped_at` null, `ends_at` ahead), the API shows its
+// source in outage. Rows are never deleted — they are the audit of who simulated what and when. The source row and
+// its facts are never touched.
+export const sourceOutageSimulations = pgTable(
+  "source_outage_simulations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    sourceId: text("source_id")
+      .notNull()
+      .references(() => sources.id),
+    startedBy: text("started_by").notNull(),
+    startedAt: timestamptz("started_at").notNull().defaultNow(),
+    endsAt: timestamptz("ends_at").notNull(),
+    stoppedAt: timestamptz("stopped_at"),
+    stoppedBy: text("stopped_by"),
+  },
+  (t) => [index("source_outage_simulations_active_idx").on(t.endsAt, t.sourceId)],
+);
+
 export const outageVotes = pgTable(
   "outage_votes",
   {

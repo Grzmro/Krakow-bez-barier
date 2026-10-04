@@ -27,6 +27,8 @@ export const pages = {
     verification: "Weryfikacja",
     lastOk: "Ostatnia udana aktualizacja",
     lastAttempt: "Ostatnia próba",
+    refreshFailed: (date: string) => `Odświeżenie nie powiodło się — dane z ${date}`,
+    refreshFailedNoData: "Odświeżenie nie powiodło się — brak wcześniejszych danych",
     never: "jeszcze nigdy",
     websiteLabel: "Strona źródła:",
     status: {

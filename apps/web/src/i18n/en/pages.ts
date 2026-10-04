@@ -22,6 +22,8 @@ export const pages: Messages["pages"] = {
     verification: "Verification",
     lastOk: "Last successful update",
     lastAttempt: "Last attempt",
+    refreshFailed: (date: string) => `Refresh failed — data from ${date}`,
+    refreshFailedNoData: "Refresh failed — no earlier data",
     never: "never yet",
     websiteLabel: "Source website:",
     status: {

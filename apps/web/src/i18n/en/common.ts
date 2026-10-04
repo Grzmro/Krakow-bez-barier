@@ -76,6 +76,10 @@ export const common: Messages["common"] = {
     tag: "Sample",
     aria: "Sample data",
   },
+  demoOutage: {
+    tag: "Demo mode",
+    aria: "Demo mode: simulated outage, not a real one",
+  },
   fact: {
     source: "Source",
     acquired: "Collected",

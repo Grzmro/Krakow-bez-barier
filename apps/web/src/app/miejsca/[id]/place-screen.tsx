@@ -39,7 +39,7 @@ import {
 import type { AccessibilityAttribute, Outage, OutageEquipment, OutageVote, Place, PlaceSummary, Profile, Verdict } from "@krakow-bez-barier/contracts";
 import { Button, buttonVariants, cn, toast, useAnnounce } from "@krakow-bez-barier/ui";
 import { PlaceMap } from "@/components/home/place-map";
-import { FactRow, ReliabilityBadge, SampleTag, SourceText, VerdictBlock } from "@/components/kbb";
+import { DemoOutageTag, FactRow, ReliabilityBadge, SampleTag, SourceText, VerdictBlock } from "@/components/kbb";
 import { NeedGroups } from "@/components/profile/need-groups";
 import { canReportOutage, isActiveOutage, isOutageEquipment } from "@/domain/outages";
 import { useLocale, useMessages } from "@/i18n/client";
@@ -374,6 +374,7 @@ function PlaceCard({ place, profile }: { place: Place; profile: Profile | null }
               </p>
               <p className="mt-0.5 text-caption text-foreground">
                 {t.outage.sourceLabel} <SourceText>{source.name}</SourceText>
+                {source.simulatedOutage ? <DemoOutageTag className="ml-2 align-middle" /> : null}
               </p>
               {source.statusNote ? <p className="mt-0.5 text-caption text-foreground">{source.statusNote}</p> : null}
             </div>

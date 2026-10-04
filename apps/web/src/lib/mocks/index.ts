@@ -6,16 +6,19 @@ import { mockGetPlace, mockPlaceExists } from "./mock-api";
 import { seedModerationQueue, withModerationMocks } from "./mock-moderation";
 import { withOutageMocks } from "./mock-outages";
 import { withRealRoutes } from "./mock-routes";
+import { withSourceOutageMocks } from "./mock-source-outages";
 
 const queue = seedModerationQueue();
 
 /** `fetch` of the example-data mode: answers from openapi.yaml's examples, except routes (see mock-routes). */
-export const mockApiFetch = withRealRoutes(
-  withOutageMocks(
-    withCityMocks(
-      withModerationMocks(withPlacesMocks(withContributionMocks(createMockFetch(), (id) => mockGetPlace(id))), queue),
-      queue,
+export const mockApiFetch = withSourceOutageMocks(
+  withRealRoutes(
+    withOutageMocks(
+      withCityMocks(
+        withModerationMocks(withPlacesMocks(withContributionMocks(createMockFetch(), (id) => mockGetPlace(id))), queue),
+        queue,
+      ),
+      mockPlaceExists,
     ),
-    mockPlaceExists,
   ),
 );

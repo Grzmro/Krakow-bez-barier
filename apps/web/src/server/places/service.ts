@@ -23,7 +23,8 @@ import { thresholdsFor } from "@/domain/profiles";
 import { isStale, resolveAttribute } from "@/domain/resolver";
 import { activeOutagesByPlace } from "@/server/outages/service";
 import { pendingReportsByAttribute, type ReportsStore } from "@/server/reports";
-import { localizeSourceText, simulatedOutageIds, withSimulatedOutage } from "@/server/sources";
+import { currentSimulatedOutageIds } from "@/server/source-outages/service";
+import { localizeSourceText, withSimulatedOutage } from "@/server/sources";
 import {
   createDbPlaceRepository,
   type FactRecord,
@@ -47,7 +48,8 @@ export class InvalidQueryError extends Error {
 
 /**
  * `locale`: language of chip labels and verdict reasons — the one the caller picked, Polish by default.
- * `simulated`: sources under the demo outage switch (`SIMULATE_SOURCE_OUTAGE`), shown failed here as on `GET /sources`.
+ * `simulated`: sources under the demo outage switch (`SIMULATE_SOURCE_OUTAGE` or a moderator's), shown failed here as on
+ * `GET /sources`; read with `currentSimulatedOutageIds` when not given.
  */
 export type PlacesDeps = { repository?: PlaceRepository; now?: Date; locale?: Locale; simulated?: readonly string[] };
 
@@ -98,7 +100,7 @@ export function toFact(record: FactRecord, now: Date): AccessibilityFact {
   return { ...fact, stale: FAILED_REFRESH.has(record.source.refreshStatus) || isStale(fact, now) };
 }
 
-function toSource(record: SourceRecord, locale: Locale): Source {
+function toSource(record: SourceRecord, locale: Locale, simulated: readonly string[]): Source {
   const source: Source = {
     id: record.id,
     name: record.name,
@@ -112,6 +114,7 @@ function toSource(record: SourceRecord, locale: Locale): Source {
     lastAttemptAt: iso(record.lastAttemptAt),
     statusNote: record.statusNote,
     isSample: record.isSample,
+    simulatedOutage: simulated.includes(record.id),
   };
   return localizeSourceText(source, locale);
 }
@@ -238,7 +241,8 @@ type SearchQuery = Pick<ListPlacesQuery, "q" | "category" | "feature" | "bbox" |
  * Shared by the list and the map points, so both always hold the same places.
  */
 async function matchingPlaces(query: SearchQuery, deps: PlacesDeps) {
-  const { repository = createDbPlaceRepository(), now = new Date(), locale = defaultLocale, simulated = simulatedOutageIds() } = deps;
+  const { repository = createDbPlaceRepository(), now = new Date(), locale = defaultLocale } = deps;
+  const simulated = deps.simulated ?? (await currentSimulatedOutageIds());
   const bbox = readBbox(query.bbox);
   const unknownCategory = query.category?.find((id) => !categories.some((c) => c.id === id));
   if (unknownCategory) {
@@ -380,14 +384,15 @@ function contact(place: PlaceRecord): Place["contact"] {
  * optional verdict that counts them.
  */
 export async function getPlace(id: string, query: GetPlaceQuery = {}, deps: PlacesDeps = {}): Promise<Place | null> {
-  const { repository = createDbPlaceRepository(), now = new Date(), locale = defaultLocale, simulated = simulatedOutageIds() } = deps;
+  const { repository = createDbPlaceRepository(), now = new Date(), locale = defaultLocale } = deps;
   const place = await repository.findPlace(id);
   if (!place) return null;
+  const simulated = deps.simulated ?? (await currentSimulatedOutageIds());
 
   const records = withOutages(await repository.activeFacts([place.id]), now, simulated, locale);
   const attributes = resolvePlace(records, now);
   const thresholds = thresholdsFor(query);
-  const sources = [...new Map(records.map((r) => [r.source.id, r.source])).values()].map((record) => toSource(record, locale));
+  const sources = [...new Map(records.map((r) => [r.source.id, r.source])).values()].map((record) => toSource(record, locale, simulated));
   const outages = (await outagesOf(repository, [place.id], now)).get(place.id) ?? [];
 
   return {
