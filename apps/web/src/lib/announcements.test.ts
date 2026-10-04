@@ -123,6 +123,17 @@ describe("announce", () => {
     expect(heard[1].cues).toEqual([{ kind: "offRoute" }]);
   });
 
+  it("says off the route once while the GPS wobbles around the off-route limit", () => {
+    // GIVEN a walker whose fixes jump between 35 m and 45 m from the route (the limit is 40 m)
+    const positions = [{ meters: 20 }, ...[45, 35, 45, 36, 44, 35].map((north, i) => ({ meters: 40 + i * 5, north }))];
+
+    // WHEN they go through the announcer
+    const heard = simulate(walk, positions);
+
+    // THEN off the route is said once
+    expect(heard.flatMap((h) => h.ids).filter((id) => id.startsWith("off:"))).toEqual(["off:1"]);
+  });
+
   it("never reads by itself without a position: no GPS, no announcements", () => {
     // GIVEN manual mode (no position) on every step of the route, and no progress at all
     let state = initialAnnouncer;

@@ -49,14 +49,15 @@ export function ReadAloud({
 
   const playButton = useRef<HTMLButtonElement>(null);
   const nextButton = useRef<HTMLButtonElement>(null);
+  const repeatButton = useRef<HTMLButtonElement>(null);
   const controls = useRef<HTMLDivElement>(null);
   const opened = reading !== null;
   const wasOpen = useRef(opened);
   useEffect(() => {
-    if (opened && !wasOpen.current) nextButton.current?.focus();
+    if (opened && !wasOpen.current) (total > 1 ? nextButton : repeatButton).current?.focus();
     else if (!opened && wasOpen.current) playButton.current?.focus();
     wasOpen.current = opened;
-  }, [opened]);
+  }, [opened, total]);
 
   // Another route (kind, profile, ends) is shown: what was being read no longer applies.
   useEffect(
@@ -81,7 +82,13 @@ export function ReadAloud({
   };
   const readStep = (index: number) => {
     readingWhole(null);
-    if (spoken(say(segmentSpeech(m, route.segments[index], index, total, locale)))) show(index);
+    if (!spoken(say(segmentSpeech(m, route.segments[index], index, total, locale)))) return;
+    show(index);
+    // At the first or last step the button just pressed turns disabled; focus would drop to the page.
+    const active = document.activeElement;
+    if ((index === 0 || index === total - 1) && active instanceof HTMLButtonElement && active !== repeatButton.current && controls.current?.contains(active)) {
+      repeatButton.current?.focus();
+    }
   };
   const readAll = () => {
     const from = reading ?? 0;
@@ -124,7 +131,7 @@ export function ReadAloud({
           <CaretLeft weight="bold" />
           {t.previous}
         </Button>
-        <Button variant="outline" size="sm" className="h-auto min-h-10 whitespace-normal" onClick={() => readStep(reading)}>
+        <Button ref={repeatButton} variant="outline" size="sm" className="h-auto min-h-10 whitespace-normal" onClick={() => readStep(reading)}>
           <ArrowCounterClockwise weight="bold" />
           {t.repeat}
         </Button>

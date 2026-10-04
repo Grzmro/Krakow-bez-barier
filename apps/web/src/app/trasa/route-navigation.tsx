@@ -168,6 +168,18 @@ function GuidanceVoice({ route, guidance }: { route: Route; guidance: Guidance }
     return result.announcement;
   };
 
+  const speak = (text: string) => {
+    const ok = say(text);
+    setNoVoice(!ok);
+    if (!ok) announce(t.noVoice);
+    return ok;
+  };
+  // A device whose voices load late may turn out to have none for the language: say so instead of staying silent.
+  const speakNow = (text: string) => {
+    if (!say(text)) announce(t.noVoice);
+  };
+
+  // No dependency list on purpose: it runs after every render (each GPS fix renders), and the scheduler says each id once.
   useEffect(() => {
     const step = progress?.step ?? null;
     const moved = step !== lastStep.current;
@@ -175,18 +187,11 @@ function GuidanceVoice({ route, guidance }: { route: Route; guidance: Guidance }
     if (!on || !progress) return;
     if (mode === "located") {
       const announcement = due(false);
-      if (announcement) say(announcementSpeech(m, route, announcement));
-    } else if (moved) say(guidanceSpeech(m, route, progress, locale, false));
+      if (announcement) speakNow(announcementSpeech(m, route, announcement));
+    } else if (moved) speakNow(guidanceSpeech(m, route, progress, locale, false));
   });
 
   if (!supported) return null;
-
-  const speak = (text: string) => {
-    const ok = say(text);
-    setNoVoice(!ok);
-    if (!ok) announce(t.noVoice);
-    return ok;
-  };
   const toggle = (next: boolean) => {
     if (!next) {
       stop();

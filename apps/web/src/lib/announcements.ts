@@ -1,5 +1,5 @@
 import type { Route } from "@krakow-bez-barier/contracts";
-import { ARRIVE_METERS, concerns, type Progress } from "./navigation";
+import { ARRIVE_METERS, concerns, OFF_ROUTE_METERS, type Progress } from "./navigation";
 
 /** Closer than this to a manoeuvre or a barrier: it is announced ahead ("Za 50 metrów: …"). */
 export const PRE_METERS = 50;
@@ -8,6 +8,8 @@ export const PRE_METERS = 50;
  * so two messages never come a few metres apart.
  */
 export const QUIET_METERS = 25;
+/** After being off the route, back on it counts only this much inside `OFF_ROUTE_METERS`. */
+export const REJOIN_METERS = 15;
 
 /**
  * What is said, without words: the scheduler picks the moment, `route-speech.ts` the words.
@@ -64,9 +66,11 @@ export function announce(route: Route, progress: Progress | null, state: Announc
     say(`off:${offEpisodes}`, { kind: "offRoute" });
     return done(offEpisodes, true);
   }
+  // Back on the route counts only well inside the limit, so GPS wobbling around it doesn't repeat "Zboczyłeś z trasy".
+  const off = state.off && progress.offBy > OFF_ROUTE_METERS - REJOIN_METERS;
   if (progress.arrived) {
     say("arrived", { kind: "arrived" });
-    return done(state.offEpisodes, false);
+    return done(state.offEpisodes, off);
   }
 
   const segments = route.segments;
@@ -94,7 +98,7 @@ export function announce(route: Route, progress: Progress | null, state: Announc
   const { ahead } = concerns(route, progress);
   if (ahead && due(ahead.inMeters)) say(`concern:${ahead.index}`, { kind: "concern", step: ahead.index, inMeters: ahead.inMeters });
 
-  return done(state.offEpisodes, false);
+  return done(state.offEpisodes, off);
 }
 
 /** A distance rounded for the ear: to 10 m under 200 m, to 50 m under a kilometre, then to 100 m. Never below 10 m. */

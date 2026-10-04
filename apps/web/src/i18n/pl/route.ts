@@ -117,7 +117,9 @@ export const route = {
     kilometers: (km: number) =>
       Number.isInteger(km) ? `${km} ${plural(km, "kilometr", "kilometry", "kilometrów")}` : `${String(km).replace(".", ",")} kilometra`,
     centimeters: (value: string) =>
-      value.includes(",") ? `${value} centymetra` : `${value} ${plural(Number(value), "centymetr", "centymetry", "centymetrów")}`,
+      /[.,]/.test(value)
+        ? `${value.replace(".", ",")} centymetra`
+        : `${value} ${plural(Number(value), "centymetr", "centymetry", "centymetrów")}`,
     percent: (value: string) => `${value} procent`,
   },
   destination: {
