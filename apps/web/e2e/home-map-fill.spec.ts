@@ -121,14 +121,16 @@ test("a place picked in the list is moved into view above the panel, and stays t
   await evidence("home-map-fill-selected");
 
   // WHEN the panel is expanded and collapsed again, THEN the pin is still in view above it
-  await panel(page).getByRole("button", { name: "Rozwiń arkusz" }).click();
+  // Pressed with the keyboard: a mouse click leaves the pointer over the panel, and the row that slides under it
+  // on expanding would be highlighted (hover) in place of the picked one, which a phone never does.
+  await panel(page).getByRole("button", { name: "Rozwiń arkusz" }).press("Enter");
   await expect(panel(page)).toHaveAttribute("data-expanded", "true");
-  await panel(page).getByRole("button", { name: "Zwiń arkusz" }).click();
+  await panel(page).getByRole("button", { name: "Zwiń arkusz" }).press("Enter");
   await expect(panel(page)).toHaveAttribute("data-expanded", "false");
   await expect.poll(shown).toBe(true);
 
   // WHEN the list is stowed to the bar, THEN the pin is still in view above the bar
-  await panel(page).getByRole("button", { name: "Schowaj listę" }).click();
+  await panel(page).getByRole("button", { name: "Schowaj listę" }).press("Enter");
   await expect(panel(page)).toHaveAttribute("data-stowed", "true");
   await expect.poll(shown).toBe(true);
 });

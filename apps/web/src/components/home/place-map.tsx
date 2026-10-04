@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Icon } from "@phosphor-icons/react";
 import { flushSync } from "react-dom";
-import { createRoot, type Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import type { PlacePoint, PlaceSummary } from "@krakow-bez-barier/contracts";
-import { cn, useAnnounce } from "@krakow-bez-barier/ui";
+import { cn, MOTION, motionMs, reducedMotion, useAnnounce } from "@krakow-bez-barier/ui";
 import type { Map as MapLibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useMessages } from "@/i18n/client";
@@ -15,13 +15,18 @@ import { blankMissingImages } from "@/lib/map-images";
 import {
   buildClusterIndex,
   clusterPlaceIds,
+  clusterZoom,
   expansionZoom,
   mapItems,
+  markerMoves,
   placesInView,
   verdictBreakdown,
+  type ClusterIndex,
   type MapItem,
+  type MarkerSpot,
 } from "@/lib/map-clusters";
 import { toPoint, type Bbox } from "@/lib/map-points";
+import { markerTransition } from "@/lib/marker-motion";
 import { MapControls } from "../map/map-controls";
 import { insidePadding, mapPadding, paddedCentre, type Padding } from "../map/map-padding";
 import { clusterSize, PlaceCluster } from "./place-cluster";
@@ -30,35 +35,69 @@ import { PlacePin } from "./place-pin";
 // The map fills a phone's screen; at 3x (iPhone) that canvas is ~3 Mpx redrawn every frame of a pan. 2x stays sharp.
 const MAX_PIXEL_RATIO = 2;
 const PIN_CLASS = "group relative size-9 cursor-pointer data-[selected=true]:z-10";
+// How often markers catch up with a pan between its start and end (ms).
+const PAN_REFRESH_MS = 250;
+// Share of the view's width and height loaded as markers beyond each edge.
+const VIEW_MARGIN = 0.2;
+// Most marker transitions one refresh starts; the rest change at once, so a big jump stays smooth on a phone.
+const MAX_TRANSITIONS = 60;
+
+// Rendered once per look (category and verdict, or count and breakdown) and cloned for each marker: a React
+// root per marker made each zoom step build a few hundred of them on the main thread.
+const templates = new Map<string, Element>();
+const MAX_TEMPLATES = 400;
+
+function fromTemplate(key: string, render: () => ReactNode): Element {
+  let template = templates.get(key);
+  if (!template) {
+    const host = document.createElement("div");
+    const root = createRoot(host);
+    flushSync(() => root.render(render()));
+    template = host.firstElementChild!.cloneNode(true) as Element;
+    // Unmounting synchronously from inside a React commit warns; defer it.
+    queueMicrotask(() => root.unmount());
+    if (templates.size >= MAX_TEMPLATES) templates.clear();
+    templates.set(key, template);
+  }
+  return template.cloneNode(true) as Element;
+}
+
+/** A marker's element (MapLibre positions it) around a body that the enter and leave transitions animate. */
+function shell(className: string, content: Element) {
+  const element = document.createElement("div");
+  element.className = className;
+  const body = document.createElement("div");
+  body.className = "relative size-full";
+  body.append(content);
+  element.append(body);
+  return { element, body };
+}
 
 function pinElement(place: PlacePoint, icon: Icon, title: string) {
-  const element = document.createElement("div");
-  element.className = PIN_CLASS;
+  const look = fromTemplate(`p:${place.category}:${place.verdict}`, () => <PlacePin status={place.verdict} icon={icon} />);
+  const { element, body } = shell(PIN_CLASS, look);
   element.setAttribute("aria-hidden", "true");
   element.title = title;
   element.dataset.placeId = place.id;
   element.dataset.category = place.category;
   if (place.verdict) element.dataset.status = place.verdict;
-  const root = createRoot(element);
-  flushSync(() => root.render(<PlacePin status={place.verdict} icon={icon} />));
-  return { element, root };
+  return { element, body };
 }
 
 function clusterElement(item: Extract<MapItem, { kind: "cluster" }>, label: string) {
-  const element = document.createElement("div");
+  const breakdown = verdictBreakdown(item.counts);
+  const verdicts = breakdown.map(([status, n]) => `${status}:${n}`).join(" ");
+  const look = fromTemplate(`c:${item.count}:${verdicts}`, () => <PlaceCluster count={item.count} breakdown={breakdown} />);
+  const { element, body } = shell("group relative cursor-pointer data-[selected=true]:z-10", look);
   const size = clusterSize(item.count);
-  element.className = "group relative cursor-pointer data-[selected=true]:z-10";
   element.style.width = element.style.height = `${size}px`;
   // Not a tab stop, like the pins: keyboard users zoom with +/- or the arrows, and the list holds every place.
   element.setAttribute("role", "img");
   element.setAttribute("aria-label", label);
   element.title = label;
-  const breakdown = verdictBreakdown(item.counts);
   element.dataset.clusterCount = String(item.count);
-  element.dataset.verdicts = breakdown.map(([status, n]) => `${status}:${n}`).join(" ");
-  const root = createRoot(element);
-  flushSync(() => root.render(<PlaceCluster count={item.count} breakdown={breakdown} />));
-  return { element, root };
+  element.dataset.verdicts = verdicts;
+  return { element, body };
 }
 
 function youElement(you: string) {
@@ -75,27 +114,67 @@ function youElement(you: string) {
   return element;
 }
 
-/** `places` = the ids a marker stands for: one for a pin, every leaf for a cluster. */
-type Markers = Map<string, { marker: Marker; root: Root; places: ReadonlySet<string> }>;
+/** `leaves` = a cluster's place ids, listed only once a selection asks which cluster holds it. */
+type MarkerEntry = { marker: Marker; body: HTMLElement; item: MapItem; index: ClusterIndex; leaves?: ReadonlySet<string> };
+type Markers = Map<string, MarkerEntry>;
 
 /** Marks the pin of the selected place, or the cluster that holds it. */
 function markSelected(markers: Markers, selectedId: string | null) {
-  for (const { marker, places } of markers.values()) {
-    marker.getElement().dataset.selected = String(selectedId !== null && places.has(selectedId));
-  }
+  const entries = [...markers.values()];
+  const pin = selectedId === null ? undefined : entries.find(({ item }) => item.kind === "place" && item.place.id === selectedId);
+  const holder =
+    pin ??
+    (selectedId === null
+      ? undefined
+      : entries.find((entry) => {
+          if (entry.item.kind !== "cluster") return false;
+          entry.leaves ??= new Set(clusterPlaceIds(entry.index, entry.item.clusterId));
+          return entry.leaves.has(selectedId);
+        }));
+  for (const entry of entries) entry.marker.getElement().dataset.selected = String(entry === holder);
 }
 
-function removeMarkers(markers: Markers, keys: Iterable<string> = [...markers.keys()]) {
-  const roots: Root[] = [];
-  for (const key of [...keys]) {
-    const entry = markers.get(key);
-    if (!entry) continue;
-    entry.marker.remove();
-    roots.push(entry.root);
-    markers.delete(key);
+const SHOWN_DATA = ["placeId", "clusterCount", "category", "status", "verdicts", "selected"];
+
+/**
+ * Takes a marker off the map: at once, or when its leave transition ends. Either way it stops counting as
+ * shown right away, for taps, assistive tech and tests alike.
+ */
+function retire(marker: Marker, leaving: Set<Marker>, animation: Animation | null) {
+  const element = marker.getElement();
+  for (const name of SHOWN_DATA) delete element.dataset[name];
+  element.removeAttribute("role");
+  element.removeAttribute("aria-label");
+  element.removeAttribute("title");
+  element.setAttribute("aria-hidden", "true");
+  element.style.pointerEvents = "none";
+  if (!animation) {
+    marker.remove();
+    return;
   }
-  // Unmounting synchronously from inside a React commit warns; defer it.
-  queueMicrotask(() => roots.forEach((root) => root.unmount()));
+  leaving.add(marker);
+  const done = () => {
+    leaving.delete(marker);
+    marker.remove();
+  };
+  animation.onfinish = done;
+  animation.oncancel = done;
+}
+
+function clearMarkers(markers: Markers, leaving: Set<Marker>) {
+  for (const { marker } of markers.values()) marker.remove();
+  markers.clear();
+  for (const marker of leaving) marker.remove();
+  leaving.clear();
+}
+
+/**
+ * Whether a screen point is on a `width` × `height` map or close to it: off-screen markers change without a
+ * transition. The size is read once per refresh, before markers are added: reading it after each would force a layout.
+ */
+function nearView({ x, y }: { x: number; y: number }, width: number, height: number) {
+  const margin = 60;
+  return x > -margin && y > -margin && x < width + margin && y < height + margin;
 }
 
 const samePadding = (a: Padding, b: Padding) => a.top === b.top && a.bottom === b.bottom && a.left === b.left && a.right === b.right;
@@ -139,7 +218,7 @@ function applyPadding(map: MapLibreMap, padding: () => Padding) {
 function revealPoint(map: MapLibreMap, target: [number, number]) {
   const { clientWidth: width, clientHeight: height } = map.getContainer();
   if (!width || !height || pointInView(map, target)) return;
-  map.easeTo({ center: target, duration: 300 });
+  map.easeTo({ center: target, duration: motionMs(MOTION.slow) });
 }
 
 export interface PlaceMapProps {
@@ -181,7 +260,8 @@ export interface PlaceMapProps {
 /**
  * MapLibre map with category-icon pins, neutral or shaped by their verdict when a profile is on. Nearby
  * pins merge into clusters (a verdict donut with a profile); only what is in or near the viewport gets a
- * DOM marker. Pins are mouse shortcuts only and hidden from assistive tech: the list next to the map
+ * DOM marker. On zoom, a cluster's children fly out of it (and back in), or only fade with less motion.
+ * Pins are mouse shortcuts only and hidden from assistive tech: the list next to the map
  * holds the same places, and the canvas's description gives the number of places in view.
  */
 export function PlaceMap({
@@ -213,6 +293,8 @@ export function PlaceMap({
   const [map, setMap] = useState<MapLibreMap | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const markersRef = useRef<Markers>(new Map());
+  const leavingRef = useRef(new Set<Marker>());
+  const labelsRef = useRef<unknown[]>([]);
   const pinned = useMemo(() => points ?? places.map(toPoint), [points, places]);
   const index = useMemo(() => buildClusterIndex(pinned), [pinned]);
   const fittedRef = useRef<string | null>(null);
@@ -242,6 +324,7 @@ export function PlaceMap({
     let disposed = false;
     let instance: MapLibreMap | null = null;
     const markers = markersRef.current;
+    const leaving = leavingRef.current;
     import("maplibre-gl")
       .then(({ Map, setWorkerUrl }) => {
         if (disposed || !containerRef.current) return;
@@ -265,7 +348,7 @@ export function PlaceMap({
       });
     return () => {
       disposed = true;
-      removeMarkers(markers);
+      clearMarkers(markers, leaving);
       instance?.remove();
     };
   }, []);
@@ -291,73 +374,151 @@ export function PlaceMap({
     map?.getCanvas().setAttribute("aria-describedby", descriptionId);
   }, [map, label, t.label, descriptionId]);
 
+  // Markers follow the camera: re-clustered when a zoom (a pinch, a cluster tap's ease) crosses a clustering level and
+  // a little while into a pan, so clusters split under the fingers; fully refreshed when the camera stops.
   useEffect(() => {
     if (!map) return;
     let cancelled = false;
-    let moved: (() => void) | null = null;
+    let detach: (() => void) | null = null;
     const markers = markersRef.current;
+    const leaving = leavingRef.current;
+    // New copy (a language switch) needs new labels: those markers are rebuilt at once, without a transition.
+    const labels = [t, statusWords, category];
+    if (labelsRef.current.some((value, i) => value !== labels[i])) clearMarkers(markers, leaving);
+    labelsRef.current = labels;
     import("maplibre-gl").then(({ Marker }) => {
       if (cancelled) return;
-      removeMarkers(markers);
-      const update = (cameraMoved: boolean) => {
+
+      const create = (item: MapItem) => {
+        if (item.kind === "place") {
+          const { place } = item;
+          const { label: categoryLabel, icon } = category(place.category);
+          const status = place.verdict ? statusWords[place.verdict] : null;
+          const { element, body } = pinElement(place, icon, t.pin(place.name, categoryLabel, status));
+          element.addEventListener("click", (event) => {
+            event.stopPropagation();
+            onSelectRef.current(place.id);
+          });
+          const marker = new Marker({ element, offset: item.offset }).setLngLat(item.coordinates);
+          return { marker, body };
+        }
+        const parts = verdictBreakdown(item.counts).map(([status, n]) => [statusWords[status], n] as [string, number]);
+        const { element, body } = clusterElement(item, t.cluster(item.count, parts));
+        element.addEventListener("click", (event) => {
+          event.stopPropagation();
+          // Read on tap: a new set of points rebuilds the index under a marker that stays.
+          const entry = markers.get(item.key);
+          if (!entry || entry.item.kind !== "cluster") return;
+          // The map's padding (the panel, the overlays) keeps the cluster in the visible part. With less motion it jumps.
+          map.easeTo({
+            center: entry.item.coordinates,
+            zoom: Math.min(expansionZoom(entry.index, entry.item.clusterId), map.getMaxZoom()),
+            duration: motionMs(MOTION.camera),
+          });
+          announce(t.zoomedToCluster(item.count, parts));
+        });
+        const marker = new Marker({ element }).setLngLat(item.coordinates);
+        return { marker, body };
+      };
+
+      // Where a marker is drawn on screen: its spot plus its offset in a ring of pins sharing one spot.
+      const screen = (item: MapItem) => {
+        const { x, y } = map.project(item.coordinates);
+        const [dx, dy] = item.kind === "place" ? item.offset : [0, 0];
+        return { x: x + dx, y: y + dy };
+      };
+
+      const refreshMarkers = () => {
         const bounds = map.getBounds();
-        onViewChangeRef.current?.([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()], cameraMoved);
-        const padLon = bounds.getEast() - bounds.getWest();
-        const padLat = bounds.getNorth() - bounds.getSouth();
-        // One viewport of margin on each side: a pan reveals pins that are already there.
+        const padLon = (bounds.getEast() - bounds.getWest()) * VIEW_MARGIN;
+        const padLat = (bounds.getNorth() - bounds.getSouth()) * VIEW_MARGIN;
+        // A margin around the view: a short pan reveals pins that are already there (a longer one refreshes on the way).
         const bbox: [number, number, number, number] = [
           Math.max(-180, bounds.getWest() - padLon),
           Math.max(-85, bounds.getSouth() - padLat),
           Math.min(180, bounds.getEast() + padLon),
           Math.min(85, bounds.getNorth() + padLat),
         ];
+        const items = mapItems(index, bbox, map.getZoom());
+        const next = new Map(items.map((item) => [item.key, item]));
+        const gone = [...markers.values()].filter((entry) => !next.has(entry.item.key));
+        const added = items.filter((item) => !markers.has(item.key));
+        for (const entry of markers.values()) {
+          const item = next.get(entry.item.key);
+          if (!item) continue;
+          if (entry.index !== index) {
+            entry.index = index;
+            entry.leaves = undefined;
+          }
+          if (item.kind === "place") entry.marker.setOffset(item.offset);
+          entry.item = item;
+        }
+        const spot = (item: MapItem): MarkerSpot => ({
+          key: item.key,
+          at: screen(item),
+          count: item.kind === "cluster" ? item.count : 1,
+        });
+        const moves = markerMoves(
+          gone.map((entry) => spot(entry.item)),
+          added.map(spot),
+        );
+        const reduced = reducedMotion();
+        const { clientWidth: width, clientHeight: height } = map.getContainer();
+        let budget = MAX_TRANSITIONS;
+        const animate = (body: HTMLElement, direction: "enter" | "leave", at: { x: number; y: number }, partner?: { x: number; y: number }) => {
+          if (budget <= 0 || !nearView(at, width, height)) return null;
+          budget--;
+          const offset: [number, number] | null = partner ? [partner.x - at.x, partner.y - at.y] : null;
+          const { keyframes, options } = markerTransition(direction, offset, reduced);
+          return body.animate(keyframes, options);
+        };
+        for (const entry of gone) {
+          markers.delete(entry.item.key);
+          retire(entry.marker, leaving, animate(entry.body, "leave", screen(entry.item), moves.to.get(entry.item.key)));
+        }
+        for (const item of added) {
+          const { marker, body } = create(item);
+          marker.addTo(map);
+          markers.set(item.key, { marker, body, item, index });
+          animate(body, "enter", screen(item), moves.from.get(item.key));
+        }
+        markSelected(markers, selectedIdRef.current);
+      };
+
+      const update = (cameraMoved: boolean) => {
+        const bounds = map.getBounds();
+        onViewChangeRef.current?.([bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()], cameraMoved);
         // Counted in the visible part only: the map runs on under the panel and the search.
         const { clientWidth: width, clientHeight: height } = map.getContainer();
         const pad = currentPadding(map);
         const sw = map.unproject([pad.left, height - pad.bottom]);
         const ne = map.unproject([width - pad.right, pad.top]);
         setInView(placesInView(index, [sw.lng, sw.lat, ne.lng, ne.lat]));
-        const items = mapItems(index, bbox, map.getZoom());
-        const keys = new Set(items.map((item) => item.key));
-        removeMarkers(markers, [...markers.keys()].filter((key) => !keys.has(key)));
-        for (const item of items) {
-          if (markers.has(item.key)) continue;
-          if (item.kind === "place") {
-            const { place } = item;
-            const { label: categoryLabel, icon } = category(place.category);
-            const status = place.verdict ? statusWords[place.verdict] : null;
-            const { element, root } = pinElement(place, icon, t.pin(place.name, categoryLabel, status));
-            element.addEventListener("click", (event) => {
-              event.stopPropagation();
-              onSelectRef.current(place.id);
-            });
-            const marker = new Marker({ element, offset: item.offset }).setLngLat(item.coordinates).addTo(map);
-            markers.set(item.key, { marker, root, places: new Set([place.id]) });
-          } else {
-            const parts = verdictBreakdown(item.counts).map(([status, n]) => [statusWords[status], n] as [string, number]);
-            const { element, root } = clusterElement(item, t.cluster(item.count, parts));
-            element.addEventListener("click", (event) => {
-              event.stopPropagation();
-              map.easeTo({
-                center: item.coordinates,
-                zoom: Math.min(expansionZoom(index, item.clusterId), map.getMaxZoom()),
-                duration: 400,
-              });
-              announce(t.zoomedToCluster(item.count, parts));
-            });
-            const marker = new Marker({ element }).setLngLat(item.coordinates).addTo(map);
-            markers.set(item.key, { marker, root, places: new Set(clusterPlaceIds(index, item.clusterId)) });
-          }
-        }
-        markSelected(markers, selectedIdRef.current);
+        refreshMarkers();
+      };
+
+      let level = clusterZoom(map.getZoom());
+      let lastRefresh = 0;
+      const follow = () => {
+        const now = performance.now();
+        const nextLevel = clusterZoom(map.getZoom());
+        if (nextLevel === level && now - lastRefresh < PAN_REFRESH_MS) return;
+        level = nextLevel;
+        lastRefresh = now;
+        refreshMarkers();
       };
       update(false);
-      moved = () => update(true);
+      const moved = () => update(true);
+      map.on("move", follow);
       map.on("moveend", moved);
+      detach = () => {
+        map.off("move", follow);
+        map.off("moveend", moved);
+      };
     });
     return () => {
       cancelled = true;
-      if (moved) map.off("moveend", moved);
+      detach?.();
     };
   }, [map, index, announce, t, statusWords, category]);
 
@@ -383,7 +544,7 @@ export function PlaceMap({
       map.fitBounds(bounds, {
         padding: { top: 0, bottom: 0, left: 48, right: 72 },
         maxZoom: 16,
-        duration: 400,
+        duration: motionMs(MOTION.camera),
       });
     });
     return () => {
@@ -402,7 +563,7 @@ export function PlaceMap({
         center: [youLon, youLat],
         zoom: Math.max(map.getZoom(), config.initialZoom),
         padding: paddingFor(map)(),
-        duration: 400,
+        duration: motionMs(MOTION.camera),
       });
     });
     return () => {

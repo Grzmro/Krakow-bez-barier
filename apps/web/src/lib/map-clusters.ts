@@ -3,10 +3,10 @@ import type { PlacePoint } from "@krakow-bez-barier/contracts";
 import type { Status } from "@krakow-bez-barier/ui";
 import { STATUS_ORDER } from "./profile/verdict-list";
 
-/** Screen pixels within which pins merge into a cluster (at the cluster's whole zoom level). */
-export const CLUSTER_RADIUS = 44;
-/** Above this zoom every place shows as its own pin; places at the same spot are spread in a ring. */
-export const CLUSTER_MAX_ZOOM = 18;
+/** Screen pixels within which pins merge into a cluster: a pin's width plus a little, so pins never overlap. */
+export const CLUSTER_RADIUS = 40;
+/** Above this zoom (street level) every place shows as its own pin; places at the same spot are spread in a ring. */
+export const CLUSTER_MAX_ZOOM = 16;
 const SPREAD_RADIUS = 26;
 
 export type VerdictCounts = Record<Status | "none", number>;
@@ -71,18 +71,28 @@ export function spreadOffsets(n: number): [number, number][] {
   });
 }
 
+/**
+ * The clustering level for a camera zoom: the nearest whole level, so a cluster splits halfway to the zoom
+ * where its places would stop overlapping instead of only once the camera gets there.
+ */
+export function clusterZoom(zoom: number): number {
+  return Math.round(zoom);
+}
+
 /** Clusters and single places to draw for a viewport (`bbox` = west, south, east, north). */
 export function mapItems({ index, byId }: ClusterIndex, bbox: [number, number, number, number], zoom: number): MapItem[] {
   const items: MapItem[] = [];
   const spots = new Map<string, Extract<MapItem, { kind: "place" }>[]>();
-  for (const feature of index.getClusters(bbox, zoom)) {
+  for (const feature of index.getClusters(bbox, clusterZoom(zoom))) {
     const coordinates = feature.geometry.coordinates as [number, number];
     const props = feature.properties;
     if ("cluster" in props && props.cluster) {
       const { cluster_id, point_count, met, barrier, conflict, unknown, none } = props;
       items.push({
         kind: "cluster",
-        key: `c:${cluster_id}:${point_count}`,
+        // What it shows, not the cluster's id: ids are per index, and new points rebuild it. A marker is kept while its
+        // key stays, so a new breakdown (a profile switched on) gets a new one.
+        key: `c:${coordinates.map((n) => n.toFixed(6)).join(",")}:${point_count}:${met},${barrier},${conflict},${unknown}`,
         clusterId: cluster_id,
         count: point_count,
         counts: { met, barrier, conflict, unknown, none },
@@ -92,7 +102,8 @@ export function mapItems({ index, byId }: ClusterIndex, bbox: [number, number, n
     }
     const place = byId.get((props as PointProps).id);
     if (!place) continue;
-    const item = { kind: "place" as const, key: `p:${place.id}`, place, coordinates, offset: [0, 0] as [number, number] };
+    const key = `p:${place.id}:${place.category}:${place.verdict ?? "none"}`;
+    const item = { kind: "place" as const, key, place, coordinates, offset: [0, 0] as [number, number] };
     const spot = coordinates.join(",");
     spots.set(spot, [...(spots.get(spot) ?? []), item]);
     items.push(item);
@@ -132,4 +143,52 @@ export function donutSegments(breakdown: [Status, number][], count: number): { s
 /** Verdict counts as `[status, count]` pairs in the legend's order, skipping zeros; empty without a profile. */
 export function verdictBreakdown(counts: VerdictCounts): [Status, number][] {
   return STATUS_ORDER.filter((status) => counts[status] > 0).map((status) => [status, counts[status]]);
+}
+
+/** A marker on the map as the transitions see it: where it is drawn (screen px) and how many places it holds. */
+export type MarkerSpot = { key: string; at: { x: number; y: number }; count: number };
+
+/** How far (px) a cluster's children land from it when it splits: they were within its radius one level up. */
+export const SPLIT_REACH = CLUSTER_RADIUS * 3;
+
+export type MarkerMoves = {
+  /** Entering markers that fly out of a bigger marker leaving at the same time (zoom in): where they start. */
+  from: Map<string, { x: number; y: number }>;
+  /** Leaving markers that fly into a bigger marker entering at the same time (zoom out): where they end. */
+  to: Map<string, { x: number; y: number }>;
+};
+
+/** The nearest spot holding more places than `spot`, within `SPLIT_REACH`. */
+function parentOf(spot: MarkerSpot, candidates: readonly MarkerSpot[]) {
+  let best: MarkerSpot | undefined;
+  let bestDistance = SPLIT_REACH;
+  for (const candidate of candidates) {
+    if (candidate.count <= spot.count) continue;
+    const distance = Math.hypot(candidate.at.x - spot.at.x, candidate.at.y - spot.at.y);
+    if (distance <= bestDistance) {
+      best = candidate;
+      bestDistance = distance;
+    }
+  }
+  return best;
+}
+
+/**
+ * Pairs markers leaving the map with those entering it, as Apple and Google Maps animate clusters: on zoom in, a
+ * cluster's children fly out of it; on zoom out, they fly into the cluster that merges them. A child's partner is the
+ * nearest bigger marker within reach: geometry, not membership, so no cluster's leaves are listed on every zoom step.
+ * Only the marker standing for fewer places moves; the bigger one fades in or out in place, and a pan's markers,
+ * which have no bigger partner nearby, just fade.
+ */
+export function markerMoves(leaving: readonly MarkerSpot[], entering: readonly MarkerSpot[]): MarkerMoves {
+  const moves: MarkerMoves = { from: new Map(), to: new Map() };
+  for (const spot of entering) {
+    const parent = parentOf(spot, leaving);
+    if (parent) moves.from.set(spot.key, parent.at);
+  }
+  for (const spot of leaving) {
+    const parent = parentOf(spot, entering);
+    if (parent) moves.to.set(spot.key, parent.at);
+  }
+  return moves;
 }
