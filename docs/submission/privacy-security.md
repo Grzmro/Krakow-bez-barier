@@ -25,7 +25,7 @@ jest w kodzie; to, czego kod jeszcze nie wymusza, jest oznaczone **„deklaracja
 | Dane | Skąd | Gdzie | Kto widzi |
 |---|---|---|---|
 | Zgłoszenie (cecha, wartość, opcjonalny komentarz, data) | formularz „To się nie zgadza” / „Uzupełnij” | tabela `reports` w Postgres | moderator; po zatwierdzeniu wartość widzą wszyscy |
-| Potwierdzenie (fakt, opcjonalny komentarz, data) | „Potwierdzam” | tabela `confirmations`; aktualizuje datę faktu | wszyscy (data i licznik) |
+| Potwierdzenie (fakt, opcjonalny komentarz, data) | „Nadal aktualne” | tabela `confirmations`; liczą się potwierdzenia z ostatnich 90 dni (dwa podnoszą fakt do „Potwierdzone”) | wszyscy (data i licznik) |
 | Decyzja moderatora (nazwa moderatora, decyzja, data) | panel `/moderator` | tabela `moderation_log` | moderatorzy |
 | Profil i progi | użytkownik | tylko przeglądarka | nikt poza użytkownikiem |
 | Adres IP | połączenie | **tylko w pamięci procesu** na czas okna limitu, nie jest zapisywany ani logowany (`server/http/rate-limit.ts`) | nikt |
