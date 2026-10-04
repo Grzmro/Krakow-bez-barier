@@ -18,6 +18,15 @@ describe("categories", () => {
     // GIVEN the config WHEN counting ids THEN none repeats
     expect(new Set(categories.map((c) => c.id)).size).toBe(categories.length);
   });
+
+  it("gives every listed category an OSM rule, or its chip would always show 0 places", () => {
+    // GIVEN the categories GET /categories lists
+    // WHEN looking for those the ingest cannot assign any element to
+    const withoutRule = listedCategories.filter((c) => c.osm.length === 0).map((c) => c.id);
+
+    // THEN there are none
+    expect(withoutRule).toEqual([]);
+  });
 });
 
 describe("hiddenCategoryIds", () => {

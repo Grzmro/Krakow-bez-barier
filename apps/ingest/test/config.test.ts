@@ -15,7 +15,7 @@ const bakery: CategoryConfig = {
   label: "Piekarnie",
   singularLabel: "Piekarnia",
   icon: "map-pin",
-  osm: [{ key: "shop", values: ["bakery"] }],
+  osm: [{ key: "craft", values: ["bakery"] }],
 };
 const node = (id: number, tags: Record<string, string>) => ({ type: "node" as const, id, lat: 50.05, lon: 19.94, tags });
 
@@ -28,14 +28,14 @@ describe("category config", () => {
     const query = buildQuery(bbox, extended);
 
     // THEN the new tag is in it, next to the existing ones, and the shipped query does not have it
-    expect(query).toContain(`nwr["shop"~"^(bakery)$"](${bbox.south},${bbox.west},${bbox.north},${bbox.east});`);
+    expect(query).toContain(`nwr["craft"~"^(bakery)$"](${bbox.south},${bbox.west},${bbox.north},${bbox.east});`);
     expect(query).toContain('nwr["amenity"~"^(restaurant|cafe|fast_food|bar|pub)$"]');
-    expect(buildQuery(bbox)).not.toContain("bakery");
+    expect(buildQuery(bbox)).not.toContain('"craft"');
   });
 
   it("maps an element of a newly added category to a place carrying that category id", () => {
     // GIVEN a bakery element that the shipped config does not know
-    const bakeryElement = node(2, { shop: "bakery", name: "Piekarnia Rynek" });
+    const bakeryElement = node(2, { craft: "bakery", name: "Piekarnia Rynek" });
     expect(mapOsmElement(bakeryElement).place).toBeNull();
 
     // WHEN it is mapped with the extended list

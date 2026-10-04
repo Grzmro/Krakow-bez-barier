@@ -174,13 +174,13 @@ describe("mapOsmElement", () => {
   });
 
   it("skips unnamed non-toilet places and elements of unknown category", () => {
-    // GIVEN an unnamed cafe and a florist (no category maps shops yet)
+    // GIVEN an unnamed cafe and a named element no category maps
     const cafe: OsmElement = { type: "node", id: 2, lat: 1, lon: 1, tags: { amenity: "cafe" } };
-    const florist: OsmElement = { type: "node", id: 3, lat: 1, lon: 1, tags: { shop: "florist", name: "x" } };
+    const unmapped: OsmElement = { type: "node", id: 3, lat: 1, lon: 1, tags: { leisure: "playground", name: "x" } };
     // WHEN mapping them
     // THEN neither becomes a place
     expect(mapOsmElement(cafe).place).toBeNull();
-    expect(mapOsmElement(florist).place).toBeNull();
+    expect(mapOsmElement(unmapped).place).toBeNull();
   });
 });
 
@@ -271,5 +271,19 @@ describe("mapOsmElement: pharmacies", () => {
       ["step_count", { kind: "number", number: 2, unit: "count" }],
       ["door_width_cm", { kind: "number", number: 85, unit: "cm" }],
     ]);
+  });
+});
+
+describe("mapOsmElement shops", () => {
+  it("puts a named supermarket in the shop category", () => {
+    // GIVEN an OSM node tagged shop=supermarket with a wheelchair tag
+    const el: OsmElement = { type: "node", id: 1, lat: 50.06, lon: 19.94, tags: { shop: "supermarket", name: "Biedronka", wheelchair: "yes" } };
+
+    // WHEN mapping it
+    const { place } = mapOsmElement(el);
+
+    // THEN it is a shop with its overall accessibility fact
+    expect(place).toMatchObject({ category: "shop", name: "Biedronka" });
+    expect(place?.facts.map((f) => f.attribute)).toContain("wheelchair_overall");
   });
 });

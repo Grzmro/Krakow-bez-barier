@@ -83,7 +83,7 @@ export const categories: readonly CategoryConfig[] = [
     mergeWithinM: 30,
     cardAttributes: ["wheelchair_overall", "tactile_paving", "kerb_height_cm", "surface", "bench", "shelter"],
   },
-  { id: "shop", label: "Handel", singularLabel: "Handel", icon: "shopping-bag", osm: [] },
+  { id: "shop", label: "Handel", singularLabel: "Handel", icon: "shopping-bag", osm: [{ key: "shop", values: ["supermarket", "mall", "convenience", "department_store", "clothes", "shoes", "bakery", "kiosk", "books", "electronics", "variety_store", "greengrocer", "butcher", "chemist", "florist", "gift", "jewelry", "optician", "sports", "toys", "hardware", "stationery"] }] },
   { id: "other", label: "Inne", singularLabel: "Inne", icon: "map-pin", osm: [{ key: "tourism", values: ["gallery", "attraction"] }] },
   { id: "steps", label: "Schody", singularLabel: "Schody", icon: "stairs", osm: [{ key: "highway", values: ["steps"] }], unnamedName: "Schody", onRoutes: true },
   {
