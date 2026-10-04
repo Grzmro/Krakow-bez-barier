@@ -28,7 +28,7 @@
         - button "Miejsce odpoczynku"
         - button "Najbliższa winda"
         - button "Najbliższa apteka"
-        - button "Najbliższy przystanek (wkrótce)" [disabled]
+        - button "Najbliższy przystanek"
       - region "Najbliższa toaleta dostosowana":
         - heading "Najbliższa toaleta dostosowana" [level=2]
         - paragraph: Toaleta publiczna Planty (przykład)

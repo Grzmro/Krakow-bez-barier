@@ -218,3 +218,29 @@ test("a fact read from a city page shows the sentence it came from and links the
   await expectAccessible();
   await evidence("place-city-page");
 });
+
+test("a stop card lists its platform facts with source and date, and an untagged one as no data", async ({ page, expectAccessible, evidence }) => {
+  // GIVEN the example stop read from an OSM platform (tactile paving no, bench, shelter; no kerb or surface tag)
+  await page.goto("/miejsca/przystanek-rondo-mogilskie-07");
+  await expect(page.getByRole("heading", { level: 1, name: "Rondo Mogilskie 07" })).toBeVisible();
+  const facts = page.getByRole("region", { name: "Fakty" });
+
+  // THEN the card lists the platform, not an entrance or a toilet, and missing tags read "Brak danych"
+  await expect(facts.getByRole("button", { name: /^Oznaczenia dotykowe.*Nie ma/ })).toBeVisible();
+  await expect(facts.getByRole("button", { name: /^Nawierzchnia dojścia.*Brak danych/ })).toBeVisible();
+  await expect(facts).not.toContainText("Toaleta dostosowana");
+  await expect(facts).toMatchAriaSnapshot({ name: "place-stop.aria.yml" });
+
+  // WHEN a keyboard user opens the shelter fact
+  const shelter = facts.getByRole("button", { name: /^Wiata/ });
+  await shelter.focus();
+  await page.keyboard.press("Enter");
+
+  // THEN it names OpenStreetMap and the date the fact was fetched
+  const panel = page.locator(`#${await shelter.getAttribute("aria-controls")}`);
+  await expect(panel).toContainText("Źródło: OpenStreetMap");
+  await expect(panel).toContainText("Pozyskano 4.10.2026");
+
+  await expectAccessible();
+  await evidence("place-stop");
+});

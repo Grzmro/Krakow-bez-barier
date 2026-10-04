@@ -28,7 +28,7 @@
         - button "Miejsce odpoczynku"
         - button "Najbliższa winda"
         - button "Najbliższa apteka"
-        - button "Najbliższy przystanek (wkrótce)" [disabled]
+        - button "Najbliższy przystanek"
       - heading "Najbliżej Rynku (bez lokalizacji)" [level=2]
       - list:
         - listitem:

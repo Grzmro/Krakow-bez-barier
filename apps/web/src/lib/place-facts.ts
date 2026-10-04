@@ -7,6 +7,7 @@ import type {
   Source,
   components,
 } from "@krakow-bez-barier/contracts";
+import { categories } from "@krakow-bez-barier/contracts";
 import type { FactSource, Reliability } from "@krakow-bez-barier/ui";
 import { intlLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
@@ -29,6 +30,11 @@ export const CARD_ATTRIBUTES = [
   "disabled_parking",
   "changing_table",
 ] as const satisfies readonly AccessibilityAttribute[];
+
+/** The card's attributes for a category: its own list when it has one (a stop's platform), else the venue set. */
+export function cardAttributes(category: string): readonly AccessibilityAttribute[] {
+  return categories.find((c) => c.id === category)?.cardAttributes ?? CARD_ATTRIBUTES;
+}
 
 export const RELIABILITY: Record<ReliabilityStatus, Reliability> = {
   confirmed: "confirmed",
@@ -141,7 +147,7 @@ export function factViews(place: Place, locale: Locale): FactView[] {
     return steps?.state === "known" && steps.value?.kind === "number" && steps.value.number === 0;
   })();
 
-  return CARD_ATTRIBUTES.filter((attribute) => {
+  return cardAttributes(place.category).filter((attribute) => {
     // With a known step-free entrance, step height and ramp are moot unless a source says something.
     if (!stepsKnownZero) return true;
     if (attribute !== "ramp" && attribute !== "step_height_cm") return true;

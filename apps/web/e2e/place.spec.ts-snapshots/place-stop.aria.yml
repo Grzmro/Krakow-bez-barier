@@ -1,0 +1,46 @@
+- region "Fakty":
+  - heading "Fakty" [level=2]
+  - paragraph: Rozwiń cechę, by zobaczyć źródło i datę.
+  - list:
+    - listitem:
+      - 'button "Ogólna dostępność: Dostępne dla wózków. Wiarygodność: Niezweryfikowane."': Ogólna dostępność Dostępne dla wózków Niezweryfikowane
+      - button "To się nie zgadza":
+        - img
+        - text: ""
+      - button "Potwierdzam, byłem tu":
+        - img
+        - text: ""
+    - listitem:
+      - 'button "Oznaczenia dotykowe: Nie ma. Wiarygodność: Niezweryfikowane."': Oznaczenia dotykowe Nie ma Niezweryfikowane
+      - button "To się nie zgadza":
+        - img
+        - text: ""
+      - button "Potwierdzam, byłem tu":
+        - img
+        - text: ""
+    - listitem:
+      - 'button "Wysokość krawężnika: Brak danych. Wiarygodność: Brak danych."': Wysokość krawężnika Brak danych Brak danych
+      - button "Uzupełnij":
+        - img
+        - text: ""
+    - listitem:
+      - 'button "Nawierzchnia dojścia: Brak danych. Wiarygodność: Brak danych."': Nawierzchnia dojścia Brak danych Brak danych
+      - button "Uzupełnij":
+        - img
+        - text: ""
+    - listitem:
+      - 'button "Miejsca odpoczynku: Jest. Wiarygodność: Niezweryfikowane."': Miejsca odpoczynku Jest Niezweryfikowane
+      - button "To się nie zgadza":
+        - img
+        - text: ""
+      - button "Potwierdzam, byłem tu":
+        - img
+        - text: ""
+    - listitem:
+      - 'button "Wiata: Jest. Wiarygodność: Niezweryfikowane."': Wiata Jest Niezweryfikowane
+      - button "To się nie zgadza":
+        - img
+        - text: ""
+      - button "Potwierdzam, byłem tu":
+        - img
+        - text: ""

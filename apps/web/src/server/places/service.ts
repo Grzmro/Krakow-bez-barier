@@ -138,8 +138,15 @@ const address = (place: PlaceRecord) => ({
 
 const location = (place: PlaceRecord) => ({ type: "Point" as const, coordinates: [place.location.x, place.location.y] });
 
-function summaryChips(attributes: ResolvedAttribute[], extra: AccessibilityAttribute[], locale: Locale): SummaryChip[] {
-  const wanted = new Set([...ALWAYS_SUMMARIZED, ...extra]);
+function summaryChips(
+  attributes: ResolvedAttribute[],
+  extra: AccessibilityAttribute[],
+  category: string,
+  locale: Locale,
+): SummaryChip[] {
+  // A category with its own card (a stop) has no entrance or toilet to call unknown.
+  const own = categories.find((c) => c.id === category)?.cardAttributes;
+  const wanted = new Set([...ALWAYS_SUMMARIZED.filter((a) => !own || own.includes(a)), ...extra]);
   return attributes
     .filter((a) => a.state !== "unknown" || wanted.has(a.attribute))
     .map(({ attribute, state, status, value }) => ({
@@ -329,7 +336,7 @@ export async function listPlaces(query: ListPlacesQuery, deps: PlacesDeps = {}):
     category: place.category,
     location: location(place),
     address: address(place),
-    summary: summaryChips(attributes, featureAttributes, locale),
+    summary: summaryChips(attributes, featureAttributes, place.category, locale),
     ...(features.length ? { features: matches } : {}),
     verdict: thresholds ? matchProfile({ attributes, outages: outages.get(place.id) }, thresholds, locale) : null,
     isSample: isSample(place, records),

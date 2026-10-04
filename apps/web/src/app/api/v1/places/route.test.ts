@@ -338,6 +338,15 @@ describe("GET /api/v1/places", () => {
     expect(await names("?q=Sebastiana&category=parking")).toEqual([parking.name]);
   });
 
+  it("does not call a stop's entrance or toilet unknown in its list row", async () => {
+    // GIVEN a stop with no facts: it has a platform, not an entrance or a toilet
+    // WHEN listing stops
+    const { body } = await list("?category=transit_stop");
+
+    // THEN its row carries no "brak danych" chips for venue attributes
+    expect(body.items.map((p: { name: string; summary: unknown[] }) => [p.name, p.summary])).toEqual([[stop.name, []]]);
+  });
+
   it("lists benches and disabled parking bays for their feature filter, but never mapped steps", async () => {
     // GIVEN an OSM bench, a disabled parking bay and a flight of steps next to a café with a bench
     const osm = sourceRecord();

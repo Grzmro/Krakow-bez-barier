@@ -1,19 +1,17 @@
 import type { Category, FeatureFilter, PlaceSummary } from "@krakow-bez-barier/contracts";
 import { filterGapStatus } from "@/lib/place-features";
 
-/** Why a quick action can't run yet; its copy lives in `home.quick.unavailable`. */
-export type QuickActionUnavailable = "awaitingTransitData";
-
 export interface QuickActionConfig {
   id: string;
   /** Category to list; omitted = every category. */
   category?: Category;
-  /** Feature filters the result must meet by known data (never by missing data). */
+  /**
+   * Feature filters the result must meet by known data (never by missing data). Empty = the nearest place of the
+   * category, its card facts shown with "Brak danych" where nothing is known.
+   */
   features: FeatureFilter[];
   /** Icon key from the category icon registry (`lib/categories.tsx`). */
   icon: string;
-  /** Set while the data behind the action isn't loaded: the action is shown as unavailable, never as "nothing nearby". */
-  unavailable?: QuickActionUnavailable;
 }
 
 /**
@@ -25,8 +23,8 @@ export const QUICK_ACTIONS = [
   { id: "rest", features: ["bench"], icon: "armchair" },
   { id: "lift", features: ["lift"], icon: "elevator" },
   { id: "pharmacy", category: "pharmacy", features: ["step_free"], icon: "pill" },
-  // TODO(KBB-96): enable once the ZTP stops source has its licence confirmed (`ztp-stops` → `licenseConfirmed`).
-  { id: "transit_stop", category: "transit_stop", features: ["step_free"], icon: "bus", unavailable: "awaitingTransitData" },
+  // No filter: OSM says nothing about step-free boarding, so the nearest stop is shown with what is known about it.
+  { id: "transit_stop", category: "transit_stop", features: [], icon: "bus" },
 ] as const satisfies readonly QuickActionConfig[];
 
 export type QuickActionId = (typeof QUICK_ACTIONS)[number]["id"];

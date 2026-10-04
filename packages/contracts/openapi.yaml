@@ -558,6 +558,9 @@ paths:
                 fromCityPage:
                   $ref: '#/components/examples/PlaceFromCityPage'
                   summary: Facts read from a BIP MK "Dostępność architektoniczna" page, each with its sentence and the page link
+                transitStop:
+                  $ref: '#/components/examples/PlaceTransitStop'
+                  summary: A stop from an OSM platform (tactile paving, bench, shelter; kerb and surface untagged)
         '404':
           $ref: '#/components/responses/NotFound'
         '429':
@@ -2181,7 +2184,9 @@ components:
       type: string
       description: 'Shared vocabulary of measurable accessibility attributes. `levels` is the number of storeys
         the place spans, counting the entrance storey (1 = everything on one floor). `stairs` (boolean: the way has
-        steps) describes a route segment, never a place; places use `step_count`.'
+        steps) describes a route segment, never a place; places use `step_count`. `tactile_paving` (boolean) and
+        `shelter` (boolean) describe a public transport stop: a tactile warning strip along the platform edge, a
+        roofed shelter at the stop.'
       enum:
       - step_count
       - step_height_cm
@@ -2201,6 +2206,8 @@ components:
       - wheelchair_overall
       - levels
       - stairs
+      - tactile_paving
+      - shelter
     FeatureFilter:
       type: string
       description: Quick filter shown on the home screen; each maps to one or more attributes.
@@ -4591,6 +4598,140 @@ components:
           license: Ponowne wykorzystywanie informacji sektora publicznego GMK, pkt III — także do celów komercyjnych
           attribution: 'Źródło: Biuletyn Informacji Publicznej Miasta Krakowa (www.bip.krakow.pl). Informacja przetworzona.'
           url: https://www.bip.krakow.pl
+          refreshInterval: daily
+          refreshStatus: ok
+          lastSuccessAt: '2026-10-04T03:00:00Z'
+          lastAttemptAt: '2026-10-04T03:00:00Z'
+          statusNote: null
+          isSample: false
+        updatedAt: '2026-10-04T03:00:00Z'
+        isSample: true
+    PlaceTransitStop:
+      value:
+        id: przystanek-rondo-mogilskie-07
+        name: Rondo Mogilskie 07
+        category: transit_stop
+        location:
+          type: Point
+          coordinates:
+          - 19.9604166
+          - 50.0655321
+        address:
+          street: null
+          houseNumber: null
+          postalCode: null
+          city: Kraków
+        contact: null
+        entranceHint: null
+        attributes:
+        - attribute: wheelchair_overall
+          state: known
+          status: unverified
+          value:
+            kind: text
+            text: 'yes'
+          facts:
+          - id: fact_osm_rm07_wheelchair
+            attribute: wheelchair_overall
+            value:
+              kind: text
+              text: 'yes'
+            unit: null
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: osm:node/13987866361
+            fetchedAt: '2026-10-04T03:00:00Z'
+            observedAt: null
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: active
+            stale: false
+        - attribute: tactile_paving
+          state: known
+          status: unverified
+          value:
+            kind: boolean
+            boolean: false
+          facts:
+          - id: fact_osm_rm07_tactile
+            attribute: tactile_paving
+            value:
+              kind: boolean
+              boolean: false
+            unit: null
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: osm:node/13987866361
+            fetchedAt: '2026-10-04T03:00:00Z'
+            observedAt: null
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: active
+            stale: false
+        - attribute: bench
+          state: known
+          status: unverified
+          value:
+            kind: boolean
+            boolean: true
+          facts:
+          - id: fact_osm_rm07_bench
+            attribute: bench
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: osm:node/13987866361
+            fetchedAt: '2026-10-04T03:00:00Z'
+            observedAt: null
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: active
+            stale: false
+        - attribute: shelter
+          state: known
+          status: unverified
+          value:
+            kind: boolean
+            boolean: true
+          facts:
+          - id: fact_osm_rm07_shelter
+            attribute: shelter
+            value:
+              kind: boolean
+              boolean: true
+            unit: null
+            source:
+              id: osm
+              name: OpenStreetMap
+              kind: community
+              recordRef: osm:node/13987866361
+            fetchedAt: '2026-10-04T03:00:00Z'
+            observedAt: null
+            confirmedAt: null
+            reliability: community
+            evidence: null
+            status: active
+            stale: false
+        verdict: null
+        sources:
+        - id: osm
+          name: OpenStreetMap
+          kind: community
+          license: ODbL 1.0
+          attribution: © OpenStreetMap contributors
+          url: https://www.openstreetmap.org
           refreshInterval: daily
           refreshStatus: ok
           lastSuccessAt: '2026-10-04T03:00:00Z'

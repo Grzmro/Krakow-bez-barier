@@ -3,7 +3,7 @@ import type { FetchContext, FetchedRecords, SourceAdapter } from "../adapter";
 import { withDownloadCache } from "../cache";
 import { retryAfterMs, SourceHttpError } from "../errors";
 import { loadOsmExtract } from "./osm-extract";
-import { mapOsmElement, type OsmElement } from "./osm-map";
+import { mapOsmElement, namingRelations, prepareOsmElements, type OsmElement } from "./osm-map";
 import { categories as configuredCategories, type CategoryConfig } from "@krakow-bez-barier/contracts";
 
 /** Overpass QL for the categories enabled in a city (all configured ones unless the city lists a subset). */
@@ -15,7 +15,10 @@ export function buildQuery(
   const clauses = categories.flatMap((c) =>
     c.osm.map((r) => `  nwr["${r.key}"~"^(${r.values.join("|")})$"]${r.requires ? `["${r.requires}"]` : ""}(${box});`),
   );
-  return `[out:json][timeout:120];\n(\n${clauses.join("\n")}\n);\nout meta center tags;`;
+  const naming = namingRelations(categories).map((n) => `  rel["${n.key}"="${n.value}"](${box});`);
+  const query = `[out:json][timeout:120];\n(\n${clauses.join("\n")}\n);\nout meta center tags;`;
+  // Naming relations (`stop_area`) come with their members, so unnamed platforms can take their name.
+  return naming.length ? `${query}\n(\n${naming.join("\n")}\n);\nout body;` : query;
 }
 
 export function cityCategories(city: FetchContext["city"]): readonly CategoryConfig[] {
@@ -73,7 +76,7 @@ export function extractProvenance(extractedAt: Date | null): { note: string; via
 async function fetchExtract(url: string, ctx: FetchContext): Promise<FetchedRecords<OsmElement>> {
   const { elements, extractedAt } = await loadOsmExtract(url, ctx, cityCategories(ctx.city));
   const { note, via } = extractProvenance(extractedAt);
-  return { records: elements.map((el) => ({ ...el, via })), note };
+  return { records: prepareOsmElements(elements, cityCategories(ctx.city)).map((el) => ({ ...el, via })), note };
 }
 
 export const osm: SourceAdapter<OsmElement> = {
@@ -97,7 +100,7 @@ export const osm: SourceAdapter<OsmElement> = {
     if (!endpoint) throw new Error(`No Overpass endpoint configured for city ${city.id}`);
 
     try {
-      return await fetchOverpass(endpoint, ctx);
+      return prepareOsmElements(await fetchOverpass(endpoint, ctx), cityCategories(city));
     } catch (overpassError) {
       if (!extractUrl) throw overpassError;
       ctx.log?.(`Overpass failed (${message(overpassError)}), falling back to the extract ${extractUrl}`);

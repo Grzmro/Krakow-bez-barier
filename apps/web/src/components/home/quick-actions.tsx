@@ -4,7 +4,7 @@ import { useId } from "react";
 import Link from "next/link";
 import { NavigationArrow } from "@phosphor-icons/react";
 import type { PlaceSummary } from "@krakow-bez-barier/contracts";
-import { Button, buttonVariants, cn, Toggle } from "@krakow-bez-barier/ui";
+import { buttonVariants, cn, Toggle } from "@krakow-bez-barier/ui";
 import { FactRow, SampleTag, StatusBadge } from "@/components/kbb";
 import { FEATURE_ATTRIBUTES } from "@/domain/features";
 import { useLocale, useMessages } from "@/i18n/client";
@@ -19,7 +19,7 @@ import { QUICK_ACTIONS, type QuickAction, type QuickActionId } from "@/lib/quick
 import { routes } from "@/lib/routes";
 import { chipFallback } from "./place-list";
 
-/** The row of quick actions ("Najbliższa toaleta", …), drawn from `QUICK_ACTIONS`; an unavailable one says so instead of running. */
+/** The row of quick actions ("Najbliższa toaleta", …), drawn from `QUICK_ACTIONS`. */
 export function QuickActionRow({
   active,
   onRun,
@@ -30,31 +30,11 @@ export function QuickActionRow({
   className?: string;
 }) {
   const t = useMessages().home.quick;
-  const noteId = useId();
   return (
     <div role="group" aria-label={t.label} className={cn("flex gap-2", className)}>
       {(QUICK_ACTIONS as readonly QuickAction[]).map((action) => {
         const I = categoryIcon(action.icon);
         const label = t.actions[action.id].label;
-        if (action.unavailable) {
-          return (
-            <Button
-              key={action.id}
-              variant="outline"
-              aria-disabled
-              aria-describedby={`${noteId}-${action.id}`}
-              onClick={() => onRun(action)}
-              className="h-11 shrink-0 gap-1.5 px-4 text-muted-foreground lg:h-8 lg:px-3 lg:text-[13px]"
-            >
-              <I weight="bold" className="size-5 lg:size-4" aria-hidden />
-              {label}
-              <span className="text-caption font-normal">({t.soon})</span>
-              <span id={`${noteId}-${action.id}`} hidden>
-                {t.unavailable[action.unavailable]}
-              </span>
-            </Button>
-          );
-        }
         return (
           <Toggle
             key={action.id}
@@ -72,7 +52,6 @@ export function QuickActionRow({
 }
 
 export type QuickResultState =
-  | { kind: "unavailable" }
   | { kind: "needLocation" }
   | { kind: "searching" }
   | { kind: "none" }
@@ -101,13 +80,7 @@ export function QuickResult({ action, state }: { action: QuickAction; state: Qui
           <p className="text-muted-foreground">{t.noneHint}</p>
         </div>
       ) : (
-        <p className="mt-1 text-body-sm">
-          {state.kind === "unavailable"
-            ? t.unavailable[action.unavailable!]
-            : state.kind === "needLocation"
-              ? t.needLocation
-              : t.searching}
-        </p>
+        <p className="mt-1 text-body-sm">{state.kind === "needLocation" ? t.needLocation : t.searching}</p>
       )}
     </section>
   );
@@ -120,7 +93,10 @@ function FoundPlace({ action, place, distance, from }: { action: QuickAction; pl
   const { settings } = useProfile();
   const detail = usePlace(place.id, profileQuery(settings));
   const attributes = new Set(action.features.flatMap((feature) => FEATURE_ATTRIBUTES[feature]));
-  const facts = detail.data ? factViews(detail.data, locale).filter((fact) => attributes.has(fact.attribute) && !fact.unknown) : [];
+  // Without a filter (nearest stop) the whole card is the answer, unknown rows included, since none of it is a pass.
+  const facts = detail.data
+    ? factViews(detail.data, locale).filter((fact) => (attributes.size ? attributes.has(fact.attribute) && !fact.unknown : true))
+    : [];
   const verdict = place.verdict;
   return (
     <div className="mt-1 space-y-2">

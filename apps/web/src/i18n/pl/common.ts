@@ -63,6 +63,8 @@ export const common = {
     wheelchair_overall: "Ogólna dostępność",
     levels: "Kondygnacje",
     stairs: "Schody na trasie",
+    tactile_paving: "Oznaczenia dotykowe",
+    shelter: "Wiata",
   } satisfies Record<AccessibilityAttribute, string>,
   unconfirmed: "niepotwierdzone",
   reliability: {
