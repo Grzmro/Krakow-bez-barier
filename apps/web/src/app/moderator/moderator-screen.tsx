@@ -248,6 +248,9 @@ function ModerationPanel({ token, onSignOut }: { token: string; onSignOut: (mess
                       {preview.beforeSource ? (
                         <span className="mt-1 block text-caption font-normal text-muted-foreground">{preview.beforeSource}</span>
                       ) : null}
+                      {preview.beforeConfirmations ? (
+                        <span className="mt-0.5 block text-caption font-normal text-muted-foreground">{preview.beforeConfirmations}</span>
+                      ) : null}
                     </dd>
                   </div>
                   <div className="rounded-2xl bg-card p-3 ring-2 ring-primary">

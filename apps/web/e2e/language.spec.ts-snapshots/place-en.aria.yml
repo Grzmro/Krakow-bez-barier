@@ -20,7 +20,7 @@
           - button "This isn't right":
             - img
             - text: ""
-          - button "I confirm, I've been here":
+          - button "Still current":
             - img
             - text: ""
         - listitem:
@@ -28,7 +28,7 @@
           - button "This isn't right":
             - img
             - text: ""
-          - button "I confirm, I've been here":
+          - button "Still current":
             - img
             - text: ""
         - listitem:
@@ -36,7 +36,7 @@
           - button "This isn't right":
             - img
             - text: ""
-          - button "I confirm, I've been here":
+          - button "Still current":
             - img
             - text: ""
         - listitem:
@@ -44,7 +44,7 @@
           - button "This isn't right":
             - img
             - text: ""
-          - button "I confirm, I've been here":
+          - button "Still current":
             - img
             - text: ""
         - listitem:
@@ -57,7 +57,7 @@
           - button "This isn't right":
             - img
             - text: ""
-          - button "I confirm, I've been here":
+          - button "Still current":
             - img
             - text: ""
         - listitem:

@@ -716,8 +716,12 @@ paths:
       operationId: createConfirmation
       summary: Confirm a current fact ("still true")
       description: 'Adds an anonymous confirmation to an active fact of the place. It sets the fact''s `confirmedAt` to now
-        and counts it in `evidence.confirmations`; with 2 confirmations a community or user-report fact is shown as
-        "Potwierdzone przez społeczność" (`status: confirmed`). One confirmation per fact per client (`429` on repeat).
+        and counts it in `evidence.confirmations` and `evidence.confirmationDates`. The original source and its date stay
+        untouched; confirmations are a separate line of provenance. Rule (Resolver): 2 independent confirmations within
+        90 days raise a community, extracted or user-report fact to "Potwierdzone przez społeczność" (`status:
+        confirmed`); one confirmation changes nothing (the fact stays "Niepotwierdzone"); sample and inferred facts are
+        never raised, and an attribute without a fact ("Brak danych") has nothing to confirm. One confirmation per fact
+        per client a day (`429` on repeat); the device keeps its own one-per-fact limit locally.
 
 
         With `X-Contributor-Token`, a device has at most one pending contribution per place and attribute: confirming
@@ -2694,6 +2698,15 @@ components:
             confirmations:
               type: integer
               minimum: 0
+              description: All anonymous "still true" confirmations of this fact, whenever they came.
+            confirmationDates:
+              type: array
+              description: When the confirmations were given, newest first (at most 50). The Resolver counts only those
+                within 90 days; no identity is attached.
+              maxItems: 50
+              items:
+                type: string
+                format: date-time
         status:
           $ref: '#/components/schemas/FactStatus'
         stale:
@@ -3173,6 +3186,24 @@ components:
             description: Value currently shown for the attribute, for comparison.
             oneOf:
             - $ref: '#/components/schemas/FactValue'
+            - type: 'null'
+          currentConfirmations:
+            description: Anonymous "still true" confirmations of the fact behind `currentValue`, so the moderator sees
+              how much the crowd backs the value a report disputes; null when there is no current value.
+            oneOf:
+            - type: object
+              required:
+              - count
+              - lastAt
+              properties:
+                count:
+                  type: integer
+                  minimum: 0
+                lastAt:
+                  type:
+                  - string
+                  - 'null'
+                  format: date-time
             - type: 'null'
           currentSource:
             description: Where `currentValue` comes from — the source of the fact behind it and that fact's
@@ -4091,6 +4122,9 @@ components:
               photoUrl: null
               comment: null
               confirmations: 2
+              confirmationDates:
+              - '2026-08-20T10:00:00Z'
+              - '2026-08-02T16:30:00Z'
             status: active
             stale: false
         - attribute: toilet_accessible

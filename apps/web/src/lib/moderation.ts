@@ -18,6 +18,8 @@ export type ChangePreview = {
   before: string;
   /** "<source> · <date>" of the value shown now; null when there is none. */
   beforeSource: string | null;
+  /** "Potwierdzone przez użytkowników: 2, ostatnio <date>"; null when there is no current value. */
+  beforeConfirmations: string | null;
   after: string;
   beforeKnown: boolean;
 };
@@ -27,10 +29,15 @@ export function changePreview(report: ModerationReport, locale: Locale): ChangeP
   const t = m.moderator;
   const current = report.currentValue ?? null;
   const source = report.currentSource ?? null;
+  const confirmations = report.currentConfirmations ?? null;
   return {
     attribute: m.common.attribute[report.attribute],
     before: current ? joinValue(formatValue(report.attribute, current, locale)) : t.noData,
     beforeSource: current && source ? t.sourceLine(source.name, formatDate(source.asOf, locale)) : null,
+    beforeConfirmations:
+      current && confirmations
+        ? t.confirmationsLine(confirmations.count, confirmations.lastAt ? formatDate(confirmations.lastAt, locale) : null)
+        : null,
     after: joinValue(formatValue(report.attribute, report.value, locale)),
     beforeKnown: current !== null,
   };

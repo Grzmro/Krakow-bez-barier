@@ -3,7 +3,7 @@ import { confirmations, facts, places, sources, type Db } from "@krakow-bez-bari
 import { and, eq, inArray, or, sql } from "drizzle-orm";
 import { getDb } from "../db";
 import { isWithheld, withheldSourceIds } from "../sources";
-import type { FactRecord } from "../places/repository";
+import { confirmationDatesSql, toConfirmationDates, type FactRecord } from "../places/repository";
 import { toFact } from "../places/service";
 import type { LonLat } from "./provider";
 import type { RouteFactsSource } from "./service";
@@ -39,6 +39,7 @@ export function createDbRouteFacts(db: Db = getDb()): RouteFactsSource {
         lon: sql<number>`ST_X(${places.location})`,
         lat: sql<number>`ST_Y(${places.location})`,
         confirmations: sql<number>`(select count(*)::int from ${confirmations} where ${confirmations.factId} = ${facts.id})`,
+        confirmationDates: confirmationDatesSql,
       })
       .from(facts)
       .innerJoin(sources, eq(facts.sourceId, sources.id))
@@ -54,10 +55,11 @@ export function createDbRouteFacts(db: Db = getDb()): RouteFactsSource {
         ),
       );
     const withheld = withheldSourceIds();
-    return rows.filter(({ source }) => !isWithheld(source, withheld)).map(({ fact, source, lon, lat, confirmations: count }) => ({
+    return rows.filter(({ source }) => !isWithheld(source, withheld)).map(({ fact, source, lon, lat, confirmations: count, confirmationDates }) => ({
       ...fact,
       source,
       confirmations: Number(count),
+      confirmationDates: toConfirmationDates(confirmationDates),
       location: [Number(lon), Number(lat)] as LonLat,
     }));
   });

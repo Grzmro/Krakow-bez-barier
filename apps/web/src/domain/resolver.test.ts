@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { bool, fact, NOW, num, text } from "./fixtures";
-import { resolveAttribute } from "./resolver";
+import { recentConfirmations, resolveAttribute } from "./resolver";
+
+const daysAgo = (days: number) => new Date(NOW.getTime() - days * 24 * 60 * 60 * 1000).toISOString();
+const confirmedBy = (...days: number[]) => ({ confirmations: days.length, confirmationDates: days.map(daysAgo) });
 
 describe("resolveAttribute", () => {
   it("is unknown with status no_data when there are no facts", () => {
@@ -36,14 +39,54 @@ describe("resolveAttribute", () => {
     expect(resolveAttribute("ramp", [f], NOW).status).toBe("confirmed");
   });
 
-  it("becomes confirmed by the community after two confirmations, not after one", () => {
-    // GIVEN user-report facts with 1 and 2 confirmations
-    const one = fact("ramp", bool(true), { reliability: "user_report", evidence: { confirmations: 1 } });
-    const two = fact("ramp", bool(true), { reliability: "user_report", evidence: { confirmations: 2 } });
+  it("becomes confirmed by the community after two confirmations within 90 days, not after one", () => {
+    // GIVEN user-report facts with 1 and 2 recent confirmations
+    const one = fact("ramp", bool(true), { reliability: "user_report", evidence: confirmedBy(3) });
+    const two = fact("ramp", bool(true), { reliability: "user_report", evidence: confirmedBy(3, 10) });
     // WHEN resolving each
     // THEN only the second is confirmed
     expect(resolveAttribute("ramp", [one], NOW).status).toBe("unverified");
     expect(resolveAttribute("ramp", [two], NOW).status).toBe("confirmed");
+  });
+
+  it("does not count confirmations older than 90 days", () => {
+    // GIVEN a fact with one recent and one 91-day-old confirmation, and one with two on the 90th day
+    const old = fact("ramp", bool(true), { evidence: confirmedBy(2, 91) });
+    const edge = fact("ramp", bool(true), { evidence: confirmedBy(2, 90) });
+    // WHEN resolving
+    // THEN only a recent pair counts
+    expect(resolveAttribute("ramp", [old], NOW).status).toBe("unverified");
+    expect(resolveAttribute("ramp", [edge], NOW).status).toBe("confirmed");
+  });
+
+  it("ignores confirmation dates in the future and counts without dates", () => {
+    // GIVEN a fact with two future confirmations and one with a count but no dates
+    const future = fact("ramp", bool(true), { evidence: { confirmations: 2, confirmationDates: [daysAgo(-1), daysAgo(-2)] } });
+    const undated = fact("ramp", bool(true), { evidence: { confirmations: 5 } });
+    // WHEN resolving
+    // THEN neither is confirmed
+    expect(resolveAttribute("ramp", [future], NOW).status).toBe("unverified");
+    expect(resolveAttribute("ramp", [undated], NOW).status).toBe("unverified");
+    expect(recentConfirmations(undated, NOW)).toBe(0);
+  });
+
+  it("keeps the original source reliability when confirmations raise the status", () => {
+    // GIVEN an OSM fact confirmed twice
+    const f = fact("ramp", bool(true), { evidence: confirmedBy(1, 2) });
+    // WHEN resolving
+    const result = resolveAttribute("ramp", [f], NOW);
+    // THEN the status is confirmed but the fact still names OSM as community data
+    expect(result.status).toBe("confirmed");
+    expect(result.facts[0]).toMatchObject({ reliability: "community", source: { id: "osm" } });
+  });
+
+  it("never turns missing data or a superseded fact into confirmed through confirmations", () => {
+    // GIVEN only a superseded fact that has confirmations
+    const f = fact("lift", bool(true), { status: "superseded", evidence: confirmedBy(1, 2, 3) });
+    // WHEN resolving
+    const result = resolveAttribute("lift", [f], NOW);
+    // THEN it is still "Brak danych"
+    expect(result).toMatchObject({ state: "unknown", status: "no_data", value: null });
   });
 
   it("reports a conflict with every fact and no winning value", () => {
@@ -133,7 +176,7 @@ describe("resolveAttribute", () => {
 
   it("never promotes sample facts to confirmed through confirmations", () => {
     // GIVEN a sample fact with 3 confirmations
-    const f = fact("ramp", bool(true), { reliability: "sample", evidence: { confirmations: 3 } });
+    const f = fact("ramp", bool(true), { reliability: "sample", evidence: confirmedBy(1, 2, 3) });
     // WHEN resolving
     // THEN it stays unverified
     expect(resolveAttribute("ramp", [f], NOW).status).toBe("unverified");
@@ -143,7 +186,7 @@ describe("resolveAttribute", () => {
     // GIVEN the most reliable fact has none, an agreeing report has two
     const facts = [
       fact("ramp", bool(true), { sourceId: "osm" }),
-      fact("ramp", bool(true), { sourceId: "report", reliability: "user_report", evidence: { confirmations: 2 } }),
+      fact("ramp", bool(true), { sourceId: "report", reliability: "user_report", evidence: confirmedBy(1, 2) }),
     ];
     // WHEN resolving
     // THEN the value is confirmed by the community

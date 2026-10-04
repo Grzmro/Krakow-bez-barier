@@ -9,6 +9,8 @@ import type {
 } from "@krakow-bez-barier/contracts";
 import { categories } from "@krakow-bez-barier/contracts";
 import type { FactSource, Reliability } from "@krakow-bez-barier/ui";
+import { COMMUNITY_CONFIRMATIONS_REQUIRED } from "@/domain/config";
+import { recentConfirmations } from "@/domain/resolver";
 import { factValueText, joinValue } from "@/i18n/fact-value";
 import { intlLocale, type Locale } from "@/i18n/locale";
 import { messagesFor } from "@/i18n/messages";
@@ -90,20 +92,35 @@ export function formatValue(
   return factValueText(attribute, value, messagesFor(locale).place, locale);
 }
 
-function factSource(fact: AccessibilityFact, withValue: boolean, locale: Locale): FactSource {
+/** The visitors' confirmations as their own provenance line: how many count under the 90-day rule, the last date, status. */
+function confirmationLine(fact: AccessibilityFact, now: Date, locale: Locale): string | undefined {
+  const t = messagesFor(locale).place;
+  const dates = fact.evidence?.confirmationDates ?? [];
+  if (dates.length === 0) return undefined;
+  const last = formatDate(dates[0], locale);
+  const recent = recentConfirmations(fact, now);
+  if (recent === 0) return t.oldConfirmations(dates.length, last);
+  const confirmable = fact.reliability === "community" || fact.reliability === "extracted" || fact.reliability === "user_report";
+  const status = !confirmable ? null : recent >= COMMUNITY_CONFIRMATIONS_REQUIRED ? t.communityConfirmed : t.unverified;
+  return [t.userConfirmations(recent, last), status].filter(Boolean).join(" · ");
+}
+
+function factSource(fact: AccessibilityFact, withValue: boolean, locale: Locale, now: Date): FactSource {
   const m = messagesFor(locale);
   const t = m.place;
-  const confirmations = fact.evidence?.confirmations ?? 0;
+  const dates = fact.evidence?.confirmationDates ?? [];
+  const lastUserConfirmation = dates[0];
+  // A visitor's confirmation also moves `confirmedAt`; it is shown on its own line, not as the source's date.
+  const sourceConfirmedAt =
+    fact.confirmedAt &&
+    !(lastUserConfirmation && Math.abs(new Date(fact.confirmedAt).getTime() - new Date(lastUserConfirmation).getTime()) < 5000)
+      ? fact.confirmedAt
+      : null;
   const detail = [
     fact.entrance ? t.entrance[fact.entrance] : null,
     t.level[fact.reliability],
-    fact.confirmedAt ? t.lastConfirmed(formatDate(fact.confirmedAt, locale)) : null,
-    fact.observedAt && !fact.confirmedAt ? t.sourceAsOf(formatDate(fact.observedAt, locale)) : null,
-    fact.reliability === "community" && confirmations > 0
-      ? confirmations >= 2
-        ? t.communityConfirmed
-        : t.confirmations(confirmations)
-      : null,
+    sourceConfirmedAt ? t.lastConfirmed(formatDate(sourceConfirmedAt, locale)) : null,
+    fact.observedAt && !sourceConfirmedAt ? t.sourceAsOf(formatDate(fact.observedAt, locale)) : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -119,6 +136,7 @@ function factSource(fact: AccessibilityFact, withValue: boolean, locale: Locale)
     value: withValue ? joinValue(formatValue(fact.attribute, fact.value, locale)) : undefined,
     detail,
     staleNote: fact.stale ? m.common.fact.maybeOutdated(formatDate(asOf, locale)) : undefined,
+    confirmation: confirmationLine(fact, now, locale),
     link: fact.evidence?.url ? { href: fact.evidence.url, label: t.sourcePage } : undefined,
   };
 }
@@ -141,7 +159,7 @@ export function cardRows(place: Pick<Place, "category" | "attributes">): Accessi
 }
 
 /** One card row per attribute; attributes the API didn't return are named as missing, never hidden. */
-export function factViews(place: Place, locale: Locale): FactView[] {
+export function factViews(place: Place, locale: Locale, now: Date = new Date()): FactView[] {
   const m = messagesFor(locale);
   const byAttribute = new Map<AccessibilityAttribute, ResolvedAttribute>(place.attributes.map((a) => [a.attribute, a]));
 
@@ -152,7 +170,7 @@ export function factViews(place: Place, locale: Locale): FactView[] {
       return { attribute, label, reliability: "unknown", sources: [], unknown: true, conflict: false };
     }
     const conflict = resolved.state === "conflict";
-    const sources = resolved.facts.map((f) => factSource(f, conflict, locale));
+    const sources = resolved.facts.map((f) => factSource(f, conflict, locale, now));
     if (conflict) {
       const values = [...new Set(resolved.facts.map((f) => joinValue(formatValue(attribute, f.value, locale))))];
       return { attribute, label, value: values.join(m.place.value.separator), reliability: "conflict", sources, unknown: false, conflict };

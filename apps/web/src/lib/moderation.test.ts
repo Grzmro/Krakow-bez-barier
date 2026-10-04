@@ -29,6 +29,7 @@ describe("changePreview", () => {
       attribute: "Szerokość drzwi",
       before: "Brak danych",
       beforeSource: null,
+      beforeConfirmations: null,
       after: "85 cm",
       beforeKnown: false,
     });
@@ -49,6 +50,18 @@ describe("changePreview", () => {
     expect(preview.before).toBe("Jest");
     expect(preview.after).toBe("Nie ma");
     expect(preview.beforeKnown).toBe(true);
+  });
+
+  it("tells the moderator how many users vouch for the value a report disputes", () => {
+    // GIVEN a report against a value two visitors confirmed, and one against a value nobody confirmed
+    const base = { attribute: "lift", value: { kind: "boolean", boolean: false }, currentValue: { kind: "boolean", boolean: true } } as const;
+    const backed = report({ ...base, currentConfirmations: { count: 2, lastAt: "2026-10-01T10:00:00Z" } });
+    const alone = report({ ...base, currentConfirmations: { count: 0, lastAt: null } });
+
+    // WHEN previewing each
+    // THEN the card-to-be shows the confirmations apart from the source
+    expect(changePreview(backed, "pl").beforeConfirmations).toMatch(/^Potwierdzone przez użytkowników: 2, ostatnio /);
+    expect(changePreview(alone, "pl").beforeConfirmations).toBe("Bez potwierdzeń użytkowników");
   });
 });
 

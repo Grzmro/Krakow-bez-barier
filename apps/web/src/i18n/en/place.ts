@@ -24,7 +24,7 @@ export const place: Messages["place"] = {
   email: "Email",
   fill: "Fill in",
   notRight: "This isn't right",
-  confirm: "I confirm, I've been here",
+  confirm: "Still current",
   confirmed: "Confirmation saved.",
   confirmFailed: "Couldn't save the confirmation. Try again.",
   confirmLimited: "This value was already confirmed from this network today. Try again tomorrow.",
@@ -160,7 +160,11 @@ export const place: Messages["place"] = {
     sample: "sample",
   },
   lastConfirmed: (date: string) => `last confirmed ${date}`,
-  confirmations: (n: number) => `${n}/2 confirmations`,
+  userConfirmations: (recent: number, last: string) =>
+    `Confirmed by users: ${recent}/2 within 90 days, last ${last}`,
+  oldConfirmations: (total: number, last: string) =>
+    `User confirmations (${total}) are older than 90 days, last ${last}`,
+  unverified: "unverified",
   communityConfirmed: "confirmed by the community",
   sourceAsOf: (date: string) => `as of ${date} per the source`,
   sourcePage: "Source page",

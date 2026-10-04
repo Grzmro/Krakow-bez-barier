@@ -50,6 +50,10 @@ export const moderator = {
   afterSourceDemo: "Źródło: Konto demonstracyjne moderatora (zmiana tymczasowa)",
   noData: "Brak danych",
   sourceLine: (source: string, date: string) => `${source} · ${date}`,
+  confirmationsLine: (count: number, last: string | null) =>
+    count === 0
+      ? "Bez potwierdzeń użytkowników"
+      : `Potwierdzone przez użytkowników: ${count}${last ? `, ostatnio ${last}` : ""}`,
   reportedOn: (date: string) => `Zgłoszone ${date}`,
   comment: "Komentarz zgłaszającego",
   note: "Notatka do decyzji (opcjonalnie)",

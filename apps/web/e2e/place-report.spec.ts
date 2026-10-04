@@ -254,14 +254,14 @@ test("Cofnij after the report has left says it was already sent", async ({ page 
   await expect(page.getByRole("status").filter({ hasText: "Zgłoszenie zostało już wysłane" })).toBeAttached();
 });
 
-test("Potwierdzam, byłem tu records a confirmation beside the fact", async ({ page, expectAccessible }) => {
+test("Nadal aktualne records a confirmation beside the fact", async ({ page, expectAccessible }) => {
   // GIVEN the step-free entrance of the conflicting demo place
   await page.goto("/miejsca/palac-krzysztofory");
   const steps = page.getByRole("button", { name: /Wejście — stopnie/ });
   const row = page.locator("li").filter({ has: steps });
 
   // WHEN the visitor confirms it from the keyboard
-  await row.getByRole("button", { name: "Potwierdzam, byłem tu" }).focus();
+  await row.getByRole("button", { name: "Nadal aktualne" }).focus();
   await page.keyboard.press("Enter");
 
   // THEN the thanks are shown and announced, the confirmation is listed and can't be sent twice
@@ -269,7 +269,7 @@ test("Potwierdzam, byłem tu records a confirmation beside the fact", async ({ p
   await expect(page.getByRole("status").filter({ hasText: "Potwierdzenie zapisane." })).toBeAttached();
   await expect(row).toContainText("Twoje potwierdzenie:Bez stopni");
   await expect(row).toContainText("Potwierdzono");
-  await expect(row.getByRole("button", { name: "Potwierdzam, byłem tu" })).toHaveCount(0);
+  await expect(row.getByRole("button", { name: "Nadal aktualne" })).toHaveCount(0);
   await expect(row.getByRole("button", { name: "To się nie zgadza" })).toHaveCount(0);
   // AND focus stays in the row, on "Zmień", instead of falling back to the page
   await expect(row.getByRole("button", { name: "Zmień", exact: true })).toBeFocused();

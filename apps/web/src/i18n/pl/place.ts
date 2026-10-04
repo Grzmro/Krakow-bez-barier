@@ -33,7 +33,7 @@ export const place = {
   email: "E-mail",
   fill: "Uzupełnij",
   notRight: "To się nie zgadza",
-  confirm: "Potwierdzam, byłem tu",
+  confirm: "Nadal aktualne",
   confirmed: "Potwierdzenie zapisane.",
   confirmFailed: "Nie udało się zapisać potwierdzenia. Spróbuj ponownie.",
   confirmLimited: "Ta wartość była już dziś potwierdzona z tej sieci. Spróbuj jutro.",
@@ -174,7 +174,11 @@ export const place = {
     sample: "przykład",
   } satisfies Record<Reliability, string>,
   lastConfirmed: (date: string) => `ostatnio potwierdzone ${date}`,
-  confirmations: (n: number) => `${n}/2 potwierdzeń`,
+  userConfirmations: (recent: number, last: string) =>
+    `Potwierdzone przez użytkowników: ${recent}/2 w ciągu 90 dni, ostatnio ${last}`,
+  oldConfirmations: (total: number, last: string) =>
+    `Potwierdzenia użytkowników (${total}) są starsze niż 90 dni, ostatnio ${last}`,
+  unverified: "niezweryfikowane",
   communityConfirmed: "potwierdzone przez społeczność",
   sourceAsOf: (date: string) => `stan na ${date} wg źródła`,
   sourcePage: "Strona źródła",

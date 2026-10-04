@@ -1,4 +1,5 @@
 import type { AccessibilityAttribute, AccessibilityFact, ReportStatus } from "@krakow-bez-barier/contracts";
+import { confirmationDatesSql, toConfirmationDates } from "../places/repository";
 import { confirmations, facts, moderationLog, places, reports, sources, type Db } from "@krakow-bez-barier/db";
 import { and, asc, desc, eq, gt, inArray, isNull, lt, ne, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/server/db";
@@ -42,9 +43,9 @@ const toRecord = (row: ReportRow): ReportRecord => ({
   decidedAt: row.decidedAt,
 });
 
-type FactWithSource = { fact: typeof facts.$inferSelect; source: typeof sources.$inferSelect };
+type FactWithSource = { fact: typeof facts.$inferSelect; source: typeof sources.$inferSelect; confirmationDates: unknown };
 
-function toFact({ fact, source }: FactWithSource): AccessibilityFact {
+function toFact({ fact, source, confirmationDates }: FactWithSource): AccessibilityFact {
   return {
     id: fact.id,
     attribute: fact.attribute,
@@ -59,7 +60,10 @@ function toFact({ fact, source }: FactWithSource): AccessibilityFact {
       ? {
           photoUrl: fact.evidence.photoUrl ?? null,
           comment: fact.evidence.comment ?? null,
-          ...(fact.evidence.confirmations !== undefined && { confirmations: fact.evidence.confirmations }),
+          ...(fact.evidence.confirmations !== undefined && {
+            confirmations: fact.evidence.confirmations,
+            confirmationDates: toConfirmationDates(confirmationDates),
+          }),
         }
       : null,
     status: fact.status,
@@ -212,7 +216,7 @@ export function createDrizzleReportsStore(db: Db): ReportsStore {
           .where(inArray(moderationLog.reportId, reportIds))
           .orderBy(asc(moderationLog.createdAt), asc(moderationLog.id)),
         db
-          .select({ fact: facts, source: sources })
+          .select({ fact: facts, source: sources, confirmationDates: confirmationDatesSql })
           .from(facts)
           .innerJoin(sources, eq(sources.id, facts.sourceId))
           .where(and(inArray(facts.placeId, placeIds), eq(facts.status, "active"))),

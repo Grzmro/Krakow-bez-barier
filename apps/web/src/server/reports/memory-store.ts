@@ -26,7 +26,12 @@ export function createMemoryReportsStore(seed: { places?: MemoryPlace[]; facts?:
     const fact = facts.find((f) => f.id === factId);
     if (!fact) return;
     if (confirmedAt) fact.confirmedAt = confirmedAt.toISOString();
-    fact.evidence = { ...fact.evidence, confirmations: confirmations.filter((c) => c.factId === factId).length };
+    const own = confirmations.filter((c) => c.factId === factId);
+    fact.evidence = {
+      ...fact.evidence,
+      confirmations: own.length,
+      confirmationDates: own.map((c) => c.createdAt.toISOString()).sort().reverse(),
+    };
   };
   const publicConfirmation = (c: MemoryConfirmation): ConfirmationRecord => ({
     id: c.id,

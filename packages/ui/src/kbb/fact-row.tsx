@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, type ReactNode } from "react";
-import { ArrowSquareOut, CaretDown, ClockCounterClockwise } from "@phosphor-icons/react";
+import { ArrowSquareOut, CaretDown, CheckCircle, ClockCounterClockwise } from "@phosphor-icons/react";
 import { cn } from "../cn";
 import type { Reliability, Status } from "../types";
 import { ReliabilityBadge, StatusBadge } from "./status";
@@ -15,6 +15,8 @@ export interface FactSource {
   value?: string;
   /** Extra line, e.g. "2/2 potwierdzeń". */
   detail?: string;
+  /** Separate provenance line for visitors' "still current" confirmations, e.g. "Potwierdzone przez użytkowników: 2/2 w ciągu 90 dni". */
+  confirmation?: string;
   /** Staleness warning, e.g. "Może być nieaktualne · 2021-05-04". */
   staleNote?: string;
   /** What the source says, e.g. the quoted sentence a fact was read from. */
@@ -159,6 +161,12 @@ export function FactRow({
                       {labels.acquired} {s.date}
                       {s.detail ? ` · ${s.detail}` : null}
                     </span>
+                    {s.confirmation ? (
+                      <span className="flex items-center gap-1 font-semibold text-foreground">
+                        <CheckCircle className="size-3.5 shrink-0" aria-hidden />
+                        {s.confirmation}
+                      </span>
+                    ) : null}
                     {s.staleNote ? (
                       <span className="flex items-center gap-1 font-semibold text-status-conflict">
                         <ClockCounterClockwise className="size-3.5" aria-hidden />

@@ -97,6 +97,7 @@ export function toFact(record: FactRecord, now: Date): AccessibilityFact {
             comment: evidence?.comment ?? null,
             ...(evidence?.url ? { url: evidence.url } : {}),
             confirmations: record.confirmations,
+            confirmationDates: record.confirmationDates,
           }
         : null,
     status: record.status,

@@ -228,14 +228,18 @@ export function currentOf(
   attribute: AccessibilityAttribute,
   facts: AccessibilityFact[],
   now: Date,
-): Pick<ModerationReport, "currentValue" | "currentSource"> {
+): Pick<ModerationReport, "currentValue" | "currentSource" | "currentConfirmations"> {
   const resolved = resolveAttribute(attribute, facts, now);
-  if (!resolved.value) return { currentValue: null, currentSource: null };
+  if (!resolved.value) return { currentValue: null, currentSource: null, currentConfirmations: null };
   // The resolver decides on fresh facts first; all of them agree here, so the first fresh one is the value's source.
   const shown = resolved.facts.find((f) => !isStale(f, now)) ?? resolved.facts[0];
   return {
     currentValue: resolved.value,
     currentSource: { name: shown.source.name, asOf: shown.confirmedAt ?? shown.observedAt ?? shown.fetchedAt },
+    currentConfirmations: {
+      count: shown.evidence?.confirmations ?? 0,
+      lastAt: shown.evidence?.confirmationDates?.[0] ?? null,
+    },
   };
 }
 
